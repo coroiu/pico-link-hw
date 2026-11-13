@@ -1,5 +1,9 @@
 # Agent Instructions
 
+Project context (what this repo is, hardware architecture, planning
+conventions, team roles) lives in `CLAUDE.md` — read that too, not just this
+file.
+
 This project uses **bd** (beads) for issue tracking. Run `bd prime` for full workflow context.
 
 > **Architecture in one line:** Issues live in a local Dolt database

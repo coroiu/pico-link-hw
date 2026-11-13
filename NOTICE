@@ -1,0 +1,17 @@
+Required Notice: Copyright (c) 2026 Andreas Coroiu (https://github.com/coroiu)
+
+This hardware design (PCB, enclosure, BOM) is licensed under the PolyForm
+Noncommercial License 1.0.0 (see LICENSE.md). Personal, non-commercial use,
+including building your own board and enclosure from these files, is
+permitted. Commercial use (manufacturing or selling assembled units) requires
+separate permission from the copyright holder.
+
+Selling finished units commercially would additionally require working
+through the radio modules' own regulatory conditions (FCC/IC/CE modular
+certification) and Sony's separate LDAC certification process for the
+firmware this hardware runs — see docs/plans/2026-11-13-custom-hardware-design.md
+and .research/findings/ for details. Fine for an open-source,
+build-it-yourself project; a real gate if that ever changes.
+
+This repo is the hardware companion to the Pico Link firmware project
+(https://github.com/coroiu/pico-link), which has its own licensing notice.

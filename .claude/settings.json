@@ -9,6 +9,113 @@
           }
         ],
         "matcher": ""
+      },
+      {
+        "hooks": [
+          {
+            "command": "bash .claude/hooks/session-start.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "command": "bash .claude/hooks/clarify-vague-request.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "bash .claude/hooks/block-orchestrator-tools.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write|NotebookEdit|Bash|mcp__provider_delegator__invoke_agent"
+      },
+      {
+        "hooks": [
+          {
+            "command": "bash .claude/hooks/enforce-branch-before-edit.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write"
+      },
+      {
+        "hooks": [
+          {
+            "command": "bash .claude/hooks/enforce-bead-for-supervisor.sh",
+            "type": "command"
+          },
+          {
+            "command": "bash .claude/hooks/enforce-sequential-dispatch.sh",
+            "type": "command"
+          },
+          {
+            "command": "bash .claude/hooks/remind-inprogress.sh",
+            "type": "command"
+          },
+          {
+            "command": "bash .claude/hooks/inject-discipline-reminder.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Task"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "bash .claude/hooks/enforce-concise-response.sh",
+            "type": "command"
+          },
+          {
+            "command": "bash .claude/hooks/log-dispatch-prompt.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Task"
+      },
+      {
+        "hooks": [
+          {
+            "command": "bash .claude/hooks/memory-capture.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "command": "bash .claude/hooks/validate-completion.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "command": "bash .claude/hooks/nudge-claude-md-update.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "manual|auto"
       }
     ]
   }
