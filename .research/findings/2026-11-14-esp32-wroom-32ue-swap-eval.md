@@ -114,9 +114,11 @@ named `ESP32-WROOM-32UE` (extends `ESP32-WROOM-32E`'s graphics/pins, same
 pattern KiCad uses for the U/D pair), with its `Footprint` property
 pre-set to `RF_Module:ESP32-WROOM-32UE` and `Datasheet` property pre-set
 to the correct 32E/32UE datasheet URL. The footprint
-`RF_Module.pretty/ESP32-WROOM-32UE.kicad_mod` also already exists, with a
-matching 3D model (`.step`/`.wrl`). **No new symbol/footprint authoring
-is needed to swap** — this removes what the bead framed as the main
+`RF_Module.pretty/ESP32-WROOM-32UE.kicad_mod` also already exists and
+points to a `.wrl` 3D model path, but the installed 3D-model package
+only ships models for 32U and 32E, not 32UE — a cosmetic gap in the
+3D viewer only, with no effect on copper, pinout, or fab outputs.
+**No new symbol/footprint authoring is needed to swap** — this removes what the bead framed as the main
 up-front implementation cost of swapping.
 
 **8. Footprint-level diff: pad numbering/net assignment is identical, pad
