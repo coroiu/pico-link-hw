@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "RP2350_80QFN")(type "KiCad")(uri "${KIPRJMOD}/footprints/RP2350_80QFN.pretty")(options "")(descr "Raspberry Pi's own RP2350B QFN-80 footprint, copied from the official RP-006442-DD-2 minimal reference design archive (see rp2350b_memory.kicad_sch notes)."))
+)
