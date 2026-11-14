@@ -61,6 +61,20 @@
     border-radius: 8px;
     display: block;
   }
+  .render embed {
+    width: 100%;
+    height: 420px;
+    background: #fff;
+    border-radius: 8px;
+    display: block;
+    border: none;
+  }
+  .render a {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--fg);
+  }
   .missing {
     color: var(--muted);
     font-size: 0.9rem;
@@ -92,6 +106,12 @@
     <h2>PCB (2D render)</h2>
     <img id="pcb-render" src="/renders/pcb.svg" alt="PCB 2D render" />
   </div>
+
+  <div class="card render">
+    <h2>Schematic (PDF)</h2>
+    <embed id="schematic-pdf" src="/renders/schematic.pdf" type="application/pdf" />
+    <a id="schematic-link" href="/renders/schematic.pdf" target="_blank" rel="noopener">Open full size</a>
+  </div>
 </div>
 
 <script>
@@ -115,6 +135,8 @@
         bust(document.getElementById('pcb-model'), 'src', '/models/pcb.glb', lastExport);
         bust(document.getElementById('enclosure-model'), 'src', '/models/enclosure.glb', lastExport);
         bust(document.getElementById('pcb-render'), 'src', '/renders/pcb.svg', lastExport);
+        bust(document.getElementById('schematic-pdf'), 'src', '/renders/schematic.pdf', lastExport);
+        bust(document.getElementById('schematic-link'), 'href', '/renders/schematic.pdf', lastExport);
         document.getElementById('status').textContent = 'Last export: ' + lastExport + ' UTC';
       }
     } catch (err) {
