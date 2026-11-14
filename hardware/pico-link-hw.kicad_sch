@@ -1,0 +1,241 @@
+(kicad_sch
+	(version 20231120)
+	(generator "eeschema")
+	(generator_version "8.0")
+	(uuid "130cc37a-fa96-4c5f-8ea3-bd251e4a10af")
+	(paper "A4")
+	(title_block
+		(title "Pico Link custom hardware")
+		(date "2026-11-14")
+		(rev "skeleton")
+		(company "Pico Link")
+	)
+	(lib_symbols)
+	(sheet
+		(at 20.0 20.0)
+		(size 50.0 30.0)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "e9d2ab0d-2e3d-4864-b414-22997131ac08")
+		(property "Sheetname" "Power"
+			(at 20.0 19.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "power.kicad_sch"
+			(at 20.0 51.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "pico-link-hw"
+				(path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 100.0 20.0)
+		(size 50.0 30.0)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "f1860524-9b6a-41dc-814e-76e5cac2088b")
+		(property "Sheetname" "RP2350B + Memory"
+			(at 100.0 19.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "rp2350b_memory.kicad_sch"
+			(at 100.0 51.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "pico-link-hw"
+				(path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 180.0 20.0)
+		(size 50.0 30.0)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "6e3f0df1-4cda-4dca-9ed6-032bf09f7004")
+		(property "Sheetname" "ESP32 BT Coprocessor"
+			(at 180.0 19.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "esp32_bt.kicad_sch"
+			(at 180.0 51.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "pico-link-hw"
+				(path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20.0 100.0)
+		(size 50.0 30.0)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef")
+		(property "Sheetname" "Display"
+			(at 20.0 99.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "display.kicad_sch"
+			(at 20.0 131.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "pico-link-hw"
+				(path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 100.0 100.0)
+		(size 50.0 30.0)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "989ddb5a-cf15-45dc-90a3-fbcc88981191")
+		(property "Sheetname" "Input"
+			(at 100.0 99.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "input.kicad_sch"
+			(at 100.0 131.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "pico-link-hw"
+				(path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 180.0 100.0)
+		(size 50.0 30.0)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "c4d4de3c-75c3-4587-88ec-f92e6fda3baf")
+		(property "Sheetname" "USB-C"
+			(at 180.0 99.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "usb_c.kicad_sch"
+			(at 180.0 131.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "pico-link-hw"
+				(path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af"
+					(page "7")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)

@@ -1,0 +1,14 @@
+(kicad_sch
+	(version 20231120)
+	(generator "eeschema")
+	(generator_version "8.0")
+	(uuid "79f8235b-ea71-4a0c-9302-db0147d1ddf7")
+	(paper "A4")
+	(title_block
+		(title "Pico Link custom hardware")
+		(date "2026-11-14")
+		(rev "skeleton")
+		(company "Pico Link")
+	)
+	(lib_symbols)
+)
