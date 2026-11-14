@@ -9,3 +9,9 @@ Not started yet — see "Enclosure" and "Deliverables" in
 OpenSCAD isn't available in the agent environment this repo was scaffolded
 in. A parametric `.scad` file can be authored as code, but rendering and
 fit-checking need OpenSCAD installed on a machine that has it.
+
+`cube.scad` is a trivial seed file for the `preview/` docker-compose
+service — it proves the OpenSCAD -> STL -> GLB export pipeline end-to-end
+before the real enclosure exists. Delete it once the real enclosure from
+pilink-8hx lands; the preview pipeline picks up whatever `*.scad` file it
+finds here.

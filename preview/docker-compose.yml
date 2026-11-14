@@ -1,0 +1,15 @@
+services:
+  preview:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      # Bind on all interfaces, not just localhost, so it's reachable from
+      # other devices (e.g. a phone) on the same LAN. 8788, not the more
+      # obvious 8787, because something else on this machine already uses
+      # 8787.
+      - "0.0.0.0:8788:8787"
+    volumes:
+      - ../hardware:/work/hardware:ro
+      - ../enclosure:/work/enclosure:ro
+    restart: unless-stopped

@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pico Link HW preview</title>
+<script type="module" src="/vendor/model-viewer.min.js"></script>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #666666;
+    --card-bg: #f4f4f5;
+    --border: #e2e2e4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15161a;
+      --fg: #e8e8ea;
+      --muted: #9a9aa2;
+      --card-bg: #1f2024;
+      --border: #30313a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 16px;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  header { margin-bottom: 16px; }
+  h1 { font-size: 1.25rem; margin: 0 0 4px; }
+  #status { color: var(--muted); font-size: 0.85rem; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .card h2 {
+    font-size: 1rem;
+    margin: 0 0 8px;
+  }
+  model-viewer {
+    width: 100%;
+    height: 360px;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+  }
+  .render img {
+    width: 100%;
+    background: #fff;
+    border-radius: 8px;
+    display: block;
+  }
+  .missing {
+    color: var(--muted);
+    font-size: 0.9rem;
+    padding: 24px 0;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Pico Link hardware preview</h1>
+  <div id="status">loading status...</div>
+</header>
+
+<div class="grid">
+  <div class="card">
+    <h2>PCB (3D)</h2>
+    <model-viewer id="pcb-model" src="/models/pcb.glb" camera-controls auto-rotate
+      shadow-intensity="1" exposure="1" alt="PCB 3D model"></model-viewer>
+  </div>
+
+  <div class="card">
+    <h2>Enclosure (3D)</h2>
+    <model-viewer id="enclosure-model" src="/models/enclosure.glb" camera-controls auto-rotate
+      shadow-intensity="1" exposure="1" alt="Enclosure 3D model"></model-viewer>
+  </div>
+
+  <div class="card render">
+    <h2>PCB (2D render)</h2>
+    <img id="pcb-render" src="/renders/pcb.svg" alt="PCB 2D render" />
+  </div>
+</div>
+
+<script>
+  // Poll status.json. On a new export timestamp, cache-bust the model/render
+  // URLs so the page updates in place without a manual reload -- a plain
+  // page refresh works too since the URLs are always query-string-stamped
+  // from the last known export time.
+  let lastExport = null;
+
+  function bust(el, attr, baseUrl, ts) {
+    el.setAttribute(attr, baseUrl + '?t=' + encodeURIComponent(ts));
+  }
+
+  async function poll() {
+    try {
+      const res = await fetch('/status.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error('status ' + res.status);
+      const data = await res.json();
+      if (data.last_export && data.last_export !== lastExport) {
+        lastExport = data.last_export;
+        bust(document.getElementById('pcb-model'), 'src', '/models/pcb.glb', lastExport);
+        bust(document.getElementById('enclosure-model'), 'src', '/models/enclosure.glb', lastExport);
+        bust(document.getElementById('pcb-render'), 'src', '/renders/pcb.svg', lastExport);
+        document.getElementById('status').textContent = 'Last export: ' + lastExport + ' UTC';
+      }
+    } catch (err) {
+      document.getElementById('status').textContent = 'Status unavailable: ' + err;
+    }
+  }
+
+  poll();
+  setInterval(poll, 5000);
+</script>
+</body>
+</html>
