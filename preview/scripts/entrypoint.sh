@@ -31,7 +31,7 @@ inotifywait -m -r -e close_write,create,delete,move --format '%w%f' \
     "$HARDWARE_DIR" "$ENCLOSURE_DIR" 2>&1 |
 while read -r changed_path; do
   case "$changed_path" in
-    *.kicad_pcb | *.scad)
+    *.kicad_pcb | *.scad | *.kicad_sch)
       echo "[watch] change detected: $changed_path"
       /preview/scripts/export.sh
       ;;
