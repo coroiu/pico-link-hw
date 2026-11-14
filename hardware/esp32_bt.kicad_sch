@@ -1278,10 +1278,10 @@
   (symbol (lib_id "RF_Module:ESP32-WROOM-32U") (at 180.34 190.5 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 50aaedf0-7ff6-4dd3-afce-890bf06f1c5f)
-    (property "Reference" "U1" (at 167.64 224.79 0)
+    (property "Reference" "U201" (at 167.64 224.79 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "ESP32-WROOM-32U-N4" (at 181.61 224.79 0)
+    (property "Value" "ESP32-WROOM-32U-N4" (at 214.9 224.79 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "RF_Module:ESP32-WROOM-32U" (at 180.34 152.4 0)
@@ -1332,7 +1332,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/6e3f0df1-4cda-4dca-9ed6-032bf09f7004"
-          (reference "U1") (unit 1)
+          (reference "U201") (unit 1)
         )
       )
     )
@@ -1340,7 +1340,7 @@
   (symbol (lib_id "power:GND") (at 180.34 226.06 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid a8608c30-8209-44b4-9fc9-81537998937b)
-    (property "Reference" "#PWR01" (at 180.34 222.25 0)
+    (property "Reference" "#PWR201" (at 180.34 222.25 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 180.34 232.41 0)
@@ -1356,7 +1356,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/6e3f0df1-4cda-4dca-9ed6-032bf09f7004"
-          (reference "#PWR01") (unit 1)
+          (reference "#PWR201") (unit 1)
         )
       )
     )
@@ -1364,7 +1364,7 @@
   (symbol (lib_id "power:+3V3") (at 180.34 154.94 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid d06dd444-3775-4af4-bc15-e00a50b80833)
-    (property "Reference" "#PWR02" (at 180.34 151.13 0)
+    (property "Reference" "#PWR202" (at 180.34 151.13 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 180.34 150.114 0)
@@ -1380,7 +1380,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/6e3f0df1-4cda-4dca-9ed6-032bf09f7004"
-          (reference "#PWR02") (unit 1)
+          (reference "#PWR202") (unit 1)
         )
       )
     )
@@ -1388,10 +1388,10 @@
   (symbol (lib_id "Device:R") (at 149.86 156.21 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid f88b2580-d085-4704-b468-39c3519c9bd5)
-    (property "Reference" "R1" (at 151.892 156.21 90)
+    (property "Reference" "R201" (at 151.892 156.21 90)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "10k" (at 149.86 156.21 90)
+    (property "Value" "10k" (at 147.828 156.21 90)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "Resistor_SMD:R_0603_1608Metric" (at 149.86 156.21 0)
@@ -1405,7 +1405,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/6e3f0df1-4cda-4dca-9ed6-032bf09f7004"
-          (reference "R1") (unit 1)
+          (reference "R201") (unit 1)
         )
       )
     )
@@ -1413,7 +1413,7 @@
   (symbol (lib_id "power:+3V3") (at 149.86 152.4 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 802feb74-a2af-49c8-bea1-4faf58676d42)
-    (property "Reference" "#PWR03" (at 149.86 148.59 0)
+    (property "Reference" "#PWR203" (at 149.86 148.59 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 149.86 147.574 0)
@@ -1429,7 +1429,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/6e3f0df1-4cda-4dca-9ed6-032bf09f7004"
-          (reference "#PWR03") (unit 1)
+          (reference "#PWR203") (unit 1)
         )
       )
     )
@@ -1437,7 +1437,7 @@
   (symbol (lib_id "Device:C") (at 134.62 163.83 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 4802ed41-ee1c-463c-a097-e3401bc9771e)
-    (property "Reference" "C3" (at 135.255 166.37 0)
+    (property "Reference" "C203" (at 135.255 166.37 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "1uF" (at 135.255 161.29 0)
@@ -1454,7 +1454,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/6e3f0df1-4cda-4dca-9ed6-032bf09f7004"
-          (reference "C3") (unit 1)
+          (reference "C203") (unit 1)
         )
       )
     )
@@ -1462,7 +1462,7 @@
   (symbol (lib_id "power:GND") (at 134.62 167.64 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid e030653d-f70d-4b25-aadd-6b97949efdcf)
-    (property "Reference" "#PWR04" (at 134.62 163.83 0)
+    (property "Reference" "#PWR204" (at 134.62 163.83 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 134.62 173.99 0)
@@ -1478,7 +1478,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/6e3f0df1-4cda-4dca-9ed6-032bf09f7004"
-          (reference "#PWR04") (unit 1)
+          (reference "#PWR204") (unit 1)
         )
       )
     )
@@ -1512,10 +1512,10 @@
   (symbol (lib_id "Device:R") (at 204.47 156.21 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid ad4f3490-441f-43b2-b016-aca9c68dd883)
-    (property "Reference" "R2" (at 206.502 156.21 90)
+    (property "Reference" "R202" (at 206.502 156.21 90)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "10k" (at 204.47 156.21 90)
+    (property "Value" "10k" (at 202.438 156.21 90)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "Resistor_SMD:R_0603_1608Metric" (at 204.47 156.21 0)
@@ -1529,7 +1529,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/6e3f0df1-4cda-4dca-9ed6-032bf09f7004"
-          (reference "R2") (unit 1)
+          (reference "R202") (unit 1)
         )
       )
     )
@@ -1537,7 +1537,7 @@
   (symbol (lib_id "power:+3V3") (at 204.47 152.4 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid a8281558-2fc1-4510-a8b3-d8ecc5c40bbe)
-    (property "Reference" "#PWR05" (at 204.47 148.59 0)
+    (property "Reference" "#PWR205" (at 204.47 148.59 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 204.47 147.574 0)
@@ -1553,7 +1553,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/6e3f0df1-4cda-4dca-9ed6-032bf09f7004"
-          (reference "#PWR05") (unit 1)
+          (reference "#PWR205") (unit 1)
         )
       )
     )
@@ -1562,18 +1562,18 @@
     (stroke (width 0) (type default))
     (uuid 1ede6dcb-5bd4-456c-b3cf-7e2196dd4cfb)
   )
-  (wire (pts (xy 204.47 160.02) (xy 224.79 160.02))
+  (wire (pts (xy 204.47 160.02) (xy 213.36 160.02))
     (stroke (width 0) (type default))
     (uuid 4a7e52c9-bafc-4c84-9ec9-1a65aacb1d4a)
   )
   (junction (at 204.47 160.02) (diameter 0) (color 0 0 0 0)
     (uuid 21df8f59-61c1-48d9-a4d5-5f92444026b0)
   )
-  (global_label "ESP32_BOOT0" (shape output) (at 224.79 160.02 0)
+  (global_label "ESP32_BOOT0" (shape output) (at 213.36 160.02 0)
     (fields_autoplaced yes)
     (effects (font (size 1.27 1.27)) (justify left))
     (uuid fe70804f-4988-4f0d-b839-297475add976)
-    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 224.79 160.02 0)
+    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 213.36 160.02 0)
       (effects (font (size 1.27 1.27)) hide)
     )
   )
@@ -1637,22 +1637,22 @@
       (effects (font (size 1.27 1.27)) hide)
     )
   )
-  (wire (pts (xy 195.58 162.56) (xy 219.71 162.56))
+  (wire (pts (xy 195.58 162.56) (xy 210.82 162.56))
     (stroke (width 0) (type default))
     (uuid a6024f9e-e3f0-4606-b0be-ba156a5db9d0)
   )
-  (global_label "ESP32_FLASH_TXD0" (shape output) (at 219.71 162.56 0)
+  (global_label "ESP32_FLASH_TXD0" (shape output) (at 210.82 162.56 0)
     (fields_autoplaced yes)
     (effects (font (size 1.27 1.27)) (justify left))
     (uuid c175dd14-6be8-48e4-ac2f-8c27d0d7c2ba)
-    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 219.71 162.56 0)
+    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 210.82 162.56 0)
       (effects (font (size 1.27 1.27)) hide)
     )
   )
   (symbol (lib_id "Device:C") (at 160.02 229.87 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid b1b1a876-d139-48a6-b4b6-14f412cacc50)
-    (property "Reference" "C1" (at 160.655 232.41 0)
+    (property "Reference" "C201" (at 160.655 232.41 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "10uF" (at 160.655 227.33 0)
@@ -1669,7 +1669,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/6e3f0df1-4cda-4dca-9ed6-032bf09f7004"
-          (reference "C1") (unit 1)
+          (reference "C201") (unit 1)
         )
       )
     )
@@ -1677,7 +1677,7 @@
   (symbol (lib_id "power:+3V3") (at 160.02 226.06 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 92e2a005-fd60-4dc1-bda3-3436e8f6fc17)
-    (property "Reference" "#PWR06" (at 160.02 222.25 0)
+    (property "Reference" "#PWR206" (at 160.02 222.25 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 160.02 221.234 0)
@@ -1693,7 +1693,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/6e3f0df1-4cda-4dca-9ed6-032bf09f7004"
-          (reference "#PWR06") (unit 1)
+          (reference "#PWR206") (unit 1)
         )
       )
     )
@@ -1701,7 +1701,7 @@
   (symbol (lib_id "power:GND") (at 160.02 233.68 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 18a530c6-a82b-4dec-baae-6b4da4edc630)
-    (property "Reference" "#PWR07" (at 160.02 229.87 0)
+    (property "Reference" "#PWR207" (at 160.02 229.87 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 160.02 240.03 0)
@@ -1717,7 +1717,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/6e3f0df1-4cda-4dca-9ed6-032bf09f7004"
-          (reference "#PWR07") (unit 1)
+          (reference "#PWR207") (unit 1)
         )
       )
     )
@@ -1725,7 +1725,7 @@
   (symbol (lib_id "Device:C") (at 199.39 229.87 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 4cbbb334-11ff-426c-8d4a-87d382e0775f)
-    (property "Reference" "C2" (at 200.025 232.41 0)
+    (property "Reference" "C202" (at 200.025 232.41 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "100nF" (at 200.025 227.33 0)
@@ -1742,7 +1742,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/6e3f0df1-4cda-4dca-9ed6-032bf09f7004"
-          (reference "C2") (unit 1)
+          (reference "C202") (unit 1)
         )
       )
     )
@@ -1750,7 +1750,7 @@
   (symbol (lib_id "power:+3V3") (at 199.39 226.06 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 117f0fe6-1650-421a-a8c9-a0d731b582a7)
-    (property "Reference" "#PWR08" (at 199.39 222.25 0)
+    (property "Reference" "#PWR208" (at 199.39 222.25 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 199.39 221.234 0)
@@ -1766,7 +1766,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/6e3f0df1-4cda-4dca-9ed6-032bf09f7004"
-          (reference "#PWR08") (unit 1)
+          (reference "#PWR208") (unit 1)
         )
       )
     )
@@ -1774,7 +1774,7 @@
   (symbol (lib_id "power:GND") (at 199.39 233.68 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 380a9d71-e5c3-44fb-9d12-9041f428928b)
-    (property "Reference" "#PWR09" (at 199.39 229.87 0)
+    (property "Reference" "#PWR209" (at 199.39 229.87 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 199.39 240.03 0)
@@ -1790,7 +1790,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/6e3f0df1-4cda-4dca-9ed6-032bf09f7004"
-          (reference "#PWR09") (unit 1)
+          (reference "#PWR209") (unit 1)
         )
       )
     )
@@ -1886,23 +1886,23 @@
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid b1957ad6-cf56-4d78-9002-ad9acb12439b)
   )
-  (text "HCI UART (4-wire, hardware flow control, separate from UART0 flashing\npins): TXD5(pin29/IO5), RXD18(pin30/IO18), RTS19(pin31/IO19),\nCTS23(pin37/IO23) @ 921600 baud -- re-verified directly against\nEspressif's esp-idf master-branch controller_hci_uart example README\n(github.com/espressif/esp-idf, fetched 2026-11-14): \"the HCI UART TX pin\nis 5, the RX pin is 18, the RTS/CTS pins are 19/23, the baud rate is\n921600, and hardware flow control is enabled\" -- matches the\n2026-11-14 addendum in\n.research/findings/2026-11-13-esp32-hci-uart-coprocessor-viability.md.\nNo chipset-specific firmware/.hcd patch-load step is needed at HCI init\n(resolved in that research pass, bead pilink-kfa) -- controller firmware\nis flashed once via the UART0 pins below, then answers standard HCI\nimmediately on every boot thereafter." (at 240 15 0)
+  (text "HCI UART (4-wire, hardware flow control, separate from UART0 flashing\npins): TXD5(pin29/IO5), RXD18(pin30/IO18), RTS19(pin31/IO19),\nCTS23(pin37/IO23) @ 921600 baud -- matches the pin-assignment table in\nEspressif's current esp-idf Bluetooth HCI-over-UART docs\n(github.com/espressif/esp-idf, fetched 2026-11-14: TX=GPIO5, RX=GPIO18,\nRTS=GPIO19, CTS=GPIO23, baud=921600, HW flow control on). These values\nwere originally sourced from the controller_hci_uart example (removed\nin esp-idf v6.1); the current docs present them in a table, not that\nexample's README prose, so this is a value match, not a verbatim quote.\nMatches the 2026-11-14 addendum in\n.research/findings/2026-11-13-esp32-hci-uart-coprocessor-viability.md.\nNo chipset-specific firmware/.hcd patch-load step is needed at HCI init\n(resolved in that research pass, bead pilink-kfa) -- controller firmware\nis flashed once via the UART0 pins below, then answers standard HCI\nimmediately on every boot thereafter." (at 240 15 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid da1166d1-c900-4f2d-83ba-68bf554d9255)
   )
-  (text "UART0 (flashing/logging only, NOT the HCI link): RXD0(pin34/IO3),\nTXD0(pin35/IO1). RP2350 bridge-flashes this ESP32 over these same two\npins using the standard esptool UART-bootloader sequence (BOOT0 low +\nEN pulse), riding the same USB cable as everything else -- no extra\nport/header. Pins 17-22 (SHD/SD2, SWP/SD3, SCS/CMD, SCK/CLK, SDO/SD0,\nSDI/SD1 = GPIO9-11/6-8) are left no-connect per the datasheet's own\ninstruction: \"[these pins]...are connected to the SPI flash integrated\non the module and are not recommended for other uses\" -- they are\ninternal to the module, not available for this design regardless." (at 240 45 0)
+  (text "UART0 (flashing/logging only, NOT the HCI link): RXD0(pin34/IO3),\nTXD0(pin35/IO1). RP2350 bridge-flashes this ESP32 over these same two\npins using the standard esptool UART-bootloader sequence (BOOT0 low +\nEN pulse), riding the same USB cable as everything else -- no extra\nport/header. Pins 17-22 (SHD/SD2, SWP/SD3, SCS/CMD, SCK/CLK, SDO/SD0,\nSDI/SD1 = GPIO9-11/6-8) are left no-connect per the datasheet's own\ninstruction: \"[these pins]...are connected to the SPI flash integrated\non the module and are not recommended for other uses\" -- they are\ninternal to the module, not available for this design regardless." (at 240 55 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid 43dc653e-29c8-4f54-b75e-4cebc1dd0fa7)
   )
-  (text "EN / BOOT0 (GPIO0) strapping for RP2350-as-bridge-flasher, per\nEspressif's official Hardware Design Guidelines \"Schematic Checklist\"\n(docs.espressif.com/projects/esp-hardware-design-guidelines, ESP32,\nfetched 2026-11-14): CHIP_PU/EN gets R1 10k + C3 1uF RC delay -- \"The\nrecommended setting for the RC delay circuit is usually R = 10 kOhm and\nC = 1 uF\"; EN \"must not be left floating.\" GPIO0/BOOT0 gets R2 10k\npull-up only -- \"It is recommended to place a pull-up resistor at the\nGPIO0 pin\" and explicitly \"Do not add high-value capacitors at GPIO0,\nor the chip may enter download mode\" (hence no cap on R2's net). GPIO2\n(pin24/IO2) is deliberately left no-connect/floating, NOT pulled up:\n\"After chip reset is released, the combination of GPIO0 and GPIO2\ncontrols the boot mode. GPIO0 low with GPIO2 low selects Joint Download\nBoot\" and GPIO2's \"default internal configuration is pull-down\" --\nfloating GPIO2 lets that internal pull-down supply the low level Joint\nDownload Boot needs, matching how every stock ESP32 dev board does it.\nThe checklist's VDD_SDIO/CAP1/analog-vs-digital-VDD3P3 items are bare-\nESP32-D0WD-chip guidance already satisfied inside the WROOM module's own\ninternal PCB (module exposes a single combined \"3V3\" pin, per the\ndatasheet pin table above) -- not applicable at this module-level sheet,\nsame reasoning pattern power.kicad_sch used for RP2350B's internal regs." (at 240 67 0)
+  (text "EN / BOOT0 (GPIO0) strapping for RP2350-as-bridge-flasher, per\nEspressif's official Hardware Design Guidelines \"Schematic Checklist\"\n(docs.espressif.com/projects/esp-hardware-design-guidelines, ESP32,\nfetched 2026-11-14): CHIP_PU/EN gets R201 10k + C203 1uF RC delay -- \"The\nrecommended setting for the RC delay circuit is usually R = 10 kOhm and\nC = 1 uF\"; EN \"must not be left floating.\" GPIO0/BOOT0 gets R202 10k\npull-up only -- \"It is recommended to place a pull-up resistor at the\nGPIO0 pin\" and explicitly \"Do not add high-value capacitors at GPIO0,\nor the chip may enter download mode\" (hence no cap on R202's net). GPIO2\n(pin24/IO2) is deliberately left no-connect/floating, NOT pulled up:\n\"After chip reset is released, the combination of GPIO0 and GPIO2\ncontrols the boot mode. GPIO0 low with GPIO2 low selects Joint Download\nBoot\" and GPIO2's \"default internal configuration is pull-down\" --\nfloating GPIO2 lets that internal pull-down supply the low level Joint\nDownload Boot needs, matching how every stock ESP32 dev board does it.\nThe checklist's VDD_SDIO/CAP1/analog-vs-digital-VDD3P3 items are bare-\nESP32-D0WD-chip guidance already satisfied inside the WROOM module's own\ninternal PCB (module exposes a single combined \"3V3\" pin, per the\ndatasheet pin table above) -- not applicable at this module-level sheet,\nsame reasoning pattern power.kicad_sch used for RP2350B's internal regs." (at 240 80 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid 5d9d5973-ae5f-43cf-86b8-eb507ff9fe08)
   )
-  (text "RP2350 interface contract (RP2350B + Memory sheet is pilink-7el.3, being\nauthored in parallel -- this sheet does not touch rp2350b_memory.kicad_sch).\nGlobal labels (not hierarchical labels: esp32_bt.kicad_sch and\nrp2350b_memory.kicad_sch are sibling child sheets of the root, not\nparent/child, so only a project-wide global label -- or a power-symbol-\nstyle net -- joins same-named nets across them without any root-sheet\npin wiring) expose: ESP32_EN, ESP32_BOOT0 (RP2350 GPIOs driving ESP32's\nEN/GPIO0 to force UART download-boot for bridge-flashing -- any two\ngeneral-purpose RP2350 GPIOs work, since these are bit-banged, not auto-\ntoggling serial-chip control lines; driving low against the 10k pull-up\nhere is safe, same as a dev board's USB-serial auto-reset circuit);\nESP32_HCI_TXD/RXD/RTS/CTS (RP2350 UART peripheral with hardware flow\ncontrol, 921600 baud); ESP32_FLASH_TXD0/RXD0 (a second RP2350 UART or\nbit-banged bridge, esptool-compatible, for the one-time/field-update\nflash path). Exact RP2350 GPIO numbers are pilink-7el.3's call, not\ndecided here -- add matching global_label instances with these same\nnames on that sheet and the two sheets wire together with no GUI\nsession needed." (at 240 111 0)
+  (text "RP2350 interface contract (RP2350B + Memory sheet is pilink-7el.3, being\nauthored in parallel -- this sheet does not touch rp2350b_memory.kicad_sch).\nGlobal labels (not hierarchical labels: esp32_bt.kicad_sch and\nrp2350b_memory.kicad_sch are sibling child sheets of the root, not\nparent/child, so only a project-wide global label -- or a power-symbol-\nstyle net -- joins same-named nets across them without any root-sheet\npin wiring) expose: ESP32_EN, ESP32_BOOT0 (RP2350 GPIOs driving ESP32's\nEN/GPIO0 to force UART download-boot for bridge-flashing -- any two\ngeneral-purpose RP2350 GPIOs work, since these are bit-banged, not auto-\ntoggling serial-chip control lines; driving low against the 10k pull-up\nhere is safe, same as a dev board's USB-serial auto-reset circuit);\nESP32_HCI_TXD/RXD/RTS/CTS (RP2350 UART peripheral with hardware flow\ncontrol, 921600 baud); ESP32_FLASH_TXD0/RXD0 (a second RP2350 UART or\nbit-banged bridge, esptool-compatible, for the one-time/field-update\nflash path). Exact RP2350 GPIO numbers are pilink-7el.3's call, not\ndecided here -- add matching global_label instances with these same\nnames on that sheet and the two sheets wire together with no GUI\nsession needed." (at 240 128 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid f7a73dbb-72a6-4797-8dba-3bc3d82e349c)
   )
-  (text "Out of scope for this sheet: the board's main-power-entrance ESD diode\nand bulk cap (power.kicad_sch's AMS1117 input/output caps already serve\nthis role for the whole +3V3 rail); the antenna component itself and its\nenclosure mounting (pilink-8hx.4); RP2350-side GPIO assignment\n(pilink-7el.3, in progress). Validated with kicad-cli sch erc\n(--severity-all --exit-code-violations) on both this sheet and the root\nsheet, and the exported PDF was visually checked for a non-overlapping\nlayout -- see hardware/README.md for the result." (at 240 151 0)
+  (text "Out of scope for this sheet: the board's main-power-entrance ESD diode\nand bulk cap (power.kicad_sch's AMS1117 input/output caps already serve\nthis role for the whole +3V3 rail); the antenna component itself and its\nenclosure mounting (pilink-8hx.4); RP2350-side GPIO assignment\n(pilink-7el.3, in progress). Validated with kicad-cli sch erc\n(--severity-all --exit-code-violations) on both this sheet and the root\nsheet, and the exported PDF was visually checked for a non-overlapping\nlayout -- see hardware/README.md for the result." (at 240 169 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid 77f651cc-b124-4236-8c22-35325f35c3c8)
   )

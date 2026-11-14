@@ -47,14 +47,23 @@ layout. The other four child sheets remain unverified skeletons.
 
 ### ESP32 BT coprocessor subsystem (pilink-7el.4)
 
-`esp32_bt.kicad_sch` now has U1 (ESP32-WROOM-32U-N4, KiCad's built-in
+`esp32_bt.kicad_sch` now has U201 (ESP32-WROOM-32U-N4, KiCad's built-in
 `RF_Module:ESP32-WROOM-32U` symbol/footprint, pinout cross-checked pin-by-
-pin against Espressif's own datasheet Table 3), EN strapping (R1 10k + C3
-1uF RC delay, per Espressif's Hardware Design Guidelines Schematic
-Checklist), GPIO0/BOOT0 strapping (R2 10k pull-up only, no cap, per the
-same checklist), and 3V3 decoupling (C1 10uF + C2 100nF). GPIO2 is left
-floating (no pull), relying on its internal pull-down for Joint Download
-Boot, matching stock ESP32 dev boards.
+pin against Espressif's own datasheet Table 3), EN strapping (R201 10k +
+C203 1uF RC delay, per Espressif's Hardware Design Guidelines Schematic
+Checklist), GPIO0/BOOT0 strapping (R202 10k pull-up only, no cap, per the
+same checklist), and 3V3 decoupling (C201 10uF + C202 100nF). GPIO2 is
+left floating (no pull), relying on its internal pull-down for Joint
+Download Boot, matching stock ESP32 dev boards. (References here use the
+200-299 block under this project's per-sheet reference-numbering scheme
+--  power.kicad_sch keeps 1-99 (already merged as U1/C1/C2/C3/#PWR01-09),
+rp2350b_memory.kicad_sch gets 100-199, and esp32_bt.kicad_sch gets
+200-299 (U201, C201-C203, R201-R202, #PWR201-209) -- so no two sibling
+sheets' components can ever merge into the same netlist part. KiCad
+merges same-reference parts across sibling sheets into one netlist part,
+so without non-overlapping ranges per sheet, reusing references would
+silently corrupt the project netlist; see the PR review discussion on
+pilink-7el.4 (and the matching fix on pilink-7el.3) for details.)
 
 RP2350 interface: exposed via **global labels** (not hierarchical --
 `esp32_bt.kicad_sch` and `rp2350b_memory.kicad_sch` are sibling child
