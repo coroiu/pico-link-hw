@@ -45,6 +45,71 @@ violations on both `power.kicad_sch` and the root `pico-link-hw.kicad_sch`,
 and the exported PDF was visually checked for a sane, non-overlapping
 layout. The other four child sheets remain unverified skeletons.
 
+### RP2350B + Memory subsystem (pilink-7el.3)
+
+`rp2350b_memory.kicad_sch` now has the RP2350B (QFN-80), 12MHz crystal
+(Abracon ABM8-272-T3), BOOTSEL + reset buttons, 16MB QSPI NOR flash
+(Winbond W25Q128JVS) and 8MB QSPI PSRAM (AP Memory APS6404L-3SQR-ZR), plus
+the RP2350B-specific decoupling flagged as out-of-scope at the end of
+`power.kicad_sch`'s own notes: the internal 3.3V→1.1V switched-mode core
+regulator's inductor/caps (L101, C103/C104/C105, R104) and the ~12
+individual 100nF VDD3V3/IOVDD decouplers. Every value and part choice is
+cross-checked against primary sources (Raspberry Pi's own RP2350B minimal
+reference design, the RP2350 hardware design guide, Pimoroni's published
+Pico Plus 2 schematic, and distributor listings for the PSRAM's actual
+package) — see the sheet's own text notes for citations, including two
+corrections to this bead's own framing (the external LDO's bulk caps don't
+belong on this sheet; the PSRAM's `-ZR` suffix is USON-8L, not SOIC-8).
+
+U101's symbol and QFN-80 footprint come from Raspberry Pi's own historical
+RP2350B minimal-reference-design KiCad archive (RP-006442-DD-2) — not the
+third-party HDR/RP2350_KiCad repo flagged as "untested" in this bead's
+acceptance criteria. (U101 is this sheet's RP2350B; `power.kicad_sch`'s
+AMS1117 regulator is U1 — an earlier review round found the two had been
+confused via a cross-sheet reference collision, fixed by renumbering this
+whole sheet into the 100-199 block: U101-U103, C101-C121, R101-R105,
+SW101-SW102, L101, Y101, with power.kicad_sch keeping 1-99 and
+esp32_bt.kicad_sch taking 200-299; a netlist export confirms no reference
+collides anywhere in the project hierarchy.) The footprint is copied into
+`hardware/footprints/RP2350_80QFN.pretty/` (registered in `fp-lib-table`);
+the RP2350 and PSRAM symbols are also registered as proper project
+libraries in `hardware/symbols/` + `sym-lib-table` so KiCad's GUI resolves
+them instead of only trusting the schematic's embedded cache.
+
+Every RP2350B GPIO not consumed by this sheet is brought out as a global
+label matching its pin name, so the other still-empty child sheets can pick
+it up later without hierarchical sheet pins (GPIO47 is the one exception —
+it's committed to the PSRAM's chip-select here).
+
+`kicad-cli sch erc --severity-all` on this sheet **alone** reports 2 errors
+(`power_pin_not_driven` for `+3V3`/`GND`, expected and documented in the
+sheet's own notes — this sheet doesn't generate `+3V3`/`GND`,
+`power.kicad_sch` does, so a standalone single-sheet ERC run can't see that
+driver) and 53 warnings: 51 are the intentional not-yet-connected global
+labels for sibling sheets that don't exist yet, and 2 are a pre-existing,
+unrelated "library not configured" notice for this project's own custom
+symbol libraries. `kicad-cli sch erc --severity-all` on the root
+`pico-link-hw.kicad_sch` (which flattens the whole hierarchy — now
+including `esp32_bt.kicad_sch` — and does see `power.kicad_sch`'s
+regulator) reports **0 errors**, 57 warnings, all `global_label_dangling`
+(51 from this sheet's own not-yet-wired GPIO/interface labels, 6 from
+`esp32_bt.kicad_sch`'s — both expected until the remaining sibling sheets
+exist). The stale "Symbol has been modified in library" notice from an
+earlier round no longer appears; it was fixed by re-syncing the embedded
+flash symbol to the stock library part.
+
+Schematic connectivity (the netlist export and both ERC runs above) is
+verified clean. The visual layout went through two review rounds of
+reported cosmetic text/label overlaps — a text note overlapping nearby
+component labels, a power-flag symbol sitting on top of a note, and a
+couple of reference labels landing on top of net labels; none of these
+affect the netlist or ERC results. Every overlap reported across both
+rounds has now been moved into clear canvas space, and the sheet was
+re-exported to SVG and visually re-checked after the fixes; none remain
+as of this revision. This is still an agent-driven check against a
+rendered export, not a human sign-off in the KiCad GUI, so treat it as a
+good-faith check rather than a final layout approval.
+
 ### ESP32 BT coprocessor subsystem (pilink-7el.4)
 
 `esp32_bt.kicad_sch` now has U201 (ESP32-WROOM-32U-N4, KiCad's built-in
@@ -104,17 +169,18 @@ ImageMagick/Ghostscript -- was available in this environment to produce a
 bitmap screenshot; the PDF's own text/geometry stream was inspected
 instead).
 
-**Blind-authoring caveat (the four still-empty child sheets):** neither
+**Blind-authoring caveat (the three still-empty child sheets):** neither
 KiCad nor `kicad-cli` was available in the agent environment the project
 skeleton was written in. Those files were hand-authored as KiCad 8
 S-expression/JSON text, cross-checked against KiCad's own file-format docs
 and real KiCad-8-generated project files pulled from public repos — not
 written, opened, or validated by the actual KiCad GUI. `kicad-cli` **is**
-available now (KiCad 8.0.9) and was used for `power.kicad_sch` and the root
-sheet's hierarchy (see above), and for `esp32_bt.kicad_sch` (see above);
-the same validation still needs to happen for the four remaining empty
-child sheets before trusting or building on them. If anything fails to
-parse, that's a bug in this skeleton, not a sign the approach is wrong.
+available now (KiCad 8.0.9) and was used for `power.kicad_sch`,
+`rp2350b_memory.kicad_sch`, `esp32_bt.kicad_sch`, and the root sheet's
+hierarchy (see above); the same validation still needs to happen for the
+three remaining empty child sheets before trusting or building on them. If
+anything fails to parse, that's a bug in this skeleton, not a sign the
+approach is wrong.
 
 PCB routing, DRC/ERC, and gerber export still need to happen in the KiCad GUI
 on a machine that has it installed — same caveat as before, now narrowed to

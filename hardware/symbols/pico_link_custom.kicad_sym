@@ -1,0 +1,189 @@
+(kicad_symbol_lib (version 20231120) (generator "kicad_symbol_editor") (generator_version "8.0")
+	(symbol "APS6404L-3SQR-ZR"
+		(pin_numbers hide)
+		(pin_names (offset 1.016))
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "U"
+			(at -6.35 11.43 0)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "APS6404L-3SQR-ZR"
+			(at 7.62 11.43 0)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" "Package_SON:Winbond_USON-8-1EP_3x2mm_P0.5mm_EP0.2x1.6mm"
+			(at 0 22.86 0)
+			(effects (font (size 1.27 1.27)) hide)
+		)
+		(property "Datasheet" "https://www.apmemory.com/cn/downloadFiles/032411212009597427"
+			(at 0 25.4 0)
+			(effects (font (size 1.27 1.27)) hide)
+		)
+		(property "Description" "8MB QSPI PSRAM, USON-8L (3x2mm) -- same CS/SCLK/SIO0-3/VCC/GND pin map as a standard SOIC-8 QSPI flash (verified against Pimoroni Pico Plus 2 published schematic), but NOT the same physical footprint: AP Memory's -ZR suffix is USON-8L, not SOIC-8 (confirmed via LCSC distributor listing C3040877). Footprint is KiCad's stock closest-match by body size (3x2mm); AP Memory's own mechanical drawing/pad geometry was not independently re-verified -- flag for PCB-layout-stage review."
+			(at 0 27.94 0)
+			(effects (font (size 1.27 1.27)) hide)
+		)
+(symbol "APS6404L-3SQR-ZR_0_1"
+			(rectangle
+				(start -7.62 10.16)
+				(end 7.62 -10.16)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+(symbol "APS6404L-3SQR-ZR_1_1"
+			(pin input line
+				(at -10.16 7.62 0)
+				(length 2.54)
+				(name "~{CS}"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at -10.16 0 0)
+				(length 2.54)
+				(name "DO(IO1)"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at -10.16 -2.54 0)
+				(length 2.54)
+				(name "IO2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 0 -12.7 90)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at -10.16 2.54 0)
+				(length 2.54)
+				(name "DI(IO0)"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -10.16 5.08 0)
+				(length 2.54)
+				(name "CLK"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at -10.16 -5.08 0)
+				(length 2.54)
+				(name "IO3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "7"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 0 12.7 270)
+				(length 2.54)
+				(name "VCC"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "8"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+	)
+
+)
