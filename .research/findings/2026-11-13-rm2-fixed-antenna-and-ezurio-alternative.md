@@ -80,7 +80,11 @@ directly (not a distributor summary). Primary sources:
   mirroring why RM2 itself was rejected.
 - **453-00141** — M.2 2230 E-key SDIO/UART module. A different form factor
   (M.2 card edge connector), not relevant to a custom PCB design.
-- **453-00084-K1** — MHF4 dev/eval kit, ships with a FlexPIFA antenna.
+- **453-00084-K1** — MHF4 dev/eval kit, ships with an antenna for bench
+  evaluation (the datasheet doesn't name the antenna model; a distributor
+  listing calls it a "FlexPIFA" antenna, but that term doesn't appear in
+  Ezurio's own datasheet, so it isn't repeated here as datasheet
+  terminology).
   Useful if the fallback is ever actually prototyped before committing it
   to the board.
 
@@ -140,13 +144,18 @@ patch loaded over the UART at boot**, the same family of requirement as
 RM2's `cyw43-driver` blob on RP2350/Pico W — just delivered over a literal
 UART instead of RM2's gSPI. Ezurio's own Linux validation guide confirms a
 host-side firmware-download step is required before the chip behaves as a
-plain HCI device: *"a user-space program has to attach the UART to the HCI
-interface with the right parameters so the Bluetooth firmware can be
-downloaded"* (standard Broadcom/Cypress/Infineon BT-over-UART "download
-mode" pattern — the same mechanism as `hciattach`/`brcm_patchram_plus`/
-`btbcm.c` in Linux, and Ezurio's own firmware packages for this chip family
-install under `/lib/firmware/brcm`, the same directory tree
-Raspberry Pi's own CYW43439-based boards already use).
+plain HCI device: it explains (discussing "Sterling LWBx series radios"
+generically — that page doesn't single out "LWB+" by name) that the UART
+must be attached to the Bluetooth stack's HCI interface with the correct
+parameters, and that doing so is also what lets the Bluetooth firmware be
+downloaded to the radio. (That's a paraphrase of the guide's wording, not
+a verbatim quote.) This is the standard Broadcom/Cypress/Infineon
+BT-over-UART "download mode" pattern — the same mechanism as
+`hciattach`/`brcm_patchram_plus`/`btbcm.c` in Linux. Where the resulting
+firmware blob would need to live on a Linux-based host (e.g. a path like
+`/lib/firmware/brcm`) is **not** stated in either Ezurio source page used
+here, so that specific path is not claimed as confirmed — only that a
+firmware-download step exists is confirmed from these sources.
 
 **This means the stated ESP32-vs-fallback tradeoff is real and should be
 explicit**: the whole point of the ESP32-WROOM-32U path is that Espressif's
@@ -169,20 +178,46 @@ would need either an Ezurio distributor/integration-guide account with the
 module-specific software integration guide, or the actual part on a bench
 with a UART analyzer. Flagging this rather than guessing it.
 
-### Sourcing/stock (checked 2026-11-14)
+### Sourcing/stock (checked 2026-11-14, re-verified live same day)
 
 - Standard distributors stock it: DigiKey listed **453-00084R** with ~2160
   units (North America) and Mouser ~890 units, both as of this session —
-  so the part itself is not scarce.
-- **Not found on JLCPCB's or LCSC's parts search** (checked both directly).
-  Consistent with the original finding: unlike ESP32-WROOM-32U, which
-  JLCPCB stocks and places as part of its standard SMT assembly service,
-  Sterling-LWB+ would need to be hand-assembled, reflowed via a separate
-  placement step, or sourced and sent to a different assembly house —
-  it is not a "drop it in the JLCPCB BOM" part the way ESP32-WROOM-32U is.
+  so the part itself is not scarce through standard distribution.
+- **Correction:** an earlier version of this finding said the part was
+  "not found on JLCPCB's or LCSC's parts search (checked both directly)."
+  That was wrong. Both order codes **are** listed, on both sites, as
+  Extended-library parts — they're just at 0 stock. Re-checked live on
+  2026-11-14 directly against LCSC's product pages and JLCPCB's parts
+  catalog (not just trusting a prior report's numbers):
+  - **453-00084R → LCSC `C6091255`** — listed with reference pricing
+    (roughly $4.56–$12.03/unit depending on quantity break), shown as
+    "Out of Stock" on LCSC's own product page. On JLCPCB's parts catalog:
+    Extended library, "In Stock: 0," pre-order available.
+  - **453-00084C → LCSC `C6393637`** — listed with reference pricing
+    (roughly $11.57–$30.52/unit depending on quantity break), 0 in stock
+    on LCSC's search listing. On JLCPCB's parts catalog: Extended library,
+    "In Stock: 0."
+  - So the accurate claim is weaker than "doesn't exist in their catalog,
+    so it needs hand-assembly or a separate assembly house." Both parts
+    **are** real, priced catalog entries in JLCPCB's Extended-parts
+    library — they are just unavailable to order *today* because both sit
+    at 0 stock. That's a stock-availability problem, not a
+    catalog-existence problem; stock figures fluctuate, and either part
+    coming back into stock would make it orderable through JLCPCB's
+    standard Extended-parts assembly flow like any other Extended part
+    (Extended parts carry a per-part handling fee and manual pre-order
+    confirmation regardless of stock level, so that detail isn't new here).
+  - The practical effect on near-term readiness is still similar to
+    before: at 0 stock, this part **cannot be ordered through JLCPCB
+    today** for an assembly run, so hand-assembly, a separate placement
+    step, or a different supplier is still the realistic path if the
+    fallback were exercised right now — but that conclusion now rests on
+    "temporarily out of stock," not the earlier, incorrect "not in their
+    catalog at all."
 - Manufacturer is Ezurio (formerly Laird Connectivity), not a JLCPCB
   in-house or affiliated line — this is a genuine extra-supplier
-  dependency if the fallback is ever exercised.
+  dependency if the fallback is ever exercised, independent of the
+  stock question above.
 
 ### Net effect on readiness
 
