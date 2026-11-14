@@ -1256,8 +1256,6 @@
 		)
 	)
 	(symbol "Memory_Flash:W25Q128JVS"
-		(pin_numbers hide)
-		(pin_names (offset 1.016))
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -1277,8 +1275,16 @@
 			(at 0 25.4 0)
 			(effects (font (size 1.27 1.27)) hide)
 		)
-		(property "Description" "128Mb Serial Flash Memory, Standard/Dual/Quad SPI, SOIC-8 (Winbond W25Q128JV datasheet)"
+		(property "Description" "128Mb Serial Flash Memory, Standard/Dual/Quad SPI, SOIC-8"
 			(at 0 27.94 0)
+			(effects (font (size 1.27 1.27)) hide)
+		)
+		(property "ki_keywords" "flash memory SPI QPI DTR"
+			(at 0 0 0)
+			(effects (font (size 1.27 1.27)) hide)
+		)
+		(property "ki_fp_filters" "SOIC*5.23x5.23mm*P1.27mm*"
+			(at 0 0 0)
 			(effects (font (size 1.27 1.27)) hide)
 		)
 (symbol "W25Q128JVS_0_1"
@@ -3148,7 +3154,7 @@
   (symbol (lib_id "MCU_RaspberryPi_RP2350:RP2350_80QFN") (at 199.39 165.1 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid f80a50ea-af39-483a-ab2d-b0df7dfabd01)
-    (property "Reference" "U1" (at 170.18 115.57 0)
+    (property "Reference" "U101" (at 170.18 115.57 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "RP2350B" (at 224.79 261.62 0)
@@ -3244,7 +3250,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "U1") (unit 1)
+          (reference "U101") (unit 1)
         )
       )
     )
@@ -3252,7 +3258,7 @@
   (symbol (lib_id "power:+3V3") (at 213.36 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 2875f702-ed07-47a6-bd81-c32f5edcdf39)
-    (property "Reference" "#PWR?" (at 213.36 104.648 0)
+    (property "Reference" "#PWR101" (at 213.36 104.648 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 213.66 103.55 0)
@@ -3268,7 +3274,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR101") (unit 1)
         )
       )
     )
@@ -3276,7 +3282,7 @@
   (symbol (lib_id "power:+3V3") (at 208.28 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 8e7cae07-6c30-4477-89ed-6b6cd873f52e)
-    (property "Reference" "#PWR?" (at 208.28 104.648 0)
+    (property "Reference" "#PWR102" (at 208.28 104.648 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 208.58 103.55 0)
@@ -3292,7 +3298,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR102") (unit 1)
         )
       )
     )
@@ -3300,7 +3306,7 @@
   (symbol (lib_id "power:+3V3") (at 205.74 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid b0cd6d06-7eff-4767-85c3-b85e8dbd9722)
-    (property "Reference" "#PWR?" (at 205.74 104.648 0)
+    (property "Reference" "#PWR103" (at 205.74 104.648 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 206.04 103.55 0)
@@ -3316,7 +3322,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR103") (unit 1)
         )
       )
     )
@@ -3324,7 +3330,7 @@
   (symbol (lib_id "power:+3V3") (at 210.82 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 0cca6b65-4e90-4b48-aaf8-14704e8b1c32)
-    (property "Reference" "#PWR?" (at 210.82 104.648 0)
+    (property "Reference" "#PWR104" (at 210.82 104.648 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 211.12 103.55 0)
@@ -3340,7 +3346,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR104") (unit 1)
         )
       )
     )
@@ -3348,7 +3354,7 @@
   (symbol (lib_id "power:+3V3") (at 203.2 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid b94b68b6-efdd-4824-bbd5-786d29ec2ac7)
-    (property "Reference" "#PWR?" (at 203.2 104.648 0)
+    (property "Reference" "#PWR105" (at 203.2 104.648 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 203.5 103.55 0)
@@ -3364,7 +3370,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR105") (unit 1)
         )
       )
     )
@@ -3372,7 +3378,7 @@
   (symbol (lib_id "power:+3V3") (at 200.66 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid b84862d0-39bf-4473-89f4-2aee613e8842)
-    (property "Reference" "#PWR?" (at 200.66 104.648 0)
+    (property "Reference" "#PWR106" (at 200.66 104.648 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 200.96 103.55 0)
@@ -3388,7 +3394,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR106") (unit 1)
         )
       )
     )
@@ -3396,7 +3402,7 @@
   (symbol (lib_id "power:+3V3") (at 198.12 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 87cbabaa-0787-4c6c-9dff-fa355039e8a4)
-    (property "Reference" "#PWR?" (at 198.12 104.648 0)
+    (property "Reference" "#PWR107" (at 198.12 104.648 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 198.42 103.55 0)
@@ -3412,7 +3418,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR107") (unit 1)
         )
       )
     )
@@ -3420,7 +3426,7 @@
   (symbol (lib_id "power:+3V3") (at 195.58 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 43fff938-6d69-43c5-9cbc-70112e07c0a1)
-    (property "Reference" "#PWR?" (at 195.58 104.648 0)
+    (property "Reference" "#PWR108" (at 195.58 104.648 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 195.88 103.55 0)
@@ -3436,7 +3442,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR108") (unit 1)
         )
       )
     )
@@ -3444,7 +3450,7 @@
   (symbol (lib_id "power:+3V3") (at 217.17 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 2daa52d9-f342-4cf3-a319-8b7101f8295e)
-    (property "Reference" "#PWR?" (at 217.17 104.648 0)
+    (property "Reference" "#PWR109" (at 217.17 104.648 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 217.47 103.55 0)
@@ -3460,7 +3466,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR109") (unit 1)
         )
       )
     )
@@ -3468,7 +3474,7 @@
   (symbol (lib_id "power:+3V3") (at 189.23 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid e1564b38-d213-4ac1-a401-77138dfc7466)
-    (property "Reference" "#PWR?" (at 189.23 104.648 0)
+    (property "Reference" "#PWR110" (at 189.23 104.648 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 189.53 103.55 0)
@@ -3484,7 +3490,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR110") (unit 1)
         )
       )
     )
@@ -3492,7 +3498,7 @@
   (symbol (lib_id "power:+3V3") (at 220.98 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid e7a98fa1-bed2-40ff-bdd5-63c5e04c5340)
-    (property "Reference" "#PWR?" (at 220.98 104.648 0)
+    (property "Reference" "#PWR111" (at 220.98 104.648 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 221.28 103.55 0)
@@ -3508,7 +3514,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR111") (unit 1)
         )
       )
     )
@@ -3516,7 +3522,7 @@
   (symbol (lib_id "power:+1V1") (at 181.61 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid ad629f87-492a-44fa-b1a7-6c1c4008752f)
-    (property "Reference" "#PWR?" (at 181.61 104.648 0)
+    (property "Reference" "#PWR112" (at 181.61 104.648 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+1V1" (at 181.91 103.55 0)
@@ -3532,7 +3538,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR112") (unit 1)
         )
       )
     )
@@ -3540,7 +3546,7 @@
   (symbol (lib_id "power:+1V1") (at 179.07 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 4f11b35b-eb11-442b-b7ad-681c6297a6c5)
-    (property "Reference" "#PWR?" (at 179.07 104.648 0)
+    (property "Reference" "#PWR113" (at 179.07 104.648 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+1V1" (at 179.37 103.55 0)
@@ -3556,7 +3562,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR113") (unit 1)
         )
       )
     )
@@ -3564,7 +3570,7 @@
   (symbol (lib_id "power:+1V1") (at 176.53 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 90ef2041-32c3-468d-8a90-6a3b8f3fcc5e)
-    (property "Reference" "#PWR?" (at 176.53 104.648 0)
+    (property "Reference" "#PWR114" (at 176.53 104.648 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+1V1" (at 176.83 103.55 0)
@@ -3580,7 +3586,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR114") (unit 1)
         )
       )
     )
@@ -3588,7 +3594,7 @@
   (symbol (lib_id "power:GND") (at 199.39 267.97 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid e578a903-d343-4041-8afa-3cd4dd686728)
-    (property "Reference" "#PWR?" (at 199.39 264.668 0)
+    (property "Reference" "#PWR115" (at 199.39 264.668 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 199.69 263.57 0)
@@ -3604,7 +3610,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR115") (unit 1)
         )
       )
     )
@@ -3612,7 +3618,7 @@
   (symbol (lib_id "power:+3V3") (at 161.29 128.27 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 1acac810-701b-4087-a390-e37671ad2774)
-    (property "Reference" "#PWR?" (at 161.29 124.968 0)
+    (property "Reference" "#PWR116" (at 161.29 124.968 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 161.59 123.87 0)
@@ -3628,7 +3634,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR116") (unit 1)
         )
       )
     )
@@ -3636,7 +3642,7 @@
   (symbol (lib_id "power:+1V1") (at 161.29 130.81 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 3d76c469-f44e-4e77-a02f-0e04dd1c3797)
-    (property "Reference" "#PWR?" (at 161.29 127.508 0)
+    (property "Reference" "#PWR117" (at 161.29 127.508 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+1V1" (at 161.59 126.41 0)
@@ -3652,7 +3658,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR117") (unit 1)
         )
       )
     )
@@ -3660,7 +3666,7 @@
   (symbol (lib_id "power:GND") (at 161.29 135.89 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid b0045654-8d5e-42e4-b5d7-592a25234286)
-    (property "Reference" "#PWR?" (at 161.29 132.588 0)
+    (property "Reference" "#PWR118" (at 161.29 132.588 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 161.59 131.49 0)
@@ -3676,7 +3682,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR118") (unit 1)
         )
       )
     )
@@ -3684,7 +3690,7 @@
   (symbol (lib_id "Device:Crystal_GND24") (at 59.69 229.87 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 852e8f0a-ad6f-4b72-97a9-a95b918fbc83)
-    (property "Reference" "Y1" (at 62.865 224.79 0)
+    (property "Reference" "Y101" (at 62.865 224.79 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "ABM8-272-T3" (at 62.865 226.695 0)
@@ -3703,7 +3709,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "Y1") (unit 1)
+          (reference "Y101") (unit 1)
         )
       )
     )
@@ -3711,7 +3717,7 @@
   (symbol (lib_id "power:GND") (at 59.69 220.98 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid b8459a73-e8cb-4ae0-9673-3dcdf426a004)
-    (property "Reference" "#PWR?" (at 59.69 217.678 0)
+    (property "Reference" "#PWR119" (at 59.69 217.678 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 59.99 216.58 0)
@@ -3727,7 +3733,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR119") (unit 1)
         )
       )
     )
@@ -3735,7 +3741,7 @@
   (symbol (lib_id "power:GND") (at 59.69 238.76 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid be0a7205-8e19-4853-a47a-abee72b72b2d)
-    (property "Reference" "#PWR?" (at 59.69 235.458 0)
+    (property "Reference" "#PWR120" (at 59.69 235.458 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 59.99 234.36 0)
@@ -3751,7 +3757,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR120") (unit 1)
         )
       )
     )
@@ -3759,10 +3765,10 @@
   (symbol (lib_id "Device:C") (at 44.45 245.11 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid a8420e5d-9053-4bcf-9b13-a664dd1108cb)
-    (property "Reference" "C3" (at 46.99 242.57 0)
+    (property "Reference" "C101" (at 46.99 242.57 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "10pF" (at 46.99 247.65 0)
+    (property "Value" "15pF" (at 46.99 247.65 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "Capacitor_SMD:C_0402_1005Metric" (at 44.45 245.11 0)
@@ -3776,7 +3782,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C3") (unit 1)
+          (reference "C101") (unit 1)
         )
       )
     )
@@ -3784,7 +3790,7 @@
   (symbol (lib_id "power:GND") (at 44.45 252.73 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid da6636e0-879d-4354-878b-bb4feda46083)
-    (property "Reference" "#PWR?" (at 44.45 249.428 0)
+    (property "Reference" "#PWR121" (at 44.45 249.428 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 44.75 248.33 0)
@@ -3800,7 +3806,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR121") (unit 1)
         )
       )
     )
@@ -3808,10 +3814,10 @@
   (symbol (lib_id "Device:C") (at 74.93 245.11 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 24396dc5-437a-4451-8fec-27adb142bad1)
-    (property "Reference" "C4" (at 77.47 242.57 0)
+    (property "Reference" "C102" (at 77.47 242.57 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "10pF" (at 77.47 247.65 0)
+    (property "Value" "15pF" (at 77.47 247.65 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "Capacitor_SMD:C_0402_1005Metric" (at 74.93 245.11 0)
@@ -3825,7 +3831,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C4") (unit 1)
+          (reference "C102") (unit 1)
         )
       )
     )
@@ -3833,7 +3839,7 @@
   (symbol (lib_id "power:GND") (at 74.93 252.73 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 4ffb702d-af39-41e8-a6bd-03705c6f41b8)
-    (property "Reference" "#PWR?" (at 74.93 249.428 0)
+    (property "Reference" "#PWR122" (at 74.93 249.428 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 75.23 248.33 0)
@@ -3849,7 +3855,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR122") (unit 1)
         )
       )
     )
@@ -3857,7 +3863,7 @@
   (symbol (lib_id "Device:R") (at 95.25 229.87 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid ba819dee-44a9-4003-ae6d-61f98045e5d6)
-    (property "Reference" "R2" (at 97.79 227.33 0)
+    (property "Reference" "R101" (at 97.79 227.33 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "1k" (at 97.79 232.41 0)
@@ -3874,7 +3880,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "R2") (unit 1)
+          (reference "R101") (unit 1)
         )
       )
     )
@@ -3882,7 +3888,7 @@
   (symbol (lib_id "Device:R") (at 110.49 199.39 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid e09431a0-e37b-482f-a470-a0eb23c9f83c)
-    (property "Reference" "R1" (at 113.03 196.85 0)
+    (property "Reference" "R102" (at 113.03 196.85 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "1k" (at 113.03 201.93 0)
@@ -3899,7 +3905,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "R1") (unit 1)
+          (reference "R102") (unit 1)
         )
       )
     )
@@ -3907,7 +3913,7 @@
   (symbol (lib_id "Switch:SW_Push") (at 110.49 214.63 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid c2bb6aa4-60da-481a-92b8-801a43b8fdda)
-    (property "Reference" "SW1" (at 111.76 212.09 0)
+    (property "Reference" "SW101" (at 111.76 212.09 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "SW_Push" (at 110.49 216.154 0)
@@ -3924,7 +3930,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "SW1") (unit 1)
+          (reference "SW101") (unit 1)
         )
       )
     )
@@ -3932,7 +3938,7 @@
   (symbol (lib_id "power:GND") (at 119.38 214.63 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid a1e30b30-fb65-4558-89af-41da30d582e3)
-    (property "Reference" "#PWR?" (at 119.38 211.328 0)
+    (property "Reference" "#PWR123" (at 119.38 211.328 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 119.68 210.23 0)
@@ -3948,7 +3954,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR123") (unit 1)
         )
       )
     )
@@ -3956,7 +3962,7 @@
   (symbol (lib_id "Device:R") (at 149.86 199.39 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 288bcc41-2b56-459f-9e08-ffab05f9a6a7)
-    (property "Reference" "R4" (at 152.4 196.85 0)
+    (property "Reference" "R103" (at 152.4 196.85 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "1k" (at 152.4 201.93 0)
@@ -3973,7 +3979,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "R4") (unit 1)
+          (reference "R103") (unit 1)
         )
       )
     )
@@ -3981,7 +3987,7 @@
   (symbol (lib_id "Switch:SW_Push") (at 149.86 214.63 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 4c272532-e7ec-4d01-9fed-3c2153b27298)
-    (property "Reference" "SW2" (at 151.13 212.09 0)
+    (property "Reference" "SW102" (at 151.13 212.09 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "SW_Push" (at 149.86 216.154 0)
@@ -3998,7 +4004,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "SW2") (unit 1)
+          (reference "SW102") (unit 1)
         )
       )
     )
@@ -4006,7 +4012,7 @@
   (symbol (lib_id "power:GND") (at 158.75 214.63 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 773f553c-e317-4a93-a21b-cbb7258aeab6)
-    (property "Reference" "#PWR?" (at 158.75 211.328 0)
+    (property "Reference" "#PWR124" (at 158.75 211.328 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 159.05 210.23 0)
@@ -4022,7 +4028,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR124") (unit 1)
         )
       )
     )
@@ -4030,7 +4036,7 @@
   (symbol (lib_id "Device:L") (at 59.69 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid beb67a86-ee94-4034-b30a-9ac6b2eb18b8)
-    (property "Reference" "L1" (at 62.23 105.41 0)
+    (property "Reference" "L101" (at 62.23 105.41 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "3.3uH" (at 62.23 110.49 0)
@@ -4047,7 +4053,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "L1") (unit 1)
+          (reference "L101") (unit 1)
         )
       )
     )
@@ -4055,7 +4061,7 @@
   (symbol (lib_id "power:+1V1") (at 59.69 115.57 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid ddd39db5-90d1-4c79-829c-224a3f77af12)
-    (property "Reference" "#PWR?" (at 59.69 112.268 0)
+    (property "Reference" "#PWR125" (at 59.69 112.268 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+1V1" (at 59.99 111.17 0)
@@ -4071,7 +4077,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR125") (unit 1)
         )
       )
     )
@@ -4079,7 +4085,7 @@
   (symbol (lib_id "Device:C") (at 80.01 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 3b5a4aa5-fba5-485a-8676-3fedb12c1379)
-    (property "Reference" "C6" (at 82.55 105.41 0)
+    (property "Reference" "C103" (at 82.55 105.41 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "4.7uF" (at 82.55 110.49 0)
@@ -4096,7 +4102,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C6") (unit 1)
+          (reference "C103") (unit 1)
         )
       )
     )
@@ -4104,7 +4110,7 @@
   (symbol (lib_id "power:+3V3") (at 80.01 100.33 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 3bf52621-d050-42ab-9529-b2e47aa1492e)
-    (property "Reference" "#PWR?" (at 80.01 97.028 0)
+    (property "Reference" "#PWR126" (at 80.01 97.028 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 80.31 95.93 0)
@@ -4120,7 +4126,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR126") (unit 1)
         )
       )
     )
@@ -4128,7 +4134,7 @@
   (symbol (lib_id "power:GND") (at 80.01 115.57 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 86def986-6af7-4e3c-ab91-5dfc60c3a543)
-    (property "Reference" "#PWR?" (at 80.01 112.268 0)
+    (property "Reference" "#PWR127" (at 80.01 112.268 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 80.31 111.17 0)
@@ -4144,7 +4150,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR127") (unit 1)
         )
       )
     )
@@ -4152,7 +4158,7 @@
   (symbol (lib_id "Device:C") (at 100.33 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 636c1e50-a8c7-4a76-a149-05c831c44c33)
-    (property "Reference" "C7" (at 102.87 105.41 0)
+    (property "Reference" "C104" (at 102.87 105.41 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "4.7uF" (at 102.87 110.49 0)
@@ -4169,7 +4175,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C7") (unit 1)
+          (reference "C104") (unit 1)
         )
       )
     )
@@ -4177,7 +4183,7 @@
   (symbol (lib_id "power:+1V1") (at 100.33 100.33 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 97874e61-4d57-419e-9e67-192512f30b0d)
-    (property "Reference" "#PWR?" (at 100.33 97.028 0)
+    (property "Reference" "#PWR128" (at 100.33 97.028 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+1V1" (at 100.63 95.93 0)
@@ -4193,7 +4199,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR128") (unit 1)
         )
       )
     )
@@ -4201,7 +4207,7 @@
   (symbol (lib_id "power:GND") (at 100.33 115.57 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid c124d455-984a-416c-9892-f410e27b0613)
-    (property "Reference" "#PWR?" (at 100.33 112.268 0)
+    (property "Reference" "#PWR129" (at 100.33 112.268 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 100.63 111.17 0)
@@ -4217,7 +4223,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR129") (unit 1)
         )
       )
     )
@@ -4225,7 +4231,7 @@
   (symbol (lib_id "Device:R") (at 119.38 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 6999eedf-406d-4402-867e-5786078475ac)
-    (property "Reference" "R3" (at 121.92 105.41 0)
+    (property "Reference" "R104" (at 121.92 105.41 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "33R" (at 121.92 110.49 0)
@@ -4242,7 +4248,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "R3") (unit 1)
+          (reference "R104") (unit 1)
         )
       )
     )
@@ -4250,7 +4256,7 @@
   (symbol (lib_id "power:+3V3") (at 119.38 100.33 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid a25e49b4-64ed-4cbc-bd0b-a78090778476)
-    (property "Reference" "#PWR?" (at 119.38 97.028 0)
+    (property "Reference" "#PWR130" (at 119.38 97.028 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 119.68 95.93 0)
@@ -4266,7 +4272,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR130") (unit 1)
         )
       )
     )
@@ -4274,7 +4280,7 @@
   (symbol (lib_id "Device:C") (at 139.7 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 5ef1fbaa-0f2e-421d-8491-4bd160bbcf4b)
-    (property "Reference" "C9" (at 142.24 105.41 0)
+    (property "Reference" "C105" (at 142.24 105.41 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "4.7uF" (at 142.24 110.49 0)
@@ -4291,7 +4297,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C9") (unit 1)
+          (reference "C105") (unit 1)
         )
       )
     )
@@ -4299,7 +4305,7 @@
   (symbol (lib_id "power:GND") (at 139.7 115.57 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 5557c6e6-406e-49e2-8001-6677fac35fc7)
-    (property "Reference" "#PWR?" (at 139.7 112.268 0)
+    (property "Reference" "#PWR131" (at 139.7 112.268 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 140 111.17 0)
@@ -4315,7 +4321,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR131") (unit 1)
         )
       )
     )
@@ -4323,7 +4329,7 @@
   (symbol (lib_id "Device:C") (at 39.37 299.72 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 97b5120e-ff18-4f8a-abd7-fa84227390a9)
-    (property "Reference" "C11" (at 41.91 297.18 0)
+    (property "Reference" "C106" (at 41.91 297.18 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "100nF" (at 41.91 302.26 0)
@@ -4340,7 +4346,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C11") (unit 1)
+          (reference "C106") (unit 1)
         )
       )
     )
@@ -4348,7 +4354,7 @@
   (symbol (lib_id "power:+3V3") (at 39.37 292.1 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid bf3eb445-335a-400f-a794-96f5a68aa58c)
-    (property "Reference" "#PWR?" (at 39.37 288.798 0)
+    (property "Reference" "#PWR132" (at 39.37 288.798 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 39.67 287.7 0)
@@ -4364,7 +4370,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR132") (unit 1)
         )
       )
     )
@@ -4372,7 +4378,7 @@
   (symbol (lib_id "power:GND") (at 39.37 307.34 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 11aa782d-6762-4924-9e99-370830a45773)
-    (property "Reference" "#PWR?" (at 39.37 304.038 0)
+    (property "Reference" "#PWR133" (at 39.37 304.038 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 39.67 302.94 0)
@@ -4388,7 +4394,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR133") (unit 1)
         )
       )
     )
@@ -4396,7 +4402,7 @@
   (symbol (lib_id "Device:C") (at 50.8 299.72 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 9318546a-522a-45b7-9be2-d1190f268022)
-    (property "Reference" "C12" (at 53.34 297.18 0)
+    (property "Reference" "C107" (at 53.34 297.18 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "100nF" (at 53.34 302.26 0)
@@ -4413,7 +4419,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C12") (unit 1)
+          (reference "C107") (unit 1)
         )
       )
     )
@@ -4421,7 +4427,7 @@
   (symbol (lib_id "power:+3V3") (at 50.8 292.1 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 65585a8e-b4d9-4da1-9aaa-d3e57861d273)
-    (property "Reference" "#PWR?" (at 50.8 288.798 0)
+    (property "Reference" "#PWR134" (at 50.8 288.798 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 51.1 287.7 0)
@@ -4437,7 +4443,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR134") (unit 1)
         )
       )
     )
@@ -4445,7 +4451,7 @@
   (symbol (lib_id "power:GND") (at 50.8 307.34 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 7d295948-7e0a-457f-a8d1-da4b025a60c1)
-    (property "Reference" "#PWR?" (at 50.8 304.038 0)
+    (property "Reference" "#PWR135" (at 50.8 304.038 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 51.1 302.94 0)
@@ -4461,7 +4467,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR135") (unit 1)
         )
       )
     )
@@ -4469,7 +4475,7 @@
   (symbol (lib_id "Device:C") (at 62.23 299.72 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid d4ac337d-a928-4412-9b39-b5357b206d18)
-    (property "Reference" "C13" (at 64.77 297.18 0)
+    (property "Reference" "C108" (at 64.77 297.18 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "100nF" (at 64.77 302.26 0)
@@ -4486,7 +4492,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C13") (unit 1)
+          (reference "C108") (unit 1)
         )
       )
     )
@@ -4494,7 +4500,7 @@
   (symbol (lib_id "power:+3V3") (at 62.23 292.1 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 20e7653d-b8ed-43a8-960c-75848b7d829f)
-    (property "Reference" "#PWR?" (at 62.23 288.798 0)
+    (property "Reference" "#PWR136" (at 62.23 288.798 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 62.53 287.7 0)
@@ -4510,7 +4516,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR136") (unit 1)
         )
       )
     )
@@ -4518,7 +4524,7 @@
   (symbol (lib_id "power:GND") (at 62.23 307.34 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 844e0b8b-77ab-46f2-973a-9029f9e03531)
-    (property "Reference" "#PWR?" (at 62.23 304.038 0)
+    (property "Reference" "#PWR137" (at 62.23 304.038 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 62.53 302.94 0)
@@ -4534,7 +4540,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR137") (unit 1)
         )
       )
     )
@@ -4542,7 +4548,7 @@
   (symbol (lib_id "Device:C") (at 72.39 299.72 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid cd56516c-ed19-4203-808b-10df44477e0b)
-    (property "Reference" "C14" (at 74.93 297.18 0)
+    (property "Reference" "C109" (at 74.93 297.18 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "100nF" (at 74.93 302.26 0)
@@ -4559,7 +4565,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C14") (unit 1)
+          (reference "C109") (unit 1)
         )
       )
     )
@@ -4567,7 +4573,7 @@
   (symbol (lib_id "power:+3V3") (at 72.39 292.1 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid cb939abc-7e79-447a-b243-ab9b4259df1d)
-    (property "Reference" "#PWR?" (at 72.39 288.798 0)
+    (property "Reference" "#PWR138" (at 72.39 288.798 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 72.69 287.7 0)
@@ -4583,7 +4589,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR138") (unit 1)
         )
       )
     )
@@ -4591,7 +4597,7 @@
   (symbol (lib_id "power:GND") (at 72.39 307.34 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid b622c0aa-1ec5-4c8a-89d0-77ade3705402)
-    (property "Reference" "#PWR?" (at 72.39 304.038 0)
+    (property "Reference" "#PWR139" (at 72.39 304.038 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 72.69 302.94 0)
@@ -4607,7 +4613,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR139") (unit 1)
         )
       )
     )
@@ -4615,7 +4621,7 @@
   (symbol (lib_id "Device:C") (at 83.82 299.72 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid b63cc61b-d7a7-464b-a514-2b3b860d6ed1)
-    (property "Reference" "C15" (at 86.36 297.18 0)
+    (property "Reference" "C110" (at 86.36 297.18 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "100nF" (at 86.36 302.26 0)
@@ -4632,7 +4638,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C15") (unit 1)
+          (reference "C110") (unit 1)
         )
       )
     )
@@ -4640,7 +4646,7 @@
   (symbol (lib_id "power:+3V3") (at 83.82 292.1 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 3bf25268-edab-46fa-bb37-62ba07b8115f)
-    (property "Reference" "#PWR?" (at 83.82 288.798 0)
+    (property "Reference" "#PWR140" (at 83.82 288.798 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 84.12 287.7 0)
@@ -4656,7 +4662,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR140") (unit 1)
         )
       )
     )
@@ -4664,7 +4670,7 @@
   (symbol (lib_id "power:GND") (at 83.82 307.34 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 3fa9ca8d-cbad-4faa-9dfa-7d0f4214bb33)
-    (property "Reference" "#PWR?" (at 83.82 304.038 0)
+    (property "Reference" "#PWR141" (at 83.82 304.038 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 84.12 302.94 0)
@@ -4680,7 +4686,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR141") (unit 1)
         )
       )
     )
@@ -4688,7 +4694,7 @@
   (symbol (lib_id "Device:C") (at 95.25 299.72 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 693b017e-c9c5-4ece-b6a4-b794b4f7d1e4)
-    (property "Reference" "C16" (at 97.79 297.18 0)
+    (property "Reference" "C111" (at 97.79 297.18 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "100nF" (at 97.79 302.26 0)
@@ -4705,7 +4711,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C16") (unit 1)
+          (reference "C111") (unit 1)
         )
       )
     )
@@ -4713,7 +4719,7 @@
   (symbol (lib_id "power:+3V3") (at 95.25 292.1 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 8523561a-a11f-473e-8f01-1e53d31c37f8)
-    (property "Reference" "#PWR?" (at 95.25 288.798 0)
+    (property "Reference" "#PWR142" (at 95.25 288.798 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 95.55 287.7 0)
@@ -4729,7 +4735,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR142") (unit 1)
         )
       )
     )
@@ -4737,7 +4743,7 @@
   (symbol (lib_id "power:GND") (at 95.25 307.34 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid cf1eb74d-85bb-4376-9e09-04480acd3a35)
-    (property "Reference" "#PWR?" (at 95.25 304.038 0)
+    (property "Reference" "#PWR143" (at 95.25 304.038 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 95.55 302.94 0)
@@ -4753,7 +4759,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR143") (unit 1)
         )
       )
     )
@@ -4761,7 +4767,7 @@
   (symbol (lib_id "Device:C") (at 105.41 299.72 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid b42392e9-2ec8-4ece-a28e-517ef68f050e)
-    (property "Reference" "C17" (at 107.95 297.18 0)
+    (property "Reference" "C112" (at 107.95 297.18 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "100nF" (at 107.95 302.26 0)
@@ -4778,7 +4784,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C17") (unit 1)
+          (reference "C112") (unit 1)
         )
       )
     )
@@ -4786,7 +4792,7 @@
   (symbol (lib_id "power:+3V3") (at 105.41 292.1 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 3956df26-58e9-4925-bf49-9a953de71c58)
-    (property "Reference" "#PWR?" (at 105.41 288.798 0)
+    (property "Reference" "#PWR144" (at 105.41 288.798 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 105.71 287.7 0)
@@ -4802,7 +4808,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR144") (unit 1)
         )
       )
     )
@@ -4810,7 +4816,7 @@
   (symbol (lib_id "power:GND") (at 105.41 307.34 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 18cfc393-1a55-4e47-90c1-c4c85ebbb3de)
-    (property "Reference" "#PWR?" (at 105.41 304.038 0)
+    (property "Reference" "#PWR145" (at 105.41 304.038 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 105.71 302.94 0)
@@ -4826,7 +4832,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR145") (unit 1)
         )
       )
     )
@@ -4834,7 +4840,7 @@
   (symbol (lib_id "Device:C") (at 116.84 299.72 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid d1cb0e65-16dc-4e1a-84fa-6829eb3759e6)
-    (property "Reference" "C18" (at 119.38 297.18 0)
+    (property "Reference" "C113" (at 119.38 297.18 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "100nF" (at 119.38 302.26 0)
@@ -4851,7 +4857,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C18") (unit 1)
+          (reference "C113") (unit 1)
         )
       )
     )
@@ -4859,7 +4865,7 @@
   (symbol (lib_id "power:+3V3") (at 116.84 292.1 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 3a6b6d9e-5272-4f03-8d76-d34495a5adb9)
-    (property "Reference" "#PWR?" (at 116.84 288.798 0)
+    (property "Reference" "#PWR146" (at 116.84 288.798 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 117.14 287.7 0)
@@ -4875,7 +4881,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR146") (unit 1)
         )
       )
     )
@@ -4883,7 +4889,7 @@
   (symbol (lib_id "power:GND") (at 116.84 307.34 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 37362842-184c-438e-ba67-bc116ff75a15)
-    (property "Reference" "#PWR?" (at 116.84 304.038 0)
+    (property "Reference" "#PWR147" (at 116.84 304.038 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 117.14 302.94 0)
@@ -4899,7 +4905,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR147") (unit 1)
         )
       )
     )
@@ -4907,7 +4913,7 @@
   (symbol (lib_id "Device:C") (at 128.27 299.72 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 181011ae-a90e-46c7-bc49-4294fe5df798)
-    (property "Reference" "C20" (at 130.81 297.18 0)
+    (property "Reference" "C114" (at 130.81 297.18 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "100nF" (at 130.81 302.26 0)
@@ -4924,7 +4930,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C20") (unit 1)
+          (reference "C114") (unit 1)
         )
       )
     )
@@ -4932,7 +4938,7 @@
   (symbol (lib_id "power:+3V3") (at 128.27 292.1 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 1ce699c6-5a72-42c2-a7ab-d90e9303cdb9)
-    (property "Reference" "#PWR?" (at 128.27 288.798 0)
+    (property "Reference" "#PWR148" (at 128.27 288.798 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 128.57 287.7 0)
@@ -4948,7 +4954,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR148") (unit 1)
         )
       )
     )
@@ -4956,7 +4962,7 @@
   (symbol (lib_id "power:GND") (at 128.27 307.34 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 82dfc07b-0069-4fa1-90a7-c03403b446aa)
-    (property "Reference" "#PWR?" (at 128.27 304.038 0)
+    (property "Reference" "#PWR149" (at 128.27 304.038 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 128.57 302.94 0)
@@ -4972,7 +4978,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR149") (unit 1)
         )
       )
     )
@@ -4980,7 +4986,7 @@
   (symbol (lib_id "Device:C") (at 138.43 299.72 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid b773cd56-565b-4d04-9de9-0fdfeab29f9b)
-    (property "Reference" "C21" (at 140.97 297.18 0)
+    (property "Reference" "C115" (at 140.97 297.18 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "100nF" (at 140.97 302.26 0)
@@ -4997,7 +5003,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C21") (unit 1)
+          (reference "C115") (unit 1)
         )
       )
     )
@@ -5005,7 +5011,7 @@
   (symbol (lib_id "power:+3V3") (at 138.43 292.1 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 6a3c8cb5-9696-4662-b323-a6c2fffc2737)
-    (property "Reference" "#PWR?" (at 138.43 288.798 0)
+    (property "Reference" "#PWR150" (at 138.43 288.798 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 138.73 287.7 0)
@@ -5021,7 +5027,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR150") (unit 1)
         )
       )
     )
@@ -5029,7 +5035,7 @@
   (symbol (lib_id "power:GND") (at 138.43 307.34 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid e181863a-abb7-4516-998f-4d85a0392d59)
-    (property "Reference" "#PWR?" (at 138.43 304.038 0)
+    (property "Reference" "#PWR151" (at 138.43 304.038 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 138.73 302.94 0)
@@ -5045,7 +5051,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR151") (unit 1)
         )
       )
     )
@@ -5053,7 +5059,7 @@
   (symbol (lib_id "Device:C") (at 39.37 320.04 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 9a6a63c1-1ee9-4739-918f-e92af746023a)
-    (property "Reference" "C8" (at 41.91 317.5 0)
+    (property "Reference" "C116" (at 41.91 317.5 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "100nF" (at 41.91 322.58 0)
@@ -5070,7 +5076,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C8") (unit 1)
+          (reference "C116") (unit 1)
         )
       )
     )
@@ -5078,7 +5084,7 @@
   (symbol (lib_id "power:+1V1") (at 39.37 312.42 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid cfd0d3dc-33e4-4359-96ad-3721e95259aa)
-    (property "Reference" "#PWR?" (at 39.37 309.118 0)
+    (property "Reference" "#PWR152" (at 39.37 309.118 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+1V1" (at 39.67 308.02 0)
@@ -5094,7 +5100,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR152") (unit 1)
         )
       )
     )
@@ -5102,7 +5108,7 @@
   (symbol (lib_id "power:GND") (at 39.37 327.66 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 8bd10906-06d7-465f-acd3-b416ed7978c4)
-    (property "Reference" "#PWR?" (at 39.37 324.358 0)
+    (property "Reference" "#PWR153" (at 39.37 324.358 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 39.67 323.26 0)
@@ -5118,7 +5124,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR153") (unit 1)
         )
       )
     )
@@ -5126,7 +5132,7 @@
   (symbol (lib_id "Device:C") (at 50.8 320.04 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid dd117bf8-2b0b-4254-9fa7-b38f4bc2460b)
-    (property "Reference" "C11_DVDD" (at 53.34 317.5 0)
+    (property "Reference" "C117" (at 53.34 317.5 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "100nF" (at 53.34 322.58 0)
@@ -5143,7 +5149,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C11_DVDD") (unit 1)
+          (reference "C117") (unit 1)
         )
       )
     )
@@ -5151,7 +5157,7 @@
   (symbol (lib_id "power:+1V1") (at 50.8 312.42 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid ea6a2267-5b75-4faf-bcd0-87dba8feb58e)
-    (property "Reference" "#PWR?" (at 50.8 309.118 0)
+    (property "Reference" "#PWR154" (at 50.8 309.118 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+1V1" (at 51.1 308.02 0)
@@ -5167,7 +5173,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR154") (unit 1)
         )
       )
     )
@@ -5175,7 +5181,7 @@
   (symbol (lib_id "power:GND") (at 50.8 327.66 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid c9882a8f-e591-45d4-9d83-82a40e6ec5ef)
-    (property "Reference" "#PWR?" (at 50.8 324.358 0)
+    (property "Reference" "#PWR155" (at 50.8 324.358 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 51.1 323.26 0)
@@ -5191,7 +5197,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR155") (unit 1)
         )
       )
     )
@@ -5199,7 +5205,7 @@
   (symbol (lib_id "Device:C") (at 62.23 320.04 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid b25b1c78-f399-4e6b-b9f4-fc5f23b7f45b)
-    (property "Reference" "C10" (at 64.77 317.5 0)
+    (property "Reference" "C118" (at 64.77 317.5 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "4.7uF" (at 64.77 322.58 0)
@@ -5216,7 +5222,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C10") (unit 1)
+          (reference "C118") (unit 1)
         )
       )
     )
@@ -5224,7 +5230,7 @@
   (symbol (lib_id "power:+1V1") (at 62.23 312.42 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid e0b0e535-86da-4b92-89e3-bef680b14a64)
-    (property "Reference" "#PWR?" (at 62.23 309.118 0)
+    (property "Reference" "#PWR156" (at 62.23 309.118 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+1V1" (at 62.53 308.02 0)
@@ -5240,7 +5246,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR156") (unit 1)
         )
       )
     )
@@ -5248,7 +5254,7 @@
   (symbol (lib_id "power:GND") (at 62.23 327.66 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid c1e3e369-1162-43bb-9318-07fd6833ff80)
-    (property "Reference" "#PWR?" (at 62.23 324.358 0)
+    (property "Reference" "#PWR157" (at 62.23 324.358 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 62.53 323.26 0)
@@ -5264,7 +5270,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR157") (unit 1)
         )
       )
     )
@@ -5272,7 +5278,7 @@
   (symbol (lib_id "Device:C") (at 72.39 320.04 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 272aa264-7361-400a-87d4-16cde8096f7d)
-    (property "Reference" "C19" (at 74.93 317.5 0)
+    (property "Reference" "C119" (at 74.93 317.5 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "10uF" (at 74.93 322.58 0)
@@ -5289,7 +5295,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C19") (unit 1)
+          (reference "C119") (unit 1)
         )
       )
     )
@@ -5297,7 +5303,7 @@
   (symbol (lib_id "power:+3V3") (at 72.39 312.42 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid b3b7cb9f-3de4-4e0f-8b17-25a8844eeff2)
-    (property "Reference" "#PWR?" (at 72.39 309.118 0)
+    (property "Reference" "#PWR158" (at 72.39 309.118 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 72.69 308.02 0)
@@ -5313,7 +5319,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR158") (unit 1)
         )
       )
     )
@@ -5321,7 +5327,7 @@
   (symbol (lib_id "power:GND") (at 72.39 327.66 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid a0758051-1473-43e6-9b53-da633daa01ce)
-    (property "Reference" "#PWR?" (at 72.39 324.358 0)
+    (property "Reference" "#PWR159" (at 72.39 324.358 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 72.69 323.26 0)
@@ -5337,7 +5343,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR159") (unit 1)
         )
       )
     )
@@ -5345,7 +5351,7 @@
   (symbol (lib_id "Memory_Flash:W25Q128JVS") (at 90.17 350.52 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 27c34af4-ae84-4f17-901e-b2e034355727)
-    (property "Reference" "U3" (at 83.82 339.09 0)
+    (property "Reference" "U102" (at 83.82 339.09 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "W25Q128JVS" (at 97.79 339.09 0)
@@ -5368,7 +5374,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "U3") (unit 1)
+          (reference "U102") (unit 1)
         )
       )
     )
@@ -5376,7 +5382,7 @@
   (symbol (lib_id "power:GND") (at 90.17 367.03 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid ba22428c-afc1-44f3-96b3-49cb25a356b1)
-    (property "Reference" "#PWR?" (at 90.17 363.728 0)
+    (property "Reference" "#PWR160" (at 90.17 363.728 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 90.47 362.63 0)
@@ -5392,7 +5398,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR160") (unit 1)
         )
       )
     )
@@ -5400,7 +5406,7 @@
   (symbol (lib_id "power:+3V3") (at 90.17 334.01 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid c55f5dcc-c65d-4e40-9771-c48d7f6144ba)
-    (property "Reference" "#PWR?" (at 90.17 330.708 0)
+    (property "Reference" "#PWR161" (at 90.17 330.708 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 90.47 329.61 0)
@@ -5416,7 +5422,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR161") (unit 1)
         )
       )
     )
@@ -5424,7 +5430,7 @@
   (symbol (lib_id "Device:C") (at 119.38 350.52 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid c06c4b95-bd44-4534-83b8-01ee2124ac65)
-    (property "Reference" "C2" (at 121.92 347.98 0)
+    (property "Reference" "C120" (at 121.92 347.98 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "100nF" (at 121.92 353.06 0)
@@ -5441,7 +5447,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C2") (unit 1)
+          (reference "C120") (unit 1)
         )
       )
     )
@@ -5449,7 +5455,7 @@
   (symbol (lib_id "power:+3V3") (at 119.38 342.9 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid c9638073-8199-4a56-9e45-dcb37c7a4f3d)
-    (property "Reference" "#PWR?" (at 119.38 339.598 0)
+    (property "Reference" "#PWR162" (at 119.38 339.598 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 119.68 338.5 0)
@@ -5465,7 +5471,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR162") (unit 1)
         )
       )
     )
@@ -5473,7 +5479,7 @@
   (symbol (lib_id "power:GND") (at 119.38 358.14 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 3456aa6a-ed31-4aeb-938c-b2fd7caaad5e)
-    (property "Reference" "#PWR?" (at 119.38 354.838 0)
+    (property "Reference" "#PWR163" (at 119.38 354.838 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 119.68 353.74 0)
@@ -5489,7 +5495,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR163") (unit 1)
         )
       )
     )
@@ -5497,7 +5503,7 @@
   (symbol (lib_id "pico_link_custom:APS6404L-3SQR-ZR") (at 90.17 389.89 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 03b04ac7-833e-4a0f-94f7-34cdb531de0c)
-    (property "Reference" "U4" (at 83.82 378.46 0)
+    (property "Reference" "U103" (at 83.82 378.46 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "APS6404L-3SQR-ZR" (at 97.79 378.46 0)
@@ -5520,7 +5526,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "U4") (unit 1)
+          (reference "U103") (unit 1)
         )
       )
     )
@@ -5528,7 +5534,7 @@
   (symbol (lib_id "power:GND") (at 90.17 406.4 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid f3c96563-420f-401f-a228-7c8ab0d416e3)
-    (property "Reference" "#PWR?" (at 90.17 403.098 0)
+    (property "Reference" "#PWR164" (at 90.17 403.098 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 90.47 402 0)
@@ -5544,7 +5550,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR164") (unit 1)
         )
       )
     )
@@ -5552,7 +5558,7 @@
   (symbol (lib_id "power:+3V3") (at 90.17 373.38 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid a688e980-4f36-4e00-b848-5313359e4398)
-    (property "Reference" "#PWR?" (at 90.17 370.078 0)
+    (property "Reference" "#PWR165" (at 90.17 370.078 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 90.47 368.98 0)
@@ -5568,7 +5574,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR165") (unit 1)
         )
       )
     )
@@ -5576,7 +5582,7 @@
   (symbol (lib_id "Device:C") (at 119.38 389.89 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid d4b4f5fa-9fc1-426b-a198-6acf0cd18d57)
-    (property "Reference" "C22" (at 121.92 387.35 0)
+    (property "Reference" "C121" (at 121.92 387.35 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "2.2uF" (at 121.92 392.43 0)
@@ -5593,7 +5599,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "C22") (unit 1)
+          (reference "C121") (unit 1)
         )
       )
     )
@@ -5601,7 +5607,7 @@
   (symbol (lib_id "power:+3V3") (at 119.38 382.27 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid e6fe064e-dbb6-4d9b-8fa9-a22b52df202d)
-    (property "Reference" "#PWR?" (at 119.38 378.968 0)
+    (property "Reference" "#PWR166" (at 119.38 378.968 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 119.68 377.87 0)
@@ -5617,7 +5623,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR166") (unit 1)
         )
       )
     )
@@ -5625,7 +5631,7 @@
   (symbol (lib_id "power:GND") (at 119.38 397.51 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 3a60d420-06dc-4254-b176-a4383833f0d1)
-    (property "Reference" "#PWR?" (at 119.38 394.208 0)
+    (property "Reference" "#PWR167" (at 119.38 394.208 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 119.68 393.11 0)
@@ -5641,7 +5647,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR167") (unit 1)
         )
       )
     )
@@ -5649,7 +5655,7 @@
   (symbol (lib_id "Device:R") (at 139.7 389.89 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 2d4c4874-f450-41f7-8e69-4007c59f46c2)
-    (property "Reference" "R5" (at 142.24 387.35 0)
+    (property "Reference" "R105" (at 142.24 387.35 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "100k" (at 142.24 392.43 0)
@@ -5666,7 +5672,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "R5") (unit 1)
+          (reference "R105") (unit 1)
         )
       )
     )
@@ -5674,7 +5680,7 @@
   (symbol (lib_id "power:+3V3") (at 139.7 382.27 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid aa3c1953-110b-44d2-a7d0-6f2640c461d8)
-    (property "Reference" "#PWR?" (at 139.7 378.968 0)
+    (property "Reference" "#PWR168" (at 139.7 378.968 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3V3" (at 140 377.87 0)
@@ -5690,7 +5696,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR168") (unit 1)
         )
       )
     )
@@ -5698,7 +5704,7 @@
   (symbol (lib_id "power:PWR_FLAG") (at 49.53 20.32 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 12626ec6-32c7-4212-8c2a-8cf351049df4)
-    (property "Reference" "#FLG?" (at 49.53 16.51 0)
+    (property "Reference" "#FLG101" (at 49.53 16.51 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "PWR_FLAG" (at 49.53 24.13 0)
@@ -5714,7 +5720,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#FLG?") (unit 1)
+          (reference "#FLG101") (unit 1)
         )
       )
     )
@@ -5722,7 +5728,7 @@
   (symbol (lib_id "power:+1V1") (at 49.53 24.13 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 916554a6-f37d-46a2-9651-9cf6b2dbf286)
-    (property "Reference" "#PWR?" (at 49.53 20.828 0)
+    (property "Reference" "#PWR169" (at 49.53 20.828 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+1V1" (at 49.83 19.73 0)
@@ -5738,7 +5744,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#PWR?") (unit 1)
+          (reference "#PWR169") (unit 1)
         )
       )
     )
@@ -5746,7 +5752,7 @@
   (symbol (lib_id "power:PWR_FLAG") (at 64.77 20.32 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 269810b0-f4f7-402c-be81-1b1614ed7337)
-    (property "Reference" "#FLG?" (at 64.77 16.51 0)
+    (property "Reference" "#FLG102" (at 64.77 16.51 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "PWR_FLAG" (at 64.77 24.13 0)
@@ -5762,7 +5768,7 @@
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
-          (reference "#FLG?") (unit 1)
+          (reference "#FLG102") (unit 1)
         )
       )
     )
@@ -5771,23 +5777,23 @@
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid dfac9397-815e-45f4-981e-7ea4c5b98b66)
   )
-  (text "U1 symbol/pin map: Raspberry Pi's own official MCU_RaspberryPi_RP2350:\nRP2350_80QFN symbol (81 pins incl. the GND thermal pad), taken verbatim from\nRaspberry Pi's historical RP2350B minimal-reference-design KiCad archive\n(doc RP-006442-DD-2, RP2350_80QFN_minimal.kicad_sch/.kicad_sym, KiCad 6\nformat), mirrored at github.com/arturo182/rp2350_minimal_kicad whose own\nREADME states these files were \"taken directly from Raspberry Pi's archive\n... Minimal-KiCAD.zip\" -- i.e. Raspberry Pi's own symbol, not the\nthird-party HDR/RP2350_KiCad repo the bead flags as 'untested'. Caveat\nchecked 2026-11-14: Raspberry Pi's CURRENT Minimal-KiCAD.zip\n(datasheets.raspberrypi.com/rp2350/Minimal-KiCAD.zip) has moved to a newer\nKiCad-8-native revision (RPI-RP2350A-MINIMAL_R4-S1) that only covers\nRP2350A -- the RP2350B 80-QFN minimal example has been dropped from the\ncurrent zip, so the 2024 archive above is the latest Raspberry-Pi-authored\nRP2350B symbol/footprint available, not a stale alternative to a current one.\nPin numbers/names were cross-checked against Raspberry Pi's own published\nPimoroni Pico Plus 2 (PIM724) schematic (electrokit.com mirror, 2024-08-29) --\nsame VREG_*/QSPI_*/IOVDD/DVDD pin numbers for the RP2350B used there.\nFootprint: RP2350-QFN-80-1EP_10x10_P0.4mm_EP3.4x3.4mm_ThermalVias, copied\nfrom the same official archive into hardware/footprints/RP2350_80QFN.pretty/\n(see hardware/fp-lib-table) -- this IS the Raspberry-Pi-authored footprint,\nnot the third-party-repo one the acceptance criteria warns about." (at 60.96 55 0)
+  (text "U101 symbol/pin map: Raspberry Pi's own official MCU_RaspberryPi_RP2350:\nRP2350_80QFN symbol (81 pins incl. the GND thermal pad), taken verbatim from\nRaspberry Pi's historical RP2350B minimal-reference-design KiCad archive\n(doc RP-006442-DD-2, RP2350_80QFN_minimal.kicad_sch/.kicad_sym, KiCad 6\nformat), mirrored at github.com/arturo182/rp2350_minimal_kicad whose own\nREADME states these files were \"taken directly from Raspberry Pi's archive\n... Minimal-KiCAD.zip\" -- i.e. Raspberry Pi's own symbol, not the\nthird-party HDR/RP2350_KiCad repo the bead flags as 'untested'. Caveat\nchecked 2026-11-14: Raspberry Pi's CURRENT Minimal-KiCAD.zip\n(datasheets.raspberrypi.com/rp2350/Minimal-KiCAD.zip) has moved to a newer\nKiCad-8-native revision (RPI-RP2350A-MINIMAL_R4-S1) that only covers\nRP2350A -- the RP2350B 80-QFN minimal example has been dropped from the\ncurrent zip, so the 2024 archive above is the latest Raspberry-Pi-authored\nRP2350B symbol/footprint available, not a stale alternative to a current one.\nPin numbers/names were cross-checked against Raspberry Pi's own published\nPimoroni Pico Plus 2 (PIM724) schematic (electrokit.com mirror, 2024-08-29) --\nsame VREG_*/QSPI_*/IOVDD/DVDD pin numbers for the RP2350B used there.\nFootprint: RP2350-QFN-80-1EP_10x10_P0.4mm_EP3.4x3.4mm_ThermalVias, copied\nfrom the same official archive into hardware/footprints/RP2350_80QFN.pretty/\n(see hardware/fp-lib-table) -- this IS the Raspberry-Pi-authored footprint,\nnot the third-party-repo one the acceptance criteria warns about." (at 60.96 55 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid cf7e0e1b-c052-412a-9493-15dcf07cabd0)
   )
-  (text "Crystal Y1: Abracon ABM8-272-T3, 12MHz, same part used on both Raspberry\nPi's own RP2350B minimal reference design and Pimoroni's shipped Pico\nPlus 2. Load caps C3/C4: 10pF, matching the crystal's own datasheet-rated\nload capacitance (CL = 10pF per Abracon's ABM8 series datasheet and\ndistributor listings) AND Pimoroni's real shipped board (their schematic\nlists C24/C35 as 10pF with this exact crystal). NOT reusing Raspberry Pi's\n2024 minimal-reference-design value of 15pF for this same crystal --\nthat figure doesn't match the crystal's own CL spec and isn't corroborated\nby the real shipped product, so we follow the datasheet + real-board value\ninstead of copying the older reference design's figure blindly. R2 (1k) is\na series damping resistor on XOUT, present in both source designs." (at 60.96 120 0)
+  (text "Crystal Y101: Abracon ABM8-272-T3, 12MHz, same part used on both\nRaspberry Pi's own RP2350B minimal reference design and Pimoroni's\nshipped Pico Plus 2. Load caps C101/C102: 15pF each, matching both the\ncrystal's own datasheet-rated load capacitance (CL = 10pF per Abracon's\nABM8 series datasheet) AND Raspberry Pi's current reference design\n(confirmed 2026-11-14 against datasheets.raspberrypi.com/rp2350/\nMinimal-KiCAD.zip, revision R4-S1, July 2026 -- still 15pF, not an\noutdated value). The two load caps appear in series as seen by the\ncrystal, so CL_seen = (C1*C2)/(C1+C2) + Cstray: two 15pF caps in series\ngive 7.5pF, plus ~2-3pF of PCB/pin stray capacitance, lands at ~10pF --\nmatching the crystal's 10pF spec. Two 10pF caps in series would instead\ngive only 5pF (+stray ~7.5pF), UNDERLOADING a crystal rated for 10pF CL,\nwhich pulls its oscillation frequency fast/out of spec -- not a\ncorrection, a bug. (Pimoroni's shipped board lists C24/C35 as 10pF with\nthis same crystal; that's a separate design's choice, not re-derived or\nused as the basis for this value here.) R101 (1k) is a series damping\nresistor on XOUT, present in both source designs." (at 60.96 120 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid df52e141-5816-42d1-9e92-a9874088594b)
   )
-  (text "VREG (RP2350B's internal 3.3V->1.1V switched-mode core regulator) and its\nper-pin decoupling -- the half of the split documented as out-of-scope-for-\npower.kicad_sch at the end of that sheet's own notes:\n  L1 3.3uH: VREG_LX -> +1V1 (the regulated core rail).\n  C6 4.7uF: VREG_VIN (local bypass) -> GND.\n  C7 4.7uF: +1V1 (L1's output / VREG_FB node) -> GND.\n  R3 33R + C9 4.7uF: +3V3 -> VREG_AVDD RC low-pass filter -- matches the\n    exact \"RC filter of 33 ohm and 4.7uF\" called out for VREG_AVDD in\n    JLCPCB's RP2350 KiCad layout guide (jlcpcb.com/blog/how-to-design-\n    layout-with-rp2350), itself citing Raspberry Pi's RP-008280-DS\n    hardware design guide's power section (2.1 New on-chip voltage\n    regulator / 2.2 Input supply / 2.2.1 Decoupling capacitors).\n  DVDD (3 pins): 2x 100nF (C8, C11_DVDD) + 1x 4.7uF bulk (C10), all\n    +1V1 -> GND -- matches the exact cap-value mix (not uniform 100nF)\n    on Raspberry Pi's own RP2350B minimal reference schematic's DVDD row.\n  IOVDD x8 + QSPI_IOVDD + USB_OTP_VDD (10 pins): 100nF each, +3V3 -> GND\n    (C11,C12,C13,C14,C15,C16,C17,C18,C20,C21) -- 10 + 2 DVDD 100nF = 12\n    individual 100nF decouplers total, matching the bead's own ~11-12\n    estimate.\n  ADC_AVDD: 10uF (C19) to +3V3 -- separate from VREG_AVDD; this is the\n    ADC's own analog supply pin, not the regulator's.\nValues independently verified against Raspberry Pi's official\nRP-006442-DD-2 RP2350B minimal reference schematic (component-by-component\nposition/value extraction, not a visual guess), corroborated by the JLCPCB\nblog's direct quotes of the RP-008280-DS guide for the VREG_AVDD filter and\ninductor values. This corrects the task's shorthand framing of \"C1/C5=10uF\nbulk\" as part of this network: in the real reference design C1/C5 (10uF)\nare the EXTERNAL 3.3V LDO's own input/output caps (already represented as\nC1/C2 on power.kicad_sch), not part of the internal VREG_LX/AVDD network --\nthey do not belong on this sheet." (at 60.96 145 0)
+  (text "VREG (RP2350B's internal 3.3V->1.1V switched-mode core regulator) and its\nper-pin decoupling -- the half of the split documented as out-of-scope-for-\npower.kicad_sch at the end of that sheet's own notes:\n  L101 3.3uH: VREG_LX -> +1V1 (the regulated core rail).\n  C103 4.7uF: VREG_VIN (local bypass) -> GND.\n  C104 4.7uF: +1V1 (L101's output / VREG_FB node) -> GND.\n  R104 33R + C105 4.7uF: +3V3 -> VREG_AVDD RC low-pass filter -- matches the\n    exact \"RC filter of 33 ohm and 4.7uF\" called out for VREG_AVDD in\n    JLCPCB's RP2350 KiCad layout guide (jlcpcb.com/blog/how-to-design-\n    layout-with-rp2350), itself citing Raspberry Pi's RP-008280-DS\n    hardware design guide's power section (2.1 New on-chip voltage\n    regulator / 2.2 Input supply / 2.2.1 Decoupling capacitors).\n  DVDD (3 pins): 2x 100nF (C116, C117) + 1x 4.7uF bulk (C118), all\n    +1V1 -> GND -- matches the exact cap-value mix (not uniform 100nF)\n    on Raspberry Pi's own RP2350B minimal reference schematic's DVDD row.\n  IOVDD x8 + QSPI_IOVDD + USB_OTP_VDD (10 pins): 100nF each, +3V3 -> GND\n    (C106,C107,C108,C109,C110,C111,C112,C113,C114,C115) -- 10 + 2 DVDD 100nF\n    = 12 individual 100nF decouplers total, matching the bead's own ~11-12\n    estimate.\n  ADC_AVDD: 10uF (C119) to +3V3 -- separate from VREG_AVDD; this is the\n    ADC's own analog supply pin, not the regulator's.\nValues independently verified against Raspberry Pi's official\nRP-006442-DD-2 RP2350B minimal reference schematic (component-by-component\nposition/value extraction, not a visual guess), corroborated by the JLCPCB\nblog's direct quotes of the RP-008280-DS guide for the VREG_AVDD filter and\ninductor values. This corrects the task's shorthand framing of \"C1/C5=10uF\nbulk\" as part of this network: in the real reference design C1/C5 (10uF)\nare the EXTERNAL 3.3V LDO's own input/output caps (already represented as\nC1/C2 on power.kicad_sch), not part of the internal VREG_LX/AVDD network --\nthey do not belong on this sheet. (This sheet's own reference numbers\n100-199 are a project-wide block assigned to avoid duplicate-designator\ncollisions across hierarchical sheets -- see pilink-7el.3 review notes;\npower.kicad_sch keeps 1-99 and is unaffected.)" (at 60.96 158 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid 9aa93436-d414-4749-8e62-42bc52b400dd)
   )
-  (text "BOOTSEL (SW1) and reset (SW2): RP2350 has no dedicated BOOTSEL pin --\npulling QSPI_SS low during the boot-ROM's boot-select check forces USB\nmass-storage bootloader mode (confirmed via JLCPCB's RP2350 layout guide,\nquoting the design guide: \"RP2350 checks the value of this I/O during the\nboot sequence, and if it is found to be a logic 0, then RP2350 reverts to\nthe BOOTSEL mode\"). SW1 + R1 (1k) pull QSPI_SS to GND when pressed, same\ntopology as Raspberry Pi's own minimal reference design (R6+SW1 there) and\nPimoroni's shipped board (R4+SW_BOOT). No explicit pull-up on QSPI_SS is\nfitted (DNF in Raspberry Pi's own reference design too) -- the ROM's boot\ncheck has its own internal handling and the flash's own CS line floats\nhigh enough between presses; RUN has an internal pull-up per the RP2350\ndatasheet, so SW2 + R4 (1k, current limiting) is a plain switch-to-GND\nreset, matching Raspberry Pi's reference design (R4+SW2 there)." (at 60.96 245 0)
+  (text "BOOTSEL (SW101) and reset (SW102): RP2350 has no dedicated BOOTSEL pin --\npulling QSPI_SS low during the boot-ROM's boot-select check forces USB\nmass-storage bootloader mode (confirmed via JLCPCB's RP2350 layout guide,\nquoting the design guide: \"RP2350 checks the value of this I/O during the\nboot sequence, and if it is found to be a logic 0, then RP2350 reverts to\nthe BOOTSEL mode\"). SW101 + R102 (1k) pull QSPI_SS to GND when pressed,\nsame topology as Raspberry Pi's own minimal reference design (R6+SW1\nthere) and Pimoroni's shipped board (R4+SW_BOOT). No explicit pull-up on\nQSPI_SS is fitted (DNF in Raspberry Pi's own reference design too) -- the\nROM's boot check has its own internal handling and the flash's own CS\nline floats high enough between presses; RUN has an internal pull-up per\nthe RP2350 datasheet, so SW102 + R103 (1k, current limiting) is a plain\nswitch-to-GND reset, matching Raspberry Pi's reference design (R4+SW2\nthere)." (at 60.96 245 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid 785591cd-deab-44e8-81d6-b8d1bd6a01a3)
   )
-  (text "Flash U3: Winbond W25Q128JVS, 16Mbit x8 = 16MB, SOIC-8, KiCad stock\nMemory_Flash:W25Q128JVS symbol+footprint -- the exact part Raspberry Pi's\nown RP2350B minimal reference design uses for primary flash. Pimoroni's\npublished Pico Plus 2 schematic instead lists \"W25Q128JVPIQ\" (Winbond's\nPb-free/tray-pack SOIC-8 ordering suffix for the same density/package\nfamily) -- functionally and footprint-equivalent, but not the identical\nordering code; exact JLCPCB/LCSC SKU selection is deferred to pilink-7el.8\n(BOM compilation, which depends on this bead). C2 100nF is VCC-pin local\ndecoupling.\nPSRAM U4: AP Memory APS6404L-3SQR-ZR, 8MB (64Mbit), same CS/SIO0-3/SCLK/\nVCC/GND pin MAP as the flash (verified against Pimoroni's actual shipped\nPico Plus 2 schematic, which draws both parts with an identical pin-1..8\nlayout) -- but NOT the same physical package: AP Memory's '-ZR' suffix is\nUSON-8L (~3x2mm, leadless), confirmed via LCSC's distributor listing for\nthis exact part number (C3040877), not SOIC-8. Footprint used here is\nKiCad stock Package_SON:Winbond_USON-8-1EP_3x2mm_P0.5mm_EP0.2x1.6mm as the\nclosest body-size match (3x2mm, 0.5mm pitch); AP Memory's own mechanical\ndrawing/pad geometry was not independently re-verified against it -- flag\nfor the PCB-layout stage, not resolved here. C22 2.2uF is VCC-pin local\ndecoupling (bigger than the flash's 100nF -- matches Pimoroni's real board,\nwhich also uses a bigger cap on the PSRAM's VCC than on the flash's).\nQSPI bus (SD0-3, SCLK) is shared between flash and PSRAM; each has its own\nchip-select -- QSPI_SS (dedicated pin 75) for the primary flash, GPIO47\n(ADC7-capable, repurposed as the QMI's second chip-select) for the PSRAM,\nsame GPIO Pimoroni's Pico Plus 2 W uses for this role (one of the four\nvalid secondary-CS options per Raspberry Pi's design guide: GP0/GP8/GP19/\nGP47). R5 100k pulls PSRAM_CS high since GPIOs default to pull-down at\npower-up and would otherwise assert the PSRAM's CS during boot." (at 60.96 335 0)
+  (text "Flash U102: Winbond W25Q128JVS, 128Mbit (128Mbit / 8 bits-per-byte =\n16MB), SOIC-8, KiCad stock Memory_Flash:W25Q128JVS symbol+footprint --\nthe exact part Raspberry Pi's own RP2350B minimal reference design uses\nfor primary flash. Pimoroni's published Pico Plus 2 schematic instead\nlists \"W25Q128JVPIQ\" (Winbond's Pb-free/tray-pack SOIC-8 ordering suffix\nfor the same density/package family) -- functionally and\nfootprint-equivalent, but not the identical ordering code; exact\nJLCPCB/LCSC SKU selection is deferred to pilink-7el.8 (BOM compilation,\nwhich depends on this bead). C120 100nF is VCC-pin local decoupling.\nPSRAM U103: AP Memory APS6404L-3SQR-ZR, 8MB (64Mbit), same CS/SIO0-3/SCLK/\nVCC/GND pin MAP as the flash (verified against Pimoroni's actual shipped\nPico Plus 2 schematic, which draws both parts with an identical pin-1..8\nlayout) -- but NOT the same physical package: AP Memory's '-ZR' suffix is\nUSON-8L (~3x2mm, leadless), confirmed via LCSC's distributor listing for\nthis exact part number (C3040877), not SOIC-8. Footprint used here is\nKiCad stock Package_SON:Winbond_USON-8-1EP_3x2mm_P0.5mm_EP0.2x1.6mm as the\nclosest body-size match (3x2mm, 0.5mm pitch); AP Memory's own mechanical\ndrawing/pad geometry was not independently re-verified against it -- flag\nfor the PCB-layout stage, not resolved here. C121 2.2uF is VCC-pin local\ndecoupling (bigger than the flash's 100nF -- matches Pimoroni's real board,\nwhich also uses a bigger cap on the PSRAM's VCC than on the flash's).\nQSPI bus (SD0-3, SCLK) is shared between flash and PSRAM; each has its own\nchip-select -- QSPI_SS (dedicated pin 75) for the primary flash, GPIO47\n(ADC7-capable, repurposed as the QMI's second chip-select) for the PSRAM,\nsame GPIO Pimoroni's Pico Plus 2 W uses for this role (one of the four\nvalid secondary-CS options per Raspberry Pi's design guide: GP0/GP8/GP19/\nGP47). R105 100k pulls PSRAM_CS high since GPIOs default to pull-down at\npower-up and would otherwise assert the PSRAM's CS during boot.\nERC note: the embedded Memory_Flash:W25Q128JVS cache previously carried a\nstray pin_numbers/pin_names display override (hide + 1.016mm offset) and\nan edited Description string, neither present on the stock symbol -- an\naccidental carryover from applying this project's pin-number-hidden\nconvention to every placed symbol, including this stock-library one.\nSynced back to match the real stock Memory_Flash:W25Q128JVS symbol\nexactly (pins/graphics were already identical); kicad-cli sch erc no\nlonger reports 'Symbol has been modified in library'." (at 340 20 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid 6c7ec36c-cb5f-411a-ae98-155f5b08008e)
   )
