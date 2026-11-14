@@ -85,6 +85,10 @@ blocker.
 
 ### Input
 
+**Superseded 2026-11-14** — see
+`.planning/decisions/2026-11-14-dpad-instead-of-joystick.md`: the joystick
+switch below was replaced with a 4-switch d-pad, no center press.
+
 5-way joystick switch + 4 discrete tact buttons, same logical layout as
 today (UP/DOWN/LEFT/RIGHT/PRESS, A/B/X/Y), mounted directly on the PCB.
 Physical GPIO numbers may shift from the current `input.h`/`st7789.h`
