@@ -65,7 +65,15 @@ everything else.
 - Two MCUs instead of one. More board area and one more UART link to design
   and flow-control, in exchange for antenna freedom and dramatically simpler
   sourcing/assembly than either of the alternatives.
-- Open item for the firmware side: whether ESP32's classic BT controller
-  needs a vendor-specific init/firmware-patch step before it behaves as a
-  plain HCI device (some Broadcom chips do; unconfirmed for ESP32's own
-  controller). See `.research/findings/`.
+- Resolved 2026-11-14 (bead `pilink-kfa`): ESP32's classic BT controller
+  does **not** need a Broadcom-style runtime firmware/.hcd patch-load step.
+  Espressif's own `controller_hci_uart` example and BTstack's chipset-driver
+  registry (no `esp32` entry, unlike `bcm`/`csr`/`cc256x`) confirm the
+  controller firmware is flashed once (standard `idf.py flash`, the same
+  UART-bootloader path already planned for field updates) and answers
+  standard HCI immediately on boot thereafter — no per-session vendor
+  command handshake. See the 2026-11-14 addendum in
+  `.research/findings/2026-11-13-esp32-hci-uart-coprocessor-viability.md`
+  for sources. One detail that *does* carry into the schematic
+  (`pilink-7el.4`): the HCI UART needs RTS/CTS wired (4-wire, hardware flow
+  control), separate from the UART0 pins used for flashing.

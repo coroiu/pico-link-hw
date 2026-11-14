@@ -30,7 +30,16 @@ as follow-up work on the firmware side:
 
 ## Live risks
 
-- ESP32's classic BT controller firmware's exact HCI init behavior
-  (vendor-patch step or not) is unconfirmed — see `.research/findings/`.
 - Ezurio Sterling-LWB+ is the documented fallback if the ESP32 coprocessor
   path hits a wall during firmware integration.
+
+## Resolved risks
+
+- ~~ESP32's classic BT controller firmware's exact HCI init behavior
+  (vendor-patch step or not) is unconfirmed.~~ Resolved 2026-11-14
+  (bead `pilink-kfa`): no vendor patch-load step needed — the controller
+  firmware is flashed once and speaks standard HCI on boot. See the
+  2026-11-14 addendum in
+  `.research/findings/2026-11-13-esp32-hci-uart-coprocessor-viability.md`.
+  One follow-on detail for the schematic (`pilink-7el.4`): the HCI UART
+  needs RTS/CTS (4-wire), not just TX/RX.
