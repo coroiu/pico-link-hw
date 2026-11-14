@@ -43,16 +43,17 @@ violations on both `power.kicad_sch` and the root `pico-link-hw.kicad_sch`,
 and the exported PDF was visually checked for a sane, non-overlapping
 layout. The other five child sheets remain unverified skeletons.
 
-**Blind-authoring caveat (root sheet + the five still-empty child sheets):**
-neither KiCad nor `kicad-cli` was available in the agent environment the
-project skeleton was written in. Those files were hand-authored as KiCad 8
+**Blind-authoring caveat (the five still-empty child sheets):** neither
+KiCad nor `kicad-cli` was available in the agent environment the project
+skeleton was written in. Those files were hand-authored as KiCad 8
 S-expression/JSON text, cross-checked against KiCad's own file-format docs
 and real KiCad-8-generated project files pulled from public repos — not
 written, opened, or validated by the actual KiCad GUI. `kicad-cli` **is**
-available now (KiCad 8.0.9) and was used for `power.kicad_sch` (see above);
-the same validation still needs to happen for the rest before trusting or
-building on it. If anything fails to parse, that's a bug in this skeleton,
-not a sign the approach is wrong.
+available now (KiCad 8.0.9) and was used for `power.kicad_sch` and the root
+sheet's hierarchy (see above); the same validation still needs to happen
+for the five remaining empty child sheets before trusting or building on
+them. If anything fails to parse, that's a bug in this skeleton, not a
+sign the approach is wrong.
 
 PCB routing, DRC/ERC, and gerber export still need to happen in the KiCad GUI
 on a machine that has it installed — same caveat as before, now narrowed to
