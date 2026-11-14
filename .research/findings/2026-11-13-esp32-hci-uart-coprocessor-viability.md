@@ -34,7 +34,7 @@ running on RP2350), rather than running ESP-IDF's own Bluedroid/A2DP stack?
   reset, flash over UART), so ESP32 firmware updates can ride over the same
   USB cable used for everything else, with no extra port or header needed.
 
-## Open question (unresolved — flag for firmware work)
+## Open question (resolved from documentation 2026-11-14 — see addendum below; bench confirmation pending, `pilink-6c3`)
 
 Whether ESP32's classic BT controller firmware needs a vendor-specific
 init/firmware-patch step before it behaves as a plain, standard-compliant
@@ -85,18 +85,24 @@ Espressif's controller firmware on the chip.
   vendor HCI commands for serial-HCI use cases, not requiring any vendor
   command before standard operation.
 - BTstack's own chipset-driver registry is the strongest corroborating
-  signal: `chipset/README.md` in `github.com/bluekitchen/btstack` (fetched
-  2026-11-14) lists chipset-specific init/patch drivers for Broadcom
-  (`bcm`), CSR (`csr`), TI (`cc256x`), Cypress/Infineon
-  (`cinnamon`/`atwilc3000`), Realtek, NXP, Intel, etc. — chips that do need
-  a runtime init script or firmware patch before BTstack can use them.
-  **There is no `esp32` entry in that list.** The README's Espressif
-  section instead just describes the ESP32 as a SoC whose "HCI Controller
-  is implemented in software and accessed via a... Virtual HCI (VHCI)
-  interface" and that it "can be configured as a regular Bluetooth HCI
-  Controller" — i.e. BTstack's own maintainers don't model ESP32 as needing
-  a chipset_t patch driver at all, the same bucket as Broadcom/CSR/TI
-  chips.
+  signal: `chipset/README.md` and the `chipset/` directory listing in
+  `github.com/bluekitchen/btstack` (fetched 2026-11-14) list
+  chipset-specific init/patch drivers for Broadcom **and** Infineon/Cypress
+  CYW-series parts (both share the same `bcm` folder and
+  `btstack_chipset_bcm.c` code — Infineon acquired Cypress's Bluetooth/Wi-Fi
+  division, which had itself acquired Broadcom's), CSR (`csr`), TI
+  (`cc256x`), Atmel/Microchip ATWILC3000 (`atwilc3000`, an unrelated part,
+  not a Cypress/Infineon chip), Realtek, NXP, Intel, etc. — chips that do
+  need a runtime init script or firmware patch (typically a `.hcd` file)
+  before BTstack can use them. **There is no `esp32` entry/folder in that
+  list.** The README's Espressif section instead just describes the ESP32
+  as a SoC whose "HCI Controller is implemented in software and accessed
+  via a... Virtual HCI (VHCI) interface" and that it "can be configured as
+  a regular Bluetooth HCI Controller" — i.e. BTstack's own maintainers
+  don't model ESP32 as needing a chipset_t patch driver at all, **unlike**
+  Broadcom/Infineon/Cypress/CSR/TI chips: those need the host to push a
+  firmware patch over HCI at every power-up, while ESP32 does not (see
+  below for why).
 - Why the mechanism differs from Broadcom: Broadcom/CSR/TI radio chips ship
   with only a minimal/generic ROM-resident link-layer and need the *host*
   to push a full firmware image over HCI vendor commands on every power-up
@@ -125,7 +131,8 @@ not from a bench test. Actually wiring an ESP32-WROOM-32U to a host and
 confirming a clean `HCI_Reset` round-trip over UART at the chosen baud rate
 once real hardware exists is still worth a quick firmware-side smoke test
 before fully relying on it — standard due diligence, not because anything
-found here suggests a patch step is hiding.
+found here suggests a patch step is hiding. Tracked as bead `pilink-6c3`
+(discovered-from `pilink-kfa`).
 
 Sources:
 - https://github.com/espressif/esp-idf/blob/master/examples/bluetooth/hci/controller_hci_uart/README.md
