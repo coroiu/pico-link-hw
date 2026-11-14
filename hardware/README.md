@@ -27,8 +27,10 @@ already settled (MCU, radio coprocessor, display, memory, and the
 
 `power.kicad_sch` now has the 3.3V rail: USB-C 5V in (via a `+5V`/`PWR_FLAG`
 pair, pending the USB-C sheet, pilink-7el.7) through an AMS1117-3.3 (SOT-223,
-JLCPCB Basic part C6186/LCSC C6186) to a single `+3V3` rail, with 10uF
-input/output bulk caps plus a 100nF local decoupler at the point of load.
+JLCPCB Basic part C6186/LCSC C6186) to a single `+3V3` rail, with a 10uF
+input bulk cap (C1), a 22uF output bulk cap (C2, per the AMS1117
+datasheet's stability requirement), and a 100nF local decoupler (C3) at
+the point of load.
 Component choice and decoupling values are cross-checked against Raspberry
 Pi's own official RP2350B minimal reference design and RP2350 Hardware
 Design Guide (RP-008280-DS) — see the citations in the sheet's own text
