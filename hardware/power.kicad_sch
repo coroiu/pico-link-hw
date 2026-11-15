@@ -584,7 +584,7 @@
 		)
 	)
 
-(symbol "Regulator_Linear:AMS1117-3.3"
+(symbol "pico_link_custom:AP2114H-3.3"
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -596,7 +596,7 @@
 				)
 			)
 		)
-		(property "Value" "AMS1117-3.3"
+		(property "Value" "AP2114H-3.3TRG1"
 			(at 0 3.175 0)
 			(effects
 				(font
@@ -614,7 +614,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "http://www.advanced-monolithic.com/pdf/ds1117.pdf"
+		(property "Datasheet" "https://datasheet.lcsc.com/datasheet/pdf/11925722caecb155eb3f8664b8021015.pdf?productCode=C150716"
 			(at 2.54 -6.35 0)
 			(effects
 				(font
@@ -623,7 +623,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "1A Low Dropout regulator, positive, 3.3V fixed output, SOT-223"
+		(property "Description" "BCD Semiconductor (Diodes Incorporated) AP2114H-3.3TRG1, SOT-223 (H package), genuinely CMOS-process LDO ('1A LOW NOISE CMOS LDO REGULATOR WITH ENABLE', rev. Jan 2013) swapped in for U1's prior AMS1117-3.3 (bipolar NPN-pass, see power.kicad_sch's dropout-margin note, pilink-ddq). Real datasheet Electrical Characteristics table, AP2114-3.3 section: Dropout Voltage VDROP @ IOUT=1A = 450mV (typ) / 750mV (max); Maximum Output Current guaranteed >=1.0A (min) at VIN=4.3V, VOUT=3.25-3.35V; Recommended Supply Voltage 2.5-6.0V (Absolute Max 6.5V). Stable with a 4.7uF 'Flexible Cap: Ceramic, Tantalum and Aluminum Electrolytic' on both CIN and COUT per the datasheet's own test conditions and feature list -- no tantalum-specific requirement unlike AMS1117. Pin Descriptions table for the SOT-223 (H) package: pin1=GND, pin2=VOUT, pin3=VIN -- IDENTICAL pin-to-pad mapping as the AMS1117-3.3 this replaces (same SOT-223-3_TabPin2 footprint, tab=VOUT=pin2), chosen specifically to minimize layout/decoupling churn since PCB layout (pilink-7el.9) hadn't started yet when this swap was made. The 3-pin H/HA SOT-223 package has no EN pin (EN only exposed on the SOIC-8/PSOP-8/ADJ packages) -- always enabled, same as AMS1117's wiring, no extra components needed. LCSC C150716, confirmed via jlcpcb-search MCP 2026-11-15: 10,090 units in stock (Extended part)."
 			(at 0 0 0)
 			(effects
 				(font
@@ -632,7 +632,7 @@
 				(hide yes)
 			)
 		)
-		(property "ki_keywords" "linear regulator ldo fixed positive"
+		(property "ki_keywords" "linear regulator ldo fixed positive cmos low dropout"
 			(at 0 0 0)
 			(effects
 				(font
@@ -650,7 +650,7 @@
 				(hide yes)
 			)
 		)
-		(symbol "AMS1117-3.3_0_1"
+		(symbol "AP2114H-3.3_0_1"
 			(rectangle
 				(start -5.08 -5.08)
 				(end 5.08 1.905)
@@ -663,7 +663,7 @@
 				)
 			)
 		)
-		(symbol "AMS1117-3.3_1_1"
+		(symbol "AP2114H-3.3_1_1"
 			(pin power_in line
 				(at 0 -7.62 90)
 				(length 2.54)
@@ -810,19 +810,19 @@
     )
   )
 
-  (symbol (lib_id "Regulator_Linear:AMS1117-3.3") (at 160.02 109.22 0) (unit 1)
+  (symbol (lib_id "pico_link_custom:AP2114H-3.3") (at 160.02 109.22 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid ebd52553-ec43-406b-ae8c-d3ce83cc78e1)
     (property "Reference" "U1" (at 170.18 105.41 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "AMS1117-3.3" (at 163.83999999999997 115.57 0)
+    (property "Value" "AP2114H-3.3TRG1" (at 163.83999999999997 115.57 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "Package_TO_SOT_SMD:SOT-223-3_TabPin2" (at 160.02 118.11 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (property "Datasheet" "http://www.advanced-monolithic.com/pdf/ds1117.pdf" (at 162.56 95.25 0)
+    (property "Datasheet" "https://datasheet.lcsc.com/datasheet/pdf/11925722caecb155eb3f8664b8021015.pdf?productCode=C150716" (at 162.56 95.25 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (pin "1" (uuid 8867bf53-ce80-4c9e-b2a1-36be73c5a72d))
@@ -1117,12 +1117,12 @@
     (uuid 05f9001f-68b4-41c9-b633-340747c14553)
   )
 
-  (text "U1: AMS1117-3.3, SOT-223, 1A LDO (Advanced Monolithic Systems' own\ndatasheet is titled \"1A LOW DROPOUT VOLTAGE REGULATOR\" and lists\n\"Output Current of 1A\" as a feature -- that 1A figure is the datasheet's\nown marketed capability, not clone-vendor hype. Its electrical\nspecifications table, however, only guarantees performance (dropout\nvoltage, load regulation) up to IOUT=0.8A, and the guaranteed\ncurrent-limit spec is 900mA min / 1,100mA typ / 1,500mA max -- so 0.8A is\nthe conservative guaranteed-spec figure, not the \"real\" rating vs. a fake\n1A one. 15V max input). JLCPCB\nBasic part C6186 / LCSC C6186, stock in the hundreds of thousands of units\n(checked 2026-11-14). Pin-compatible (same SOT-223 pinout: 1=GND,\n2=VOUT/tab, 3=VIN) with the NCP1117-3.3 used in Raspberry Pi's own\nofficial RP2350B minimal reference design (arturo182/rp2350_minimal_kicad\nmirror of RP-006442-DD-2, RP2350_80QFN_minimal.kicad_sch) -- but NOT a\nfunctional/electrical equivalent: AMS1117 is 15V in / 1A-marketed,\n0.8A-guaranteed out vs NCP1117's 20V in / ~1A out, and their output-cap\nstability requirements\ndiffer (see decoupling note below). This design only needs 5V->3.3V at\nmodest current -- rough budget: RP2350B tens of mA, ESP32-WROOM-32U ~80mA\naverage (Espressif spec wants a supply capable of 500mA to cover Wi-Fi TX\nbursts), small ST7789V-class display ~50-100mA incl. backlight -- so\nAMS1117's guaranteed 0.8A spec limit keeps reasonable margin even under a\nworst-case simultaneous peak; re-check once real current draws are measured.\n\nDropout margin vs USB's VBUS floor (open question, pilink-ddq): the real\nAMS1117 datasheet's guaranteed spec table only covers dropout voltage up to\nIOUT=0.8A; third-party datasheet listings put typical dropout around\n1.1-1.3V in that range, meaning this regulator can need up to ~4.6V in to\nstay in regulation. USB VBUS's own worst-case floor (cable/connector drop\nunder a bus-powered port) is commonly cited around 4.5V, which is tight\nagainst that 4.6V figure. Any additional series resistance upstream of U1\n(J401's contact resistance, F401's fuse resistance on usb_c.kicad_sch,\ntrace resistance) narrows this margin further. Not resolved here -- this\nnote only records the concern; pilink-ddq owns actually resolving it." (at 60.96 46.99 0)
+  (text "U1: AP2114H-3.3TRG1 (BCD Semiconductor / Diodes Incorporated), SOT-223\n(H package), genuinely CMOS-process LDO -- swapped in for the prior\nAMS1117-3.3 (bipolar NPN-pass) to fix a dropout-margin problem against\nUSB VBUS's worst-case floor (pilink-ddq, round 2). AMS1117's bipolar\ntopology has a near-fixed ~1.2-1.3V dropout offset that barely improves\nbelow its 0.8A guaranteed-spec edge, which left only +35 to -100mV of\nmargin once a tripped F401 PTC fuse (usb_c.kicad_sch) was factored in --\ntoo thin. AP2114H-3.3 is a true CMOS pass-FET device: its own datasheet\n(BCD Semiconductor, Jan 2013 rev, titled \"1A LOW NOISE CMOS LDO REGULATOR\nWITH ENABLE\") guarantees Dropout Voltage VDROP @ IOUT=1A = 450mV (typ) /\n750mV (max) in its AP2114-3.3 Electrical Characteristics table, and\nguarantees Maximum Output Current >=1.0A (min) at VOUT=3.25-3.35V -- a\nreal, verified spec, not a marketing figure. Recommended Supply Voltage\n2.5-6.0V (Absolute Max 6.5V) comfortably covers USB VBUS up to ~5.25V.\nLCSC C150716, confirmed via jlcpcb-search MCP 2026-11-15: 10,090 units in\nstock (Extended part). Pin-compatible with the AMS1117 it replaces: SOT-223\n(H) Pin Descriptions table gives 1=GND, 2=VOUT, 3=VIN -- the IDENTICAL\npin-to-pad mapping as AMS1117 on the same SOT-223-3_TabPin2 footprint\n(tab=VOUT=pin2), chosen specifically to minimize layout/decoupling churn\nsince PCB layout (pilink-7el.9) hadn't started yet when this swap was made.\nThe 3-pin H/HA SOT-223 package has no EN pin (EN only exposed on the\nSOIC-8/PSOP-8/ADJ packages) -- always enabled, no extra components needed.\n\nDropout margin vs USB's VBUS floor (resolved, pilink-ddq): worst-case VBUS\nfloor at the connector, direct host connection, no hub: 4.75V (USB-IF\n\"ports supplying >1 unit load\" minimum) - 0.125V (spec's max cable IR\ndrop, VBUSD ECN) = 4.625V. Our load's own worst-case peak is ~0.65A (see\ncurrent-budget note above); AP2114H-3.3's dropout scales ~linearly with\nload current for a CMOS pass FET (Vdrop ~= Iout x Rds_on), so scaling the\n1A-rated spec down to 0.65A: ~293mV typ / ~488mV max. F401\n(usb_c.kicad_sch) adds its own series resistance: 40mOhm normal (26mV\ndrop @ 0.65A) or 230mOhm post-trip (150mV drop @ 0.65A).\nRealistic case (typ dropout, F401 normal): required Vin = 3.3V + 0.293V =\n3.593V; available Vin = 4.625V - 0.026V = 4.599V; margin = +1.01V.\nPessimistic case (max dropout, F401 tripped): required Vin = 3.3V +\n0.488V = 3.788V; available Vin = 4.625V - 0.150V = 4.475V; margin =\n+688mV. Even the fully-pessimistic, non-scaled case (full 750mV max\ndropout at the 1A rated current, despite our 0.65A load, stacked with a\ntripped F401): required Vin = 3.3V + 0.75V = 4.05V; margin = 4.475V -\n4.05V = +425mV. All three cases are comfortably positive -- an order of\nmagnitude more margin than AMS1117's +35 to -100mV, even before counting\nJ401 connector contact resistance or PCB trace resistance (unquantified,\nbut each worth well under 100mV at this current, so they don't threaten\nany of these margins). Verify at bring-up with a real meter under\nworst-case load, same as this sheet's other flagged assumptions." (at 60.96 46.99 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid 7e9033c0-519c-4359-a2c3-9f2f753fbe3f)
   )
 
-  (text "Decoupling: C1 10uF bulk on the regulator input (AMS1117 datasheet gives\nno input-cap minimum; matches the reference design's input cap C1). C2\n22uF on the output, per Advanced Monolithic Systems' real AMS1117\ndatasheet (see Datasheet link above): \"22uF solid tantalum on the output\nwill ensure stability for all operating conditions.\" NOT reusing the\nreference design's 10uF, which is sized for the different NCP1117 part\n(see note above). Using 22uF ceramic (0805) for cost/size; datasheet\nwants tantalum for ESR/stability, so verify at bring-up. C3 100nF local\nceramic at the 3V3 point-of-load is standard LDO-output practice, not a\nguide-mandated value -- RP-008280-DS-2 Rel. 3 Sec. 2.2.1 only covers\nRP2350B's own pins, which live on pilink-7el.3." (at 60.96 160.02 0)
+  (text "Decoupling: C1 10uF bulk on the regulator input, C2 22uF on the output\n(both ceramic, 0805) -- unchanged from the prior AMS1117 wiring. AP2114H-3.3's\nown datasheet (see Datasheet link above) lists its stability test condition\nas CIN=COUT=4.7uF and its own feature list says \"Stable with 4.7uF Flexible\nCap: Ceramic, Tantalum and Aluminum Electrolytic\" -- i.e. ceramic is\nexplicitly fine (unlike AMS1117, which wanted 22uF solid tantalum on the\noutput for guaranteed stability). C1/C2 both already exceed this part's\n4.7uF minimum, so no value change was needed for the swap, and the prior\nceramic-vs-tantalum bring-up-verify flag is resolved: this part's own\ndatasheet confirms ceramic is a supported cap type, not just a cost/size\ntradeoff to re-check. C3 100nF local ceramic at the 3V3 point-of-load is\nstandard LDO-output practice, not a guide-mandated value -- RP-008280-DS-2\nRel. 3 Sec. 2.2.1 only covers RP2350B's own pins, which live on\npilink-7el.3." (at 60.96 160.02 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid 54487828-8fea-454b-a628-566a5c551201)
   )

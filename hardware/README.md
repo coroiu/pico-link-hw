@@ -28,11 +28,9 @@ UP/DOWN).
 ### Power subsystem (pilink-7el.2)
 
 `power.kicad_sch` now has the 3.3V rail: USB-C 5V in (via a `+5V`/`PWR_FLAG`
-pair, pending the USB-C sheet, pilink-7el.7) through an AMS1117-3.3 (SOT-223,
-JLCPCB Basic part C6186/LCSC C6186) to a single `+3V3` rail, with a 10uF
-input bulk cap (C1), a 22uF output bulk cap (C2, per the AMS1117
-datasheet's stability requirement), and a 100nF local decoupler (C3) at
-the point of load.
+pair, pending the USB-C sheet, pilink-7el.7) through U1, a SOT-223 LDO, to
+a single `+3V3` rail, with a 10uF input bulk cap (C1), a 22uF output bulk
+cap (C2), and a 100nF local decoupler (C3) at the point of load.
 Component choice and decoupling values are cross-checked against Raspberry
 Pi's own official RP2350B minimal reference design and RP2350 Hardware
 Design Guide (RP-008280-DS) — see the citations in the sheet's own text
@@ -40,6 +38,20 @@ notes. RP2350B's internal 3.3V→1.1V switched-mode core regulator (inductor,
 feedback caps) and its per-pin VDD3V3/IOVDD decoupling belong on the
 RP2350B + Memory sheet (pilink-7el.3), not here, matching the same split
 used in Raspberry Pi's reference design.
+
+U1 was originally an AMS1117-3.3 (bipolar NPN-pass, JLCPCB Basic part
+C6186/LCSC C6186). `pilink-ddq` found its near-fixed ~1.2-1.3V dropout
+offset left too little margin against USB VBUS's worst-case floor once a
+tripped VBUS PTC fuse (F401, see the USB-C sheet below) was counted in, and
+swapped it for AP2114H-3.3TRG1 (BCD Semiconductor/Diodes Incorporated,
+LCSC `C150716`, 10,090 units in stock) — a genuinely CMOS-process LDO
+whose real datasheet guarantees 450mV (typ)/750mV (max) dropout at 1A and
+>=1.0A (min) guaranteed output current, pin-compatible with the AMS1117 it
+replaces (same SOT-223-3_TabPin2 footprint, 1=GND/2=VOUT/3=VIN) so no
+layout rework was needed. C1/C2 (10uF/22uF ceramic) already exceed this
+part's own 4.7uF-ceramic stability requirement, so neither cap needed to
+change. See `power.kicad_sch`'s own U1 note for the full resolved margin
+math.
 
 Unlike the rest of this skeleton, this sheet **was** validated with the real
 tools: `kicad-cli sch erc --severity-all --exit-code-violations` reports 0
@@ -181,7 +193,7 @@ reflects real connectivity) reports 0 errors / 6 warnings, all
 since their other end (pilink-7el.3) doesn't exist yet. Checking
 `esp32_bt.kicad_sch` **standalone** additionally reports 2
 `power_pin_not_driven` errors on +3V3/GND -- an artifact of a single
-non-root sheet not seeing power.kicad_sch's real AMS1117/GND driver, not a
+non-root sheet not seeing power.kicad_sch's real U1/GND driver, not a
 real defect (confirmed by testing: adding a local PWR_FLAG to silence it
 instead creates a genuine "two Power outputs on one net" conflict at the
 root level, since a real driver already exists there). The exported PDF
@@ -619,13 +631,14 @@ Series-resistance-vs-dropout check: the LCSC/JLCPCB listing gives both an
 initial R@25°C=40mΩ and an R1(max) post-trip resistance of 230mΩ — the
 figure that actually applies after any trip event or under worse-case
 conditions, not just at first power-up. At the 0.65A worst case that's a
-26mV (40mΩ) to 150mV (230mΩ) added drop, not a flat 26mV. "Negligible" is
-a reasonable claim at the 40mΩ end but less so at the 230mΩ end, against
-the AMS1117's own dropout-vs-VBUS-floor margin — which `power.kicad_sch`'s
-own U1 note now documents as a real, still-open concern (tracked
-separately as `pilink-ddq`, out of this bead's fuse-sizing scope): this
-fuse's own added drop narrows that margin further, by up to 150mV in the
-worst case, rather than being negligible against it outright.
+26mV (40mΩ) to 150mV (230mΩ) added drop, not a flat 26mV. This was
+originally checked against U1's AMS1117 dropout margin and found to
+narrow it further (tracked as `pilink-ddq`); `pilink-ddq` subsequently
+swapped U1 to a CMOS LDO (AP2114H-3.3TRG1) specifically because the
+AMS1117's margin was too thin once this fuse's post-trip resistance was
+counted. With the new part, even the 150mV post-trip-worst-case addition
+from this fuse is already folded into `power.kicad_sch`'s own U1 note and
+still leaves hundreds of mV of margin — see that note for the full math.
 
 No `PWR_FLAG` is added on this sheet's own `+5V`/`GND` nets:
 `power.kicad_sch` already carries both (`#FLG01` on `+5V`, `#FLG02` on
