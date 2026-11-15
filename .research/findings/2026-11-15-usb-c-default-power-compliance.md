@@ -1,6 +1,42 @@
 # USB-C default-power compliance for the ~0.65A worst-case peak draw (pilink-1sj)
 
-## Question
+**Correction (2026-11-15, later same day, caught by `pilink-1sj`'s PR #30
+code review):** the original version of this finding below claimed "there's
+no path to the higher 1.5A/3A Type-C tiers without being a USB 3.x device."
+That's wrong, confirmed against TI's TUSB321/TUSB320 Type-C current-mode
+datasheets and Microchip's USB-PD application notes: **the 1.5A/3A Type-C
+Rp-advertisement tiers are independent of USB data speed.** Only the
+"Default USB Power" tier (500mA vs 900mA) depends on whether the device is
+USB 2.0 or USB 3.x — a source's Rp resistor value (and the CC voltage a
+sink reads off it) sets 1.5A/3A regardless of what speed the attached
+device actually negotiates on the data lines. Speed and power-tier
+advertisement are two unrelated mechanisms (data pairs/mux vs. CC/Rp) that
+happen to share one variable (the Default tier's value) — a point this
+finding originally conflated into "no path at all." The real, corrected
+picture is in a new section below; the original Findings/Conclusion
+sections are kept as written (not deleted) so the mistake and its basis
+stay visible, per this project's convention for superseded research.
+
+## Correction: what the CC-sense tap (pilink-1sj option 2, already merged)
+## actually does
+
+With R403/R404 (merged via PR #30) giving firmware an ADC read on both
+CC1 and CC2, firmware *can* legitimately draw up to 0.65A **today, on any
+host whose Rp advertises 1.5A or 3A** — a very common case on real Type-C
+ports, independent of this device being USB 2.0-only. This isn't limited to
+a hypothetical future BC1.2/PD add-on the way the original Conclusion
+claimed; it works via the Type-C current-advertisement mechanism alone, no
+extra hardware. What the sense tap does NOT do: help on a host that only
+advertises the Default tier (500mA) — those hosts still only entitle this
+device to 500mA, and 0.65A would still exceed that. The resolution there is
+firmware-side: read CC voltage, and throttle actual peak draw (e.g. don't
+let ESP32 TX-burst and max backlight coincide) specifically when only
+Default is detected, drawing the full ~0.65A only when 1.5A/3A is sensed.
+That firmware logic is out of this repo's scope (separate `pico-link`
+repo), but the hardware here is now sufficient to support it — no further
+schematic change needed for this to become fully spec-compliant.
+
+## Question (as originally investigated)
 
 `power.kicad_sch`'s own budget derivation (re-stated on `usb_c.kicad_sch`'s
 F401 note) puts worst-case peak draw at ~0.6-0.65A (RP2350B tens of mA +
@@ -21,8 +57,9 @@ that connection, and can firmware ever legitimately know it's allowed to?
   (which carries its own fixed Rp inside the captive cable, per spec,
   precisely so a Type-C sink sees a valid default-tier CC voltage through
   a legacy connection) both land on this same 500mA ceiling for a USB
-  2.0-speed device — there's no path to the higher 1.5A/3A Type-C tiers
-  without being a USB 3.x device, which this isn't.
+  2.0-speed device — **[WRONG, see correction at the top of this file]**
+  there's no path to the higher 1.5A/3A Type-C tiers without being a USB
+  3.x device, which this isn't.
 - **0.65A exceeds that 500mA ceiling outright — this isn't close.** Drawing
   above what's been negotiated/advertised is a real spec violation even
   though many real-world host ports tolerate it in practice (most USB
