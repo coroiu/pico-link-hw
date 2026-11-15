@@ -670,17 +670,24 @@ actually lands on — the other reads ~0V through its own idle Rd — so
 reading only one would misread "no advertisement" on every other cable
 flip.
 
-This does **not** by itself raise the device's power budget: the default
-USB 2.0 entitlement is still 500mA, and the ~0.65A worst-case peak
-documented above and on `power.kicad_sch`'s U1 note still exceeds it (see
-`.research/findings/2026-11-15-usb-c-default-power-compliance.md`). It only
-gives firmware a hardware path to sense a real BC1.2/PD negotiation if that
-hardware is ever added later, without another schematic respin — it does
-not add that negotiation hardware itself. Full three-option analysis and
-decision: `pilink-1sj`.
+**What this tap actually buys (corrected from this bead's first-pass
+note — see `.research/findings/2026-11-15-usb-c-default-power-compliance.md`
+for the full correction):** USB-C's 1.5A/3A current-advertisement tiers are
+set purely by the host's Rp value, read directly off CC voltage —
+independent of USB data speed. Only the Default tier (500mA vs 900mA)
+depends on USB generation. So this tap lets firmware legitimately draw the
+~0.65A worst-case peak (documented above and on `power.kicad_sch`'s U1
+note) **today**, on any host whose Rp advertises 1.5A or 3A — common on
+real Type-C ports — with no BC1.2/PD hardware needed. On a host that only
+advertises Default (500mA), this device still only has a 500mA
+entitlement; firmware should throttle its real peak (e.g. don't let ESP32
+TX-burst and max backlight coincide) specifically when Default is sensed.
+That firmware logic is out of this repo's scope — the hardware here is
+sufficient to support it without a further schematic respin. Full analysis
+and decision: `pilink-1sj`.
 
-**ERC note:** three of this sheet's nets (CC1→R401, CC2→R402, and the raw
-VBUS→F401 leg) are legitimate 2-pin passive/bidirectional nets with no
+**ERC note:** three of this sheet's nets (CC1→R401→R403, CC2→R402→R404,
+and the raw VBUS→F401 leg) are legitimate passive/bidirectional nets with no
 power-type pin directly on them (the GND/+5V power pin is one hop further,
 past the resistor/fuse). `kicad-cli sch erc` flags a plain, unlabelled net
 shaped like that as `wire_dangling` even when both ends are verifiably
