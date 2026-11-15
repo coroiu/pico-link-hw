@@ -494,7 +494,7 @@
 			)
 		)
 	)
-	(symbol "Device:RotaryEncoder_Switch"
+	(symbol "pico_link_custom:RotaryEncoder_Switch_EC11E_MP"
 		(pin_names
 			(offset 0.254) hide)
 		(exclude_from_sim no)
@@ -508,7 +508,7 @@
 				)
 			)
 		)
-		(property "Value" "RotaryEncoder_Switch"
+		(property "Value" "RotaryEncoder_Switch_EC11E_MP"
 			(at 0 -6.604 0)
 			(effects
 				(font
@@ -534,7 +534,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Rotary encoder, dual channel, incremental quadrate outputs, with switch"
+		(property "Description" "Project-local copy of stock Device:RotaryEncoder_Switch (pilink-2ar) -- same A/B/C/S1/S2 pins and graphics, plus one added pin \"MP\" for the footprint's two mounting/shield pads (RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm's two thru-hole pads both named \"MP\", which both bind to a single same-numbered schematic pin -- standard KiCad multi-pad-per-pin convention). A copy rather than an in-place edit of the stock symbol, to avoid the 'symbol modified in library' ERC/library-sync state this project has previously flagged and reverted (see rp2350b_memory.kicad_sch's W25Q128JVS note). MP is tied to GND on SW303: Alps' EC11E18244AU datasheet (datasheet.lcsc.com/datasheet/pdf/00ace576d31da40a390056171db2037f.pdf) was not readable as extractable text in this agent environment (same no-pdftotext/poppler-utils gap already flagged for this part elsewhere in this project), so this follows general mounting-tab practice (grounding an otherwise-floating metal tab/shield is the standard, safer default for ESD/EMI) rather than a datasheet-confirmed pin-9-style thermal/ground spec -- flag for human re-verification against the real datasheet before fab."
 			(at 0 0 0)
 			(effects
 				(font
@@ -561,7 +561,7 @@
 				(hide yes)
 			)
 		)
-		(symbol "RotaryEncoder_Switch_0_1"
+		(symbol "RotaryEncoder_Switch_EC11E_MP_0_1"
 			(rectangle
 				(start -5.08 5.08)
 				(end 5.08 -5.08)
@@ -786,7 +786,7 @@
 				)
 			)
 		)
-		(symbol "RotaryEncoder_Switch_1_1"
+		(symbol "RotaryEncoder_Switch_EC11E_MP_1_1"
 			(pin passive line
 				(at -7.62 2.54 0)
 				(length 2.54)
@@ -870,6 +870,24 @@
 					)
 				)
 				(number "S2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -7.62 90)
+				(length 2.54)
+				(name "MP"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "MP"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1066,7 +1084,7 @@
     (stroke (width 0) (type default))
     (uuid 97a62b09-832f-4669-8bce-49738a9cc77e)
   )
-  (symbol (lib_id "Device:RotaryEncoder_Switch") (at 152.4 110.49 0) (unit 1)
+  (symbol (lib_id "pico_link_custom:RotaryEncoder_Switch_EC11E_MP") (at 152.4 110.49 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 40e4ff7f-5bf0-4526-a4b9-c7a1f4572b48)
     (property "Reference" "SW303" (at 152.4 117.094 0)
@@ -1086,6 +1104,7 @@
     (pin "C" (uuid 737a1d64-acc0-4aa7-95e4-7efe346444fc))
     (pin "S1" (uuid 996ab2f3-650d-4b21-a924-0ccd81148a2e))
     (pin "S2" (uuid b2b3f20c-3831-4b8d-a1ca-dea574a60915))
+    (pin "MP" (uuid 8406a175-2736-4893-9481-f7806369b84a))
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/989ddb5a-cf15-45dc-90a3-fbcc88981191"
@@ -1093,6 +1112,14 @@
         )
       )
     )
+  )
+  (wire (pts (xy 152.4 118.11) (xy 152.4 110.49))
+    (stroke (width 0) (type default))
+    (uuid 1972babb-7327-4490-9af8-a4d0dfb66360)
+  )
+  (wire (pts (xy 152.4 110.49) (xy 144.78 110.49))
+    (stroke (width 0) (type default))
+    (uuid 7e2a6d86-6a61-4a4a-9b22-1a2a2b2d9f44)
   )
   (wire (pts (xy 160.02 107.95) (xy 171.45 107.95))
     (stroke (width 0) (type default))

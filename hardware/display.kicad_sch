@@ -685,7 +685,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "40-position 0.5mm-pitch bottom-contact ZIF FPC connector for the Crystalfontz CFAF240320A0-024SN display, 4-wire SPI pinout (pilink-7el.5). Pin table sourced directly from Crystalfontz's own datasheet (Rev 1v2, 2021-03-26), section 6, SPI-mode column. LCSC candidate connector part AFC01-S40FCA-00 (LCSC C262674, Jushuo), confirmed 0.5mm pitch / 40-position / bottom-contact / flip-top-lock from its own LCSC spec table -- matches the panel's own 40 Position, 0.50mm Pitch ZIF connector spec. No stock KiCad symbol exists for this exact part; hand-authored here, pin layout is a simple single-column schematic convenience (not a physical pinout diagram) -- see this project's Footprint caveat for the matching hand-authored footprint's own verification gap."
+		(property "Description" "40-position 0.5mm-pitch bottom-contact ZIF FPC connector for the Crystalfontz CFAF240320A0-024SN display, 4-wire SPI pinout (pilink-7el.5). Pin table sourced directly from Crystalfontz's own datasheet (Rev 1v2, 2021-03-26), section 6, SPI-mode column. LCSC candidate connector part AFC01-S40FCA-00 (LCSC C262674, Jushuo), confirmed 0.5mm pitch / 40-position / bottom-contact / flip-top-lock from its own LCSC spec table -- matches the panel's own 40 Position, 0.50mm Pitch ZIF connector spec. No stock KiCad symbol exists for this exact part; hand-authored here, pin layout is a simple single-column schematic convenience (not a physical pinout diagram) -- see this project's Footprint caveat for the matching hand-authored footprint's own verification gap. MP1/MP2 (pilink-2ar) are the footprint's two side mounting/reinforcement pads, added here as two extra passive pins (not part of the 40-position signal pinout) and tied to GND on the schematic -- standard practice for a connector's unused mechanical tab (safer grounded than floating, reduces ESD/EMI risk), though Jushuo's own AFC01-S40FCA-00 datasheet PDF could not be read as text in this agent environment (LCSC's datasheet link resolves to an HTML viewer, not an extractable PDF, same gap already flagged for this part's footprint dimensions) to confirm whether these tabs carry a frame-ground function in the real part. Flag for human reverification against the real datasheet before fab, same caveat class as the footprint dimension gap below."
 			(at 0 0 0)
 			(effects
 				(font
@@ -1437,6 +1437,42 @@
 					)
 				)
 			)
+			(pin passive line
+				(at 7.62 49.53 180)
+				(length 2.54)
+				(name "MP1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "MP1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 7.62 46.99 180)
+				(length 2.54)
+				(name "MP2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "MP2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
 		)
 	)
 	(symbol "pico_link_custom:AP3031KTR-G1"
@@ -1841,10 +1877,44 @@
     (pin "38" (uuid ba6d7ff2-54de-4e52-8dbf-6e394dbb5c12))
     (pin "39" (uuid 3641168a-7ddf-447a-9791-d7810e685327))
     (pin "40" (uuid 2fe9b3fe-1923-4754-92f5-be5674c3ff42))
+    (pin "MP1" (uuid b6d97bef-7ace-4f50-ab02-ef2facaf79d8))
+    (pin "MP2" (uuid 83f576eb-80af-4679-bf8a-b00fbc18ee8e))
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
           (reference "J501") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 327.66 180.34) (xy 335.28 180.34))
+    (stroke (width 0) (type default))
+    (uuid 89f9300c-9ab9-47af-817c-e612702eea20)
+  )
+  (wire (pts (xy 327.66 180.34) (xy 327.66 182.88))
+    (stroke (width 0) (type default))
+    (uuid 99a098b9-9b01-41c7-bafa-06a6ce0a5570)
+  )
+  (symbol (lib_id "power:GND") (at 335.28 180.34 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 9567a57d-5fa8-406d-8a12-30b782321459)
+    (property "Reference" "#PWR537" (at 335.28 176.53 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 335.28 186.69 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 335.28 180.34 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 335.28 180.34 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid d9443a0b-7fd1-4fca-86f8-e25aec75aa04))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR537") (unit 1)
         )
       )
     )

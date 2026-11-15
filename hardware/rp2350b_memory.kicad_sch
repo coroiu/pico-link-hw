@@ -1469,7 +1469,7 @@
 			(at 0 25.4 0)
 			(effects (font (size 1.27 1.27)) hide)
 		)
-		(property "Description" "8MB QSPI PSRAM, USON-8L (3x2mm) -- same CS/SCLK/SIO0-3/VCC/GND pin map as a standard SOIC-8 QSPI flash (verified against Pimoroni Pico Plus 2 published schematic), but NOT the same physical footprint: AP Memory's -ZR suffix is USON-8L, not SOIC-8 (confirmed via LCSC distributor listing C3040877). Footprint is KiCad's stock closest-match by body size (3x2mm); AP Memory's own mechanical drawing/pad geometry was not independently re-verified -- flag for PCB-layout-stage review."
+		(property "Description" "8MB QSPI PSRAM, USON-8L (3x2mm) -- same CS/SCLK/SIO0-3/VCC/GND pin map as a standard SOIC-8 QSPI flash (verified against Pimoroni Pico Plus 2 published schematic), but NOT the same physical footprint: AP Memory's -ZR suffix is USON-8L, not SOIC-8 (confirmed via LCSC distributor listing C3040877). Footprint is KiCad's stock closest-match by body size (3x2mm); AP Memory's own mechanical drawing/pad geometry was not independently re-verified -- flag for PCB-layout-stage review. Pin 9/\"EP\" (pilink-2ar) was added to map the footprint's real copper exposed/thermal pad (Package_SON:Winbond_USON-8-1EP's pad \"9\", F.Cu+F.Mask, pad_prop_heatsink) and is tied to GND on the schematic -- grounding an exposed thermal/die-attach pad is the standard default for this package class (e.g. Winbond's own USON-8-1EP flash parts ground this pad), and no distributor/datasheet source reachable from this agent environment (AP Memory's own PDF is not text-extractable here; Mouser-hosted mirrors of the APS6404L family datasheet timed out on fetch) gave a contradicting NC/floating spec for this exact -3SQR-ZR part -- flag for human re-verification against AP Memory's real mechanical drawing before fab, same caveat class as the footprint-match gap above. The footprint's OTHER unlabeled centre pad (paste-only, F.Paste layer only, no F.Cu) is intentionally left with no net: it carries no copper at all, so it cannot be part of any net in KiCad and is not a defect -- it is a stencil-aperture pad purely for solder-paste deposition, same convention used elsewhere in this footprint family."
 			(at 0 27.94 0)
 			(effects (font (size 1.27 1.27)) hide)
 		)
@@ -1624,6 +1624,24 @@
 					)
 				)
 				(number "8"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 10.16 0 180)
+				(length 2.54)
+				(name "EP"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "9"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1989,6 +2007,174 @@
       )
     )
   )
+	(symbol "Connector_Generic:Conn_01x03"
+			(pin_names
+				(offset 1.016) hide)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "J"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Conn_01x03"
+				(at 0 -5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "connector"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "Connector*:*_1x??_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "Conn_01x03_1_1"
+				(rectangle
+					(start -1.27 -2.413)
+					(end 0 -2.667)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 0.127)
+					(end 0 -0.127)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 2.667)
+					(end 0 2.413)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 3.81)
+					(end 1.27 -3.81)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin passive line
+					(at -5.08 2.54 0)
+					(length 3.81)
+					(name "Pin_1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 3.81)
+					(name "Pin_2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -2.54 0)
+					(length 3.81)
+					(name "Pin_3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
 	)
   (wire (pts (xy 236.22 142.24) (xy 242.57 142.24))
     (stroke (width 0) (type default))
@@ -3033,6 +3219,80 @@
     (uuid 0b578e5b-1824-4d26-a794-b6b186a19dc7)
     (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 161.29 199.39 0)
       (effects (font (size 1.27 1.27)) hide)
+    )
+  )
+  (wire (pts (xy 161.29 196.85) (xy 142.24 196.85))
+    (stroke (width 0) (type default))
+    (uuid 5b4aae2e-2c16-46ff-a445-c8fb22a53e84)
+  )
+  (wire (pts (xy 142.24 196.85) (xy 142.24 246.38))
+    (stroke (width 0) (type default))
+    (uuid d2682513-c2bc-4bbb-81ab-01dcebb45b2e)
+  )
+  (wire (pts (xy 142.24 246.38) (xy 144.78 246.38))
+    (stroke (width 0) (type default))
+    (uuid 89f41a52-1438-40e5-a659-970f4ea17f4b)
+  )
+  (wire (pts (xy 161.29 199.39) (xy 139.7 199.39))
+    (stroke (width 0) (type default))
+    (uuid c53bc1b9-520b-4272-8a7b-0617a3ffbee1)
+  )
+  (wire (pts (xy 139.7 199.39) (xy 139.7 251.46))
+    (stroke (width 0) (type default))
+    (uuid e2d0860d-9c58-4a3e-b5c8-4fca6be60163)
+  )
+  (wire (pts (xy 139.7 251.46) (xy 144.78 251.46))
+    (stroke (width 0) (type default))
+    (uuid 9115a8a0-ebb4-4bb1-a27a-a3880bed04d9)
+  )
+  (symbol (lib_id "power:GND") (at 144.78 248.92 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 317f03e3-a2df-4356-9dcf-799e3a0c4dc0)
+    (property "Reference" "#PWR171" (at 144.78 252.73 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 137.16 248.92 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 144.78 248.92 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 144.78 248.92 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 753bd4dc-b909-4156-872b-70efa91c7818))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
+          (reference "#PWR171") (unit 1)
+        )
+      )
+    )
+  )
+  (symbol (lib_id "Connector_Generic:Conn_01x03") (at 149.86 248.92 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 9c2f2e3a-6b1a-4a4a-8e3a-2f3c8b1d4a6e)
+    (property "Reference" "J101" (at 149.86 243.84 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Value" "SWD_DEBUG_3PIN" (at 149.86 254 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "Connector_PinHeader_1.27mm:PinHeader_1x03_P1.27mm_Vertical" (at 149.86 248.92 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "~" (at 149.86 248.92 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 2b7b6a2a-5f1a-4b3a-9f2a-7c6b1e8f2a3f))
+    (pin "2" (uuid 3c8c7b3b-6a2b-4c4b-8a3b-8d7c2f9a3b4a))
+    (pin "3" (uuid 4d9d8c4c-7b3c-4d5c-9b4c-9e8d3a0b4c5b))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
+          (reference "J101") (unit 1)
+        )
+      )
     )
   )
   (label "XOUT" (at 161.29 172.72 180) (fields_autoplaced)
@@ -5519,10 +5779,43 @@
     (pin "6" (uuid 13663100-2541-45f4-a7ba-daed90fed907))
     (pin "7" (uuid ce1add4c-863a-411a-9325-d0c90ca35aff))
     (pin "8" (uuid b32d5940-e662-439e-a338-9eed94fe8507))
+    (pin "9" (uuid fcf620a7-fc89-4e37-801e-f424efd68d59))
     (instances
       (project "pico-link-hw"
         (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
           (reference "U103") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 100.33 389.89) (xy 107.95 389.89))
+    (stroke (width 0) (type default))
+    (uuid 819bfed2-1014-42af-8066-9ce9707ea369)
+  )
+  (wire (pts (xy 107.95 389.89) (xy 107.95 398.78))
+    (stroke (width 0) (type default))
+    (uuid 10ff0d61-91ce-4b4e-91bc-2358a1ce3697)
+  )
+  (symbol (lib_id "power:GND") (at 107.95 398.78 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 6d4a5e1c-4c7e-4f3a-9d6a-7c6b1e8f2a3d)
+    (property "Reference" "#PWR170" (at 107.95 394.969 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 107.95 405.13 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 107.95 398.78 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 107.95 398.78 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid f1a6b9d2-3c5e-4a8b-9f1d-2e6c7a4b8d9e))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/f1860524-9b6a-41dc-814e-76e5cac2088b"
+          (reference "#PWR170") (unit 1)
         )
       )
     )
@@ -5792,6 +6085,10 @@
   (text "Flash U102: Winbond W25Q128JVS, 128Mbit (128Mbit / 8 bits-per-byte =\n16MB), SOIC-8, KiCad stock Memory_Flash:W25Q128JVS symbol+footprint --\nthe exact part Raspberry Pi's own RP2350B minimal reference design uses\nfor primary flash. Pimoroni's published Pico Plus 2 schematic instead\nlists \"W25Q128JVPIQ\" (Winbond's Pb-free/tray-pack SOIC-8 ordering suffix\nfor the same density/package family) -- functionally and\nfootprint-equivalent, but not the identical ordering code; exact\nJLCPCB/LCSC SKU selection is deferred to pilink-7el.8 (BOM compilation,\nwhich depends on this bead). C120 100nF is VCC-pin local decoupling.\nPSRAM U103: AP Memory APS6404L-3SQR-ZR, 8MB (64Mbit), same CS/SIO0-3/SCLK/\nVCC/GND pin MAP as the flash (verified against Pimoroni's actual shipped\nPico Plus 2 schematic, which draws both parts with an identical pin-1..8\nlayout) -- but NOT the same physical package: AP Memory's '-ZR' suffix is\nUSON-8L (~3x2mm, leadless), confirmed via LCSC's distributor listing for\nthis exact part number (C3040877), not SOIC-8. Footprint used here is\nKiCad stock Package_SON:Winbond_USON-8-1EP_3x2mm_P0.5mm_EP0.2x1.6mm as the\nclosest body-size match (3x2mm, 0.5mm pitch); AP Memory's own mechanical\ndrawing/pad geometry was not independently re-verified against it -- flag\nfor the PCB-layout stage, not resolved here. C121 2.2uF is VCC-pin local\ndecoupling (bigger than the flash's 100nF -- matches Pimoroni's real board,\nwhich also uses a bigger cap on the PSRAM's VCC than on the flash's).\nQSPI bus (SD0-3, SCLK) is shared between flash and PSRAM; each has its own\nchip-select -- QSPI_SS (dedicated pin 75) for the primary flash, GPIO47\n(ADC7-capable, repurposed as the QMI's second chip-select) for the PSRAM,\nsame GPIO Pimoroni's Pico Plus 2 W uses for this role (one of the four\nvalid secondary-CS options per Raspberry Pi's design guide: GP0/GP8/GP19/\nGP47). R105 100k pulls PSRAM_CS high since GPIOs default to pull-down at\npower-up and would otherwise assert the PSRAM's CS during boot.\nERC note: the embedded Memory_Flash:W25Q128JVS cache previously carried a\nstray pin_numbers/pin_names display override (hide + 1.016mm offset) and\nan edited Description string, neither present on the stock symbol -- an\naccidental carryover from applying this project's pin-number-hidden\nconvention to every placed symbol, including this stock-library one.\nSynced back to match the real stock Memory_Flash:W25Q128JVS symbol\nexactly (pins/graphics were already identical); kicad-cli sch erc no\nlonger reports 'Symbol has been modified in library'." (at 340 20 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid 6c7ec36c-cb5f-411a-ae98-155f5b08008e)
+  )
+  (text "J101, SWD debug header (pilink-2ar): SWD/SWCLK global labels previously\nreached no debug header or test pad anywhere on the board -- there was no\nway to flash/debug the RP2350B via SWD as drawn. Fixed with a 3-pin,\n1.27mm-pitch pin header (stock KiCad Connector_Generic:Conn_01x03 symbol +\nConnector_PinHeader_1.27mm:PinHeader_1x03_P1.27mm_Vertical footprint):\npin 1 = SWCLK, pin 2 = GND, pin 3 = SWDIO (SWD net) -- same 3-signal\norder Raspberry Pi's own Debug Probe/Picoprobe cable uses for RP2040/\nRP2350 targets, so a standard Pi debug cable plugs in directly. No\ntarget-power-sense pin added: this board is always target-powered over\nUSB-C regardless of the probe, matching the same 3-pin (no VTref)\nconvention. The embedded Conn_01x03 symbol cache here is kept byte-\nidentical to the real stock Connector_Generic library symbol (this\nrationale lives here instead, in a text note) -- same reasoning as the\nW25Q128JVS note above: editing a stock symbol's own Description/fields\nmakes kicad-cli sch erc report 'Symbol has been modified in library'.\nU103 pin 9/\"EP\" (also pilink-2ar): added to the project-local\nAPS6404L-3SQR-ZR symbol (hardware/symbols/pico_link_custom.kicad_sym) to\nmap the footprint's real copper exposed/thermal pad (Winbond_USON-8-1EP's\npad \"9\", F.Cu+F.Mask, pad_prop_heatsink) and tied to GND -- grounding an\nexposed thermal/die-attach pad is the standard default for this package\nclass; no reachable datasheet source contradicted it (AP Memory's own PDF\nisn't text-extractable in this agent environment, and Mouser-hosted\nmirrors of the APS6404L family datasheet timed out on fetch) -- flagged\nfor human re-verification before fab. The footprint's OTHER unlabeled\ncentre pad is paste-only (F.Paste layer only, no F.Cu) and intentionally\nleft with no net -- it carries no copper at all, so it cannot be part of\nany net in KiCad; not a defect.\nSame-bead hardware note for whoever edits schematics with raw S-expressions\nnext: a symbol's pin \"at x y angle\" is in LIBRARY space, where +Y is UP;\nplacing it in a schematic (SCHEMATIC space, +Y DOWN) flips the sign of Y\n(and angle by 180) for every pin, even though symbol FIELD positions\n(Reference/Value/...) do NOT flip -- confirmed empirically against this\nproject's own existing wiring (e.g. J501's pin 1 vs pin 40) and against\nkicad-cli sch erc / the kicad MCP server's get_schematic_pin_locations\ntool, after an initial wrong-sign assumption briefly misrouted three new\nnets here. Also: kicad-cli's grid-connectivity check wants wire/pin\nendpoints on exact multiples of this project's 1.27mm grid, and (observed\nhere, exact cause not fully isolated) a brand-new standalone power symbol\nwired in immediately next to an existing multi-pin part can, in this\nkicad-cli 10.0.8 build, make kicad-cli misreport OTHER unrelated pins on\nthat same part as 'not connected' -- routing the new net into an existing,\nalready-connected pin's point instead (as done for SW303/MP, tied into\nC's existing GND wire rather than a new #PWR symbol) reliably avoided it." (at 340 320 0)
+    (effects (font (size 1.27 1.27)) (justify left top))
+    (uuid d06ee4f3-ea80-4545-92c3-e0bc16ed9716)
   )
   (text "All RP2350B GPIOs not consumed by this sheet's own circuitry (display/\ninput/ESP32-UART/USB-C pins) are brought out as global labels matching\ntheir pin name (GPIOn, USB_DP/DM, SWD/SWCLK) so the other, still-empty\nchild sheets (pilink-7el.4/.5/.6/.7) can pick them up later without needing\nhierarchical sheet pins -- same cross-sheet convention already used for\n+3V3/GND between this sheet and power.kicad_sch. GPIO47 is withheld from\nthis pool (committed to PSRAM_CS, see above), and so are the 8 GPIOs\nbelow that now wire the ESP32 BT coprocessor (pilink-kt4, fixing a defect\nwhere esp32_bt.kicad_sch's ESP32_* global labels had no RP2350-side\ncounterpart at all): their GPIOn global_label was replaced in place by\nthe matching ESP32_* label (same wire/position, name only), so they are\nNOT exposed as free GPIOn labels either.\nESP32 GPIO assignment, chosen from RP2350 datasheet (datasheets.\nraspberrypi.com/rp2350/rp2350-datasheet.pdf) section 9.4, \"GPIO Bank 0\nFunctions\" -- RP2350B has exactly 2 UART peripherals (UART0, UART1) per\nthat section's F2 column (F1 is SPI, not UART):\n- ESP32_HCI_RXD/TXD/RTS/CTS: UART1, full 4-wire hardware flow control,\n  all F2 on this contiguous group -- GPIO4=UART1 TX, GPIO5=UART1 RX,\n  GPIO6=UART1 CTS, GPIO7=UART1 RTS. RTS/CTS cross for modem-style flow\n  control: ESP32's RTS (output) lands on RP2350's CTS input (GPIO6);\n  ESP32's CTS (input) is driven by RP2350's RTS output (GPIO7).\n- ESP32_FLASH_RXD0/TXD0: UART0, TX/RX only (no flow control needed for\n  esptool bridge-flashing), both F2 -- GPIO0=UART0 TX drives ESP32's\n  RXD0, GPIO1=UART0 RX receives ESP32's TXD0.\n- ESP32_EN/BOOT0: plain bit-banged GPIO outputs, no peripheral function\n  needed -- GPIO20, GPIO21 (freed back into this pool by\n  pilink-3rm's d-pad-to-encoder swap, confirmed unused by any other\n  sheet via a fresh grep before picking them).\nAll 8 were confirmed free (appeared only as a standalone GPIOn global\nlabel on this sheet, with no matching pad anywhere else) by grepping\nevery populated sheet's global_label/label entries, not just the\ngeneric-pool prose claim in the bug report.\nFirmware note: RP2350 GPIOs reset to a weak internal pull-down (datasheet\ndefault), while this board's R201/R202 (esp32_bt.kicad_sch, 10k to 3V3 on\nESP32_EN/BOOT0) are not inside the module -- those pull-ups dominate the\nRP2350's weak pull-down, so ESP32_EN/BOOT0 sit high (run mode) and the\nESP32 boots normally before firmware ever drives GPIO20/21 itself.\n+3V3/GND are NOT re-flagged with a PWR_FLAG on this sheet (unlike\npower.kicad_sch's own +5V input flag): this sheet doesn't generate\neither rail, power.kicad_sch (pilink-7el.2) does, via U1's VO\npin and its own GND flag. Running kicad-cli sch erc on THIS file alone\ntherefore reports 2 power_pin_not_driven errors for +3V3/GND -- expected,\nnot a bug: a single child sheet checked in isolation has no visibility\ninto power.kicad_sch's regulator. ERC on the root sheet (which flattens\nthe whole hierarchy and does see it) reports 0 errors for both nets --\nsee the PR description for both ERC runs. +1V1 and VREG_AVDD, by\ncontrast, ARE flagged here (bottom-left of sheet): nothing else in the\nproject ever drives those two nets, at any level, so the flags are\ncorrect both standalone and at the root." (at 245 20 0)
     (effects (font (size 1.27 1.27)) (justify left top))

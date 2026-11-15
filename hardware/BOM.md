@@ -133,6 +133,7 @@ guarantee than this BOM's first draft claimed.
 | U103 | 1 | APS6404L-3SQR-ZR (8MB QSPI PSRAM) | USON-8L | C3040877 | APS6404L-3SQR-ZR | Extended (confirmed via JLCPCB's own API + partdetail page — see flag 2 note) | 1,268 |
 | C121 | 1 | 2.2uF, X5R, 50V | 0603 | C7432769 | HGC0603R5225K500NTHJ | Extended† | 417,960 |
 | R105 | 1 | 100k | 0402 | C25530 | 0402WGJ0104TCE | Extended† | 9,817,600 |
+| J101 | 1 | SWD debug header, 3-pin, 1.27mm pitch (`pilink-2ar` — SWCLK/GND/SWDIO) | THT vertical, 1x3P | C22438100 | Hanxia HX PZ1.27-1x3P ZZ | Extended | 6,500 (checked live via `jlcpcb-search` MCP 2026-11-15, same session as this bead — not re-checked against the rest of this BOM's 2026-11-15 13:12 snapshot) |
 
 ## ESP32 BT coprocessor (`esp32_bt.kicad_sch`, refs 200-299)
 
@@ -201,6 +202,15 @@ above — there is no more pending-PR state to track for either. The only
 remaining "pending" item in this BOM is L101's unresolved JLCPCB catalog
 status (flag 2/assembly flag 2 above), which is a sourcing question, not a
 merge-status one.
+
+**Update (`pilink-2ar`, on top of this BOM's `5fef711` snapshot):** one new
+component, `J101` (the new SWD debug header — see `hardware/README.md`'s
+`pilink-2ar` update), added to `rp2350b_memory.kicad_sch`'s table above —
+**34** real components on that sheet now, **69 total** project-wide. Only
+`J101`'s own row was freshly checked (live via `jlcpcb-search` MCP,
+2026-11-15, same session as this bead); the rest of this file's rows are
+still the `5fef711`-commit snapshot described above, not re-verified by
+this bead.
 
 ## Not verified by this bead
 
