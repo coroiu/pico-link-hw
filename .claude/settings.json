@@ -27,5 +27,11 @@
         ]
       }
     ]
+  },
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "Merging a pull request in this repository (e.g. `gh pr merge`) that already has an APPROVED code-reviewer verdict posted on it, or that the user has explicitly described as trivial/low-risk and told the agent to merge without review"
+    ]
   }
 }
