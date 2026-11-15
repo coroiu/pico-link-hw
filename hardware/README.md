@@ -187,7 +187,8 @@ unchanged) + 1 rotary encoder.
 
 UP/DOWN/A/B/X/Y each still get their own external 10k pull-up
 (R301/R302/R305-R308, `Resistor_SMD:R_0402_1005Metric`) from `+3V3` to their
-GPIO node, with the switch itself (SW301/SW302/SW305-SW308, the same
+GPIO node (the encoder's own pull-ups use a different value — see below),
+with the switch itself (SW301/SW302/SW305-SW308, the same
 `Switch:SW_Push`/`Button_Switch_SMD:SW_SPST_PTS645` part
 `rp2350b_memory.kicad_sch` uses for BOOTSEL/reset) pulling that node to
 `GND` when pressed — active-low. Unlike SW101/SW102 (which rely on the
@@ -198,25 +199,36 @@ state, hence the explicit external resistor on all of these switches.
 **Rotary encoder (SW303):** Alps Alpine **EC11E18244AU** (JLCPCB/LCSC
 `C202365`, Extended-library part — standard extended-part handling fee,
 not a sourcing-availability risk). Verified against Alps' own published
-datasheet (hosted copy at `lcsc.com/datasheet/C202365.pdf`): vertical
-structure, flat actuator, 20mm actuator length, 36 detents / 18 pulses,
-two-phase incremental output (terminals A, B, common C), integrated
-push-on switch (SPST, 0.5mm travel, 0.1A/5V DC rating, datasheet terminals
-D/E mapped onto this sheet's S1/S2), 10mA/5V DC max overall rating, **no
-internal pull resistors**. Symbol: stock KiCad library
-`Device:RotaryEncoder_Switch` (5 pins: A, B, C, S1, S2 — an exact match for
-this part's A/B/C/D/E pinout). Footprint: stock KiCad library
-`Rotary_Encoder:RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm` — purpose-built
-for an Alps EC11E + integrated switch + vertical mount + 20mm shaft, i.e.
-this specific part family/variant, not a generic stand-in. Live stock
-cross-checked 2026-11-15 across two independent sources (JLCPCB's own part
-page confirming Extended-library class, and a third-party LCSC data mirror
-showing roughly 3.2k units in stock).
+datasheet (hosted direct-PDF copy at
+`datasheet.lcsc.com/datasheet/pdf/00ace576d31da40a390056171db2037f.pdf` —
+LCSC's `lcsc.com/datasheet/C202365.pdf` link resolves to an HTML viewer
+page rather than the PDF itself, so both the symbol's Datasheet field and
+this citation use the direct PDF URL instead): vertical structure, flat
+actuator, 20mm actuator length, 36 detents / 18 pulses, two-phase
+incremental output (terminals A, B, common C), integrated push-on switch
+(SPST, 0.5mm travel, 0.1A/5V DC rating, datasheet terminals D/E mapped
+onto this sheet's S1/S2), 10mA max / 1mA min contact current rating,
+10mA/5V DC max overall rating, **no internal pull resistors**. Symbol:
+stock KiCad library `Device:RotaryEncoder_Switch` (5 pins: A, B, C, S1,
+S2 — an exact match for this part's A/B/C/D/E pinout). Footprint: stock
+KiCad library `Rotary_Encoder:RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm`
+— purpose-built for an Alps EC11E + integrated switch + vertical mount +
+20mm shaft, i.e. this specific part family/variant, not a generic
+stand-in. Live stock re-checked 2026-11-15 directly against LCSC's own
+C202365 product page: approximately 2,482 units in stock at check time —
+this is a live-changing figure (a repeat search the same day turned up
+other recent snapshots in the 2,500-4,300 range depending on
+cache/mirror), so treat this as a point-in-time reading, not a
+guaranteed-current one.
 
 Because the datasheet specifies no internal pull resistors, the encoder
 follows the same external-pull-up convention as the discrete switches for
-all 3 of its signals: quadrature channels A and B are each externally
-pulled up to `+3V3` (R303, R304) and pulled toward `GND` through the
+all 3 of its signals, but with a different resistor value: the discrete
+switches' 10k pull-ups would only pass ~0.33mA at `+3V3`, under this
+part's own 1mA-min contact-current spec, so R303/R304/R309 are **3.3k**
+instead (3.3V / 3.3k ≈ 1.0mA, clearing the 1mA minimum while staying well
+under the 10mA max). Quadrature channels A and B are each externally
+pulled up to `+3V3` (R304, R303) and pulled toward `GND` through the
 encoder's internal mechanical contact against its common pin C (wired
 directly to `GND`); the integrated push-switch is wired the same way — S2
 pulled up to `+3V3` through R309, S1 wired directly to `GND` (S1/S2 are an
