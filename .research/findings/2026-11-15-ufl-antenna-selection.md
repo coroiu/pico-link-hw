@@ -178,7 +178,9 @@ on the module board itself, not a good fit for a late add-on).
   — treat as "confirmed live LCSC catalog item, unconfirmed current
   count," not "154 units in stock today."
 - Datasheet: https://www.lcsc.com/datasheet/C49242188.pdf (and LCSC
-  product page `C49242188`).
+  product page `C49242188`) — that URL redirects through a client-rendered
+  page; the direct PDF with an extractable text layer is at
+  https://datasheet.lcsc.com/datasheet/pdf/72d5c6b86d667022ff6491842d515d6d.pdf?productCode=C49242188.
 
 ### Why these didn't show up well in the `jlcpcb-search` MCP tool
 
