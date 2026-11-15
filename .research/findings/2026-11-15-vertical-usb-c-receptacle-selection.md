@@ -81,11 +81,20 @@ size definitively:
   round signal PTHs plus 4 oval plated-*slot* PTHs for the shell/mounting
   pegs (exact pad/drill/slot sizes in "Footprint" below) — genuine
   through-hole shell retention, not SMT tabs. Overall body height above
-  the PCB: 6.50mm. Shell outline: 8.34mm along the long axis, directly
-  labeled on the datasheet's mating-face view. The 7.70mm and 4.30mm
-  figures used elsewhere for the hole pattern are pin-to-pin/slot-to-slot
-  spans (signal-row width and peg-slot-row pitch), not the outline — see
-  "Footprint" below for the actual copper/keep-out size.
+  the PCB: 6.50mm. The 8.34mm x 2.56mm figure directly labeled on the
+  datasheet's mating-face view is the **connector opening** (the slot the
+  USB-C plug's shell inserts into, dimensioned at the shell's inner wall —
+  within rounding error of the industry-standard ~8.4mm x 2.6mm USB-C
+  receptacle opening common to virtually every USB-C part regardless of
+  manufacturer, which is itself a strong corroborating signal that this is
+  the mating-interface opening, not this specific part's own outer body
+  size), **not** the shell's outer body outline. The shell's own outer
+  body is larger: approximately **9.0mm x 3.2mm** (see "Footprint" below
+  for how this was measured and how it relates to the copper/keep-out
+  size). The 7.70mm and 4.30mm figures used elsewhere for the hole pattern
+  are pin-to-pin/slot-to-slot spans (signal-row width and peg-slot-row
+  pitch), not the outline either — see "Footprint" below for the actual
+  copper/keep-out size.
 - **D-15 / D-16**: same HRO vertical mechanical family, same pin table, but
   sold as a *range* of standoff heights (`D-16` = 8.8mm up through `D-16I`
   = 18.5mm; `D-15` = 8.8mm up through `D-15G` = 15.0mm) — these are meant
@@ -155,23 +164,65 @@ size definitively:
   extent: **~8.60mm x ~5.30mm** (7.70mm hole-pitch + 0.90mm signal-pad
   diameter on the long axis — the round signal pads are the outermost
   copper there; 4.30mm hole-pitch + 1.00mm peg-pad width on the short
-  axis — the oval peg pads are the outermost copper there). The shell's
-  own physical outline is separately labeled at 8.34mm along its long
-  axis, slightly smaller than that copper extent. Either way it's well
-  within the ~118 x 50mm board outline; this bead doesn't place it (PCB
-  layout is `pilink-8hx`/`pilink-7el.9`'s job), just confirms it
-  physically fits a back-side placement near the bottom edge between the
-  two leg mounts, per the decision doc's "exiting the rear wall low,
-  between the legs."
-- **Through-hole legs protrude through the front of the board, not hidden
-  under the shell**: the datasheet's side view gives a pin/leg length of
-  **2.10mm** below the shell's mounting reference plane. On this project's
-  standard 1.6mm-thick PCB, a 2.10mm leg protrudes roughly **0.5mm out the
-  front (component) side** of the board — it does not stay hidden under the
-  shell. That front-side protrusion plus the shell's footprint creates a
-  **front-side keep-out of roughly 8.6mm x 5.3mm** (the same copper/pad
-  extent computed under "Footprint" above) around the connector that other
-  front-side placement (components, silkscreen, routing) needs to respect.
+  axis — the oval peg pads are the outermost copper there).
+
+  The 8.34mm x 2.56mm figure labeled on the datasheet's mating-face view
+  is **not** the shell's own outline either — it's the **connector
+  opening** (the mating slot itself, dimensioned at the inner wall of the
+  shell, matching the industry-standard ~8.4mm x 2.6mm USB-C receptacle
+  opening common to virtually every USB-C part). Re-measured directly
+  against the datasheet's own mating-face-view drawing for this revision
+  (pixel measurement of the drawing's actual outer-contour tangent points,
+  locally calibrated against that same view's own 8.34mm dimension line,
+  since the page is not rendered to one uniform physical scale): the
+  shell's true outer body is **larger** than both the opening and the
+  ~8.60mm copper extent on the long axis — approximately **9.0mm** long
+  (independently re-measured here at ~9.2mm from the datasheet drawing,
+  consistent with a separate reviewer measurement of 8.97–9.00mm) by
+  approximately **3.2mm** on the short axis (reviewer-measured; not
+  re-derived to the same confidence here, since the mating-face view's
+  short-axis contours are harder to cleanly separate from the mounting-peg
+  tabs at this resolution — but 3.2mm is physically consistent with
+  sitting between the 2.56mm opening and the 5.30mm peg-inclusive copper
+  extent, as expected for shell-body < copper/pad extent on that axis).
+  **Correction from the prior revision of this finding, which had this
+  backwards**: the shell is **larger** than the copper/pad extent, not
+  "slightly smaller." This matters for both downstream beads:
+  - `pilink-7el.11` (schematic/footprint swap) needs a **back-side
+    courtyard of about 9.0mm x 5.3mm** — the larger of the shell-body
+    envelope (~9.0mm x 3.2mm) and the copper/pad extent (~8.60mm x
+    5.30mm) on each axis, plus normal clearance — not the smaller figure
+    this finding previously implied.
+  - `pilink-8hx` (enclosure) needs its **rear-wall cutout sized to clear a
+    shell of about 9.0mm x 3.2mm**, not the smaller 8.34mm x 2.56mm
+    opening figure.
+
+  Either way it's well within the ~118 x 50mm board outline; this bead
+  doesn't place it (PCB layout is `pilink-8hx`/`pilink-7el.9`'s job), just
+  confirms it physically fits a back-side placement near the bottom edge
+  between the two leg mounts, per the decision doc's "exiting the rear
+  wall low, between the legs."
+- **Two separate keep-outs — front (legs) and back (shell) — not one
+  combined "footprint"**: this is a back-side-mounted connector (the shell
+  itself sits on the PCB's back, which is where the connector mounts), but
+  its through-hole legs poke all the way through to the front. These are
+  two distinct clearance zones on two different sides of the board:
+  - **Front-side keep-out, from the protruding legs**: the datasheet's
+    side view gives a pin/leg length of **2.10mm** below the shell's
+    mounting reference plane. On this project's standard 1.6mm-thick PCB,
+    a 2.10mm leg protrudes roughly **0.5mm out the front (component)
+    side** of the board — it does not stay hidden under the shell. That
+    front-side protrusion needs a keep-out on the front, for other
+    front-side placement (components, silkscreen, routing), across the
+    same **~8.6mm x ~5.3mm copper/pad extent** computed under "Footprint"
+    above (the legs exit at the same hole positions as the pads).
+  - **Back-side courtyard, from the shell body itself**: the shell
+    physically sits on the back of the board, and its own outer body is
+    **~9.0mm x ~3.2mm** (see "Footprint" above) — larger than the
+    copper/pad extent on the long axis. The back-side courtyard that other
+    back-side placement needs to respect is sized to this shell body, not
+    to the smaller copper/pad extent or to the 8.34mm x 2.56mm opening
+    figure.
 - **Stock**: 5,651 units, live-checked via JLCPCB's public parts API at
   review time (2026-11-15) — an Extended-library part like J401 already is
   (standard per-part assembly handling fee, not a sourcing-availability
@@ -295,11 +346,16 @@ normal THT pitch, not fine-pitch).
   D-16, and D-02/C707317, to confirm pin table, orientation, pad sizes/
   pitch, leg length, and height dimension, rather than trusting the LCSC
   `Mounting Type` field or part-number pattern alone. For D-09
-  specifically, the PDF was re-rendered to an image for this revision and
-  measured pixel-for-pixel against its own labeled dimension lines (pad
-  diameters, drill/slot sizes, hole pitches, shell outline) rather than
-  re-transcribing a prior pass's reading, to settle the pad/drill/slot
-  geometry and footprint size definitively.
+  specifically, the PDF was re-rendered to an image and measured
+  pixel-for-pixel against its own labeled dimension lines (pad diameters,
+  drill/slot sizes, hole pitches) across multiple revisions of this
+  finding, most recently to correctly distinguish the datasheet's labeled
+  8.34mm x 2.56mm figure — the connector **opening**, matching the
+  industry-standard USB-C mating-interface size — from the shell's own,
+  larger outer body (~9.0mm x ~3.2mm). An earlier revision of this finding
+  had that backwards, calling 8.34mm the "shell outline" and describing
+  the shell as smaller than the copper/pad extent rather than larger; see
+  "Footprint" above for the corrected figures and reasoning.
 - **Not performed** (needs a human or a later bead):
   - No physical/CAD fit check against the actual OpenSCAD back-shell
     model — `pilink-8hx`'s enclosure work doesn't exist yet to check
