@@ -661,8 +661,10 @@ series-protection resistors tapping CC1 (off R401's pulldown node) and CC2
 previously-unused ADC-capable GPIOs (`rp2350b_memory.kicad_sch` U101 pins
 49/52; `GPIO47_ADC7` is the only other ADC pin already spoken for, reused
 as the PSRAM's second QMI chip-select). Not a divider: RP2350B's ADC input
-draws no DC current while sampling, so 10kΩ in series doesn't perturb the
-R401/R402 Rd pulldown voltage it taps — it only limits fault current into
+draws no DC current while sampling, once firmware disables that pin's
+default pull-down and input buffer per the RP2350-E9 erratum — so 10kΩ in
+series doesn't perturb the R401/R402 Rd pulldown voltage it taps — it only
+limits fault current into
 the GPIO's ESD clamp if a non-compliant source ever drives CC outside its
 normal ≲3.3V range. Both CC lines are sensed, not just one, because a
 Type-C cable's orientation determines which of CC1/CC2 the host's Rp
