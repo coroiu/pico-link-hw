@@ -11,3 +11,4 @@ Superseded entries are marked Deprecated, never deleted.
 | 2026-11-14 | [D-pad instead of a 5-way joystick switch](2026-11-14-dpad-instead-of-joystick.md) | Accepted |
 | 2026-11-15 | [Replace LEFT/RIGHT d-pad switches with a rotary encoder for volume](2026-11-15-rotary-encoder-for-volume.md) | Superseded (UP/DOWN scope — see below) |
 | 2026-11-15 | [Rotary encoder replaces the whole d-pad, not just LEFT/RIGHT](2026-11-15-rotary-encoder-replaces-full-dpad.md) | Accepted |
+| 2026-11-15 | [Swap ESP32-WROOM-32U for ESP32-WROOM-32UE before PCB layout](2026-11-15-esp32-wroom-32ue-swap.md) | Accepted |
