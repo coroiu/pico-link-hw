@@ -66,7 +66,7 @@ In **landscape** (panel rotated 90 degrees, as the firmware assumes):
 | Push travel | 0.5 +/-0.3 mm | same |
 | Body outline | **12.0 x 11.6 mm** (shaft centred) | KiCad stock footprint F.Fab, `RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm` |
 | PCB courtyard | **17.5 x 14.2 mm** (the 17.5 includes the A/B/C and S1/S2 pin rows) | same |
-| Body height above PCB | ~7 mm class, **not confirmed** (one distributor-hosted Alps drawing shows "7.5 max", but I couldn't read it cleanly) | `pilink-g8a` spike |
+| Body height above PCB | **7.5 mm max — confirmed** | Alps' own EC11 catalogue, dimensioned drawing for EC11E18244AU's drawing No. 5; `pilink-g8a` spike, `.research/findings/2026-11-15-encoder-ec11e18244au-specs.md` |
 | Through-hole leads | Stick out below the PCB. Allow about 3 mm under-board clearance in that area | standard THT |
 
 **Conflict with the aesthetic ADR:** with the face at about 7.5 mm above the
@@ -807,11 +807,13 @@ directly:
 ### Stability: turning is fine with two splayed legs; *pressing* is the real problem
 
 Inputs:
-- **Detent torque:** EC11E series catalogue value of 10 +/-7 mN·m, found in
-  a search of Alps catalogue excerpts. It is **not confirmed for
-  EC11E18244AU specifically** (`pilink-g8a`), so I used 17 mN·m worst case.
+- **Detent torque:** 10 +/-7 mN·m, **confirmed for EC11E18244AU
+  specifically** (`pilink-g8a`, against Alps' own EC11 catalogue
+  product-line table, not just a series-wide figure) — 17 mN·m worst case,
+  unchanged.
 - **Encoder push force:** 6 (+2.5/-2) N for the 0.5 mm-travel EC11 variant,
-  which is what EC11E18244AU is (0.5 mm travel per Alps' product page).
+  **confirmed for EC11E18244AU specifically** (`pilink-g8a`; also matches
+  Alps' own product page and catalogue switch-spec table).
 - **Tact switch force:** 2.6 N (260 gf), per the LCSC/Future listings for
   PTS645SK50SMTR92LFS.
 - **Weight:** about 1.08 N. Silicone feet μ is about 1.
@@ -858,8 +860,13 @@ Inputs:
      200 g of *added* steel (bringing the ~110 g body to roughly 310 g
      total) makes button presses reliable without gel; about 500 g+ of
      *added* steel (roughly 610 g+ total) is needed for the knob press.
-   - **(d) Lower-force A/B/X/Y switches** (PTS645 variants around 1.6 N,
-     to be checked): a partial help only.
+   - **(d) Lower-force A/B/X/Y switches:** `PTS645SM50SMTR92LFS` (LCSC
+     C221881, 1.6 N, same footprint as the current part) **checked and
+     available**, but only 44 units in live stock as of `pilink-g8a`
+     (recheck before ordering); `PTS645SL50SMTR92LFS` (LCSC C221877, 1.3 N,
+     same footprint, 4,043 in stock) is the better-stocked fallback. Either
+     is a partial help only — it lowers the *button* press force, not the
+     knob press, which is a different (encoder) switch.
    - **(e) Move press inputs to the top edge:** pressing down is
      inherently stable, which is why desk clocks put buttons there. This
      changes the user's layout, so it's his call.

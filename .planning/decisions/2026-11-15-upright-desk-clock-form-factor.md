@@ -76,9 +76,10 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
   head-on from a desk chair (a flat face is seen about 56 degrees off-axis),
   and the device takes very little desk depth.
 - **Two legs, not one strut.** Knob turning applies a torque, which tries to
-  roll the body over a front corner and a rear foot. Using EC11E series
-  figures (detent torque up to about 17 mN·m, not yet confirmed for this
-  exact part, see `pilink-g8a`) and an estimated 110 g body:
+  roll the body over a front corner and a rear foot. Using EC11E18244AU's
+  own confirmed detent torque (10±7 mN·m per Alps' own datasheet for this
+  exact part, `pilink-g8a`; up to about 17 mN·m worst case) and an estimated
+  110 g body:
   - single central strut: about 1.15-1.6x margin;
   - two legs at +/-40 mm: about 3x margin.
   Two legs also give the USB-C cable a clean path down the middle.
@@ -162,6 +163,9 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
   whether any fallback is needed.
 - **Open verifications that still apply:**
   - `pilink-0o2`: display FPC contact side and the J501 placement rule;
-  - `pilink-g8a`: encoder torque, push force and body height;
+  - `pilink-g8a`: **resolved** — encoder torque (10±7 mN·m), push force
+    (6 +2.5/-2 N) and body height (7.5mm max) all confirmed from Alps'
+    own EC11E18244AU data, matching the figures already used here; see
+    `.research/findings/2026-11-15-encoder-ec11e18244au-specs.md`;
   - `pilink-8wx`: antenna part.
 - **`AGENTS.md`** hardware summary gains a form-factor line pointing here.
