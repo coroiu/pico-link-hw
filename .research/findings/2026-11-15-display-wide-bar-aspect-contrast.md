@@ -257,13 +257,17 @@ Description and Features", Section 4 "Interface Pin Connection", Sections
 | Response time | Typ 30 ms, Max 35 ms | High |
 | Viewing angle | 60-80 deg in all 4 directions (CR>10 definition) | High |
 | Operating/storage temp | -20 to 70 C / -30 to 80 C | High |
-| Backlight | 4-chip white LED, Vf 2.8-3.4V, If 80mA, ~20,000 hr estimated life | High |
+| Backlight | 4-chip white LED, Vf 3.1V typ at If 80mA, ~20,000 hr estimated life | High — the datasheet gives one typical operating point, not a 2.8-3.4V range (an earlier draft of this finding stated a range that isn't in the source) |
 
-**This is a genuine bare panel**, not a breakout module: the 25.8 x 49.72
-x 1.43mm "Module Outsize" *is* the glass+FPC+backlight stack — the
-mechanical-dimension drawing shows only the LCM glass and a flex tail, no
-carrier-PCB silhouette. That directly clears the gap finding 6 flags for
-the Waveshare module.
+**This is a genuine bare panel**, not a breakout module: the mechanical-
+dimension drawing shows only the LCM glass and a flex tail, no carrier-PCB
+silhouette — that directly clears the gap finding 6 flags for the
+Waveshare module. The 25.8 x 49.72mm "Module Outsize" figure is likely the
+glass+backlight stack specifically, not inclusive of the FPC tail's own
+length: the drawing separately shows 28.5mm and 8.91mm dimensions that are
+probably the FPC tail's length and width, not accounted for in the headline
+outline figure above. This distinction matters for enclosure cutout/depth
+planning and is flagged here as imprecise rather than restated as settled.
 
 **FPC connector:** 14 pins at 0.5mm pitch, confirmed directly from the
 datasheet's pin table and mechanical drawing — matches the project's
