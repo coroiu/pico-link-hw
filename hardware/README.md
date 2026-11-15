@@ -179,12 +179,12 @@ peripherals, UART0/UART1, confirmed from that table, not assumed):
 
 | Net | RP2350 GPIO (pin) | Function |
 | --- | --- | --- |
-| `ESP32_HCI_RXD` | GPIO4 (pin 1) | UART1 TX (F1) |
-| `ESP32_HCI_TXD` | GPIO5 (pin 2) | UART1 RX (F1) |
-| `ESP32_HCI_RTS` | GPIO6 (pin 3) | UART1 CTS (F1) |
-| `ESP32_HCI_CTS` | GPIO7 (pin 4) | UART1 RTS (F1) |
-| `ESP32_FLASH_RXD0` | GPIO0 (pin 77) | UART0 TX (F1) |
-| `ESP32_FLASH_TXD0` | GPIO1 (pin 78) | UART0 RX (F1) |
+| `ESP32_HCI_RXD` | GPIO4 (pin 1) | UART1 TX (F2) |
+| `ESP32_HCI_TXD` | GPIO5 (pin 2) | UART1 RX (F2) |
+| `ESP32_HCI_RTS` | GPIO6 (pin 3) | UART1 CTS (F2) |
+| `ESP32_HCI_CTS` | GPIO7 (pin 4) | UART1 RTS (F2) |
+| `ESP32_FLASH_RXD0` | GPIO0 (pin 77) | UART0 TX (F2) |
+| `ESP32_FLASH_TXD0` | GPIO1 (pin 78) | UART0 RX (F2) |
 | `ESP32_EN` | GPIO20 (pin 20) | plain GPIO (bit-banged) |
 | `ESP32_BOOT0` | GPIO21 (pin 21) | plain GPIO (bit-banged) |
 
