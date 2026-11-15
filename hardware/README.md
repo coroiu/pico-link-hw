@@ -13,7 +13,7 @@ each pointing at its own (currently empty) child `.kicad_sch`:
 - `rp2350b_memory.kicad_sch` — RP2350B + flash/PSRAM (pilink-7el.3)
 - `esp32_bt.kicad_sch` — ESP32-WROOM-32U BT coprocessor (pilink-7el.4)
 - `display.kicad_sch` — ST7789V display (pilink-7el.5)
-- `input.kicad_sch` — d-pad + buttons + volume encoder (pilink-7el.6, amended by pilink-cmn)
+- `input.kicad_sch` — buttons + volume/menu encoder (pilink-7el.6, amended by pilink-cmn then pilink-3rm)
 - `usb_c.kicad_sch` — USB-C connector (pilink-7el.7)
 
 All six child sheets started out intentionally empty — no components, no
@@ -21,8 +21,9 @@ nets — so later beads can populate them independently. See "Deliverables" in
 [`../docs/plans/2026-11-13-custom-hardware-design.md`](../docs/plans/2026-11-13-custom-hardware-design.md)
 for subsystem scope, and `.planning/decisions/` for the component choices
 already settled (MCU, radio coprocessor, display, memory, the 2026-11-14
-d-pad-instead-of-joystick input decision, and the 2026-11-15
-rotary-encoder-for-volume amendment).
+d-pad-instead-of-joystick input decision, and the two 2026-11-15
+rotary-encoder amendments that first replaced LEFT/RIGHT and then
+UP/DOWN).
 
 ### Power subsystem (pilink-7el.2)
 
@@ -170,7 +171,7 @@ ImageMagick/Ghostscript -- was available in this environment to produce a
 bitmap screenshot; the PDF's own text/geometry stream was inspected
 instead).
 
-### Input subsystem (pilink-7el.6, amended by pilink-cmn)
+### Input subsystem (pilink-7el.6, amended by pilink-cmn then pilink-3rm)
 
 `input.kicad_sch` originally had the d-pad + button switches: 4 discrete
 tact switches in a cross (UP/DOWN/LEFT/RIGHT) plus 4 discrete tact buttons
@@ -179,16 +180,22 @@ tact switches in a cross (UP/DOWN/LEFT/RIGHT) plus 4 discrete tact buttons
 (firmware must remap select/OK onto one of A/B/X/Y itself; that's
 `pico-link`'s job, not this repo's). A 2026-11-15 amendment
 ([`.planning/decisions/2026-11-15-rotary-encoder-for-volume.md`](../.planning/decisions/2026-11-15-rotary-encoder-for-volume.md),
-bead `pilink-cmn`) then replaced the LEFT/RIGHT pair with a single EC11-class
+bead `pilink-cmn`) replaced the LEFT/RIGHT pair with a single EC11-class
 rotary encoder dedicated to volume (rotate = adjust, press = mute/toggle),
-based on usage data showing LEFT/RIGHT went unused on the prototype. The
-sheet now has **7 inputs**: UP/DOWN + A/B/X/Y (6 discrete tact switches,
-unchanged) + 1 rotary encoder.
+based on usage data showing LEFT/RIGHT went unused on the prototype. A
+second 2026-11-15 amendment
+([`.planning/decisions/2026-11-15-rotary-encoder-replaces-full-dpad.md`](../.planning/decisions/2026-11-15-rotary-encoder-replaces-full-dpad.md),
+bead `pilink-3rm`) then removed UP/DOWN as well, on the clarified intent
+that the rotary encoder should replace the *entire* d-pad, not just
+LEFT/RIGHT — it's now the device's sole directional control, serving
+double duty by firmware context (volume or menu up/down on rotation,
+mute/toggle or select on press). The sheet now has **5 inputs**: A/B/X/Y
++ 1 rotary encoder, down from the original 8-switch layout.
 
-UP/DOWN/A/B/X/Y each still get their own external 10k pull-up
-(R301/R302/R305-R308, `Resistor_SMD:R_0402_1005Metric`) from `+3V3` to their
+A/B/X/Y each still get their own external 10k pull-up
+(R305-R308, `Resistor_SMD:R_0402_1005Metric`) from `+3V3` to their
 GPIO node (the encoder's own pull-ups use a different value — see below),
-with the switch itself (SW301/SW302/SW305-SW308, the same
+with the switch itself (SW305-SW308, the same
 `Switch:SW_Push`/`Button_Switch_SMD:SW_SPST_PTS645` part
 `rp2350b_memory.kicad_sch` uses for BOOTSEL/reset) pulling that node to
 `GND` when pressed — active-low. Unlike SW101/SW102 (which rely on the
@@ -235,64 +242,69 @@ pulled up to `+3V3` through R309, S1 wired directly to `GND` (S1/S2 are an
 unpolarized SPST pair, so which terminal is pulled up is an arbitrary,
 documented choice, not a functional constraint).
 
-GPIO net assignment: `GPIO20`/`GPIO21`/`GPIO24`-`GPIO27` unchanged (UP=20,
-DOWN=21, A=24, B=25, X=26, Y=27), picked from the generic bidirectional
-GPIO pool `rp2350b_memory.kicad_sch` exposes as global labels for every
-RP2350B GPIO not already committed elsewhere. The encoder reuses the two
+GPIO net assignment: `GPIO24`-`GPIO27` unchanged (A=24, B=25, X=26, Y=27),
+picked from the generic bidirectional GPIO pool `rp2350b_memory.kicad_sch`
+exposes as global labels for every RP2350B GPIO not already committed
+elsewhere. The first 2026-11-15 amendment (`pilink-cmn`) reused the two
 GPIOs freed by removing LEFT/RIGHT (`GPIO22` → channel A, `GPIO23` →
-channel B) and claims one additional GPIO (`GPIO28`, the next free pin in
-the pool) for its push-switch — confirmed free by grepping all 4 populated
-sheets (power, rp2350b_memory, esp32_bt, input) for every GPIO/`ESP32_*`
-global label before finalizing. Each switch/signal's firmware-facing
-logical name (UP/DOWN/A/B/X/Y, `VOL_A`/`VOL_B`/`VOL_SW` for the encoder) is
-drawn as a plain, non-connected text caption under/beside it, not a second
-schematic label on the same net: a global label and a local label both
-landing on one net connect fine electrically, but ERC reports it as
-`multiple_net_names`, so the logical name stays informational-only
+channel B) and claimed one additional GPIO (`GPIO28`, the next free pin in
+the pool) for the encoder's push-switch — confirmed free by grepping all 4
+populated sheets (power, rp2350b_memory, esp32_bt, input) for every
+GPIO/`ESP32_*` global label before finalizing. The second 2026-11-15
+amendment (`pilink-3rm`) removed UP/DOWN entirely, freeing `GPIO20`/`GPIO21`
+back into that same pool — no new net claims them. Each switch/signal's
+firmware-facing logical name (A/B/X/Y, `VOL_A`/`VOL_B`/`VOL_SW` for the
+encoder) is drawn as a plain, non-connected text caption under/beside it,
+not a second schematic label on the same net: a global label and a local
+label both landing on one net connect fine electrically, but ERC reports
+it as `multiple_net_names`, so the logical name stays informational-only
 graphical text here instead.
 
 **Flag for firmware integration (out of scope for this bead):** firmware's
 current `PL_INPUT_PIN_*` pin *numbers* (2/18/16/20/15/17/19/21) are the old
 Waveshare board's GPIO map and do not match this schematic's GPIO
 assignment — only the logical *names* were cross-checked here.
-`PL_INPUT_PIN_LEFT`/`PL_INPUT_PIN_RIGHT` go away entirely in favor of a new
-quadrature-decode + push-button read path for the encoder. Firmware will
-need its own remap once real hardware integration happens; tracked as
+`PL_INPUT_PIN_LEFT`/`PL_INPUT_PIN_RIGHT`/`PL_INPUT_PIN_UP`/`PL_INPUT_PIN_DOWN`
+all go away entirely in favor of a new quadrature-decode + push-button read
+path for the encoder, now the device's sole directional control. Firmware
+will need its own remap once real hardware integration happens; tracked as
 follow-up bead `pilink-otf` (pin remap) plus the not-yet-filed encoder
-firmware work flagged in the 2026-11-15 ADR.
+firmware work flagged in both 2026-11-15 rotary-encoder ADRs.
 
 References use this project's `300`-`399` block (`power.kicad_sch`: 1-99,
 `rp2350b_memory.kicad_sch`: 100-199, `esp32_bt.kicad_sch`: 200-299). The
-amendment retired `SW304` (the old RIGHT switch — left as an intentional
-gap, not reused) and repurposed `SW303` for the new rotary encoder, reusing
-`R303`/`R304` as its two quadrature pull-ups and adding `R309` as the
-push-switch's pull-up; `#PWR305`/`#PWR307` (both freed `+3V3`) and
-`#PWR306`/`#PWR308` (both freed `GND`) are reused for the encoder's pull-up
-supplies and direct GND returns, with one new `#PWR317` (`+3V3`) added for
-the third pull-up. UP/DOWN/A/B/X/Y keep their original `SW301`/`SW302`/
-`SW305`-`SW308`, `R301`/`R302`/`R305`-`R308`, and
-`#PWR301`-`#PWR304`/`#PWR309`-`#PWR316` unchanged. No `PWR_FLAG` on this
+first 2026-11-15 amendment (`pilink-cmn`) retired `SW304` (the old RIGHT
+switch — left as an intentional gap, not reused) and repurposed `SW303`
+for the new rotary encoder, reusing `R303`/`R304` as its two quadrature
+pull-ups and adding `R309` as the push-switch's pull-up;
+`#PWR305`/`#PWR307` (both freed `+3V3`) and `#PWR306`/`#PWR308` (both freed
+`GND`) are reused for the encoder's pull-up supplies and direct GND
+returns, with one new `#PWR317` (`+3V3`) added for the third pull-up. The
+second 2026-11-15 amendment (`pilink-3rm`) retired `SW301`/`SW302`,
+`R301`/`R302`, and `#PWR301`-`#PWR304` the same way — intentional gaps in
+the numbering, not reused. A/B/X/Y keep their original `SW305`-`SW308`,
+`R305`-`R308`, and `#PWR309`-`#PWR316` unchanged. No `PWR_FLAG` on this
 sheet, same reasoning as the other two populated child sheets — this sheet
 doesn't generate `+3V3`/`GND`, `power.kicad_sch` does.
 
 Validated with `kicad-cli sch erc --severity-all --exit-code-violations`:
-the **root** `pico-link-hw.kicad_sch` reports 0 errors / 48 warnings, all
+the **root** `pico-link-hw.kicad_sch` reports 0 errors / 50 warnings, all
 `global_label_dangling` on GPIO/ESP32 labels still waiting for their other
-end on the display/USB-C sheets (down from 49 before this amendment —
-`GPIO28` is no longer dangling now that the encoder's push-switch consumes
-it). Checking `input.kicad_sch` **standalone** reports 2
-`power_pin_not_driven` errors on `+3V3`/`GND` — expected, the same
-non-root-sheet artifact already documented for the other two populated
-child sheets — and 0 warnings. A project-wide netlist export (`kicad-cli
-sch export netlist` on the root sheet) confirms all 59 real components
-across the whole merged project (unchanged from before the amendment: one
-fewer switch, one more resistor) have a unique reference designator, with
-zero collisions. The exported SVG was rasterized with `cairosvg` (no system
-rasterizer available in this environment) and visually checked: no
-overlapping text, labels, reference designators, or components, and the
-long text notes at the right of the sheet were re-spaced to fit the page
-after this amendment lengthened them (an earlier draft had the last note
-running past the sheet's bottom border before this fix).
+end on the display/USB-C sheets, or (for `GPIO20`/`GPIO21`) back in the
+generic free-GPIO pool now that UP/DOWN are gone — up from 48 before this
+amendment, exactly the 2 labels freed by this change. Checking
+`input.kicad_sch` **standalone** reports 2 `power_pin_not_driven` errors on
+`+3V3`/`GND` — expected, the same non-root-sheet artifact already
+documented for the other two populated child sheets — and 0 warnings. A
+project-wide netlist export (`kicad-cli sch export netlist` on the root
+sheet) confirms all 55 real components across the whole merged project
+(down from 59: `SW301`, `SW302`, `R301`, `R302` removed) have a unique
+reference designator, with zero collisions. The exported SVG was inspected
+by parsing its text/geometry directly (no system rasterizer — cairosvg,
+rsvg-convert, ImageMagick, Ghostscript — available in this environment):
+no leftover geometry or captions remain in the old UP/DOWN area, no
+dangling wire stubs, and all 4 long text notes still fit within the
+sheet's border with margin to spare after this amendment's edits.
 
 **Blind-authoring caveat (the two still-empty child sheets):** neither
 KiCad nor `kicad-cli` was available in the agent environment the project
