@@ -53,19 +53,25 @@ finalized — see the gain comparison on the candidates below.
 testing caveat isn't gain-only. The datasheet's own sentence is "If you
 use an external antenna of a different type or gain, additional
 testing, such as EMC, may be required" — type and gain are two separate
-triggers (joined by "or"), not one. This pass tried to confirm what
-antenna *type* Espressif actually certified the module with, to check
-whether the FPC-monopole candidates below match it — the datasheet
-itself doesn't say (it states only the certification antenna's gain,
-2.33dBi, not its design). A secondhand reference (an ESP32 forum post
-describing the module's own FCC/TÜV test report, not independently
-opened in this pass — the report PDF 403'd) claims the certification
-antenna was a **PIFA**, not a monopole. If that's correct, both FPC
-monopole candidates below differ in *type* from the certified antenna
-regardless of their gain, and the "different type" trigger could apply
-independently of the gain question. Treat this as **unresolved**, not
-as "type is fine, only gain matters" — this finding does not have a
-primary-source confirmation either way.
+triggers (joined by "or"), not one. **Resolved in this revision:** the
+datasheet *does* state what antenna type Espressif certified the module
+with. Section 10.2 ("Dimensions of External Antenna Connector") says,
+in a sentence that runs across the page 41/42 break — apparently why an
+earlier pass of this finding missed it — "The external antenna used for
+ESP32-WROOM-32UE during certification testing is the first generation
+monopole antenna, with material code TFPD05H08750011." Confirmed
+directly against Espressif's own datasheet PDF (v2.1) in this revision.
+That's a monopole, which matches both FPC candidates below **at the
+monopole-type level**. One narrower caveat remains: the datasheet
+doesn't say whether the certified unit's construction was specifically
+FPC (as opposed to some other monopole build), so that construction-level
+detail stays unconfirmed — but the type match at the monopole level is
+now a primary-source fact, not an open question. A secondhand reference
+(an ESP32 forum post describing the module's own FCC/TÜV test report,
+not independently opened in this pass — the report PDF 403'd) had
+claimed the certification antenna was a **PIFA**; that claim is
+**contradicted** by the primary-source datasheet text above and should
+be disregarded.
 
 ## Candidates
 
@@ -138,19 +144,19 @@ on the module board itself, not a good fit for a late add-on).
   gain **at 6200 MHz**, inside the 5-7GHz band it also covers — not the
   2.4GHz band this device uses, so it's the wrong number for this
   comparison. The manufacturer's own per-frequency gain table (the
-  AIWF026/MyAntenna datasheet) gives, across the actual 2400-2500 MHz
-  band: **1.69 dBi at 2400 MHz, peaking at 2.35 dBi at 2450 MHz, and
-  1.65 dBi at 2500 MHz** — a 1.65-2.35 dBi in-band range. (The
-  datasheet PDF itself is an image/CAD-drawing-only scan with no
-  extractable text layer — like the `C1693673` datasheet noted below —
-  so these per-frequency figures were pulled via two independent web
-  searches that both quote the same datasheet table text, rather than
-  read directly off a rendered page image; `pdftoppm`/poppler-utils,
-  which would let this pass render and visually inspect the table
-  itself, isn't installed in this environment. Corroborated from two
-  independent extractions, but not independently OCR'd — a human with
-  the GUI/poppler should still eyeball the actual table before this is
-  treated as final.) **Corrected conclusion:** the real in-band peak
+  AIWF026/MyAntenna datasheet, "Peak Gain (dBi)" table on page 3) gives,
+  across the actual 2400-2500 MHz band: **1.69 dBi at 2400 MHz, peaking
+  at 2.35 dBi at 2450 MHz, and 1.65 dBi at 2500 MHz** — a 1.65-2.35 dBi
+  in-band range. **Re-verified directly in this revision:** the
+  datasheet PDF (hosted at `datasheet.lcsc.com`, linked from LCSC's own
+  `C49242188` product page) has a genuine extractable text layer — it is
+  **not** an image/CAD-drawing-only scan, unlike the `C1693673` datasheet
+  noted below. These three figures were read directly off that text
+  layer's gain table (no OCR/image-rendering tooling needed) and
+  cross-checked against the same values restated in the PDF's own
+  "Radiation Patterns" section headers (e.g. "2450MHz Gain=2.35dBi"),
+  not pulled from a secondary web-search extraction. **Corrected
+  conclusion:** the real in-band peak
   (2.35 dBi at 2450 MHz) is **0.02 dB over** Espressif's 2.33dBi
   cert-safe ceiling — essentially at the ceiling, not "over double."
   That's a far smaller gap than the uncorrected figure suggested, but
@@ -272,23 +278,19 @@ primary. Recommend a follow-up bead to:
   point-in-time snapshots from the first research pass — re-check both
   directly on LCSC immediately before ordering, especially the
   Kinghelm's thin ~86-unit figure for a default/primary part.
-- The AIWF026's corrected in-band gain figures (1.65-2.35 dBi) come from
-  two independent web-search extractions of the manufacturer's
-  datasheet text, not from this pass directly rendering and reading the
-  datasheet's own gain-table image — the PDF has no extractable text
-  layer, and `pdftoppm`/poppler-utils (needed to render its pages for
-  direct visual inspection) isn't installed in this environment. A
-  human with that tool (or the GUI) should confirm the table directly
-  before this is treated as fully closed.
-- Whether Espressif's own certification for the ESP32-WROOM-32UE used
-  an antenna of the same *type* (FPC monopole) as both candidates here
-  is unresolved, not confirmed either way — see the datasheet-wording
-  note above. The datasheet states only the certification antenna's
-  gain, not its design; a secondhand forum reference to the module's
-  own FCC/TÜV test report suggested a PIFA antenna, which would
-  conflict with a "same type as certified" assumption for both FPC
-  monopole candidates. Not independently confirmed from the test report
-  itself in this pass.
+- The AIWF026's in-band gain figures (1.65-2.35 dBi) were read directly
+  off the datasheet PDF's own text layer in this revision (see above,
+  and the datasheet-wording note) — the PDF has a genuine text layer,
+  not an image-only scan, so this is no longer an open item.
+- Resolved in this revision: Espressif's own certification for the
+  ESP32-WROOM-32UE used a monopole antenna — datasheet section 10.2
+  states this directly (material code TFPD05H08750011) — which matches
+  both candidates here at the monopole-type level. One narrower gap
+  remains: the datasheet doesn't state whether the certified unit's
+  construction was specifically FPC (vs. some other monopole build), so
+  that construction-level detail stays unconfirmed. The secondhand
+  forum claim of a PIFA certification antenna is contradicted by this
+  primary source and should be disregarded.
 - No physical fit check against the actual enclosure (no OpenSCAD model
   of the top wall exists yet) — deferred to `pilink-8hx.4` by design.
 - No RF/antenna measurement of either candidate — gain figures are
