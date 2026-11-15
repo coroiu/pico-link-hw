@@ -326,18 +326,109 @@ no leftover geometry or captions remain in the old UP/DOWN area, no
 dangling wire stubs, and all 4 long text notes still fit within the
 sheet's border with margin to spare after this amendment's edits.
 
-**Blind-authoring caveat (the two still-empty child sheets):** neither
+### USB-C connector subsystem (pilink-7el.7)
+
+`usb_c.kicad_sch` now has J401, a device-only (UFP), USB-2.0-only USB-C
+receptacle wired per the bead's own investigation comment (pin table read
+directly off the connector's own datasheet drawing, not guessed). Rear-exit
+placement (cable runs straight back out of the enclosure, per the user's
+requirement) is a PCB-layout-stage concern, not something this schematic
+sheet encodes.
+
+**J401:** LCSC `C165948` (`TYPE-C-31-M-12`, mfr Hroparts/HRO), a generic
+16-pin SMD USB-C receptacle, 514,015 units in stock at research time,
+Extended-library part (standard extended-part handling fee, not a
+sourcing-availability risk). KiCad 8.0.9's stock `Connector:` library
+already ships both an exact-match symbol (`USB_C_Receptacle_USB2.0_16P`,
+pin-for-pin identical to the bead's own verified pin table, including the
+A1/A12/B1/B12 GND and A4/A9/B4/B9 VBUS pins already stacked onto one
+graphical point each) and an exact-match footprint for this specific
+manufacturer part number (`USB_C_Receptacle_HRO_TYPE-C-31-M-12`) — no
+custom symbol/footprint needed for this bead, unlike the PSRAM/flash parts
+on `rp2350b_memory.kicad_sch`.
+
+**Wiring:** DP1/DP2 (A6/B6, both datasheet D+) tied together to the
+`USB_DP` global label; DN1/DN2 (A7/B7, both D-) tied together to `USB_DM` —
+both global labels reused exactly as already declared on
+`rp2350b_memory.kicad_sch` (grepped before use, same text/case). CC1/CC2
+each get their own 5.1kΩ pulldown to GND (R401/R402, Rd per the USB-C
+spec's UFP/sink role). SBU1/SBU2 are left unconnected (no alt-mode in this
+design). The SHIELD pin (S1 — the connector's metal shell/mounting-tab
+contacts, not one of the spec's 16 signal/power pins, and not covered by
+the bead's own pin-table investigation) is tied directly to GND, the
+standard chassis-to-signal-ground tie most USB-C reference designs use for
+a single-ground-plane board like this one.
+
+**No VBUS overcurrent protection on this sheet.** An 0805 PTC resettable
+fuse (LCSC `C269104`) was added here during implementation, beyond the
+bead's own investigation (which only asked to "consider" one), and removed
+again on review: its 500mA hold current doesn't cover `power.kicad_sch`'s
+own ~0.6–0.65A worst-case peak once derating is accounted for, and its
+0.15–0.85Ω series resistance was never checked against the AMS1117's tight
+dropout margin. VBUS goes straight from J401 to the `+5V` net
+`power.kicad_sch` expects from this sheet (that sheet's own text note says
+"+5V arrives from the USB-C sheet (pilink-7el.7)", with a `PWR_FLAG`
+placeholder already in place pending it). Properly sizing VBUS overcurrent
+protection is tracked as its own follow-up bead rather than guessed at
+again here.
+
+No `PWR_FLAG` is added on this sheet's own `+5V`/`GND` nets:
+`power.kicad_sch` already carries both (`#FLG01` on `+5V`, `#FLG02` on
+`GND`), satisfying ERC project-wide regardless of what else drives those
+nets downstream, and the connector's own VBUS/GND pins are "passive"-type
+(not "power_out"), so wiring them in here does not create a second driver
+or an ERC "conflicting power outputs" error — same reasoning
+`esp32_bt.kicad_sch`'s own notes already give for not adding a redundant
+local flag once a real upstream driver/flag exists.
+
+References use a new `400`-`499` block for this sheet (`power.kicad_sch`:
+1-99, `rp2350b_memory.kicad_sch`: 100-199, `esp32_bt.kicad_sch`: 200-299,
+`input.kicad_sch`: 300-399): J401, R401-R402, `#PWR401`-`#PWR405`.
+`display.kicad_sch`, still empty, is expected to take `500`-`599` whenever
+it's populated, though that bead owns the final call.
+
+**ERC note:** two of this sheet's nets (CC1→R401, CC2→R402) are legitimate
+2-pin passive nets with no power-type pin directly on them (the GND power
+pin is one hop further, past the resistor). `kicad-cli sch erc` flags a
+plain, unlabelled net shaped like that as `wire_dangling` even when both
+ends are verifiably correct — confirmed by checking each endpoint against
+an isolated single-component ERC run first, then bisecting the false
+positive down to "no label and no power-type pin anywhere on this specific
+net." Fixed by adding a local `(label ...)` on each of the two nets (`CC1`,
+`CC2`) — the same plain-label convention `rp2350b_memory.kicad_sch` already
+uses for its own bus signals (`QSPI_SS`/`QSPI_SD0-3`/etc.), not a
+workaround invented just for this tool. VBUS itself has no such issue now:
+it runs straight to the `+5V` power symbol, a power-type pin directly on
+the net.
+
+Validated with `kicad-cli sch erc --severity-all --exit-code-violations`:
+`usb_c.kicad_sch` checked standalone reports 2 errors (`power_pin_not_driven`
+for `+5V`/`GND` — expected, the same non-root-sheet artifact already
+documented for every other populated child sheet) and 0 warnings. The
+**root** `pico-link-hw.kicad_sch` reports 0 errors both before and after
+this bead — **48 warnings after, down from 50 before** (all
+`global_label_dangling`): exactly the 2 labels this bead resolves, `USB_DP`
+and `USB_DM`, now that their other end on `rp2350b_memory.kicad_sch` has a
+real connector to pair with. A project-wide netlist export confirms J401's
+GND/VBUS/CC1/CC2/D+/D- nets merge as expected and no reference designator
+collides with any other sheet. The exported SVG was reviewed via its raw
+text/geometry stream (no system rasterizer available in this environment,
+same caveat as every other sheet) for a non-overlapping layout; this is an
+agent-driven check against a rendered export, not a human sign-off in the
+KiCad GUI.
+
+**Blind-authoring caveat (the one remaining empty child sheet):** neither
 KiCad nor `kicad-cli` was available in the agent environment the project
-skeleton was written in. Those files were hand-authored as KiCad 8
-S-expression/JSON text, cross-checked against KiCad's own file-format docs
-and real KiCad-8-generated project files pulled from public repos — not
-written, opened, or validated by the actual KiCad GUI. `kicad-cli` **is**
-available now (KiCad 8.0.9) and was used for `power.kicad_sch`,
-`rp2350b_memory.kicad_sch`, `esp32_bt.kicad_sch`, `input.kicad_sch`, and the
-root sheet's hierarchy (see above); the same validation still needs to
-happen for the two remaining empty child sheets (`display.kicad_sch`,
-`usb_c.kicad_sch`) before trusting or building on them. If anything fails
-to parse, that's a bug in this skeleton, not a sign the approach is wrong.
+skeleton was written in. `display.kicad_sch` was hand-authored as KiCad 8
+S-expression/JSON text at that time, cross-checked against KiCad's own
+file-format docs and real KiCad-8-generated project files pulled from
+public repos — not written, opened, or validated by the actual KiCad GUI.
+`kicad-cli` **is** available now (KiCad 8.0.9) and was used for
+`power.kicad_sch`, `rp2350b_memory.kicad_sch`, `esp32_bt.kicad_sch`,
+`input.kicad_sch`, `usb_c.kicad_sch`, and the root sheet's hierarchy (see
+above); the same validation still needs to happen for `display.kicad_sch`
+before trusting or building on it. If anything fails to parse, that's a
+bug in this skeleton, not a sign the approach is wrong.
 
 PCB routing, DRC/ERC, and gerber export still need to happen in the KiCad GUI
 on a machine that has it installed — same caveat as before, now narrowed to
