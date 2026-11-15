@@ -14,14 +14,30 @@ component-class analogy. This finding re-checks all four against primary
 sources: the Crystalfontz datasheet's actual mechanical drawings (decoded
 directly, see Method) and JLCPCB's structured catalog data for J501.
 
-**Update (2026-11-15, post-review on PR #40):** the first pass at this
-finding misread two of the datasheet's own dimensioned figures and reached
-conclusions those figures don't actually support — one minor (a
+**Update (2026-11-15, post-review on PR #40, round 2):** the first pass at
+this finding misread two of the datasheet's own dimensioned figures and
+reached conclusions those figures don't actually support — one minor (a
 description error with no numeric impact), two load-bearing (contact side
 is now unresolved rather than confirmed, and the bend-radius fit is now a
 flagged risk rather than a 0.1mm-spare pass). See the "Correction" notes
 inline in findings 1, 2 and 4, and the revision-discrepancy section,
 below.
+
+**Update (2026-11-15, post-review on PR #40, round 3):** round 2's own
+contact-side writeup was itself wrong on a specific, checkable claim — it
+said the datasheet's dimensioned outline and its pin-numbered outline have
+"the same notch/tab position, not mirrored." They are an exact mirror,
+confirmed this round by independently re-rendering and comparing both
+outlines pixel-for-pixel. That flips the conclusion: the drawing evidence
+now **favors back-face contacts** as the working assumption, not an even
+front-vs-back toss-up. This round also names concrete replacement
+connector parts (a preferred dual-contact ZIF that removes the risk
+entirely, plus a confirmed top-contact fallback), adds the pin-1-mapping
+caution either swap needs, gives the S-fold fallback rough placement
+numbers, and reconciles a small (~0.15mm) rounding discrepancy between two
+measurements of the same frame-to-FPC gap. See the updated finding 1 and
+the "Concrete J501 placement rule" / "What would still need a human"
+sections below.
 
 ## Method note
 
@@ -42,89 +58,211 @@ again, no external tool, pure `zlib` + a small hand-rolled tokenizer.
 Pixel-level measurements below used the same decompressed RGB array,
 calibrated against the drawing's own dimensioned 42mm frame width.
 
+**Round 3 addition:** this environment does have Python's `PIL`/`Pillow`
+library (confirmed present this round, unlike a PDF rasterizer or a
+page-layout-aware PDF text library), so the hand-rolled PNG reconstruction
+above could be cropped, scaled and horizontally flipped with it for direct
+visual overlay comparison of the two page-6 outlines, in addition to the
+raw pixel-array measurements. For the dual-contact connector candidate's
+own datasheet (a different, vector-CAD-exported PDF), the same `zlib`
+image-recovery approach found only one small raster (a component photo);
+the drawing text itself is vector with glyph-indexed font encoding that
+this environment's toolchain (plain `zlib` plus a hand-rolled `Tj`/`TJ`
+tokenizer, no `ToUnicode` CMap parsing) could not decode into readable
+characters, and no PDF rasterizer was available to render it as an image
+either — so that part's mated-height and pin-1-location dimensions could
+only be sourced from JLCPCB's structured catalog fields and product-page
+text, not read directly off its own CAD drawing. This is flagged inline
+where it applies (finding 1's fallback plan A).
+
 ## Findings
 
-### 1. FPC contact side: UNRESOLVED — isometric and the drawing's own numbered view disagree
+### 1. FPC contact side: drawing evidence now favors BACK-FACE contacts — working assumption for planning, pending physical confirmation
 
-**Correction (2026-11-15, post-review):** the previous version of this
-finding called this "confirmed, moderate-high confidence" from the
-isometric render alone. A PR review on `pilink-0o2` (#40) checked the
-datasheet's two-dimensional mechanical views, which this finding had not
-compared against each other, and found evidence pointing the other way.
-Independently re-decoded the same page-6 raster (same recovery method as
-before, re-verified pixel positions directly rather than trusting the
-prior transcription) and confirmed the review's reading. This is now
-**unresolved**, not settled, and needs physical inspection to close out.
+**Correction (2026-11-15, third review round on PR #40):** the second
+version of this finding called the drawing's two outlines "the same
+notch/tab position, not mirrored" and left front-vs-back as an even,
+unresolved coin flip. That description was **factually wrong**. A second
+review pass measured both outlines in pixels and found the pin-numbered
+view is an **exact mirror** of the dimensioned view, feature for feature.
+This finding was reworked a third time to independently check that claim
+from scratch — not by re-reading the prior transcription, but by
+re-rendering both page-6 outlines as PNGs from the PDF's own raw image
+stream (same recovery method as before: locate the Flate-compressed image
+XObject, `zlib.decompress`, hand-wrap as PNG) and comparing them visually
+and by direct pixel measurement, using a Python/PIL toolchain available in
+this environment (still no PDF rasterizer or page-layout-aware PDF
+library). The mirror claim is **confirmed**, and it changes the
+conclusion: the drawing evidence now points toward back-face contacts, not
+a neutral toss-up.
 
 Source: same datasheet document 4197, section 5 ("Mechanical Drawing").
-The page actually contains **three** renderings of the module, not one:
+The page contains **three** renderings of the module:
 
-1. A **dimensioned outline** (left side of the page) — this is the view
-   every other dimension in this finding and in the proposal doc (frame
-   42x59mm, AA, FPC widths, tail lateral offset) is measured from. Its
-   tail, at the exact same location where the pin-numbered view below has
-   solid black hatching, is a **plain unfilled outline with no hatching,
-   no fingers, no pin numbers** — confirmed by direct pixel inspection
-   (cropped and re-examined at 2.5x; the tail's bottom edge is a single
-   flat line, nothing else drawn on it).
-2. A **second, undimensioned outline** of the identical shape (same
-   notch/tab position, not mirrored) with the tail end filled by fine
-   vertical black hatching and labelled **"40 [hatched bar] 1"** — a
-   standard drafting convention for "this is the face you're looking at
-   when you read the contacts," matching the Pin Function Reference table
-   (pin 1 = LED_A ... pin 40 = GND) elsewhere on the same page.
+1. A **dimensioned outline** (left side of the page) — the view every
+   other dimension in this finding and the proposal doc (frame 42x59mm,
+   AA, FPC widths, tail lateral offset) is measured from. Its tail is a
+   **plain unfilled outline with no hatching, no fingers, no pin
+   numbers**. In this view, the step/notch in the tail profile sits on the
+   tail's **left** side (small tab near the top of the step, narrowing
+   happens from the left), and the **right** edge runs straight down,
+   flush with the frame's own right edge, all the way to the tail end.
+2. A **second, undimensioned outline** of the identical part, tail end
+   filled with fine vertical black hatching and labelled **"40 [hatched
+   bar] 1"** — matching the Pin Function Reference table (pin 1 = LED_A
+   ... pin 40 = GND) elsewhere on the same page. **Re-examined directly:
+   this outline's step/notch sits on the tail's right side, with the left
+   edge running straight down** — the mirror image of view 1, not a
+   repeat of it. Flipping this view horizontally and overlaying it against
+   view 1 reproduces view 1's outline feature-for-feature (same step
+   heights, same tab position, same flush edge, now on the matching side).
 3. An **isometric render** (color, photorealistic) of the assembled
-   module and FPC, used by the original version of this finding.
+   module and FPC, used by the original version of this finding and
+   re-examined again below.
 
-Views 1 and 2 are two different orthographic projections of the *same*
-part, one of which is the dimensioned reference every other number in this
-finding is built from. If (1) is the front and (2) is the rear — the
-natural reading, since a datasheet doesn't normally draw the same outline
-twice for no reason, and pin-numbering diagrams are conventionally drawn
-looking at the contact face — then **the hatching sits on the back face**,
-directly contradicting the isometric-based "front" conclusion. Nothing on
-the page carries an explicit "FRONT VIEW" / "REAR VIEW" text label (full
-text of all 11 pages was extracted and searched for "view", "front",
-"rear", "back" — none found as separate PDF text; if such labels exist
-they're baked into the raster and weren't found by visual inspection
-either), so which view is "front" is itself an inference, same as before —
-but it's now a *conflicting* inference, not a clean confirmation.
+**Why a mirror means "rear view," and why that matters:** a left-right
+mirror of an orthographic outline is, by construction, the same part seen
+from the *other* side — it is not a second drawing of the front. Since
+view 1 is the dimensioned front reference (every other number in this
+finding is built from it) and view 2 is its mirror, **view 2 is the rear
+view**. Pin-numbering diagrams are conventionally drawn looking at the
+contact face, which is exactly what view 2 is — and it is the mirrored
+(rear) view, not view 1. **That puts the hatched, numbered contacts on the
+back face, not the front/display-face side.** This is the datasheet's own
+drawing evidence pointing the opposite way from the original isometric
+based read, not an ambiguous or neutral result. Nothing on the page
+carries an explicit "FRONT VIEW" / "REAR VIEW" text label (checked again
+this round: full text of all 11 pages extracted and searched for "view",
+"front", "rear", "back" — none found as separate PDF text), so which view
+is drawn "looking from the front" vs "looking from the back" is still an
+inference from drafting convention, not a labelled fact — but it is now a
+*one-sided* inference (both the mirroring and the conventional
+pin-numbering-shows-the-contact-face reading agree), not a coin flip
+between two equally weighted readings.
 
-Re-examining the isometric itself (the original evidence) also weakens it:
-zoomed to 6x, the dark band at the tail end that the original finding read
-as "gold/copper contact-finger surface" renders as **solid black with fine
-vertical striation**, not a gold/brass color. A rendered gold contact
-finger would typically show warm metallic tones; a flat black band with
+Re-examining the isometric itself (the original evidence) again, at higher
+resolution than before: the visible face of the tail in the isometric is
+continuous with, and in the same orientation as, the display's own front
+(viewer-facing) surface — i.e. this is the display's front side, unbent.
+That face shows only the printed Crystalfontz logo and part number; the
+dark band right at the tail end renders as **solid black with fine
+vertical striation**, not a gold/brass color. A flat black band with
 pitch-matched ribbing is at least as consistent with a **black stiffener**
 bonded to the tail for connector-insertion rigidity (common on ZIF/FFC
-tails) as with exposed contacts. The isometric does not disambiguate this
-on its own.
+tails) as with exposed gold contacts, and the branding being printed on
+this same face is itself mildly more consistent with this being the
+*non-contact* face (manufacturers commonly reserve the contact face for
+bare copper/gold fingers and print branding on the back). **The isometric
+does not show front-face contacts; if anything, re-reading it now leans
+the same direction as the mirror evidence.**
 
-**This is now an open risk, not a confirmed fact: physical inspection of a
-real panel (bending the tail and looking, or probing continuity against
-the pin table) is needed to resolve it with certainty** — which this
-bead's own scope already anticipated as the fallback for an inconclusive
-case; this is now that case.
+**Bottom line — status and working assumption:** this is still not
+100%-certain without inspecting a real panel (a flat 2D drawing read
+alongside a photorealistic render always leaves some room for a
+mis-projected isometric or an unconventional drafting choice), so it stays
+flagged as **needs physical confirmation**, not a closed fact. But the
+balance of drawing evidence no longer supports treating front-face and
+back-face as equally likely. **`pilink-7el.12` should plan around
+back-face contacts as the default/working assumption**, with front-face as
+the (less likely) fallback if a real panel or Crystalfontz support says
+otherwise — the reverse of this finding's original framing.
 
-**Both fallback plans, so `pilink-7el.12` isn't blocked either way:**
-- **(a) If front-face is confirmed:** the original plan holds as
-  described — a bottom-contact J501 (Jushuo AFC01-S40FCA-00, confirmed
-  bottom-contact per finding 3) mates correctly after a 180deg J-fold,
-  subject to the bend-radius risk in finding 4 below.
-- **(b) If back-face is confirmed:** a bottom-contact ZIF would receive
-  the fingers face-up after a J-fold, which does not mate (an electrical
-  failure, not just a placement one). Two fixes, either workable:
-  - swap J501 for a **top-contact** ZIF of the same pitch/position-count
-    (one BOM line, same footprint family, same location under the panel);
-    or
-  - route an **S-fold** instead of a J-fold, with J501 outboard of the
-    panel edge instead of underneath it (costs more board space — the
-    proposal already notes ~25mm of width or a slack loop for this
-    option).
+**Fallback plan A (preferred): swap J501 for a dual-contact ZIF, which
+removes the front/back dependency entirely.**
 
-Neither fallback is committed to in advance; `pilink-7el.12` should check
-contact side against a real panel (or get Crystalfontz support to state it
-in writing) before finalizing J501's orientation.
+A connector that accepts the FPC with its fingers facing either direction
+makes this whole question moot for the BOM/footprint, regardless of how
+the physical-inspection question above is eventually resolved. Searched
+JLCPCB's component database (`jlcpcb-search` MCP) for 40-position, 0.5mm
+pitch FPC/FFC ZIF connectors and checked contact-type fields directly
+(not by name alone, since name codes aren't a reliable guide — see the
+AFC01-S40FCC-00 case below):
+
+- **`FC-05B40P21H20`, LCSC `C23398824`, manufacturer BXCONN** (JLCPCB
+  Extended part, confirmed via both the `jlcpcb-search` MCP tool and a
+  direct fetch of the JLCPCB part page): **Contact Type: "Double-sided
+  contacts, top and bottom entry."** 40 positions, 0.5mm pitch, SMD
+  right-angle, Flip-Top lock, gold-plated copper-alloy contacts, 0.3mm
+  FFC/FPC thickness (matches this panel's FPC), 50V rated, -25..+85°C,
+  **Height Above Board: 2mm** (same catalog field, same value, as the
+  current AFC01-S40FCA-00 — see finding 3), "Forward Foot / Back Foot: No
+  polarity." **Stock: 2,635 units** as of 2026-11-15 (live stock, recheck
+  before ordering). This is the strongly preferred fix: it eliminates the
+  contact-side risk as a design dependency rather than betting on one
+  reading of an ambiguous drawing.
+  - **What this does *not* confirm:** mated height is sourced from the
+    same class of catalog field as finding 3's AFC01 height (not a primary
+    CAD drawing — this part's own datasheet PDF is a vector CAD export
+    with glyph-indexed text that couldn't be decoded with this
+    environment's toolchain, same limitation noted in the Method note
+    above; no PDF rasterizer or ToUnicode-aware text extractor is
+    available here), and **pin-1's physical location on this part's
+    footprint was not independently verified**. See the pin-1 note below —
+    this must be checked before `pilink-7el.12`/`pilink-7el.11` commits to
+    it as a footprint swap.
+
+**Fallback plan B (if plan A doesn't pan out): a confirmed single-sided
+top-contact part.**
+
+- **`HC-FPC-0.5-40P-CSH20`, LCSC `C19273956`, manufacturer Hong Cheng**
+  (JLCPCB Extended part): **Contact Type: "Top Contact"** (confirmed via
+  `jlcpcb-search`), Slide Lock, 40P, 0.5mm pitch, SMD right-angle, 0.3mm
+  FFC thickness, copper contacts, -25..+85°C. **Stock: 16,755 units** as
+  of 2026-11-15. This is a genuine opposite-contact-type swap for the
+  current bottom-contact AFC01-S40FCA-00.
+- **Checked and ruled out:** `AFC01-S40FCC-00` (LCSC `C262282`), the
+  obvious same-family alternative suffix to the current part, is **also
+  "Bottom Contact"** per JLCPCB's own structured catalog field (confirmed
+  independently here via `jlcpcb-search`, not just taken on the prior
+  reviewer's word) — it is not a usable top-contact substitute. Don't use
+  it for this purpose.
+
+**Pin-1 orientation — a real design consideration, not a footnote, for
+either fallback:** a ZIF connector's pin-1 end is a physical feature of
+its own footprint, independent of its contact-type (top/bottom/dual). If
+either replacement part's pin-1 end turns out to be at the **opposite**
+tail end from AFC01-S40FCA-00's, then swapping only the footprint while
+keeping J501's existing net/pin assignments in the schematic would
+silently cross-wire every signal (DB17-0, SDA, DOTCLK, HSYNC/VSYNC, RD/WR,
+RS, CS, RESET, IMx, power/ground — see the Pin Function Reference table).
+**`pilink-7el.11`/`pilink-7el.12` must check the replacement part's pin-1
+location against AFC01-S40FCA-00's before finalizing either swap, and
+reverse J501's pin mapping in the schematic (not just drop in a new
+footprint) if the two parts' pin-1 ends don't match.** This applies
+whether plan A (dual-contact) or plan B (top-contact) is used — it was not
+checked for either part in this pass, for the same PDF-rendering-tooling
+reason noted above.
+
+**Fallback plan C (if no connector swap is acceptable): route an S-fold
+instead of a J-fold**, with J501 outboard of the panel edge instead of
+underneath it. Rough placement numbers (not previously given):
+- **Orientation:** same rule as the J-fold — J501's long axis parallel to
+  the panel's FPC exit edge, opening facing that edge.
+- **Position:** instead of sitting **under** the panel, inset ~24mm in
+  from the FPC edge (the J-fold plan), J501 moves to just **outside** the
+  panel's own footprint, beside its FPC edge. That consumes roughly
+  **25-28mm of additional PCB width beyond the panel's edge** — J501's own
+  ~25.4mm courtyard length plus a few mm of clearance for the fold itself
+  — board area the J-fold plan doesn't need at all (it tucks entirely
+  under the panel). This matches the proposal's existing rough "~25mm of
+  width" figure, now attached to a reason.
+- **Lateral/front-back offset:** unchanged, about 7.2mm from the panel
+  centreline — that number comes from the tail's own position on the
+  panel (finding 2), not from the fold style.
+- **Vertical:** the S-fold's two bends happen in open space beside the
+  panel rather than squeezed into the 3.4mm under-panel gap, so it
+  sidesteps finding 4's bend-radius fit risk entirely — at the cost of the
+  extra width above, and of whatever contact-type part it's paired with
+  (an S-fold still needs the fingers to end up facing the PCB at the
+  connector, so it only sidesteps the *bend-radius height* risk in finding
+  4, not the contact-side question in this finding, unless also paired
+  with a dual-contact part).
+
+None of the three fallbacks is committed to in advance. `pilink-7el.12`
+should still check contact side against a real panel (or get Crystalfontz
+support to state it in writing) if the schedule allows, but should not
+block PCB re-placement on that confirmation now that plan A (dual-contact)
+removes the dependency.
 
 ### 2. FPC lateral offset: ~7.2mm, right of panel centreline (native portrait, FPC side) — confirmed by calibrated pixel measurement, tighter than the original ±0.5mm estimate
 
@@ -143,7 +281,23 @@ measurement (scanning dark-pixel runs at several y-rows, not eyeballing)
 shows that's wrong: the frame's own outline right edge sits at x=939-940px,
 while the FPC sections' shared right edge sits at x=914-915px — the
 frame's edge is about 25px, i.e. **~3.4mm, further out** than the FPC
-sections' edge, not the same line. This doesn't change any of the
+sections' edge, not the same line.
+
+**Reconciliation (2026-11-15, third review round):** this ~3.4mm figure
+(a direct pixel-difference calculation, 25px / 7.333px/mm) doesn't quite
+match the frame-vs-tail gap implied by the mm-calibrated tail span given
+two paragraphs below (tail spans "18.0mm to 38.45mm" against a 42mm-wide
+frame, which puts the tail's right edge 42 - 38.45 = **3.55mm** short of
+the frame's right edge). The two numbers (~3.4mm vs ~3.55mm) differ by
+about 0.15mm, i.e. about 1px at this drawing's resolution — within the
+same antialiasing/line-thickness uncertainty already noted below (+/-1-2px,
++/-0.15-0.3mm) for measurements off this raster. The discrepancy comes
+from two different computation paths (direct pixel subtraction of raw
+edge positions, vs. subtracting two separately-calibrated mm values) that
+don't round identically, not from an error in either value. It doesn't
+change the qualitative point this paragraph makes (the frame's edge sits
+measurably further out than the FPC sections' edge, they are not the same
+line), and it doesn't change any of the
 offset/dimension numbers below (those were already computed from the
 frame's own `42±0.008` calibration and the FPC sections' own pixel spans,
 not from an assumed shared edge) — it's a correction to the description
@@ -333,9 +487,10 @@ question for Crystalfontz support, not a geometry question.
 Combining the above with the proposal's existing analysis (section 2,
 point 2), for **either** FPC exit side:
 
-- J501 orientation: bottom-contact ZIF, long axis parallel to the panel's
-  FPC exit edge, opening facing that edge, mounted on the PCB under the
-  panel.
+- J501 orientation: long axis parallel to the panel's FPC exit edge,
+  opening facing that edge, mounted on the PCB under the panel. The
+  current BOM part is bottom-contact; see the contact-side requirement
+  below for why a **dual-contact** part is now the preferred choice here.
 - Inset from the panel's FPC edge to J501's insertion face: **~24mm**
   (unchanged from the proposal — this inset isn't directly driven by the
   bend-radius figure; the fold's own vertical risk is tracked separately
@@ -356,20 +511,38 @@ point 2), for **either** FPC exit side:
   real fit risk for `pilink-7el.12` and `pilink-8hx`**, with the fallbacks
   listed in finding 4 (grow the gap, change fold style, or relocate J501),
   not a clean pass.
-- Contact side requirement: **unresolved** (finding 1) — the datasheet's
-  isometric render and its own numbered pinout view point opposite ways.
-  Needs physical inspection of a real panel before `pilink-7el.12` commits
-  to J501's orientation. If front-face: the plan above holds as-is. If
-  back-face: swap J501 for a top-contact variant (same pitch/position
-  count, same location), or route an S-fold instead — see finding 1 for
-  both fallbacks in full.
+- Contact side requirement: **drawing evidence favors back-face, not
+  front-face** (finding 1, reworked this round) — the datasheet's
+  dimensioned outline and its pin-numbered outline are an exact mirror of
+  each other, which means the pin-numbered (hatched/contact) view is the
+  *rear* view, putting the numbered contacts on the back face. Treat
+  **back-face as the working assumption** for `pilink-7el.12`, not a
+  coin-flip, though it's not 100% certain without a physical panel.
+  **Preferred fix regardless of which face turns out correct: swap J501
+  for the dual-contact `FC-05B40P21H20` (LCSC `C262674` -> `C23398824`)**,
+  which mates with either orientation and removes the dependency on
+  resolving this question at all. If a dual-contact part isn't usable,
+  fall back to the confirmed top-contact `HC-FPC-0.5-40P-CSH20` (LCSC
+  `C19273956`) or an S-fold with J501 outboard of the panel edge (now with
+  rough placement numbers) — see finding 1 for all three fallbacks, the
+  required pin-1-orientation check for whichever part is chosen, and why
+  `AFC01-S40FCC-00` (LCSC `C262282`) is **not** a valid top-contact
+  substitute despite the name.
 
 ## What would still need a human
 
 - A physical CFAF240320A0-024SN panel, to resolve the contact-side
-  question (finding 1) by direct inspection (bend the tail and look, or
-  probe continuity against the pin table) rather than by conflicting
-  drawing interpretations.
+  question (finding 1) with full certainty by direct inspection (bend the
+  tail and look, or probe continuity against the pin table) — though this
+  is no longer blocking, since the dual-contact J501 fallback works either
+  way.
+- A physical `FC-05B40P21H20` part or its dimensioned CAD drawing (this
+  part's own datasheet is a vector PDF whose text uses glyph-indexed
+  fonts this environment's toolchain couldn't decode — no ToUnicode-aware
+  PDF text extractor or rasterizer was available, same limitation as the
+  Method note above), to confirm its pin-1 physical location against
+  AFC01-S40FCA-00's before `pilink-7el.11`/`pilink-7el.12` treats this as
+  a drop-in footprint swap rather than a pin-mapping change.
 - A physical J501 part or its real engineering drawing from Jushuo
   (not available online in a dimensioned form), to confirm "Height Above
   Board: 2mm" to better than catalog-field precision, and to confirm

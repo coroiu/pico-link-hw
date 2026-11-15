@@ -43,7 +43,7 @@ side, H = long side). Tolerance is +/-0.3 mm unless stated.
 | FPC widths | 35.45 mm near the panel, then a 20.50 mm tail ending in 40 contacts at 0.5 mm pitch |
 | FPC thickness | 0.3 +/-0.05 mm |
 | Tail lateral offset | Tail spans about 18.0 to 38.45 mm from the frame's left edge (front view), so its centre is **about 7.2 mm right of the panel centreline**. There's still no explicit dimension for this on the drawing, but `pilink-0o2` re-measured it with a pixel-calibrated reading of the drawing's own 42 mm frame dimension (not eyeballing a thumbnail), tightening the uncertainty to about +/-0.2 mm |
-| Contact side | **Unresolved** -- `pilink-0o2` found conflicting evidence: the isometric render suggests front-face (display-side) fingers, but the datasheet's own dimensioned front view has no hatching at the tail end while a separate pin-numbered view of the identical outline shows hatched contacts there, which points to the back face instead. Needs a real panel to resolve (see `.research/findings/2026-11-15-display-fpc-contact-side.md`) |
+| Contact side | **Back-face is the working assumption, pending physical confirmation** -- `pilink-0o2` found the datasheet's dimensioned front view and its separate pin-numbered view are an exact mirror of each other (confirmed by pixel-for-pixel comparison), which means the pin-numbered/hatched view is the *rear* view -- putting the numbered contacts on the back face, not the front. The isometric render's apparent front-face "finger" band re-reads as a black stiffener on closer inspection, not gold contacts. Not 100% certain without a real panel, but no longer a neutral toss-up (see `.research/findings/2026-11-15-display-fpc-contact-side.md`) |
 
 In **landscape** (panel rotated 90 degrees, as the firmware assumes):
 
@@ -164,8 +164,14 @@ Practical rules that follow:
    of a tight 180-degree J-fold), or J501 may need to move to change how
    much free FPC length is available before the bend. The fold's *planned*
    length budget (about 5.5 mm of FPC, leaving about 27.5 mm running back
-   under the panel) is unaffected by this risk -- it's the fold's *height*
-   that's in question, not its length. J501 therefore sits:
+   under the panel) is **not directly driven by the bend-radius number
+   itself**, but it isn't fully independent of the risk either: if the
+   under-panel gap has to grow (raised panel standoff, thinner PCB) or the
+   fold ends up needing a larger radius or a looser shape than currently
+   assumed, that consumes more FPC length for the same fold and would
+   shift the ~24 mm inset below, not just the fold's height. Treat the
+   24 mm inset as provisional until finding 4's risk is resolved, not as a
+   number the bend-radius question can't touch. J501 therefore sits:
    - **under the panel**, with its long axis **parallel to the FPC edge**
      (front-to-back) and its opening facing that edge;
    - with its insertion face about **24 mm in from the panel's FPC edge**
@@ -182,20 +188,36 @@ Practical rules that follow:
      for this exact part), leaving a comfortable ~1.4 mm of the 3.4 mm gap
      spare for the connector itself -- this part of the stack-up is a clean
      pass, separate from the fold-height risk above.
-   This only works if the FPC contacts face the PCB after the fold. That
-   matches J501's confirmed bottom-contact type **only if** the fingers are
-   on the display-face side of the tail. **`pilink-0o2` found this
-   unresolved, not confirmed**: the datasheet's isometric render suggests
-   front-face fingers, but the same datasheet's own dimensioned front view
-   shows no hatching at the tail end while a separate, undimensioned
-   pin-numbered view of the identical outline shows the tail filled with
-   contact hatching at that same spot -- a standard drafting convention
-   that points to the *back* face instead. Full certainty needs a physical
-   panel (bend the tail and look, or probe continuity against the pin
-   table). Until then, carry both fallbacks: if front-face, this plan holds
-   as-is; if back-face, swap J501 for a top-contact variant (one BOM swap,
-   same location) or route an S-fold with J501 outboard of the panel edge
-   (worse: it takes about 25 mm of width or a slack loop).
+   This only works if the FPC contacts face the PCB after the fold. The
+   current bottom-contact J501 only mates correctly if the fingers are on
+   the display-face side of the tail -- and **`pilink-0o2` found the
+   datasheet's own drawing evidence now favors the opposite (back-face)
+   reading**: the datasheet's dimensioned front view and its separate
+   pin-numbered view are an exact mirror of each other (confirmed by
+   pixel-for-pixel comparison, not just eyeballing), which makes the
+   pin-numbered/hatched view the *rear* view -- putting the numbered
+   contacts on the back face. The isometric's apparent front-face "finger"
+   band re-reads as a black stiffener, not gold contacts, on closer
+   inspection. Full certainty still needs a physical panel, but
+   **back-face is now the working assumption for the PCB re-place, not an
+   even coin flip**. The preferred fix works either way: swap J501 for a
+   **dual-contact** ZIF (`FC-05B40P21H20`, LCSC `C23398824`, JLCPCB
+   Extended part, 2,635 units in stock as of 2026-11-15 -- same 2mm height
+   above board as the current part), which mates with the FPC fingers
+   facing either direction and removes this question as a design
+   dependency entirely. If that part doesn't work out, the fallbacks are a
+   confirmed top-contact part (`HC-FPC-0.5-40P-CSH20`, LCSC `C19273956`,
+   16,755 units in stock -- note `AFC01-S40FCC-00`/LCSC `C262282`, despite
+   the similar part number, is *also* bottom-contact per its own JLCPCB
+   catalog entry and is not a valid substitute) or an S-fold with J501
+   outboard of the panel edge (roughly 25-28 mm of added board width
+   beyond the panel's edge, vs. none for the J-fold). **Whichever part
+   replaces J501, check its pin-1 location against the current part's
+   before treating it as a drop-in footprint swap** -- if pin-1 lands at
+   the opposite tail end, the schematic's J501 pin mapping must be
+   reversed, not just the footprint. See
+   `.research/findings/2026-11-15-display-fpc-contact-side.md` finding 1
+   for the full detail on all of this.
 3. **Which edge the FPC leaves from (any option can use either):**
    - **FPC-left (toward the knob).** The panel's 7.39 mm dead ledge sits on
      the knob side, where clearance is needed anyway for the knob overhanging
