@@ -1,0 +1,9 @@
+(version 1)
+
+# Backlight boost (U501, AP3031): keep the switching node away from the
+# ~200mV feedback/sense net. FB routed beside SW is a known failure mode for
+# this topology (pilink-7el.9). U501's own SW/FB pads are 1.3mm apart, so
+# 1.2mm is the largest value the package itself allows.
+(rule "backlight SW node to FB keepout"
+	(condition "A.NetName == 'Net-(D501-A)' && B.NetName == 'Net-(J501-LED_K)'")
+	(constraint clearance (min 1.2mm)))

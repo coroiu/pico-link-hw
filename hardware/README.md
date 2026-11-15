@@ -741,8 +741,133 @@ genuinely still needs the GUI (or the planned headless `pcbnew` scripting
 for placement, see `pilink-7el.9`): the actual routing itself, and a human's
 visual/placement sign-off before fab.
 
-`placeholder.kicad_pcb` is a trivial seed file (just a 20x20mm board outline,
-no components) for the `preview/` docker-compose service — it proves the
-PCB -> GLB export pipeline end-to-end before the real board exists. Delete it
-once the real PCB from pilink-7el lands; the preview pipeline picks up
-whatever `*.kicad_pcb` file it finds here.
+`placeholder.kicad_pcb` (the 20x20mm seed file for the `preview/`
+docker-compose service) was deleted when the real board landed in
+`pilink-7el.9`; the preview pipeline picks up `pico-link-hw.kicad_pcb`
+instead.
+
+## PCB layout (pilink-7el.9)
+
+`pico-link-hw.kicad_pcb` is a placed, fully routed 2-layer board, 100 x 55mm,
+1.6mm, all parts on the front. **It is not ready to order** — see "Known
+gaps" below, the first of which is a schematic defect that leaves the ESP32
+unconnected.
+
+### How it is built
+
+The board is generated, not hand-drawn. From `hardware/`, in this order:
+
+| Step | Script | What it does |
+|---|---|---|
+| 1 | `scripts/place.py` | Outline, 4 M2 mounting holes, design-rule minimums, net classes, every footprint position |
+| 2 | `scripts/preroute.py` | Hand-defined locked tracks for USB D+/D- and the crystal |
+| 3 | `scripts/route.py` | Freerouting autoroute of everything else (Specctra DSN/SES round-trip) |
+| 4 | `scripts/widen.py` | Widens +3V3/+1V1/VREG_LX to 0.4mm wherever DRC allows |
+| 5 | `scripts/zones.py` | GND pours on both layers, +3V3 heat spreader and stitching vias at U1 |
+| check | `scripts/drc_summary.py -v` | `kicad-cli pcb drc` with schematic parity, summarised |
+| check | `scripts/netlist_check.py` | Pin-for-pin diff of board nets against a fresh schematic netlist |
+
+Each script is safe to re-run (each removes what it added before adding it
+again), but a later step's output is discarded by re-running an earlier one,
+so after any change run from that step to the end. After a schematic change,
+first update the board from the schematic (KiCad's F8, or the KiCad MCP
+server's `sync_schematic_to_board`), add any new part to the table in
+`place.py`, then run all five.
+
+`route.py` needs a Freerouting jar and either Java 21+ or Docker. Use
+Freerouting **v2.0.1**: v2.1.0 ignored the pass limit here and looped forever
+without writing a result whenever one connection stayed unrouted.
+
+The board file was first created with the KiCad MCP server's
+`create_board_from_schematic`. Its `autoroute` tool was tried and abandoned:
+on a machine with snap-packaged Docker it stages the DSN in the system temp
+directory, which the container cannot see, so Freerouting starts with no
+input and hangs. `route.py` does the same round-trip with the work directory
+beside the board.
+
+### Rules
+
+Board minimums and net classes are set by `place.py` and stored in
+`pico-link-hw.kicad_pro`; one custom rule lives in `pico-link-hw.kicad_dru`.
+
+| Rule | Value | Why |
+|---|---|---|
+| Default clearance / track | 0.15 / 0.2mm | Clearance has to stay under the RP2350B's 0.18mm pad gap; KiCad's 0.2mm default made all 74 adjacent pin pairs a DRC error |
+| Default via | 0.6 / 0.3mm | |
+| Power class (+5V, VBUS_RAW, backlight SW node) | 0.5mm track, 0.2mm clearance | Only nets that never touch a fine-pitch pad |
+| Board minimum clearance / track | 0.127mm | JLCPCB lists 0.10mm for 1-2 layer, 1oz |
+| Minimum drill | 0.2mm | Needed for the stock footprints' thermal vias (U201 0.2mm, U101 0.25mm) |
+| Copper to edge | 0.3mm | JLCPCB lists 0.2mm |
+| Backlight SW net to FB net | 1.2mm | See below |
+
+JLCPCB's figures were read from its capabilities page on 2026-11-15. Confirm
+the 0.2mm / 0.25mm thermal-via drills against the order form before fab: the
+page lists 0.15mm as the minimum, but 0.3mm has been the 2-layer minimum in
+the past.
+
+### Layout decisions
+
+- **Placement.** ESP32 top-left with its UART-side pins facing the RP2350B's
+  spare GPIO4-20 edge; RP2350B centre with flash/PSRAM above its QSPI pins
+  and the crystal below; USB-C centred on the top (rear) edge, mating face
+  flush with the board edge; display FPC connector on the bottom edge;
+  encoder and the A/B/X/Y buttons (diamond: Y top, X left, B right, A bottom)
+  on the right. Outline, hole positions and connector positions are a
+  starting point for the enclosure beads, not a fit-checked design.
+- **Backlight boost (U501).** L501 and D501 sit north of U501 and the sense
+  resistor R501 south, so the switching node and the ~200mV feedback net
+  leave the IC in opposite directions. The custom DRC rule enforces 1.2mm
+  between the two nets; the closest approach on the routed board is U501's
+  own pins 1 and 3, 1.3mm apart.
+- **U1 (AP2114H-3.3, SOT-223) heat.** The tab is VOUT, so the spreader is a
+  +3V3 pour: 213mm² on the front and 228mm² on the back under it, joined by
+  32 vias, with solid (no thermal-relief) pad connections. Worst case is
+  (5.25V - 3.3V) x 0.65A = 1.27W. At the datasheet's 128°C/W with no copper
+  that is a 163°C rise, which is why the default pad alone is not enough.
+  With about 4.4cm² of two-sided copper, generic SOT-223 copper-area curves
+  suggest roughly 55-70°C/W, so about a 70-90°C rise at the full 1.27W. That
+  figure is an estimate from generic curves, not from this part's datasheet
+  and not measured; inside a closed case under the display it will be worse.
+  Measure the tab temperature at bring-up.
+- **USB.** D+/D- are hand-routed side by side on the front with no vias,
+  18.9mm and 20.1mm. They are not impedance-controlled (a 90 ohm pair is not
+  practical at 0.2mm on 2-layer 1.6mm); acceptable for full-speed USB over
+  this length.
+- **Crystal.** XIN and XOUT run straight from the RP2350B between two
+  decoupling caps to the crystal and R101, on the front, no vias.
+
+### Verification (2026-11-15, KiCad 10.0.8)
+
+- `kicad-cli pcb drc --severity-all --schematic-parity`: **0 errors, 0
+  unconnected items, 0 schematic-parity issues, 84 warnings**. The warnings
+  are all silkscreen: 42 `silk_over_copper`, 39 `silk_overlap`, 3
+  `silk_edge_clearance`. Reference designators around the RP2350B overlap
+  each other and pads; that needs a pass in the GUI.
+- `scripts/netlist_check.py`: 327 schematic pins compared, 0 mismatches.
+- No multi-unit symbols exist in any sheet, so there are no partially placed
+  units to check.
+- 3D renders of both sides (`kicad-cli pcb render`) were looked at: all parts
+  inside the outline, nothing overlapping, orientations plausible.
+- ERC was not re-run: no schematic file was changed.
+
+### Known gaps
+
+1. **The ESP32 is not connected to the RP2350** (`pilink-kt4`). The eight
+   `ESP32_*` global labels have no RP2350-side counterpart, so the HCI UART,
+   EN, BOOT0 and the flashing UART go nowhere. The board matches the
+   schematic exactly, and the schematic is wrong. After it is fixed, re-sync
+   and re-run the scripts.
+2. SWCLK/SWD reach no header or test pad; U103's exposed pad, J501's two
+   mounting pads and SW303's mounting lugs have no net (also in
+   `pilink-kt4`).
+3. Everything is on the front, including the 3.2mm-tall ESP32 module and the
+   RP2350B, in the area the display will sit over. Whether the display
+   stands off above them or parts move to the back is an enclosure decision.
+4. The RP2350B core-regulator loop (L101, C103, C104, C105) was placed close
+   to the pins but autorouted; VREG_LX is 5.4mm long and only partly 0.4mm
+   wide. Raspberry Pi's hardware design guide asks for its reference layout
+   to be followed here. Review by hand.
+5. Signal routing other than USB and the crystal is autorouter output: 824
+   segments, 53 vias, correct by DRC but not tidy.
+6. Not done: silkscreen cleanup, fiducials, test points, gerber/position-file
+   export, and a human look at the board in the KiCad GUI.

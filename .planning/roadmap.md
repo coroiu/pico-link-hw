@@ -7,9 +7,11 @@ Settled component/architecture decisions: `.planning/decisions/`.
 
 1. **KiCad schematic + BOM** — component selection, netlist, footprints,
    JLCPCB/LCSC part numbers. Not started.
-2. **PCB layout** — routing, DRC, gerber export. Needs the KiCad GUI; not
-   something this repo's design pass alone can finish without a human at
-   the tool.
+2. **PCB layout** — first placed and routed board exists
+   (`hardware/pico-link-hw.kicad_pcb`, `pilink-7el.9`): 2-layer, 100x55mm,
+   DRC 0 errors. Not orderable yet: see "Known gaps" in
+   `hardware/README.md`, chiefly `pilink-kt4`. Still needs a human look in
+   the KiCad GUI and gerber export.
 3. **OpenSCAD enclosure** — two shells, button plungers, rear USB-C cutout,
    internal antenna mount. Not started.
 4. **Fit/assembly verification** — once 2 and 3 exist, check the board
@@ -30,6 +32,9 @@ as follow-up work on the firmware side:
 
 ## Live risks
 
+- **Blocks fab:** the schematic never connects the ESP32 to the RP2350
+  (`pilink-kt4`) — no HCI UART, EN/BOOT0 control or flashing path in the
+  netlist. Found during PCB layout; the routed board inherits it.
 - Ezurio Sterling-LWB+ is the documented fallback if the ESP32 coprocessor
   path hits a wall during firmware integration.
 
