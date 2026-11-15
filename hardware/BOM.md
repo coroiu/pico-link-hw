@@ -39,19 +39,24 @@ distrusted.
    line item.
 2. **Two parts are NOT in JLCPCB's SMT parts catalog at all** (not just
    low stock — a `jlcpcb-search` lookup for either returns no match):
-   - **U103, APS6404L-3SQR-ZR** (8MB PSRAM, USON-8). LCSC lists it as a
-     distributor part (`C3040877`, per `rp2350b_memory.kicad_sch`'s own
-     notes) but it is not in JLCPCB's assembly catalog — JLCPCB cannot
-     place it for you. It must be bought separately (LCSC/Digikey) and
-     either hand-soldered or added as a manual placement line at order
-     time. **Independently re-verified** after this bead's first review
-     round disputed it (claimed it *was* in-catalog at 1,268 units): a
-     direct query against JLCPCB's own parts-library search, both by LCSC
-     number `C3040877` and by the exact manufacturer part number
-     `APS6404L-3SQR-ZR`, returns "0 Found" for both — no JLCPCB assembly
-     listing exists. The review's "in-catalog" claim could not be
-     reproduced and appears to have been in error; the original "not in
-     catalog" finding stands.
+   - **U103, APS6404L-3SQR-ZR** (8MB PSRAM, USON-8), `C3040877` per
+     `rp2350b_memory.kicad_sch`'s own notes. **Status genuinely disputed,
+     not resolved — flag this at order time rather than trusting either
+     side of this BOM's own history:** this bead's first draft said it's
+     not in JLCPCB's SMT assembly catalog (checked via the `jlcpcb-search`
+     MCP tool's local database, "not found"); a first review round said it
+     IS catalog-listed (Extended, 1,268 units) via an unstated method; an
+     attempt to adjudicate via `jlcpcb.com`'s own search page turned out to
+     be invalid (that URL pattern returns "0 Found" for every query,
+     including parts already confirmed in-catalog elsewhere in this same
+     BOM — a false negative, not a real check). Net: two internal tools
+     agree it's absent from a *local snapshot* of JLCPCB's catalog, but
+     that snapshot could be stale or incomplete, and no one has produced a
+     reproducible, working check of JLCPCB's live catalog either way.
+     **Confirm directly on jlcpcb.com (logged in, using their real
+     component-search UI, not a guessed URL) before ordering** — don't
+     assume either hand-placement or JLCPCB SMT placement without that
+     check.
    - **L101, Coilcraft LPS4018-332xxx (3.3uH)**, the RP2350B internal-VREG
      inductor. The exact Coilcraft `LPS4018` family is in JLCPCB's
      catalog, but only in other inductance values (1mH, 68uH, 180uH,
