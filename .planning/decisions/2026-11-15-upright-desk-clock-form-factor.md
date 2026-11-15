@@ -55,7 +55,7 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
   a body height — it's a footprint dimension. Real heights above the PCB:
   housing ~4.5 mm, shaft tip ~24.5 mm; against the enclosure's own 7.5 mm
   face-to-PCB depth, the shaft tip lands ~17 mm past the face, with the
-  ~7 mm bushing passing about 4 mm through the face. See `pilink-g8a`,
+  ~7 mm bushing standing about 4 mm proud of the face. See `pilink-g8a`,
   `.research/findings/2026-11-15-encoder-ec11e18244au-specs.md`.)
 - **BOOTSEL/RESET (SW101/SW102) stay front-side SMD parts**, with no
   back-side assembly, and are reached by **paperclip pinholes in the top

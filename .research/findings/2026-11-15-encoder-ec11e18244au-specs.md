@@ -121,13 +121,15 @@ drawing's side view and cross-checked independently:
   encodes the model's own bounding box, **H24.5**, matching the catalogue
   figure exactly. (This spike read the encoded filename, not the STEP
   geometry itself — no CAD/STEP viewer is available in this environment.)
-- **Bushing top: ~11.5–12mm above the PCB.** This intermediate figure (the
-  ~7mm bushing sits on top of the 4.5mm housing) is the PR #36 reviewer's
-  own measurement, taken by opening Alps' STEP model
-  (`EC11E-05SW.STEP`) directly in CAD — this spike did not independently
-  reopen that file to re-derive it, but it is geometrically consistent with
-  the 4.5mm and 24.5mm figures confirmed above, and is the figure used
-  below.
+- **Bushing top: ~11.5mm above the PCB.** Independently confirmed from
+  Alps' EC11E Series catalogue Drawings No. 1 and No. 3, which label the
+  bushing segment as 7mm, stacked directly on top of the 4.5mm housing
+  segment (4.5 + 7 = 11.5mm) — no STEP viewer needed. (An earlier version
+  of this note attributed this figure to the PR #36 reviewer's own STEP
+  measurement; the reviewer has since confirmed it directly from the
+  catalogue drawings instead, superseding that attribution.) It is
+  geometrically consistent with the 4.5mm and 24.5mm figures confirmed
+  above, and is the figure used below.
 
 **Why this matters:** the layout proposal and ADR computed the knob's
 "proud" distance past the enclosure face as (20mm shaft) − (7.5mm, taken to
@@ -137,7 +139,7 @@ own stack-up in `docs/plans/2026-11-15-product-layout-proposal.md` section
 2 / 6c, not from the encoder's datasheet). Using the corrected encoder
 figures against that same 7.5mm face depth: shaft tip (24.5mm above PCB) −
 face depth (7.5mm above PCB) = **~17mm of shaft proud of the face**, not
-12.5mm, and the ~7mm bushing itself passes about 4mm through the face
+12.5mm, and the ~7mm bushing itself stands about 4mm proud of the face
 (11.5 − 7.5 = 4mm) before the bare shaft begins. Both documents are
 corrected to this figure in this PR.
 
@@ -193,7 +195,7 @@ not by itself fix the knob-press instability.
   tip ~24.5mm above the PCB. Against the enclosure's own (separate, also
   7.5mm) face-to-PCB depth, that moves the knob's proud distance past the
   face from the previously-stated ~12.5mm to **~17mm**, with the ~7mm
-  bushing passing about 4mm through the face.
+  bushing standing about 4mm proud of the face.
 - **Documentation updated** (values corrected, not just confirmation status)
   in:
   - `.planning/decisions/2026-11-15-upright-desk-clock-form-factor.md`

@@ -81,7 +81,7 @@ height above the PCB. The real heights are in the three rows above.
 PCB (section 2 — a separate, coincidentally identical figure from the
 *enclosure's* own stack, not the encoder spec), the shaft tip (~24.5 mm
 above the PCB) leaves **about 17 mm of shaft above the face** (24.5 - 7.5),
-with the ~7 mm bushing itself passing about 4 mm through the face
+with the ~7 mm bushing itself standing about 4 mm proud of the face
 (11.5 - 7.5) before the bare shaft begins. Any knob on it stands well
 proud, which doesn't fit "flush, low-profile". Fixes include a
 shorter-shaft EC11E variant, a recessed knob well, or simply accepting a
@@ -506,7 +506,7 @@ Drawn in the face's own frame: rotate 20 degrees to get the real orientation.
        ...then the wedge cavity to the floor: about 2.6 mm at the PCB's
           front edge, growing to about 19 mm at its rear edge
  Buttons: actuator top at d 2.5 (PCB + 5.0); caps flush at d 0, flange under the plate.
- Knob:    shaft tip at d -17 (20 mm shaft seated at d 7.5, pilink-g8a corrected); knob base 0.8 above face.
+ Knob:    shaft tip at d -17 (shaft tip 24.5 mm above PCB [4.5 mm housing + 20 mm shaft], PCB seated at d 7.5, so d 7.5 - 24.5 = -17; pilink-g8a corrected); knob base 0.8 above face.
 ```
 
 ### Notes and decisions made for this profile (reversible, for the ADR to adopt or change)
@@ -652,8 +652,9 @@ face.
   points straight up. It **cannot** come out of a 45 degree flank.
 - **To get an angled knob,** put the encoder on a small **daughterboard**
   (about 20 x 20 mm) mounted parallel to the flank inside the left pod,
-  with the same local stack as before: seat 7.5 mm below the flank face,
-  20 mm shaft, so about 17 mm proud (corrected, `pilink-g8a`). Through-hole leads need about 3 mm
+  with the same local stack as before: seat 7.5 mm below the flank face;
+  shaft tip 24.5 mm above the board (4.5 mm housing + 20 mm shaft) leaves
+  about 17 mm proud (24.5 - 7.5, corrected, `pilink-g8a`). Through-hole leads need about 3 mm
   behind the board. A 5-6 wire cable (A, B, C, S1, S2, GND) plugs into a
   small wire-to-board connector on each board. The debounce RCs stay on the
   main board, so the daughterboard is just the encoder plus a connector.
@@ -669,10 +670,13 @@ face.
 - **One-board alternative:** keep the encoder on the main PCB with the
   shaft vertical, and put the knob on the **flat top** of the left pod
   instead of its flank. The pod top at about 18-20 mm puts the shaft tip
-  (PCB top + 20 = 26.8 mm) only about 7-9 mm above the pod top. That makes
-  a **much lower knob** than 6a's ~17 mm proud one (corrected, `pilink-g8a`), which happens to suit
-  the "flush" aesthetic ADR better. The pod keeps its sculpted sloped
-  flank, just without the knob on it.
+  (PCB top + 24.5 = 31.3 mm — corrected: 4.5 mm housing + 20 mm shaft
+  above the PCB, not PCB + 20; `pilink-g8a`) about 11-13 mm above the pod
+  top (31.3 - 20 to 31.3 - 18). That makes a **lower knob** than 6a's
+  ~17 mm proud one (corrected, `pilink-g8a`), though closer to it than
+  previously thought, which happens to suit the "flush" aesthetic ADR
+  somewhat better. The pod keeps its sculpted sloped flank, just without
+  the knob on it.
 - Either way, the main board loses its only through-hole part.
 
 ### Screen in the valley: the valley does not fix viewing angle, so tilt is still a separate choice
