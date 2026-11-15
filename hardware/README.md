@@ -651,12 +651,45 @@ local flag once a real upstream driver/flag exists.
 
 References use a new `400`-`499` block for this sheet (`power.kicad_sch`:
 1-99, `rp2350b_memory.kicad_sch`: 100-199, `esp32_bt.kicad_sch`: 200-299,
-`input.kicad_sch`: 300-399): J401, F401, R401-R402, `#PWR401`-`#PWR405`.
+`input.kicad_sch`: 300-399): J401, F401, R401-R404, `#PWR401`-`#PWR405`.
 `display.kicad_sch` took the planned `500`-`599` block when `pilink-7el.5`
 populated it.
 
-**ERC note:** three of this sheet's nets (CC1→R401, CC2→R402, and the raw
-VBUS→F401 leg) are legitimate 2-pin passive/bidirectional nets with no
+**R403/R404, CC1/CC2 voltage-sense tap (`pilink-1sj`):** two 10kΩ
+series-protection resistors tapping CC1 (off R401's pulldown node) and CC2
+(off R402's) out to `GPIO40_ADC0`/`GPIO41_ADC1` — two of RP2350B's
+previously-unused ADC-capable GPIOs (`rp2350b_memory.kicad_sch` U101 pins
+49/52; `GPIO47_ADC7` is the only other ADC pin already spoken for, reused
+as the PSRAM's second QMI chip-select). Not a divider: RP2350B's ADC input
+draws no DC current while sampling, once firmware disables that pin's
+default pull-down and input buffer per the RP2350-E9 erratum — so 10kΩ in
+series doesn't perturb the R401/R402 Rd pulldown voltage it taps — it only
+limits fault current into
+the GPIO's ESD clamp if a non-compliant source ever drives CC outside its
+normal ≲3.3V range. Both CC lines are sensed, not just one, because a
+Type-C cable's orientation determines which of CC1/CC2 the host's Rp
+actually lands on — the other reads ~0V through its own idle Rd — so
+reading only one would misread "no advertisement" on every other cable
+flip.
+
+**What this tap actually buys (corrected from this bead's first-pass
+note — see `.research/findings/2026-11-15-usb-c-default-power-compliance.md`
+for the full correction):** USB-C's 1.5A/3A current-advertisement tiers are
+set purely by the host's Rp value, read directly off CC voltage —
+independent of USB data speed. Only the Default tier (500mA vs 900mA)
+depends on USB generation. So this tap lets firmware legitimately draw the
+~0.65A worst-case peak (documented above and on `power.kicad_sch`'s U1
+note) **today**, on any host whose Rp advertises 1.5A or 3A — common on
+real Type-C ports — with no BC1.2/PD hardware needed. On a host that only
+advertises Default (500mA), this device still only has a 500mA
+entitlement; firmware should throttle its real peak (e.g. don't let ESP32
+TX-burst and max backlight coincide) specifically when Default is sensed.
+That firmware logic is out of this repo's scope — the hardware here is
+sufficient to support it without a further schematic respin. Full analysis
+and decision: `pilink-1sj`.
+
+**ERC note:** three of this sheet's nets (CC1→R401→R403, CC2→R402→R404,
+and the raw VBUS→F401 leg) are legitimate passive/bidirectional nets with no
 power-type pin directly on them (the GND/+5V power pin is one hop further,
 past the resistor/fuse). `kicad-cli sch erc` flags a plain, unlabelled net
 shaped like that as `wire_dangling` even when both ends are verifiably
@@ -671,19 +704,14 @@ workaround invented just for this tool.
 Validated with `kicad-cli sch erc --severity-all --exit-code-violations`:
 `usb_c.kicad_sch` checked standalone reports 2 errors (`power_pin_not_driven`
 for `+5V`/`GND` — expected, the same non-root-sheet artifact already
-documented for every other populated child sheet) and 0 warnings. The
-**root** `pico-link-hw.kicad_sch` reported 0 errors and 48 warnings (all
-`global_label_dangling`, down from 50) immediately after this sheet's own
-`pilink-7el.7` bead landed. That specific count is now stale — the project
-has since grown (more sheets populated, this bead's own F401 added) and the
-sandbox's `kicad-cli` is a newer version (10.0.8, vs 8.0.9 when that figure
-was recorded); the root sheet currently reports 144 warnings and 0 errors
-(42 `isolated_pin_label` — expected, not-yet-wired sibling GPIOs on other
-sheets — + 102 `endpoint_off_grid`, confined to `display.kicad_sch` and
-tracked as `pilink-o55`), all pre-existing and unrelated to
-`usb_c.kicad_sch` or F401. Re-running ERC for this bead's own F401 addition
-confirms it introduces no new violations of any kind on top of that
-baseline. A project-wide netlist
+documented for every other populated child sheet). The figures in this
+paragraph have gone stale more than once as the project grew (see git
+history if the exact prior counts matter) — as of the `pilink-1sj`
+R403/R404 addition, the **root** `pico-link-hw.kicad_sch` reports 0 errors
+and 40 warnings, all `isolated_pin_label` (down from 42: adding R403/R404
+gave two previously-orphaned labels, `GPIO40_ADC0`/`GPIO41_ADC1`, a second
+connection each, resolving those two). `display.kicad_sch`'s former 102
+`endpoint_off_grid` warnings were fixed separately (`pilink-o55`). A project-wide netlist
 export confirms J401's GND/VBUS/CC1/CC2/D+/D- nets merge as expected and no
 reference designator collides with any other sheet. The exported SVG was
 reviewed via its raw
