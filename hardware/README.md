@@ -614,9 +614,9 @@ siblings but not zero — worth rechecking at order time). Placed in series
 between the connector's VBUS and the `+5V` net `power.kicad_sch` expects
 from this sheet, same position the earlier attempt used.
 
-Sizing: worst-case peak current (not steady — `power.kicad_sch`'s own
-budget note says the ESP32 averages ~80mA, well under its 500mA TX-burst
-peak) re-derived from `power.kicad_sch`'s own budget (RP2350B tens of mA +
+Sizing: worst-case peak current (not steady — see `power.kicad_sch`'s U1
+note for the full budget derivation) re-derived from `power.kicad_sch`'s
+own budget (RP2350B tens of mA +
 ESP32-WROOM-32U up to 500mA per Espressif's TX-burst spec + display
 ~50-100mA incl. backlight) = ~0.6-0.65A. The 1A hold variant (`C269106`)
 was picked over the 750mA sibling (`C269105`, R@25°C=90mΩ) because 0.65A
