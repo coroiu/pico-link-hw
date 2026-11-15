@@ -246,12 +246,15 @@ merge-status one.
   (`hardware/footprints/Connector_USB_Custom.pretty/`, registered in
   `hardware/fp-lib-table`), was added — no stock KiCad footprint matches
   this exact manufacturer part. See that footprint's own `descr` for full
-  datasheet-dimension sourcing and its one flagged, not independently
-  cross-checked assumption (signal-row Y spacing and shell-peg X offset).
+  datasheet-dimension sourcing. PR #41 review caught the shell/peg slots'
+  X offset mis-measured as ~3.30mm; fixed to the correct ±2.50mm
+  (5.00mm slot-centerline spacing per the datasheet's own PCB-layout
+  drawing), along with a minor silkscreen-clearance tweak and removal of
+  an erroneous `pad_prop_heatsink` property on the S1 pads.
 - `kicad-cli sch erc --severity-all --exit-code-violations` was re-run
-  after the swap on the root sheet; see the PR for the reported violation
-  count (expected unchanged from the pre-swap baseline, since no symbol/
-  net/pin behavior changed).
+  after the swap on the root sheet: 0 errors / 26 warnings (unchanged from
+  the pre-swap baseline, since this is a footprint-geometry-only fix — no
+  symbol/net/pin behavior changed).
 - **Not done by this bead**: no PCB placement or routing (board has no
   real layout yet — `hardware/placeholder.kicad_pcb`), so no
   `kicad-cli pcb drc` was run and the footprint's exact pad geometry was
