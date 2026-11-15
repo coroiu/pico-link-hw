@@ -570,26 +570,36 @@ a single-ground-plane board like this one.
 review because its hold current didn't cover this project's own worst-case
 draw and its series resistance was never checked against the AMS1117's
 dropout margin. F401 is now LCSC `C269106` (Brightking `SMD0805B100TFT`), an
-0805 PTC resettable fuse, 1A hold / 1.95A trip / 6V max / R@25°C=40mΩ, 5,460
-units in stock at research time (lower than its siblings but not zero —
-worth rechecking at order time). Placed in series between the connector's
-VBUS and the `+5V` net `power.kicad_sch` expects from this sheet, same
-position the earlier attempt used.
+0805 PTC resettable fuse, 1A hold / 1.95A trip / 6V max / R@25°C=40mΩ
+(initial, 25°C), 5,460 units in stock at research time (lower than its
+siblings but not zero — worth rechecking at order time). Placed in series
+between the connector's VBUS and the `+5V` net `power.kicad_sch` expects
+from this sheet, same position the earlier attempt used.
 
-Sizing: worst-case steady current re-derived from `power.kicad_sch`'s own
-budget (RP2350B tens of mA + ESP32-WROOM-32U up to 500mA per Espressif's
-TX-burst spec + display ~50-100mA incl. backlight) = ~0.6-0.65A. The 1A hold
-variant (`C269106`) was picked over the 750mA sibling (`C269105`,
-R@25°C=90mΩ) because 0.65A is 65% of a 1A hold rating vs 87% of a 750mA
-rating — 65% leaves headroom for the ambient-temperature hold-current
-derating all PTC fuses exhibit once enclosed (this family's own derating
-curve is a scanned, non-text-extractable image in its datasheet, so this
-uses the general ≤75-80%-of-rated guideline for this part class as a
-flagged assumption, not read off this datasheet's own curve). R@25°C=40mΩ
-adds only ~26mV drop at the 0.65A worst case — negligible against the
-AMS1117's own dropout margin (already flagged elsewhere in this repo as
-tight against USB's worst-case 4.5V VBUS floor); this fuse doesn't
-meaningfully worsen that pre-existing, already-documented concern.
+Sizing: worst-case peak current (not steady — `power.kicad_sch`'s own
+budget note says the ESP32 averages ~80mA, well under its 500mA TX-burst
+peak) re-derived from `power.kicad_sch`'s own budget (RP2350B tens of mA +
+ESP32-WROOM-32U up to 500mA per Espressif's TX-burst spec + display
+~50-100mA incl. backlight) = ~0.6-0.65A. The 1A hold variant (`C269106`)
+was picked over the 750mA sibling (`C269105`, R@25°C=90mΩ) because 0.65A
+is 65% of a 1A hold rating vs 87% of a 750mA rating — 65% leaves headroom
+for the ambient-temperature hold-current derating all PTC fuses exhibit
+once enclosed (this family's own derating curve is a scanned,
+non-text-extractable image in its datasheet, so this uses the general
+≤75-80%-of-rated guideline for this part class as a flagged assumption,
+not read off this datasheet's own curve).
+
+Series-resistance-vs-dropout check: the LCSC/JLCPCB listing gives both an
+initial R@25°C=40mΩ and an R1(max) post-trip resistance of 230mΩ — the
+figure that actually applies after any trip event or under worse-case
+conditions, not just at first power-up. At the 0.65A worst case that's a
+26mV (40mΩ) to 150mV (230mΩ) added drop, not a flat 26mV. "Negligible" is
+a reasonable claim at the 40mΩ end but less so at the 230mΩ end, against
+the AMS1117's own dropout-vs-VBUS-floor margin — which `power.kicad_sch`'s
+own U1 note now documents as a real, still-open concern (tracked
+separately as `pilink-ddq`, out of this bead's fuse-sizing scope): this
+fuse's own added drop narrows that margin further, by up to 150mV in the
+worst case, rather than being negligible against it outright.
 
 No `PWR_FLAG` is added on this sheet's own `+5V`/`GND` nets:
 `power.kicad_sch` already carries both (`#FLG01` on `+5V`, `#FLG02` on
@@ -603,8 +613,8 @@ local flag once a real upstream driver/flag exists.
 References use a new `400`-`499` block for this sheet (`power.kicad_sch`:
 1-99, `rp2350b_memory.kicad_sch`: 100-199, `esp32_bt.kicad_sch`: 200-299,
 `input.kicad_sch`: 300-399): J401, F401, R401-R402, `#PWR401`-`#PWR405`.
-`display.kicad_sch`, still empty, is expected to take `500`-`599` whenever
-it's populated, though that bead owns the final call.
+`display.kicad_sch` took the planned `500`-`599` block when `pilink-7el.5`
+populated it.
 
 **ERC note:** three of this sheet's nets (CC1→R401, CC2→R402, and the raw
 VBUS→F401 leg) are legitimate 2-pin passive/bidirectional nets with no
@@ -623,13 +633,21 @@ Validated with `kicad-cli sch erc --severity-all --exit-code-violations`:
 `usb_c.kicad_sch` checked standalone reports 2 errors (`power_pin_not_driven`
 for `+5V`/`GND` — expected, the same non-root-sheet artifact already
 documented for every other populated child sheet) and 0 warnings. The
-**root** `pico-link-hw.kicad_sch` reports 0 errors both before and after
-this bead — **48 warnings after, down from 50 before** (all
-`global_label_dangling`): exactly the 2 labels this bead resolves, `USB_DP`
-and `USB_DM`, now that their other end on `rp2350b_memory.kicad_sch` has a
-real connector to pair with. A project-wide netlist export confirms J401's
-GND/VBUS/CC1/CC2/D+/D- nets merge as expected and no reference designator
-collides with any other sheet. The exported SVG was reviewed via its raw
+**root** `pico-link-hw.kicad_sch` reported 0 errors and 48 warnings (all
+`global_label_dangling`, down from 50) immediately after this sheet's own
+`pilink-7el.7` bead landed. That specific count is now stale — the project
+has since grown (more sheets populated, this bead's own F401 added) and the
+sandbox's `kicad-cli` is a newer version (10.0.8, vs 8.0.9 when that figure
+was recorded); the root sheet currently reports 144 warnings and 0 errors
+(42 `isolated_pin_label` — expected, not-yet-wired sibling GPIOs on other
+sheets — + 102 `endpoint_off_grid`, confined to `display.kicad_sch` and
+tracked as `pilink-o55`), all pre-existing and unrelated to
+`usb_c.kicad_sch` or F401. Re-running ERC for this bead's own F401 addition
+confirms it introduces no new violations of any kind on top of that
+baseline. A project-wide netlist
+export confirms J401's GND/VBUS/CC1/CC2/D+/D- nets merge as expected and no
+reference designator collides with any other sheet. The exported SVG was
+reviewed via its raw
 text/geometry stream (no system rasterizer available in this environment,
 same caveat as every other sheet) for a non-overlapping layout; this is an
 agent-driven check against a rendered export, not a human sign-off in the
