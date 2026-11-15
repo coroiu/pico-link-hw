@@ -50,7 +50,13 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
 - **USB-C:** a **vertical-mount receptacle on the back of the PCB**, exiting
   the rear wall low, between the legs. No internal pigtail.
 - **Knob:** the existing EC11E18244AU with its 20 mm shaft. A **proud knob
-  (about 12.5 mm above the face) is accepted.**
+  (about 17 mm above the face) is accepted.** (Corrected from an earlier
+  ~12.5 mm figure that misread the Alps catalogue's "7.5 max" dimension as
+  a body height — it's a footprint dimension. Real heights above the PCB:
+  housing ~4.5 mm, shaft tip ~24.5 mm; against the enclosure's own 7.5 mm
+  face-to-PCB depth, the shaft tip lands ~17 mm past the face, with the
+  ~7 mm bushing passing about 4 mm through the face. See `pilink-g8a`,
+  `.research/findings/2026-11-15-encoder-ec11e18244au-specs.md`.)
 - **BOOTSEL/RESET (SW101/SW102) stay front-side SMD parts**, with no
   back-side assembly, and are reached by **paperclip pinholes in the top
   edge** of the enclosure. The top edge is the easiest service surface to
@@ -163,9 +169,12 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
   whether any fallback is needed.
 - **Open verifications that still apply:**
   - `pilink-0o2`: display FPC contact side and the J501 placement rule;
-  - `pilink-g8a`: **resolved** — encoder torque (10±7 mN·m), push force
-    (6 +2.5/-2 N) and body height (7.5mm max) all confirmed from Alps'
-    own EC11E18244AU data, matching the figures already used here; see
+  - `pilink-g8a`: **resolved** — encoder torque (10±7 mN·m) and push force
+    (6 +2.5/-2 N) confirmed from Alps' own EC11E18244AU data, matching the
+    figures already used here. Body height was initially misread as
+    7.5mm max (that's a footprint dimension); corrected to housing ~4.5mm /
+    shaft tip ~24.5mm above the PCB, moving the proud-knob figure above
+    from ~12.5mm to ~17mm. See
     `.research/findings/2026-11-15-encoder-ec11e18244au-specs.md`;
   - `pilink-8wx`: antenna part.
 - **`AGENTS.md`** hardware summary gains a form-factor line pointing here.

@@ -40,6 +40,20 @@ test.
    suffixes.
 4. LCSC/JLCPCB live component search (`jlcpcb-search` MCP), for stock and
    pricing on lower-force PTS645 variants, checked 2026-11-15.
+5. Alps Alpine's own current **"11mm Size Metal Shaft Type EC11E Series"**
+   catalogue PDF, fetched directly from `tech.alpsalpine.com`:
+   `tech.alpsalpine.com/cms.media/product_catalog_ec_01_ec11e_en_611f078659.pdf`
+   (catalogue update code "2510", fetched 2026-11-15). This is Alps' own
+   dedicated single-series catalogue, distinct from source 2's older
+   combined/mirrored catalogue — it uses its own drawing numbering, and
+   lists EC11E18244AU as **Drawing No. 2** (not No. 5). Used to correct the
+   body-height finding below.
+6. The part's 3D model, as an independent cross-check on overall height: the
+   LCSC-sourced STEP file mirrored by `flux.ai`
+   (`flux.ai/lcsc/ec11e18244au~nvev/files`), filename
+   `SW-TH_EC11XXXXXXXX-L11.7-W12.0-H24.5-P2.5-LS14.5.step` (bounding box
+   encoded in the filename; the STEP geometry itself was not opened, as no
+   CAD/STEP tool is available in this environment).
 
 ## Findings
 
@@ -64,24 +78,75 @@ right already; they just hadn't been traced to Alps' own data for this
 specific PN before. `pilink-g8a`'s value here is closing that citation gap,
 not correcting a number.
 
-### Body height above PCB: 7.5mm max, now from Alps' own drawing
+### Body height above PCB: CORRECTED — "7.5mm max" was a misread, not a height
 
-The catalogue's dimensioned mechanical drawing for drawing No. 5 ("EC11E
-Vertical with push-on switch, travel 0.5mm/1.5mm" — the style that covers
-EC11E18244AU) gives **7.5mm max** as the body/bushing height above the PCB
-mounting surface, separate from the 20mm shaft length above that. This
-matches the number the layout proposal had already assumed from an
-unreadable distributor drawing (`docs/plans/2026-11-15-product-layout-proposal.md`
-line 69 and its "Conflict with the aesthetic ADR" paragraph, which already
-treats the encoder body height as equal to the ~7.5mm face-to-PCB cavity
-depth at the knob location). That assumption is now confirmed directly from
-Alps' own catalogue, not a guess — no numeric change, same conclusion
-(proud knob, ~12.5mm of shaft above the face).
+**Correction (PR #36 review, 2026-11-15):** the previous version of this
+finding was wrong. It read the catalogue's "7.5 max" dimension as the body
+height above the PCB. It is not — that was caught in review, not by this
+spike originally, and is fixed here.
+
+Re-checked directly against **Alps' own current EC11E Series catalogue**
+(`tech.alpsalpine.com/cms.media/product_catalog_ec_01_ec11e_en_611f078659.pdf`,
+fetched directly from `tech.alpsalpine.com` 2026-11-15, catalogue update
+code "2510"). This is a different, more current document from the combined
+multi-series/Digikey-mirrored catalogue cited above for the torque/push-force
+numbers — that older mirror uses its own page numbering and calls this
+part's drawing "No. 5"; in Alps' own dedicated EC11E catalogue,
+**EC11E18244AU is Drawing No. 2** (its product-list table row: Vertical,
+Flat, 20mm, 10±7mN·m, 36 detents/18 pulses, push switch With 0.5mm travel —
+matches EC11E18244AU exactly, drawing column "2").
+
+**What "7.5 max" actually is:** in Drawing No. 2, the "7.5 max" label sits
+in the **end view** — looking straight down the shaft, the same view as the
+separately-boxed "Mounting Hole Dimensions" drawing, which is explicitly
+captioned "Viewed from mounting side" and shows an identical 7.5mm
+dimension in the same position relative to the A/C/B pin row. It is the
+**in-plane (footprint) distance from the shaft centreline to the A/C/B pin
+row**, not a height above the PCB.
+
+**The real heights above the PCB mounting surface**, from the same
+drawing's side view and cross-checked independently:
+
+- **Housing: ~4.5mm above the PCB.** The side view's dimension chain shows
+  a 4.5mm housing-height segment that, combined with the 20mm actuator
+  length (shown as a parenthesised reference `(20)` in the same chain,
+  confirming the 20mm is measured from the housing top, not the PCB),
+  reproduces the drawing's own labelled overall length exactly: 4.5 + 20 =
+  **24.5mm**.
+- **Shaft tip: ~24.5mm above the PCB.** Confirmed twice, independently: (1)
+  directly, as Drawing No. 2's own overall-length dimension; (2) separately,
+  via the part's 3D model — the LCSC-sourced STEP file, mirrored by
+  `flux.ai` (`flux.ai/lcsc/ec11e18244au~nvev/files`), is named
+  `SW-TH_EC11XXXXXXXX-L11.7-W12.0-H24.5-P2.5-LS14.5.step`; its filename
+  encodes the model's own bounding box, **H24.5**, matching the catalogue
+  figure exactly. (This spike read the encoded filename, not the STEP
+  geometry itself — no CAD/STEP viewer is available in this environment.)
+- **Bushing top: ~11.5–12mm above the PCB.** This intermediate figure (the
+  ~7mm bushing sits on top of the 4.5mm housing) is the PR #36 reviewer's
+  own measurement, taken by opening Alps' STEP model
+  (`EC11E-05SW.STEP`) directly in CAD — this spike did not independently
+  reopen that file to re-derive it, but it is geometrically consistent with
+  the 4.5mm and 24.5mm figures confirmed above, and is the figure used
+  below.
+
+**Why this matters:** the layout proposal and ADR computed the knob's
+"proud" distance past the enclosure face as (20mm shaft) − (7.5mm, taken to
+be the embedded body height) = 12.5mm. The enclosure's own face-to-PCB
+depth is, separately and coincidentally, also 7.5mm (from the enclosure's
+own stack-up in `docs/plans/2026-11-15-product-layout-proposal.md` section
+2 / 6c, not from the encoder's datasheet). Using the corrected encoder
+figures against that same 7.5mm face depth: shaft tip (24.5mm above PCB) −
+face depth (7.5mm above PCB) = **~17mm of shaft proud of the face**, not
+12.5mm, and the ~7mm bushing itself passes about 4mm through the face
+(11.5 − 7.5 = 4mm) before the bare shaft begins. Both documents are
+corrected to this figure in this PR.
 
 Also confirmed from the same catalogue, not previously recorded: **push-pull
 (axial) strength 100N**, operating life 15,000 cycles for the encoder and
-20,000 for the integrated switch, and the part's drawing number is 5 (useful
-if anyone needs to re-derive other dimensions from the catalogue PDF later).
+20,000 for the integrated switch, and the part's drawing number in Alps' own
+dedicated EC11E catalogue is **2** (not 5 — see the citation note above;
+useful if anyone needs to re-derive other dimensions from the catalogue PDF
+later).
 
 ### Lower-force PTS645 mitigation options, with live LCSC/JLCPCB stock
 
@@ -118,17 +183,26 @@ not by itself fix the knob-press instability.
 
 ## Conclusion / what changes
 
-- **No stability-math numbers change.** Detent torque (10±7 mN·m, 17 mN·m
-  worst case) and push force (6 +2.5/−2 N) were already correct for
-  EC11E18244AU specifically; this finding adds the citation. Body height
-  (7.5mm) was already assumed correctly; this finding removes the "not
-  confirmed" caveat.
-- **Documentation updated** (confirmation status only, not values) in:
+- **Stability-math numbers (torque, push force) don't change.** Detent
+  torque (10±7 mN·m, 17 mN·m worst case) and push force (6 +2.5/−2 N) were
+  already correct for EC11E18244AU specifically; this finding adds the
+  citation.
+- **Body height was wrong, and now changes the knob-proud figure.** "7.5mm
+  max" was a misread (a footprint/plan-view dimension, not a PCB height) —
+  caught in PR #36 review. Corrected: housing ~4.5mm above the PCB, shaft
+  tip ~24.5mm above the PCB. Against the enclosure's own (separate, also
+  7.5mm) face-to-PCB depth, that moves the knob's proud distance past the
+  face from the previously-stated ~12.5mm to **~17mm**, with the ~7mm
+  bushing passing about 4mm through the face.
+- **Documentation updated** (values corrected, not just confirmation status)
+  in:
   - `.planning/decisions/2026-11-15-upright-desk-clock-form-factor.md`
-    (Rationale section, knob-turning torque paragraph).
-  - `docs/plans/2026-11-15-product-layout-proposal.md` (encoder spec table,
-    row "Body height above PCB"; and the stability-inputs list under
-    section 6c).
+    (Decision section's proud-knob bullet, and the `pilink-g8a` open-item
+    note).
+  - `docs/plans/2026-11-15-product-layout-proposal.md` (encoder spec table
+    row "Body height above PCB"; every "~12.5mm proud" / "about 12.5mm
+    proud" occurrence, including in the superseded 6a/6b sections and the
+    current 6c section).
 - **New mitigation data point for `pilink-8hx.6`** (the physical press-test,
   not run here): if that test shows the A/B/X/Y buttons need a lower-force
   part, `PTS645SM50SMTR92LFS` (LCSC C221881, 1.6N, same footprint) is the
