@@ -60,7 +60,7 @@ this manufacturer's lineup on JLCPCB.
 | C22464480 | TYPE-C-31-D-15 | 16P | Surface Mount, Vertical | 426 | 8.8mm (same `H`-table scheme as D-16) |
 | C22464422 | TYPE-C-31-D-06A | 16P | Surface Mount, Vertical | 145 | not checked (low stock ruled it out early) |
 | C223908 | TYPE-C-31-M-15 | 14P | Through Hole | 2,464 | **horizontal** family (M-prefix) despite "Through Hole" mounting — wrong orientation, ruled out |
-| C707317 | TYPE-C-31-D-02 | 6P | Surface Mount, Vertical | 805 | 6P only (no CC pins in a usable 6-pin layout for this design) — ruled out |
+| C707317 | TYPE-C-31-D-02 | 6P | Surface Mount, Vertical | 805 | 6P only — GND/VBUS/CC1/CC2, **no D+/D-** — power-only, can't carry USB Audio data — ruled out |
 | C22464507 | TYPE-C-31-D-17 | 14P | Through Hole | 594 | drops 2 of the 16 standard pins — ruled out in favor of the full-pinout D-09 |
 
 (Full search results and every `get_component_details` call behind this
@@ -76,14 +76,17 @@ LCSC page) for the three real contenders (D-09, D-15, D-16):
   footprint. Recommended PCB layout is a plated-through-hole pattern (16
   signal PTHs + 4 larger shell/peg PTHs), confirming genuine through-hole
   shell retention, not SMT tabs. Overall body height above the PCB: 6.50mm.
-  Body footprint: 8.34mm wide x ~7.7mm long.
+  Body footprint: ~7.70mm wide x 4.30mm deep (the datasheet's "8.34mm" figure
+  is the shell's outer edge measured along the *same* width axis as the
+  7.70mm hole-pattern span, not a second, orthogonal dimension — the two
+  were wrongly treated as width x length in an earlier pass of this finding).
 - **D-15 / D-16**: same HRO vertical mechanical family, same pin table, but
   sold as a *range* of standoff heights (`D-16` = 8.8mm up through `D-16I`
   = 18.5mm; `D-15` = 8.8mm up through `D-15G` = 15.0mm) — these are meant
   for boards mounted well back from an enclosure's panel face, needing a
   long shell to reach the opening. The *shortest* member of either family
   is still 8.8mm, taller than D-09's 6.5mm, and both have far lower stock
-  (422/426 vs. 5,490). Ruled out in favor of D-09.
+  (442/426 vs. 5,490). Ruled out in favor of D-09.
 - **M-15** (`C223908`) looked promising from the LCSC field alone
   ("Mounting Type: Through Hole") but its own part-number prefix (`M-`,
   not `D-`) is HRO's horizontal-family prefix, same as the current J401
@@ -117,22 +120,34 @@ LCSC page) for the three real contenders (D-09, D-15, D-16):
   preferred over SMT-only tabs" requirement directly, for both the signal
   pins and the mechanical shell.
 - **Height above PCB**: **6.50mm**, datasheet-confirmed. This **exceeds**
-  the ~5mm back cavity from the form-factor decision by about 1.5mm. Per
-  that decision doc, a local boss in the back shell to accommodate a
-  taller part is an accepted option, not a blocker — no shorter
-  comparably-stocked full-pinout vertical option exists in this search (the
-  only shorter vertical part found, `TYPE-C-31-D-02`/`C707317`, is a 6-pin
-  power-only variant with no usable CC pins for this design's existing
-  CC-sense-tap circuitry). **`pilink-8hx`'s back-shell OpenSCAD work should
-  add a ~1.5-2mm boss around the connector cutout** (some margin beyond
-  the bare 1.5mm gap for solder-side clearance and tolerance) rather than
-  assume a flush 5mm-deep pocket.
-- **Footprint**: 8.34mm shell width x ~7.7mm body length on the PCB — well
-  within the ~118 x 50mm board outline; this bead doesn't place it (PCB
-  layout is `pilink-8hx`/`pilink-7el.9`'s job), just confirms it physically
-  fits a back-side placement near the bottom edge between the two leg
-  mounts, per the decision doc's "exiting the rear wall low, between the
-  legs."
+  the ~5mm back cavity figure given in `pilink-0do`'s own bead description
+  by about 1.5mm (that ~5mm figure and the "a local back-shell boss is OK"
+  allowance both come from the bead description, not from the form-factor
+  ADR itself — the ADR doesn't give a cavity depth or mention a boss). Per
+  that allowance, a local boss in the back shell to accommodate a taller
+  part is acceptable, not a blocker — no shorter comparably-stocked
+  full-pinout vertical option exists in this search (the only shorter
+  vertical part found, `TYPE-C-31-D-02`/`C707317`, is a 6-pin variant with
+  GND/VBUS/CC1/CC2 but no D+/D-, so it's power-only and can't carry USB
+  Audio data for this design regardless of height). **`pilink-8hx`'s
+  back-shell OpenSCAD work should add a ~1.5-2mm boss around the connector
+  cutout** (some margin beyond the bare 1.5mm gap for solder-side clearance
+  and tolerance) rather than assume a flush 5mm-deep pocket.
+- **Footprint**: ~7.70mm wide x 4.30mm deep on the PCB (see the datasheet
+  note above on the 8.34mm figure) — well within the ~118 x 50mm board
+  outline; this bead doesn't place it (PCB layout is
+  `pilink-8hx`/`pilink-7el.9`'s job), just confirms it physically fits a
+  back-side placement near the bottom edge between the two leg mounts, per
+  the decision doc's "exiting the rear wall low, between the legs."
+- **Through-hole legs protrude through the front of the board, not hidden
+  under the shell**: the datasheet's side view gives a pin/leg length of
+  **2.10mm** below the shell's mounting reference plane. On this project's
+  standard 1.6mm-thick PCB, a 2.10mm leg protrudes roughly **0.5mm out the
+  front (component) side** of the board — it does not stay hidden under the
+  shell the way an earlier pass of this finding assumed. That front-side
+  protrusion plus the shell's footprint creates a **front-side keep-out of
+  roughly 8mm x 4.3mm** around the connector that other front-side
+  placement (components, silkscreen, routing) needs to respect.
 - **Stock**: 5,490 units at research time (2026-11-15) — an Extended-
   library part like J401 already is (standard per-part assembly handling
   fee, not a sourcing-availability risk at this project's prototype
@@ -152,50 +167,71 @@ Two real options once a through-hole vertical connector is on the back:
 2. **JLCPCB single-sided PCBA (front only)**, then hand-solder the
    THT-legged D-09 onto the back after the boards arrive.
 
-**Recommendation: double-sided JLCPCB PCBA (option 1).** This connector's
-20 total legs (16 signal + 4 shell/peg) are fine-pitch (0.5mm signal pitch,
-standard for any USB-C receptacle) and largely **hidden under the shell
-once mounted** — the inner rows of pins on a vertical THT Type-C connector
-are not visually accessible with an iron the way a THT header's pins are.
-Hand-soldering this reliably needs selective soldering or a reflow/hot-air
-process the way SMT does, not a casual iron-and-flux job, and this
-connector carries the one load on the whole board that's mechanically
-repeated and nontrivial (plug insertion/removal force) — a cold or bridged
-joint here is a real functional-failure and ESD/short risk, not just a
-cosmetic one. Given that, the reliability case for professional assembly
-on this specific part is stronger than for most other components on the
-board.
+**Recommendation: double-sided JLCPCB PCBA (option 1).** This connector has
+20 total legs (16 signal + 4 shell/peg). The datasheet's recommended PCB
+layout gives the 16 signal pads as **Ø0.70mm** through-holes and the 4
+shell/peg pads as **Ø0.90mm**, with a minimum pad-to-pad pitch of about
+**1.10mm** in the drawing — not the 0.5mm figure an earlier pass of this
+finding assumed (0.5mm pitch is physically impossible for a 0.70mm-diameter
+pad in any case, since adjacent pads would overlap). The legs themselves
+are **not** hidden under the shell: at **2.10mm** long on a standard
+1.6mm-thick board, they protrude roughly **0.5mm out the front (component)
+side**, where a THT part's joints are normally soldered with ordinary
+front/bottom-side access (wave soldering in production, or hand soldering
+with a normal iron) — not a hidden-pad rework case needing selective
+soldering or reflow/hot-air.
+
+Given that, the case for professional (JLCPCB) assembly over hand-soldering
+rests on **reliability under repeated mechanical load**, not on pad
+accessibility: this connector carries the one load on the whole board
+that's mechanically repeated and nontrivial (plug insertion/removal
+force, rated 3.57kgf insertion / 1.02kgf min removal per the datasheet) —
+a cold or bridged joint here is a real functional-failure and ESD/short
+risk, not just a cosmetic one. A machine-soldered joint is more
+consistently reliable than a hand-soldered one for a part that takes that
+kind of repeated load, even though a careful hand-soldered joint is
+mechanically accessible and achievable.
 
 **Rough cost delta (flagged estimate, not a live quote):** I did not get an
 actual JLCPCB PCBA quote — that needs real Gerbers/BOM/CPL files, which
 don't exist yet (PCB layout is `pilink-7el.9`/`pilink-8hx`'s separate,
-not-yet-complete work). Based on JLCPCB's generally published PCBA
-pricing structure (not verified against a live quote for this board):
-- JLCPCB's standard assembly service supports "top only / bottom only /
-  both sides" as a quote-time option for mixed SMT+THT boards; adding the
-  back side is a **one-time setup charge** (stencil + a second
-  placement/solder pass), not a significant per-unit-scaling cost at
-  hobbyist quantities (low units to tens of boards). The component itself
-  being an Extended-library part (like several others already on this
-  board: U501, D501, J501, SW303 per `hardware/BOM.md`) carries JLCPCB's
-  standard flat per-unique-extended-part handling fee regardless of which
-  side it's on — that fee is **not** specific to the double-sided choice.
-  THT parts on a JLCPCB assembly order typically add a modest per-part or
-  per-joint handling charge on top of the baseline SMT fee, independent of
-  side.
+not-yet-complete work). Based on JLCPCB's generally published PCBA pricing
+structure (not verified against a live quote for this board), and
+correcting the earlier framing, which wrongly applied SMT stencil+reflow
+cost logic to a THT part:
+- JLCPCB's assembly service prices **THT (through-hole) parts separately
+  from SMT**: THT components are assembled via a distinct per-joint
+  through-hole assembly service (hand- or wave-soldered at the factory,
+  billed per through-hole joint/pin), not via the stencil-plus-reflow
+  pipeline used for SMT parts. There is no "second stencil pass" involved
+  for this part regardless of which side it's on — stencils are an SMT
+  paste-printing concept and don't apply here.
+- JLCPCB's standard assembly service does support "top only / bottom only /
+  both sides" as a quote-time option for mixed SMT+THT boards; adding a
+  back side with just this one THT part means the quote picks up the
+  per-joint THT assembly charge for its ~20 pins/legs, plus (if any other
+  back-side SMT parts existed) a possible second SMT pass — but on this
+  board the back side carries only J401, so no SMT stencil/reflow pass is
+  needed on the back at all, just the THT joint charge. The part's
+  Extended-library status (like several others already on this board:
+  U501, D501, J501, SW303 per `hardware/BOM.md`) separately carries
+  JLCPCB's standard flat per-unique-extended-part handling fee, independent
+  of the THT charge.
 - Net: the realistic added cost of "also populate the back" at this
-  project's scale is a **one-time, low-tens-of-dollars-at-most** setup
-  charge once, not a dominant line item next to the board's other
-  Extended parts (ESP32, display) — but this is an estimate from JLCPCB's
-  known pricing *patterns*, not this board's own quote. **Before ordering,
-  run JLCPCB's actual instant-quote tool once Gerbers/CPL/BOM exist**
-  (flagging this as the real verification step — an agent cannot get a
-  live JLCPCB PCBA quote without files this project hasn't produced yet).
-- Hand-soldering avoids that setup charge entirely but trades it for a
-  real reliability/rework risk on the one connector that takes repeated
-  mechanical load, plus it's a physical task only a human can do (soldering
-  is explicitly called out in `AGENTS.md` as the user's own action, not an
-  agent's).
+  project's scale is a **one-time, low-tens-of-dollars-at-most** THT
+  assembly + extended-part handling charge, not a dominant line item next
+  to the board's other Extended parts (ESP32, display) — but this is an
+  estimate from JLCPCB's known pricing *patterns*, not this board's own
+  quote. **Before ordering, run JLCPCB's actual instant-quote tool once
+  Gerbers/CPL/BOM exist** (flagging this as the real verification step — an
+  agent cannot get a live JLCPCB PCBA quote without files this project
+  hasn't produced yet).
+- Hand-soldering avoids that charge entirely but trades it for a real
+  reliability risk on the one connector that takes repeated mechanical
+  load (not a rework-difficulty risk — the joints are front-side
+  accessible, as corrected above), plus it's a physical task only a human
+  can do (soldering is explicitly called out in `AGENTS.md` as the user's
+  own action, not an agent's).
 
 This is ultimately a small-money, physical-assembly decision — ordering
 PCBA is the user's call per `AGENTS.md`, not something to decide here. This
@@ -219,16 +255,19 @@ load-bearing nature of this specific part.
 ## Verification performed vs. not performed
 
 - **Performed**: live JLCPCB/LCSC stock and part-detail lookups via the
-  `jlcpcb-search` MCP tool (2026-11-15); direct reading of the actual
-  manufacturer datasheet PDFs for the three real vertical-family
-  candidates (D-09, D-15, D-16) to confirm pin table, orientation, and
-  height dimension, rather than trusting the LCSC `Mounting Type` field or
-  part-number pattern alone.
+  `jlcpcb-search` MCP tool (2026-11-15, re-confirmed during this revision —
+  C7463258 stock still 5,490, C22464498/D-16 stock 442); direct reading of
+  the actual manufacturer datasheet PDFs (not just the LCSC structured
+  fields) for D-09, D-15, D-16, and (added in this revision) D-02/C707317,
+  to confirm pin table, orientation, pad sizes/pitch, leg length, and
+  height dimension, rather than trusting the LCSC `Mounting Type` field,
+  part-number pattern, or an un-rechecked prior reading alone.
 - **Not performed** (needs a human or a later bead):
   - No physical/CAD fit check against the actual OpenSCAD back-shell
     model — `pilink-8hx`'s enclosure work doesn't exist yet to check
-    against. The ~5mm cavity figure comes from the form-factor decision
-    doc's approximate figures, not a modeled back-shell boss.
+    against. The ~5mm cavity figure and the "boss is OK" allowance come
+    from `pilink-0do`'s own bead description, not from a modeled back-shell
+    boss or from the form-factor ADR itself.
   - No live JLCPCB PCBA quote (needs real Gerbers/CPL/BOM — not available
     at this stage of the project).
   - No footprint/symbol creation or schematic edit (explicitly out of
