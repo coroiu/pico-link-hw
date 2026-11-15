@@ -179,12 +179,11 @@ size definitively:
   ~8.60mm copper extent on the long axis — approximately **9.0mm** long
   (independently re-measured here at ~9.2mm from the datasheet drawing,
   consistent with a separate reviewer measurement of 8.97–9.00mm) by
-  approximately **3.2mm** on the short axis (reviewer-measured; not
-  re-derived to the same confidence here, since the mating-face view's
-  short-axis contours are harder to cleanly separate from the mounting-peg
-  tabs at this resolution — but 3.2mm is physically consistent with
-  sitting between the 2.56mm opening and the 5.30mm peg-inclusive copper
-  extent, as expected for shell-body < copper/pad extent on that axis).
+  approximately **3.16mm** on the short axis — independently confirmed by
+  a reviewer's own pixel measurement of the same drawing, taken at
+  columns clear of the mounting-peg tabs, directly measuring the figure
+  rather than inferring it from consistency with the opening/copper-extent
+  range.
   **Correction from the prior revision of this finding, which had this
   backwards**: the shell is **larger** than the copper/pad extent, not
   "slightly smaller." This matters for both downstream beads:
@@ -218,11 +217,16 @@ size definitively:
     above (the legs exit at the same hole positions as the pads).
   - **Back-side courtyard, from the shell body itself**: the shell
     physically sits on the back of the board, and its own outer body is
-    **~9.0mm x ~3.2mm** (see "Footprint" above) — larger than the
-    copper/pad extent on the long axis. The back-side courtyard that other
-    back-side placement needs to respect is sized to this shell body, not
-    to the smaller copper/pad extent or to the 8.34mm x 2.56mm opening
-    figure.
+    **~9.0mm x ~3.2mm** (see "Footprint" above). But the through-hole pads
+    and mounting-peg tabs also sit on the back side, and on the short axis
+    they exceed the shell body (5.3mm vs. 3.2mm). So the back-side
+    courtyard that other back-side placement needs to respect is **~9.0mm
+    x ~5.3mm**, not the shell-body figure alone: the shell sets the
+    long-axis figure (9.0mm, since the shell's long axis exceeds the
+    copper/pad extent's ~8.6mm there), while the pads/peg-tabs set the
+    short-axis figure (5.3mm, since they exceed the shell's 3.2mm short
+    axis there). This matches the ~9.0mm x ~5.3mm courtyard already given
+    under "Footprint" above, not the 8.34mm x 2.56mm opening figure.
 - **Stock**: 5,651 units, live-checked via JLCPCB's public parts API at
   review time (2026-11-15) — an Extended-library part like J401 already is
   (standard per-part assembly handling fee, not a sourcing-availability
