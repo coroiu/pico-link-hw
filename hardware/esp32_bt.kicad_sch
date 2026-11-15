@@ -1884,7 +1884,7 @@
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid f7a73dbb-72a6-4797-8dba-3bc3d82e349c)
   )
-  (text "Out of scope for this sheet: the board's main-power-entrance ESD diode\nand bulk cap (power.kicad_sch's AMS1117 input/output caps already serve\nthis role for the whole +3V3 rail); the antenna component itself and its\nenclosure mounting (pilink-8hx.4); RP2350-side GPIO assignment\n(pilink-7el.3, in progress). Validated with kicad-cli sch erc\n(--severity-all --exit-code-violations) on both this sheet and the root\nsheet, and the exported PDF was visually checked for a non-overlapping\nlayout -- see hardware/README.md for the result." (at 240 169 0)
+  (text "Out of scope for this sheet: the board's main-power-entrance ESD diode\nand bulk cap (power.kicad_sch's U1 input/output caps already serve\nthis role for the whole +3V3 rail); the antenna component itself and its\nenclosure mounting (pilink-8hx.4); RP2350-side GPIO assignment\n(pilink-7el.3, in progress). Validated with kicad-cli sch erc\n(--severity-all --exit-code-violations) on both this sheet and the root\nsheet, and the exported PDF was visually checked for a non-overlapping\nlayout -- see hardware/README.md for the result." (at 240 169 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid 77f651cc-b124-4236-8c22-35325f35c3c8)
   )

@@ -1169,4 +1169,141 @@
 		)
 	)
 
+	(symbol "AP2114H-3.3"
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "U"
+			(at -3.81 3.175 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "AP2114H-3.3TRG1"
+			(at 0 3.175 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
+			(at 0 5.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/datasheet/pdf/11925722caecb155eb3f8664b8021015.pdf?productCode=C150716"
+			(at 2.54 -6.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "BCD Semiconductor (Diodes Incorporated) AP2114H-3.3TRG1, SOT-223 (H package), genuinely CMOS-process LDO ('1A LOW NOISE CMOS LDO REGULATOR WITH ENABLE', rev. Jan 2013) swapped in for U1's prior AMS1117-3.3 (bipolar NPN-pass, see power.kicad_sch's dropout-margin note, pilink-ddq). Real datasheet Electrical Characteristics table, AP2114-3.3 section: Dropout Voltage VDROP @ IOUT=1A = 450mV (typ) / 750mV (max); Maximum Output Current guaranteed >=1.0A (min) at VIN=4.3V, VOUT=3.25-3.35V; Recommended Supply Voltage 2.5-6.0V (Absolute Max 6.5V). Stable with a 4.7uF 'Flexible Cap: Ceramic, Tantalum and Aluminum Electrolytic' on both CIN and COUT per the datasheet's own test conditions and feature list -- no tantalum-specific requirement unlike AMS1117. Pin Descriptions table for the SOT-223 (H) package: pin1=GND, pin2=VOUT, pin3=VIN -- IDENTICAL pin-to-pad mapping as the AMS1117-3.3 this replaces (same SOT-223-3_TabPin2 footprint, tab=VOUT=pin2), chosen specifically to minimize layout/decoupling churn since PCB layout (pilink-7el.9) hadn't started yet when this swap was made. The 3-pin H/HA SOT-223 package has no EN pin (EN only exposed on the SOIC-8/PSOP-8/ADJ packages) -- always enabled, same as AMS1117's wiring, no extra components needed. LCSC C150716, confirmed via jlcpcb-search MCP 2026-11-15: 10,090 units in stock (Extended part)."
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "linear regulator ldo fixed positive cmos low dropout"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "SOT?223*TabPin2*"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "AP2114H-3.3_0_1"
+			(rectangle
+				(start -5.08 -5.08)
+				(end 5.08 1.905)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+		(symbol "AP2114H-3.3_1_1"
+			(pin power_in line
+				(at 0 -7.62 90)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_out line
+				(at 7.62 0 180)
+				(length 2.54)
+				(name "VO"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at -7.62 0 0)
+				(length 2.54)
+				(name "VI"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+	)
+
 )
