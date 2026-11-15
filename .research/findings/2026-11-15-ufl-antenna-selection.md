@@ -47,7 +47,25 @@ guidance, which both candidates below should be checked against:
 This 2.33dBi ceiling is a real constraint for the certification path
 this project is relying on (ESP32 modular approval) and should be
 treated as a hard requirement, not a nice-to-have, when the antenna is
-finalized — see the caveat on the primary candidate below.
+finalized — see the gain comparison on the candidates below.
+
+**Type vs. gain, re-checked against the datasheet's exact wording:** the
+testing caveat isn't gain-only. The datasheet's own sentence is "If you
+use an external antenna of a different type or gain, additional
+testing, such as EMC, may be required" — type and gain are two separate
+triggers (joined by "or"), not one. This pass tried to confirm what
+antenna *type* Espressif actually certified the module with, to check
+whether the FPC-monopole candidates below match it — the datasheet
+itself doesn't say (it states only the certification antenna's gain,
+2.33dBi, not its design). A secondhand reference (an ESP32 forum post
+describing the module's own FCC/TÜV test report, not independently
+opened in this pass — the report PDF 403'd) claims the certification
+antenna was a **PIFA**, not a monopole. If that's correct, both FPC
+monopole candidates below differ in *type* from the certified antenna
+regardless of their gain, and the "different type" trigger could apply
+independently of the gain question. Treat this as **unresolved**, not
+as "type is fine, only gain matters" — this finding does not have a
+primary-source confirmation either way.
 
 ## Candidates
 
@@ -59,65 +77,102 @@ mount this project's "fully internal antenna" requirement rules out) or
 a ceramic chip antenna (needs its own PCB keepout + ground-plane cutout
 on the module board itself, not a good fit for a late add-on).
 
-### Primary: MyAntenna AIWF026 — LCSC `C49242188`
+### Primary: Kinghelm KH-FPC2.4G-1.13IPEX-240 — LCSC `C4943394`
+
+- **Type:** adhesive-backed FPC monopole antenna, 3M adhesive backing,
+  mounts to a non-conductive surface (i.e., the inside of a plastic
+  enclosure wall, not metal) — directly matches the "antenna location
+  in the top wall" plan in the upright-desk-clock ADR.
+- **Element dimensions:** ~45.8 × 6.5mm, confirmed directly on LCSC's
+  own product page (`C4943394`, packaging field "SMD, 45.8x6.5mm") —
+  fits the same ~35-45 × 8-12mm enclosure niche estimate used in
+  `docs/plans/2026-11-15-product-layout-proposal.md`, slightly
+  longer/narrower than the alternate below.
+- **Cable:** Ø1.13mm coax, IPEX-class plug. The part number's "-240"
+  suffix implies a 240mm cable, but LCSC's own listing page does not
+  state cable length as its own spec field — treat 240mm as **inferred
+  from the part number**, not a confirmed datasheet/listing fact. If
+  accurate, that's longer than the 50-120mm target range; the excess
+  would be routing slack to be coiled/folded inside the enclosure
+  cavity during assembly, not something to trim (re-terminating a U.FL
+  pigtail needs crimp tooling this project doesn't have reason to
+  assume is available by default). Confirm the actual cable length
+  before ordering.
+- **Gain:** ~2 dBi peak, confirmed directly on LCSC's own product page
+  in this pass — clearly **within** Espressif's 2.33dBi
+  certification-safe ceiling (above), with real margin rather than a
+  fractional one. This is why it's the default: it needs no
+  certification-risk sign-off before use, unlike the alternate below.
+- **Stock/source:** LCSC catalog part. A live-site search snapshot
+  showed ~86 units in stock, unit price from ~$0.34 at research time
+  (2026-11-15) — thin for a default part, flagged explicitly by review.
+  Re-checked in this revision: the `jlcpcb-search` MCP tool's local
+  database (JLCPCB's SMT pick-and-place catalog) still returns no match
+  for this part (confirming the "not a JLCPCB-assembly part" explanation
+  below, not a stock signal), and LCSC's own live stock counter is
+  rendered client-side on the product page, so it isn't readable
+  through the fetch tools available in this pass either. The 86-unit
+  figure is therefore still only the original point-in-time snapshot —
+  re-check it directly on LCSC immediately before ordering, and don't
+  treat it as current.
+- Datasheet/product page: LCSC `C4943394` (manufacturer Kinghelm).
+
+### Alternate: MyAntenna AIWF026 — LCSC `C49242188`
 
 - **Type:** adhesive-backed FPC monopole, 3M adhesive backing, mounts to
-  a non-conductive surface (i.e., the inside of a plastic enclosure
-  wall, not metal) — directly matches the "antenna location in the top
-  wall" plan in the upright-desk-clock ADR.
+  a non-conductive surface — same mounting style as the primary.
+  **Not** a single-band 2.4GHz part: it's a dual/tri-band antenna
+  covering both 2400-2500 MHz (2.4GHz ISM — WiFi/BT/Zigbee-class) *and*
+  5100-7200 MHz (5GHz Wi-Fi + 6GHz Wi-Fi 6E/7). This project only uses
+  the 2.4GHz band, but the antenna's spec and gain figures have to be
+  read band-by-band, not from its tri-band headline.
 - **Element dimensions:** 35.2 × 8.5 × 0.2mm — comfortably inside the
-  ~35-45 × 8-12mm estimate already used in
-  `docs/plans/2026-11-15-product-layout-proposal.md`.
+  enclosure niche.
 - **Cable:** Ø1.13mm coax, ~100mm, terminated IPX1 (IPEX/U.FL-class)
   plug, black jacket. 100mm is mid-range for the ~50-120mm target.
-- **RF spec:** 2.4GHz (ISM — WiFi/BT/Zigbee-class), 50Ω, VSWR ≤ 2, rated
-  10W, -40~85°C, ~0.5g.
-- **Gain — CAVEAT:** the LCSC/manufacturer listing states **4.79 dBi
-  peak**. That's over double Espressif's 2.33dBi certification-safe
-  ceiling (above). This doesn't rule the part out — small FPC monopoles'
-  advertised "peak" gain figures are frequently optimistic/direction-
-  dependent compared to the isotropic-averaged figure certification
-  testing cares about, and plenty of ESP32 projects use similar adhesive
-  antennas without incident — but **it needs an explicit decision before
-  production**, not a silent pass-through: either confirm the real
-  (not datasheet-peak) gain is within tolerance, accept the
-  recertification/compliance risk knowingly, or swap to a antenna
-  with a documented gain at or under ~2.3dBi (see fallback). Filing this
-  as part of the BOM-gap follow-up below rather than resolving it here,
-  since it's a certification-strategy call, not a sourcing one.
-- **Stock/source:** LCSC catalog part (not found in the local
-  `jlcpcb-search` MCP database — see note below on why that's expected
-  for this part class). Confirmed orderable via LCSC's own product page
-  with live pricing tiers visible (e.g. 900+ units ≈ $0.30/unit,
-  packaged 300/bag) at research time (2026-11-15). Exact current unit
-  count wasn't machine-readable from the page in this pass — treat as
-  "confirmed live LCSC catalog item," not "confirmed N units in stock
-  today."
+- **RF spec:** 50Ω, VSWR ≤ 2, rated 10W, -40~85°C, ~0.5g.
+- **Gain — CORRECTED:** an earlier pass of this finding used the
+  manufacturer/LCSC listing's headline **"4.79 dBi peak"** figure and
+  compared it directly to Espressif's 2.33dBi ceiling, concluding it was
+  "over double" the limit. That headline figure is this antenna's peak
+  gain **at 6200 MHz**, inside the 5-7GHz band it also covers — not the
+  2.4GHz band this device uses, so it's the wrong number for this
+  comparison. The manufacturer's own per-frequency gain table (the
+  AIWF026/MyAntenna datasheet) gives, across the actual 2400-2500 MHz
+  band: **1.69 dBi at 2400 MHz, peaking at 2.35 dBi at 2450 MHz, and
+  1.65 dBi at 2500 MHz** — a 1.65-2.35 dBi in-band range. (The
+  datasheet PDF itself is an image/CAD-drawing-only scan with no
+  extractable text layer — like the `C1693673` datasheet noted below —
+  so these per-frequency figures were pulled via two independent web
+  searches that both quote the same datasheet table text, rather than
+  read directly off a rendered page image; `pdftoppm`/poppler-utils,
+  which would let this pass render and visually inspect the table
+  itself, isn't installed in this environment. Corroborated from two
+  independent extractions, but not independently OCR'd — a human with
+  the GUI/poppler should still eyeball the actual table before this is
+  treated as final.) **Corrected conclusion:** the real in-band peak
+  (2.35 dBi at 2450 MHz) is **0.02 dB over** Espressif's 2.33dBi
+  cert-safe ceiling — essentially at the ceiling, not "over double."
+  That's a far smaller gap than the uncorrected figure suggested, but
+  it's still *over*, not under: this part is not clearly within the
+  cert-safe ceiling, and a 0.02dB margin is well within normal
+  manufacturing/measurement tolerance, so real units could land on
+  either side of the line. **Before using this part:** confirm that
+  margin is an acceptable risk (e.g. against the actual test report's
+  measurement uncertainty) or use the Kinghelm primary above instead,
+  which has real margin under the ceiling.
+- **Stock/source:** LCSC catalog part. Confirmed orderable via LCSC's
+  own product page with live pricing tiers visible (e.g. 900+ units ≈
+  $0.30/unit, packaged 300/bag) at research time (2026-11-15). Re-checked
+  in this revision: still not found in the `jlcpcb-search` MCP tool's
+  local JLCPCB database (same reason as the primary — see below), and a
+  ~154-unit figure surfaced by a general web search in the earlier pass
+  could not be independently confirmed (LCSC's live stock counter is
+  client-side and not readable through the fetch tools available here)
+  — treat as "confirmed live LCSC catalog item, unconfirmed current
+  count," not "154 units in stock today."
 - Datasheet: https://www.lcsc.com/datasheet/C49242188.pdf (and LCSC
   product page `C49242188`).
-
-### Fallback: Kinghelm KH-FPC2.4G-1.13IPEX-240 — LCSC `C4943394`
-
-- **Type:** adhesive-backed FPC antenna, same mounting style as the
-  primary.
-- **Element dimensions:** ~45.8 × 6.5mm (per Kinghelm's own published
-  spec) — fits the same enclosure niche, slightly longer/narrower than
-  the primary.
-- **Cable:** Ø1.13mm coax, **240mm**, IPEX-class plug. Longer than the
-  50-120mm target range — the excess is routing slack to be coiled/
-  folded inside the enclosure cavity during assembly, not something to
-  trim (re-terminating a U.FL pigtail needs crimp tooling this project
-  doesn't have reason to assume is available by default).
-- **Gain:** ~2 dBi per Kinghelm's published spec — **within** the
-  2.33dBi Espressif certification ceiling, which is why this is the
-  fallback to reach for if the primary's gain figure can't be resolved
-  satisfactorily.
-- **Stock/source:** LCSC catalog part. A live-site search snapshot at
-  research time showed ~86 units in stock, unit price from ~$0.34 — low
-  stock relative to the primary, and, like the primary, not present in
-  the local `jlcpcb-search` MCP database. Treat the 86-unit figure as a
-  point-in-time snapshot, not a guarantee; re-check before ordering.
-- Datasheet/product page: LCSC `C4943394` (manufacturer Kinghelm).
 
 ### Why these didn't show up well in the `jlcpcb-search` MCP tool
 
@@ -149,7 +204,7 @@ from LCSC."
   units) confirmed via the `jlcpcb-search` tool, but its form factor
   (adhesive FPC vs. rigid stick) and gain couldn't be confirmed from any
   readable source in this pass — not enough information to recommend
-  over the primary/fallback above, which both have confirmed element
+  over the primary/alternate above, which both have confirmed element
   dimensions and gain.
 - `C1693678` (HJ-2.4G-IPEX-1.13-PCB-L85MM): only 40 units in the JLCPCB
   snapshot, and the part no longer resolves on LCSC's own product site
@@ -188,22 +243,52 @@ component** (no symbol/footprint, hand-assembled via the U.FL pigtail
 after fab, no net to connect in KiCad), so it doesn't fit that
 methodology and adding it correctly means deciding how BOM.md should
 represent non-schematic hand-assembly items at all, which is bigger than
-a one-line add. Also still open: the gain-vs-certification caveat on the
-primary candidate above needs a decision before the antenna could be
-treated as "selected" for BOM purposes. Recommend a follow-up bead to:
+a one-line add. Also still open: the AIWF026 alternate's fractional
+gain-margin caveat (0.02dB over the cert-safe ceiling, see above) still
+needs an explicit decision if it's ever chosen over the Kinghelm
+primary. Recommend a follow-up bead to:
 
-1. Decide primary vs. fallback (or escalate the gain/certification
-   question to the user, since it's a compliance-risk call);
+1. Confirm the Kinghelm-primary / AIWF026-alternate ranking above still
+   holds (or escalate the AIWF026 gain-margin question to the user if
+   it's being considered instead, since being fractionally over the
+   cert-safe ceiling is a compliance-risk call even at this small
+   margin);
 2. Add the chosen part to `hardware/BOM.md` under a new "hand-assembled,
    non-schematic parts" section (or equivalent), with its LCSC number
    and live stock re-checked at that time.
 
 ## What wasn't verified
 
-- Live stock *counts* for both candidates come from LCSC web snapshots
-  (search-result/page-fetch), not the `jlcpcb-search` MCP tool's live
-  JLCPCB API path (which doesn't carry these LCSC-only parts) — re-check
-  immediately before ordering.
+- Live stock *counts* for both candidates still come from LCSC web
+  snapshots (search-result/page-fetch), not a live API path. Re-checked
+  in this revision: the `jlcpcb-search` MCP tool's local database
+  (JLCPCB's SMT pick-and-place catalog, not LCSC's full marketplace)
+  returns no match for either `C4943394` or `C49242188` — confirms
+  (doesn't newly establish) that this part class is out of that tool's
+  scope, not a usable live-stock source for these two parts. LCSC's own
+  product pages render stock counts client-side (JavaScript), which
+  isn't readable through the fetch tools available in this pass either.
+  Both candidates' stock figures are therefore still the original
+  point-in-time snapshots from the first research pass — re-check both
+  directly on LCSC immediately before ordering, especially the
+  Kinghelm's thin ~86-unit figure for a default/primary part.
+- The AIWF026's corrected in-band gain figures (1.65-2.35 dBi) come from
+  two independent web-search extractions of the manufacturer's
+  datasheet text, not from this pass directly rendering and reading the
+  datasheet's own gain-table image — the PDF has no extractable text
+  layer, and `pdftoppm`/poppler-utils (needed to render its pages for
+  direct visual inspection) isn't installed in this environment. A
+  human with that tool (or the GUI) should confirm the table directly
+  before this is treated as fully closed.
+- Whether Espressif's own certification for the ESP32-WROOM-32UE used
+  an antenna of the same *type* (FPC monopole) as both candidates here
+  is unresolved, not confirmed either way — see the datasheet-wording
+  note above. The datasheet states only the certification antenna's
+  gain, not its design; a secondhand forum reference to the module's
+  own FCC/TÜV test report suggested a PIFA antenna, which would
+  conflict with a "same type as certified" assumption for both FPC
+  monopole candidates. Not independently confirmed from the test report
+  itself in this pass.
 - No physical fit check against the actual enclosure (no OpenSCAD model
   of the top wall exists yet) — deferred to `pilink-8hx.4` by design.
 - No RF/antenna measurement of either candidate — gain figures are
