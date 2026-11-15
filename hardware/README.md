@@ -622,10 +622,16 @@ conditions, not just at first power-up. At the 0.65A worst case that's a
 26mV (40mΩ) to 150mV (230mΩ) added drop, not a flat 26mV. "Negligible" is
 a reasonable claim at the 40mΩ end but less so at the 230mΩ end, against
 the AMS1117's own dropout-vs-VBUS-floor margin — which `power.kicad_sch`'s
-own U1 note now documents as a real, still-open concern (tracked
-separately as `pilink-ddq`, out of this bead's fuse-sizing scope): this
-fuse's own added drop narrows that margin further, by up to 150mV in the
-worst case, rather than being negligible against it outright.
+own U1 note now resolves (`pilink-ddq`, out of this bead's fuse-sizing
+scope), folding this fuse's own resistance into the calculation: realistic
+margin (typical 40mΩ fuse state, linearly-scaled dropout) is ~239mV,
+comfortable; the fully pessimistic, maximally-stacked case (un-scaled max
+dropout + spec-floor VBUS + near-max cable drop + this fuse's 230mΩ
+post-trip resistance, all simultaneously) comes out to ~-125mV — crossing
+zero, but only under four independent worst-cases stacked at once, which
+that note argues is far more conservative than any plausible sustained
+operating condition. Decision there: adequate as a documented, flagged
+risk, no regulator swap, verify real VIN at U1 at bring-up.
 
 No `PWR_FLAG` is added on this sheet's own `+5V`/`GND` nets:
 `power.kicad_sch` already carries both (`#FLG01` on `+5V`, `#FLG02` on
