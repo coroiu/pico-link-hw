@@ -524,13 +524,17 @@ mute/toggle or select on press). The sheet now has **5 inputs**: A/B/X/Y
 A/B/X/Y each still get their own external 10k pull-up
 (R305-R308, `Resistor_SMD:R_0402_1005Metric`) from `+3V3` to their
 GPIO node (the encoder's own pull-ups use a different value — see below),
-with the switch itself (SW305-SW308, the same
-`Switch:SW_Push`/`Button_Switch_SMD:SW_SPST_PTS645` part
-`rp2350b_memory.kicad_sch` uses for BOOTSEL/reset) pulling that node to
-`GND` when pressed — active-low. Unlike SW101/SW102 (which rely on the
-boot-ROM's own `QSPI_SS` handling and `RUN`'s internal pull-up, and fit no
-external pull-up), ordinary GPIOs have no such guaranteed default pull
-state, hence the explicit external resistor on all of these switches.
+with the switch itself (SW305-SW308, `Switch:SW_Push`/
+`Button_Switch_SMD:SW_SPST_PTS645` — same part family `rp2350b_memory.kicad_sch`
+originally used for BOOTSEL/reset) pulling that node to `GND` when pressed
+— active-low. Unlike SW101/SW102 (which rely on the boot-ROM's own
+`QSPI_SS` handling and `RUN`'s internal pull-up, and fit no external
+pull-up), ordinary GPIOs have no such guaranteed default pull state, hence
+the explicit external resistor on all of these switches. Per
+`pilink-7el.10`, SW101/SW102 were swapped to a side-actuated/right-angle
+SMD part (`Button_Switch_SMD:SW_Push_1P1T-MP_NO_Horizontal_Alps_SKRTLAE010`,
+LCSC `C110293`) for top-edge pinhole access on the upright form factor —
+SW305-SW308 (A/B/X/Y, front-face buttons) are unaffected and stay PTS645.
 
 **Rotary encoder (SW303):** Alps Alpine **EC11E18244AU** (JLCPCB/LCSC
 `C202365`, Extended-library part — standard extended-part handling fee,
