@@ -66,15 +66,26 @@ In **landscape** (panel rotated 90 degrees, as the firmware assumes):
 | Push travel | 0.5 +/-0.3 mm | same |
 | Body outline | **12.0 x 11.6 mm** (shaft centred) | KiCad stock footprint F.Fab, `RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm` |
 | PCB courtyard | **17.5 x 14.2 mm** (the 17.5 includes the A/B/C and S1/S2 pin rows) | same |
-| Body height above PCB | ~7 mm class, **not confirmed** (one distributor-hosted Alps drawing shows "7.5 max", but I couldn't read it cleanly) | `pilink-g8a` spike |
+| Housing height above PCB | **~4.5 mm** (corrected; see note below) | Alps' own current EC11E Series catalogue, Drawing No. 2 for EC11E18244AU; `pilink-g8a` spike, `.research/findings/2026-11-15-encoder-ec11e18244au-specs.md` |
+| Bushing top above PCB | **~11.5-12 mm** | same |
+| Shaft tip above PCB | **~24.5 mm** (= ~4.5 mm housing + 20 mm shaft, measured from the housing top) | same |
 | Through-hole leads | Stick out below the PCB. Allow about 3 mm under-board clearance in that area | standard THT |
 
+**Correction (PR #36 review):** this table previously listed "Body height
+above PCB: 7.5 mm max — confirmed." That was a misread of the Alps
+drawing's "7.5 max" dimension, which is actually a **footprint** dimension
+(shaft centreline to the A/C/B pin row, viewed down the shaft), not a
+height above the PCB. The real heights are in the three rows above.
+
 **Conflict with the aesthetic ADR:** with the face at about 7.5 mm above the
-PCB (section 2), a 20 mm shaft leaves **about 12.5 mm of shaft above the
-face**. Any knob on it stands well proud, which doesn't fit "flush,
-low-profile". Fixes include a shorter-shaft EC11E variant, a recessed knob
-well, or simply accepting a proud knob. See `pilink-g8a`. This isn't a
-blocker for choosing a layout.
+PCB (section 2 — a separate, coincidentally identical figure from the
+*enclosure's* own stack, not the encoder spec), the shaft tip (~24.5 mm
+above the PCB) leaves **about 17 mm of shaft above the face** (24.5 - 7.5),
+with the ~7 mm bushing itself standing about 4 mm proud of the face
+(11.5 - 7.5) before the bare shaft begins. Any knob on it stands well
+proud, which doesn't fit "flush, low-profile". Fixes include a
+shorter-shaft EC11E variant, a recessed knob well, or simply accepting a
+proud knob. See `pilink-g8a`. This isn't a blocker for choosing a layout.
 
 ### 1.3 Face buttons A/B/X/Y: C&K PTS645SK50SMTR92LFS (SW305-SW308)
 
@@ -317,8 +328,9 @@ buttons in a diamond, wide margins around the window.
   Total **about 118 mm** (about 122 mm with FPC-right).
 - **Depth:** panel 42 + fit clearance 0.6 + bezel 3 per side + walls 2 per
   side. Total **about 52 mm**.
-- **Height:** about 14 mm body. The knob stands about 12 mm proud with the
-  current 20 mm shaft (section 1.2).
+- **Height:** about 14 mm body. The knob stands about 17 mm proud with the
+  current 20 mm shaft (section 1.2; corrected from an earlier ~12 mm figure
+  that misread the Alps body-height dimension — see `pilink-g8a`).
 - **Internal zoning:** knob zone (about 20 x 46 mm inside) holds the encoder
   (17.5 deep) and the ESP32 behind it (19.2 deep), 36.7 mm total. USB-C sits
   rear-right behind the button diamond. RP2350B, memory and power all sit
@@ -498,7 +510,7 @@ and is the highest point.
 
 ```
  y mm
- 36                   ##                                      <- knob Ø18, ~12.5 mm proud, axis
+ 36                   ##                                      <- knob Ø18, ~17 mm proud (corrected, pilink-g8a), axis
  34             #########                                        perpendicular to face, top leans
  32        ######       ##                        /////\         toward the user (highest point ~35)
  30   ######             #                  ///////    \\
@@ -521,7 +533,10 @@ and is the highest point.
 ```
 
 The knob is drawn at its real position: the lower-front of the left zone,
-centred about 15 mm up the face from the front edge.
+centred about 15 mm up the face from the front edge. (Note: this section is
+superseded by 6c; the knob-proud annotation above is corrected to ~17 mm
+per `pilink-g8a`, but the diagram's pixel scale for the knob blob itself was
+not redrawn to match.)
 
 ### Section through the screen centre (front-to-back), same scale
 
@@ -567,7 +582,7 @@ Drawn in the face's own frame: rotate 20 degrees to get the real orientation.
        ...then the wedge cavity to the floor: about 2.6 mm at the PCB's
           front edge, growing to about 19 mm at its rear edge
  Buttons: actuator top at d 2.5 (PCB + 5.0); caps flush at d 0, flange under the plate.
- Knob:    shaft tip at d -12.5 (20 mm shaft seated at d 7.5); knob base 0.8 above face.
+ Knob:    shaft tip at d -17 (shaft tip 24.5 mm above PCB [4.5 mm housing + 20 mm shaft], PCB seated at d 7.5, so d 7.5 - 24.5 = -17; pilink-g8a corrected); knob base 0.8 above face.
 ```
 
 ### Notes and decisions made for this profile (reversible, for the ADR to adopt or change)
@@ -713,8 +728,9 @@ face.
   points straight up. It **cannot** come out of a 45 degree flank.
 - **To get an angled knob,** put the encoder on a small **daughterboard**
   (about 20 x 20 mm) mounted parallel to the flank inside the left pod,
-  with the same local stack as before: seat 7.5 mm below the flank face,
-  20 mm shaft, so about 12.5 mm proud. Through-hole leads need about 3 mm
+  with the same local stack as before: seat 7.5 mm below the flank face;
+  shaft tip 24.5 mm above the board (4.5 mm housing + 20 mm shaft) leaves
+  about 17 mm proud (24.5 - 7.5, corrected, `pilink-g8a`). Through-hole leads need about 3 mm
   behind the board. A 5-6 wire cable (A, B, C, S1, S2, GND) plugs into a
   small wire-to-board connector on each board. The debounce RCs stay on the
   main board, so the daughterboard is just the encoder plus a connector.
@@ -730,10 +746,13 @@ face.
 - **One-board alternative:** keep the encoder on the main PCB with the
   shaft vertical, and put the knob on the **flat top** of the left pod
   instead of its flank. The pod top at about 18-20 mm puts the shaft tip
-  (PCB top + 20 = 26.8 mm) only about 7-9 mm above the pod top. That makes
-  a **much lower knob** than 6a's 12.5 mm proud one, which happens to suit
-  the "flush" aesthetic ADR better. The pod keeps its sculpted sloped
-  flank, just without the knob on it.
+  (PCB top + 24.5 = 31.3 mm — corrected: 4.5 mm housing + 20 mm shaft
+  above the PCB, not PCB + 20; `pilink-g8a`) about 11-13 mm above the pod
+  top (31.3 - 20 to 31.3 - 18). That makes a **lower knob** than 6a's
+  ~17 mm proud one (corrected, `pilink-g8a`), though closer to it than
+  previously thought, which happens to suit the "flush" aesthetic ADR
+  somewhat better. The pod keeps its sculpted sloped flank, just without
+  the knob on it.
 - Either way, the main board loses its only through-hole part.
 
 ### Screen in the valley: the valley does not fix viewing angle, so tilt is still a separate choice
@@ -816,7 +835,7 @@ directly:
              KKKKK         /####   ===    /  \\                         + = estimated centre of mass
   30         K   KKKKKKKKK//###   ===    /    \\\
             KK           K/####   ===   //      \\
-            K            //###   +==    /        \\                     K = knob, ~12.5 mm proud (centre ~19 mm up the face)
+            K            //###   +==    /        \\                     K = knob, ~17 mm proud (corrected, pilink-g8a; centre ~19 mm up the face)
            KK            /####EEE===   //         \\
           KK            //###EEE===eee /           \\\                  E/e = encoder body / THT leads behind PCB
   20      K             /####EE====ee //             \\
@@ -869,7 +888,13 @@ directly:
 - **Body thickness:** about **14 mm**. That's face 2.0, 5.5 mm to the PCB
   (5.0 mm switches, 3.3 mm panel stack, J501 about 2 mm), PCB 1.6, 3 mm
   behind the PCB for the encoder's through-hole leads, and a 2.0 mm back
-  wall. The knob adds about 13 mm in front.
+  wall. The knob adds about **17 mm** in front (corrected from an earlier
+  ~13 mm figure that misread the Alps body-height dimension; see
+  `pilink-g8a`). This ~4 mm increase is a direct correction of the knob's
+  own protrusion; it has not been re-propagated into the other
+  depth/footprint figures below (e.g. "Standing" and the front-to-back
+  envelope numbers derived from the 6c diagrams), which should be
+  re-verified against the corrected knob protrusion in a follow-up pass.
 - **Standing:** about **58 mm tall** including feet. The body alone is
   about 28 mm front-to-back at the base. With legs, the footprint is about
   **122 W x 50 D** mm, and the feet sit about 46 mm behind the front edge.
@@ -883,11 +908,13 @@ directly:
 ### Stability: turning is fine with two splayed legs; *pressing* is the real problem
 
 Inputs:
-- **Detent torque:** EC11E series catalogue value of 10 +/-7 mN·m, found in
-  a search of Alps catalogue excerpts. It is **not confirmed for
-  EC11E18244AU specifically** (`pilink-g8a`), so I used 17 mN·m worst case.
+- **Detent torque:** 10 +/-7 mN·m, **confirmed for EC11E18244AU
+  specifically** (`pilink-g8a`, against Alps' own EC11 catalogue
+  product-line table, not just a series-wide figure) — 17 mN·m worst case,
+  unchanged.
 - **Encoder push force:** 6 (+2.5/-2) N for the 0.5 mm-travel EC11 variant,
-  which is what EC11E18244AU is (0.5 mm travel per Alps' product page).
+  **confirmed for EC11E18244AU specifically** (`pilink-g8a`; also matches
+  Alps' own product page and catalogue switch-spec table).
 - **Tact switch force:** 2.6 N (260 gf), per the LCSC/Future listings for
   PTS645SK50SMTR92LFS.
 - **Weight:** about 1.08 N. Silicone feet μ is about 1.
@@ -934,8 +961,13 @@ Inputs:
      200 g of *added* steel (bringing the ~110 g body to roughly 310 g
      total) makes button presses reliable without gel; about 500 g+ of
      *added* steel (roughly 610 g+ total) is needed for the knob press.
-   - **(d) Lower-force A/B/X/Y switches** (PTS645 variants around 1.6 N,
-     to be checked): a partial help only.
+   - **(d) Lower-force A/B/X/Y switches:** `PTS645SM50SMTR92LFS` (LCSC
+     C221881, 1.6 N, same footprint as the current part) **checked and
+     available**, but only 44 units in live stock as of `pilink-g8a`
+     (recheck before ordering); `PTS645SL50SMTR92LFS` (LCSC C221877, 1.3 N,
+     same footprint, 4,043 in stock) is the better-stocked fallback. Either
+     is a partial help only — it lowers the *button* press force, not the
+     knob press, which is a different (encoder) switch.
    - **(e) Move press inputs to the top edge:** pressing down is
      inherently stable, which is why desk clocks put buttons there. This
      changes the user's layout, so it's his call.
