@@ -99,8 +99,12 @@ That's cheap, and nobody presses them by accident.
   24.4 x 5.35 mm, courtyard 25.4 x 6.9 mm, per the repo footprint
   `hardware/footprints/Connector_FPC.pretty/AFC01-S40FCA-00.kicad_mod`.
   Height not confirmed; about 2 mm is typical for this class (`pilink-0o2`).
-- **J401** USB-C (HRO TYPE-C-31-M-12), about 3.3 mm tall, has to sit at the
-  PCB's rear edge.
+- **J401** USB-C (HRO TYPE-C-31-M-12), about 3.3 mm tall, was assumed here
+  sitting edge-mount at the PCB's rear edge. **Superseded by section 6c /
+  the ADR**: the chosen upright form factor needs a vertical-mount
+  receptacle on the PCB's back face instead (part TBD, `pilink-0do`/
+  `pilink-7el.11`), since an edge-mount part can't face rearward off a
+  vertical board.
 - **U.FL antenna: no part selected yet** (it isn't in `hardware/BOM.md`).
   Typical adhesive 2.4 GHz FPC antennas are around 35-45 x 8-12 mm
   (`pilink-8wx`).
@@ -166,8 +170,10 @@ Practical rules that follow:
    - Both are purely mechanical choices. Electrically they're identical, and
      the firmware just picks a different MADCTL value.
 4. **USB-C** can't sit behind the panel unless the depth grows by about
-   8 mm. It goes in the rear strip behind the knob zone or the button zone.
-   Cable pull then lands off-centre, which is fine for a desk device.
+   8 mm. This rule 4 described edge-mount J401 for the flat-slab options
+   (A/B/C); **superseded by section 6c / the ADR**, which instead uses a
+   vertical-mount receptacle on the PCB's back, exiting the rear wall
+   directly.
 
 ---
 
@@ -848,9 +854,10 @@ Inputs:
    - **(b) Reusable nano-gel / adhesive pads under the feet.** Shear grip
      comes from adhesion, not weight, so buttons should be fine and the
      knob press probably fine. This needs a quick physical test (user).
-   - **(c) A weighted base:** a steel insert in the base or legs.
-     About 200 g makes button presses reliable without gel; about 500 g+ is
-     needed for the knob press.
+   - **(c) A weighted base:** a steel insert in the base or legs. About
+     200 g of *added* steel (bringing the ~110 g body to roughly 310 g
+     total) makes button presses reliable without gel; about 500 g+ of
+     *added* steel (roughly 610 g+ total) is needed for the knob press.
    - **(d) Lower-force A/B/X/Y switches** (PTS645 variants around 1.6 N,
      to be checked): a partial help only.
    - **(e) Move press inputs to the top edge:** pressing down is

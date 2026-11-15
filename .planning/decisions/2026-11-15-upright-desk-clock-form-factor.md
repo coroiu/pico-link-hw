@@ -101,8 +101,9 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
   - knob press: about 5.8 N against about 2.6 N.
   Without help the device slides or tips. No leg geometry fixes this.
   Gel/adhesive-grip feet cost almost nothing and may be enough. The heavier
-  fixes (a weighted base needs about 200 g for buttons and 500 g+ for the
-  knob press; changing the layout) are only worth committing to once a
+  fixes (a weighted base needs about 200 g of *added* steel for buttons,
+  roughly 310 g total device weight, and 500 g+ added / 610 g+ total for
+  the knob press; changing the layout) are only worth committing to once a
   physical test shows feet alone fail.
 
 ## Alternatives considered
