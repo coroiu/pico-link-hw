@@ -169,18 +169,82 @@ ImageMagick/Ghostscript -- was available in this environment to produce a
 bitmap screenshot; the PDF's own text/geometry stream was inspected
 instead).
 
-**Blind-authoring caveat (the three still-empty child sheets):** neither
+### Input subsystem (pilink-7el.6)
+
+`input.kicad_sch` now has the d-pad + button switches: 4 discrete tact
+switches in a cross (UP/DOWN/LEFT/RIGHT) plus 4 discrete tact buttons
+(A/B/X/Y) — no center-press switch, per
+[`.planning/decisions/2026-11-14-dpad-instead-of-joystick.md`](../.planning/decisions/2026-11-14-dpad-instead-of-joystick.md)
+(firmware must remap select/OK onto one of A/B/X/Y itself; that's
+`pico-link`'s job, not this repo's). Each switch gets its own external 10k
+pull-up (R301-R308, `Resistor_SMD:R_0402_1005Metric`) from `+3V3` to its
+GPIO node, with the switch itself (SW301-SW308, the same
+`Switch:SW_Push`/`Button_Switch_SMD:SW_SPST_PTS645` part
+`rp2350b_memory.kicad_sch` uses for BOOTSEL/reset) pulling that node to
+`GND` when pressed — active-low. Unlike SW101/SW102 (which rely on the
+boot-ROM's own `QSPI_SS` handling and `RUN`'s internal pull-up, and fit no
+external pull-up), ordinary GPIOs have no such guaranteed default pull
+state, hence the explicit external resistor on all 8 switches here.
+
+GPIO net assignment: `GPIO20`-`GPIO27` (UP=20, DOWN=21, LEFT=22, RIGHT=23,
+A=24, B=25, X=26, Y=27), picked from the generic bidirectional GPIO pool
+`rp2350b_memory.kicad_sch` exposes as global labels for every RP2350B GPIO
+not already committed elsewhere — the same cross-sheet convention
+`esp32_bt.kicad_sch` uses for its own `ESP32_*` global labels. Each switch's
+firmware-facing logical name (UP/DOWN/LEFT/RIGHT/A/B/X/Y — the exact names
+given in the bead/ADR; cross-checked against the firmware repo's `input.h`
+and confirmed matching its `PL_INPUT_PIN_*` defines, with `PL_INPUT_PIN_PRESS`
+correctly having no counterpart here per the d-pad ADR dropping the
+center-press switch) is drawn as a plain, non-connected text caption under
+the switch, not a second schematic label on the same net: a global label
+and a local label both landing on one net connect fine electrically, but
+ERC reports it as `multiple_net_names` on every switch, so the logical name
+stays informational-only graphical text here instead.
+
+**Flag for firmware integration (out of scope for this bead):** firmware's
+current `PL_INPUT_PIN_*` pin *numbers* (2/18/16/20/15/17/19/21) are the old
+Waveshare board's GPIO map and do not match this schematic's `GPIO20`-`GPIO27`
+assignment — only the logical *names* were cross-checked here. Firmware will
+need its own remap once real hardware integration happens; tracked as
+follow-up bead `pilink-otf`.
+
+References use this project's `300`-`399` block (`power.kicad_sch`: 1-99,
+`rp2350b_memory.kicad_sch`: 100-199, `esp32_bt.kicad_sch`: 200-299):
+SW301-SW308, R301-R308, #PWR301-#PWR316 (one `+3V3` + one `GND` symbol per
+switch). No `PWR_FLAG` on this sheet, same reasoning as the other two
+populated child sheets — this sheet doesn't generate `+3V3`/`GND`,
+`power.kicad_sch` does.
+
+Validated with `kicad-cli sch erc --severity-all --exit-code-violations`:
+the **root** `pico-link-hw.kicad_sch` reports 0 errors / 49 warnings, all
+`global_label_dangling` on GPIO/ESP32 labels still waiting for their other
+end on the display/USB-C sheets (down from 57 before this bead — GPIO20-27
+are no longer dangling now that this sheet consumes them). Checking
+`input.kicad_sch` **standalone** reports 2 `power_pin_not_driven` errors on
+`+3V3`/`GND` — expected, the same non-root-sheet artifact already documented
+for the other two populated child sheets — and 0 warnings. A project-wide
+netlist export (`kicad-cli sch export netlist` on the root sheet) confirms
+all 59 real components across the whole merged project have a unique
+reference designator, with zero collisions. The exported SVG was rasterized
+with `cairosvg` (no system rasterizer available in this environment) and
+visually checked: no overlapping text, labels, reference designators, or
+components, and each of the 8 switches' GPIO wire now connects pin 1
+directly, with no visual pass-through across the switch body/plunger
+graphic (a drawing-only defect from an earlier revision, fixed without
+changing any net connectivity).
+
+**Blind-authoring caveat (the two still-empty child sheets):** neither
 KiCad nor `kicad-cli` was available in the agent environment the project
 skeleton was written in. Those files were hand-authored as KiCad 8
 S-expression/JSON text, cross-checked against KiCad's own file-format docs
 and real KiCad-8-generated project files pulled from public repos — not
 written, opened, or validated by the actual KiCad GUI. `kicad-cli` **is**
 available now (KiCad 8.0.9) and was used for `power.kicad_sch`,
-`rp2350b_memory.kicad_sch`, `esp32_bt.kicad_sch`, and the root sheet's
-hierarchy (see above); the same validation still needs to happen for the
-three remaining empty child sheets before trusting or building on them. If
-anything fails to parse, that's a bug in this skeleton, not a sign the
-approach is wrong.
+`rp2350b_memory.kicad_sch`, `esp32_bt.kicad_sch`, `input.kicad_sch`, and the
+root sheet's hierarchy (see above); the same validation still needs to
+happen for the two remaining empty child sheets (`display.kicad_sch`,
+`usb_c.kicad_sch`) before trusting or building on them. If anything fails
+to parse, that's a bug in this skeleton, not a sign the approach is wrong.
 
 PCB routing, DRC/ERC, and gerber export still need to happen in the KiCad GUI
 on a machine that has it installed — same caveat as before, now narrowed to
