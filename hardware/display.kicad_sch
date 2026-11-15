@@ -3,12 +3,3013 @@
 	(generator "eeschema")
 	(generator_version "8.0")
 	(uuid "79f8235b-ea71-4a0c-9302-db0147d1ddf7")
-	(paper "A4")
+	(paper "A2")
 	(title_block
-		(title "Pico Link custom hardware")
-		(date "2026-11-14")
-		(rev "skeleton")
+		(title "Display subsystem (pilink-7el.5)")
+		(date "2026-11-15")
+		(rev "A")
 		(company "Pico Link")
 	)
-	(lib_symbols)
+	(lib_symbols
+		(symbol "power:+3V3"
+				(power)
+				(pin_numbers hide)
+				(pin_names
+					(offset 0) hide)
+				(exclude_from_sim no)
+				(in_bom yes)
+				(on_board yes)
+				(property "Reference" "#PWR"
+					(at 0 -3.81 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(hide yes)
+					)
+				)
+				(property "Value" "+3V3"
+					(at 0 3.556 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Footprint" ""
+					(at 0 0 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(hide yes)
+					)
+				)
+				(property "Datasheet" ""
+					(at 0 0 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(hide yes)
+					)
+				)
+				(property "Description" "Power symbol creates a global label with name \"+3V3\""
+					(at 0 0 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(hide yes)
+					)
+				)
+				(property "ki_keywords" "global power"
+					(at 0 0 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(hide yes)
+					)
+				)
+				(symbol "+3V3_0_1"
+					(polyline
+						(pts
+							(xy -0.762 1.27) (xy 0 2.54)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 0 0) (xy 0 2.54)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 0 2.54) (xy 0.762 1.27)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+				)
+				(symbol "+3V3_1_1"
+					(pin power_in line
+						(at 0 0 90)
+						(length 0)
+						(name "~"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "1"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+				)
+			)
+		(symbol "power:GND"
+				(power)
+				(pin_numbers hide)
+				(pin_names
+					(offset 0) hide)
+				(exclude_from_sim no)
+				(in_bom yes)
+				(on_board yes)
+				(property "Reference" "#PWR"
+					(at 0 -6.35 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(hide yes)
+					)
+				)
+				(property "Value" "GND"
+					(at 0 -3.81 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Footprint" ""
+					(at 0 0 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(hide yes)
+					)
+				)
+				(property "Datasheet" ""
+					(at 0 0 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(hide yes)
+					)
+				)
+				(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+					(at 0 0 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(hide yes)
+					)
+				)
+				(property "ki_keywords" "global power"
+					(at 0 0 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(hide yes)
+					)
+				)
+				(symbol "GND_0_1"
+					(polyline
+						(pts
+							(xy 0 0) (xy 0 -1.27) (xy 1.27 -1.27) (xy 0 -2.54) (xy -1.27 -1.27) (xy 0 -1.27)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+				)
+				(symbol "GND_1_1"
+					(pin power_in line
+						(at 0 0 270)
+						(length 0)
+						(name "~"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "1"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+				)
+			)
+	(symbol "Device:R"
+		(pin_numbers hide)
+		(pin_names
+			(offset 0)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "R"
+			(at 2.032 0 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "R"
+			(at 0 0 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at -1.778 0 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "R res resistor"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "R_*"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "R_0_1"
+			(rectangle
+				(start -1.016 -2.54)
+				(end 1.016 2.54)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "R_1_1"
+			(pin passive line
+				(at 0 3.81 270)
+				(length 1.27)
+				(name "~"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -3.81 90)
+				(length 1.27)
+				(name "~"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+	)
+(symbol "Device:C"
+		(pin_numbers hide)
+		(pin_names
+			(offset 0.254)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "C"
+			(at 0.635 2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "C"
+			(at 0.635 -2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 0.9652 -3.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "cap capacitor"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "C_*"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "C_0_1"
+			(polyline
+				(pts
+					(xy -2.032 -0.762) (xy 2.032 -0.762)
+				)
+				(stroke
+					(width 0.508)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -2.032 0.762) (xy 2.032 0.762)
+				)
+				(stroke
+					(width 0.508)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "C_1_1"
+			(pin passive line
+				(at 0 3.81 270)
+				(length 2.794)
+				(name "~"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -3.81 90)
+				(length 2.794)
+				(name "~"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+	)
+	(symbol "Device:L"
+		(pin_numbers hide)
+		(pin_names
+			(offset 1.016) hide)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "L"
+			(at -1.27 0 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "L"
+			(at 1.905 0 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Inductor"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "inductor choke coil reactor magnetic"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "Choke_* *Coil* Inductor_* L_*"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "L_0_1"
+			(arc
+				(start 0 -2.54)
+				(mid 0.6323 -1.905)
+				(end 0 -1.27)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(arc
+				(start 0 -1.27)
+				(mid 0.6323 -0.635)
+				(end 0 0)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(arc
+				(start 0 0)
+				(mid 0.6323 0.635)
+				(end 0 1.27)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(arc
+				(start 0 1.27)
+				(mid 0.6323 1.905)
+				(end 0 2.54)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "L_1_1"
+			(pin passive line
+				(at 0 3.81 270)
+				(length 1.27)
+				(name "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -3.81 90)
+				(length 1.27)
+				(name "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+	)
+	(symbol "pico_link_custom:CFAF240320A0_FPC40"
+		(pin_numbers hide)
+		(pin_names
+			(offset 1.016)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "J"
+			(at -5.08 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "AFC01-S40FCA-00"
+			(at -5.08 -53.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_FPC:AFC01-S40FCA-00"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.crystalfontz.com/products/document/4197/CFAF240320A0-024SN_Datasheet.pdf"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40-position 0.5mm-pitch bottom-contact ZIF FPC connector for the Crystalfontz CFAF240320A0-024SN display, 4-wire SPI pinout (pilink-7el.5). Pin table sourced directly from Crystalfontz's own datasheet (Rev 1v2, 2021-03-26), section 6, SPI-mode column. LCSC candidate connector part AFC01-S40FCA-00 (LCSC C262674, Jushuo), confirmed 0.5mm pitch / 40-position / bottom-contact / flip-top-lock from its own LCSC spec table -- matches the panel's own 40 Position, 0.50mm Pitch ZIF connector spec. No stock KiCad symbol exists for this exact part; hand-authored here, pin layout is a simple single-column schematic convenience (not a physical pinout diagram) -- see this project's Footprint caveat for the matching hand-authored footprint's own verification gap."
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "FPC FFC ZIF connector display"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "CFAF240320A0_FPC40_0_1"
+			(rectangle
+				(start -5.08 50.8)
+				(end 5.08 -50.8)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+		(symbol "CFAF240320A0_FPC40_1_1"
+			(pin passive line
+				(at -7.62 -49.53 0)
+				(length 2.54)
+				(name "LED_A"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -7.62 -46.99 0)
+				(length 2.54)
+				(name "LED_K"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at -7.62 -44.45 0)
+				(length 2.54)
+				(name "VCC"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin output line
+				(at -7.62 -41.91 0)
+				(length 2.54)
+				(name "SDO"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin output line
+				(at -7.62 -39.37 0)
+				(length 2.54)
+				(name "TE"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -36.83 0)
+				(length 2.54)
+				(name "DB0"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -34.29 0)
+				(length 2.54)
+				(name "DB1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "7"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -31.75 0)
+				(length 2.54)
+				(name "DB2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "8"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -29.21 0)
+				(length 2.54)
+				(name "DB3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "9"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -26.67 0)
+				(length 2.54)
+				(name "DB4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "10"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -24.13 0)
+				(length 2.54)
+				(name "DB5"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "11"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -21.59 0)
+				(length 2.54)
+				(name "DB6"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "12"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -19.05 0)
+				(length 2.54)
+				(name "DB7"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "13"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -16.51 0)
+				(length 2.54)
+				(name "DB8"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "14"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -13.97 0)
+				(length 2.54)
+				(name "DB9"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "15"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -11.43 0)
+				(length 2.54)
+				(name "DB10"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "16"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -8.89 0)
+				(length 2.54)
+				(name "DB11"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "17"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -6.35 0)
+				(length 2.54)
+				(name "DB12"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "18"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -3.81 0)
+				(length 2.54)
+				(name "DB13"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "19"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -1.27 0)
+				(length 2.54)
+				(name "DB14"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "20"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 1.27 0)
+				(length 2.54)
+				(name "DB15"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "21"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 3.81 0)
+				(length 2.54)
+				(name "DB16"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "22"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 6.35 0)
+				(length 2.54)
+				(name "DB17"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "23"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 8.89 0)
+				(length 2.54)
+				(name "SDA"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "24"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at -7.62 11.43 0)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "25"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 13.97 0)
+				(length 2.54)
+				(name "DOTCLK"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "26"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at -7.62 16.51 0)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "27"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 19.05 0)
+				(length 2.54)
+				(name "ENABLE"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "28"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 21.59 0)
+				(length 2.54)
+				(name "VSYNC"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "29"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 24.13 0)
+				(length 2.54)
+				(name "HSYNC"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "30"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 26.67 0)
+				(length 2.54)
+				(name "RD"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "31"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 29.21 0)
+				(length 2.54)
+				(name "WR"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "32"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 31.75 0)
+				(length 2.54)
+				(name "RS"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "33"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 34.29 0)
+				(length 2.54)
+				(name "CS"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "34"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 36.83 0)
+				(length 2.54)
+				(name "RESET"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "35"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 39.37 0)
+				(length 2.54)
+				(name "IM0"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "36"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 41.91 0)
+				(length 2.54)
+				(name "IM1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "37"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 44.45 0)
+				(length 2.54)
+				(name "IM2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "38"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at -7.62 46.99 0)
+				(length 2.54)
+				(name "VCI"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "39"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at -7.62 49.53 0)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "40"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+	)
+	(symbol "pico_link_custom:AP3036BKTR-G1"
+		(pin_names
+			(offset 0.508)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "U"
+			(at 0 7.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "AP3036BKTR-G1"
+			(at 0 -7.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-6"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/api/file/downloadByFileSystemAccessId/8588905026865803264"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Diodes Incorporated AP3036B, SOT-23-6, boost LED driver. Pin1=CTRL (EN/PWM dimming), pin2=VOUT, pin3=VIN, pin4=SW, pin5=GND, pin6=FB -- per Diodes' own AP3036B datasheet (DS37004 Rev 2-2). Used here as the backlight driver for the CFAF240320A0-024SN display's LED_A/LED_K string, exactly matching Crystalfontz's own 'LED Backlight Reference Schematic' (datasheet section 11.2): L1 22uH 1210 (SW to VOUT), C16 10uF 0805 (VIN bypass), C17 1uF 0805 (VOUT to GND), R6 5.1 ohm 0402 (FB to GND, sets ILED ~=39.2mA). LCSC C526368 -- re-checked live via jlcpcb-search MCP on 2026-11-15: still 0 units in stock (same as the bead's investigation comment). The bead-named fallback AW9364DNR (LCSC C401007) was independently verified against its own datasheet and rejected: it is a 4-channel linear constant-current LED *sink* (VIN 2.8-5.5V, 20mA/channel, no inductor), not a boost converter, and cannot produce this backlight's required ~9V/40mA string voltage -- using it would not work, not just differ in pinout. AP3036BKTR-G1 is kept here as the only circuit that is actually correct for this backlight; the 0-stock status is a BOM/sourcing risk flagged for pilink-7el.8, not a schematic defect."
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "boost LED driver backlight"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "AP3036BKTR-G1_0_1"
+			(rectangle
+				(start -5.08 5.08)
+				(end 5.08 -5.08)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+		(symbol "AP3036BKTR-G1_1_1"
+			(pin input line
+				(at -7.62 -2.54 0)
+				(length 2.54)
+				(name "CTRL"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at -7.62 -0 0)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 2.54 0)
+				(length 2.54)
+				(name "FB"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 7.62 -2.54 180)
+				(length 2.54)
+				(name "VOUT"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 7.62 -0 180)
+				(length 2.54)
+				(name "SW"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 7.62 2.54 180)
+				(length 2.54)
+				(name "VIN"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+	)
+	)
+  (symbol (lib_id "pico_link_custom:CFAF240320A0_FPC40") (at 320 230 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid d0002709-33ca-4ad0-9c3e-6f7f8fb1ce4d)
+    (property "Reference" "J501" (at 314.92 282.07 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Value" "AFC01-S40FCA-00" (at 314.92 176.66 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "Connector_FPC:AFC01-S40FCA-00" (at 320 230 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "https://www.crystalfontz.com/products/document/4197/CFAF240320A0-024SN_Datasheet.pdf" (at 320 230 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 9f053902-d021-4073-ba21-a9d54750bf5f))
+    (pin "2" (uuid 09e4c606-98dc-4d23-ac35-4c06c47d2403))
+    (pin "3" (uuid 428dc632-24e8-46e0-8a2c-18e5d8f37e37))
+    (pin "4" (uuid fe81d730-8de9-416b-bf78-0b3efacd695b))
+    (pin "5" (uuid 3878f578-5da9-4a65-8493-42894e364f75))
+    (pin "6" (uuid a456abbe-b51c-4756-ac35-79078ea1def9))
+    (pin "7" (uuid 4d187683-1b42-4167-a7d0-3eff09342dc9))
+    (pin "8" (uuid cec3d110-0907-4ad1-8726-d40757535b18))
+    (pin "9" (uuid 9a140f43-4ab8-4907-9536-2f796305cc23))
+    (pin "10" (uuid 1867e9ae-d07a-48b3-94d5-9b6c35eb7e17))
+    (pin "11" (uuid ab0820ca-841f-4a84-ba30-9e8fb3e53176))
+    (pin "12" (uuid f35844dd-5f85-4bf3-87f8-913210c1a914))
+    (pin "13" (uuid 89126a5b-c20f-4917-b9c8-bd4c6569c591))
+    (pin "14" (uuid a8e5b7f9-1ff5-4273-95af-233c2887d101))
+    (pin "15" (uuid 9441edc6-2bb1-44a9-994a-8a78ced9d63a))
+    (pin "16" (uuid 2fd98d0b-acbf-400b-af48-806720300985))
+    (pin "17" (uuid 9ec74339-30a9-47e6-92d3-9cb35c03da20))
+    (pin "18" (uuid 4e1d063b-891e-4760-90de-3df8c3faf1f5))
+    (pin "19" (uuid 69cb97b0-4292-406f-8865-67d9dd36b883))
+    (pin "20" (uuid bf0b6a97-5e71-40ed-9002-02836fae14da))
+    (pin "21" (uuid aceb6e37-b548-4b3e-b4c3-c5e472c3bda3))
+    (pin "22" (uuid 583b67e4-e236-4d65-8333-37b9e59100f6))
+    (pin "23" (uuid d2add00e-9cd1-44f5-ba4e-7ea1e34d3336))
+    (pin "24" (uuid 6474e6f1-025d-49e3-8f15-632d5b4d21ba))
+    (pin "25" (uuid 305c2265-9f1c-45e0-9793-b73c21c692cf))
+    (pin "26" (uuid 6dd7d34e-da03-4886-abdc-3596374db2ed))
+    (pin "27" (uuid c02318cb-996a-4a16-8770-2411438a1718))
+    (pin "28" (uuid 4c8c6be7-1167-494f-8735-103a2ef599f3))
+    (pin "29" (uuid b43c2f15-21c8-45d4-98f1-142449c36e8d))
+    (pin "30" (uuid d9f547dd-04d4-4b74-a632-9fe9deda69c8))
+    (pin "31" (uuid 49f62630-a3bd-471f-9282-e9daf789bc3b))
+    (pin "32" (uuid 83a43888-80d2-460c-8b46-6d478e997e8f))
+    (pin "33" (uuid a3ea8a74-5427-47fa-8ab3-76a6376b4c4d))
+    (pin "34" (uuid 9d8fc263-df54-40ac-b179-88470d094002))
+    (pin "35" (uuid d0538e56-1554-48ba-846f-c940773108c1))
+    (pin "36" (uuid 0d704de4-9aa7-46bc-b2cb-74a6d4b6939e))
+    (pin "37" (uuid 27bdc44d-5bd5-4d3b-813e-7c6ec5b3032f))
+    (pin "38" (uuid ba6d7ff2-54de-4e52-8dbf-6e394dbb5c12))
+    (pin "39" (uuid 3641168a-7ddf-447a-9791-d7810e685327))
+    (pin "40" (uuid 2fe9b3fe-1923-4754-92f5-be5674c3ff42))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "J501") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 266.83) (xy 297.38 266.83))
+    (stroke (width 0) (type default))
+    (uuid e02a0cde-ccab-458a-a4e6-bccbc2e9ae1b)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 266.83 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 5d26be72-4457-4449-acbf-e31fb82d5e81)
+    (property "Reference" "#PWR501" (at 297.38 263.02 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 273.18 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 266.83 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 266.83 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid f66da00c-7e43-4718-a8c3-17490861d860))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR501") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 264.29) (xy 297.38 264.29))
+    (stroke (width 0) (type default))
+    (uuid 259eefdc-43ae-4af4-bf9d-a8210b76a83b)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 264.29 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 37820db4-fd4a-4bac-a75a-0b8fef7ec0c4)
+    (property "Reference" "#PWR502" (at 297.38 260.48 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 270.64 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 264.29 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 264.29 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 702b0d20-2b3f-406e-96ef-4a7f6886243d))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR502") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 261.75) (xy 297.38 261.75))
+    (stroke (width 0) (type default))
+    (uuid c8f625d2-c92b-4dc4-bbad-a7cf16add629)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 261.75 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid e843f828-3c1a-4457-84e6-9c7d920f1b9f)
+    (property "Reference" "#PWR503" (at 297.38 257.94 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 268.1 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 261.75 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 261.75 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 6b589582-3fba-464a-aa11-4f35b986212a))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR503") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 259.21) (xy 297.38 259.21))
+    (stroke (width 0) (type default))
+    (uuid 4842eb60-5662-4dc2-a7c8-b5f6e67e0a9c)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 259.21 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 75f01aa9-9293-41ab-98e0-ca795fe46140)
+    (property "Reference" "#PWR504" (at 297.38 255.4 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 265.56 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 259.21 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 259.21 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 736a2a86-c19a-4c9c-adee-fbc1ac7466d3))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR504") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 256.67) (xy 297.38 256.67))
+    (stroke (width 0) (type default))
+    (uuid 2baffd45-046e-4115-935c-d42d0e434fef)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 256.67 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 831b216a-f8f0-4859-b943-855dd2f99497)
+    (property "Reference" "#PWR505" (at 297.38 252.86 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 263.02 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 256.67 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 256.67 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid f16a3e49-7a26-4083-be98-7adc2179e636))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR505") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 254.13) (xy 297.38 254.13))
+    (stroke (width 0) (type default))
+    (uuid f31d41b4-ec64-4c72-a15b-54a3676230d2)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 254.13 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 25e3f0fa-f1bf-4cd0-85a4-453e9335ea6e)
+    (property "Reference" "#PWR506" (at 297.38 250.32 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 260.48 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 254.13 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 254.13 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid c2481819-06d8-49e3-89bf-acad393eca61))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR506") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 251.59) (xy 297.38 251.59))
+    (stroke (width 0) (type default))
+    (uuid 73550400-1062-474e-8256-e311c8852ee0)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 251.59 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 0d007cbc-94ba-4f89-a7e9-8babfee369da)
+    (property "Reference" "#PWR507" (at 297.38 247.78 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 257.94 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 251.59 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 251.59 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid a40b0e62-da0b-4ce6-989c-0bd1cb53d375))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR507") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 249.05) (xy 297.38 249.05))
+    (stroke (width 0) (type default))
+    (uuid d4f7e86b-1482-4874-9126-4fe787e7b211)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 249.05 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 19674e4f-e9b1-4870-960d-054294ef5496)
+    (property "Reference" "#PWR508" (at 297.38 245.24 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 255.4 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 249.05 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 249.05 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid c8632f0b-0ca2-43f9-823f-b4c9897f35f2))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR508") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 246.51) (xy 297.38 246.51))
+    (stroke (width 0) (type default))
+    (uuid 82f90a33-c9d1-433b-8563-3dfea1142b0f)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 246.51 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid b301d15f-dcd0-49d0-82a7-e3d786da6059)
+    (property "Reference" "#PWR509" (at 297.38 242.7 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 252.86 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 246.51 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 246.51 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 2ac0aae7-103f-4f52-8532-b1aee78fe621))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR509") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 243.97) (xy 297.38 243.97))
+    (stroke (width 0) (type default))
+    (uuid cb919af6-283d-44af-bebf-4d9517ff1e11)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 243.97 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid d0e0dcea-8ef4-4063-95b5-7ea255cec0aa)
+    (property "Reference" "#PWR510" (at 297.38 240.16 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 250.32 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 243.97 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 243.97 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 3802cfd5-4ae2-4195-a47f-fef48dc40802))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR510") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 241.43) (xy 297.38 241.43))
+    (stroke (width 0) (type default))
+    (uuid 0dded440-8da0-4f8e-bfac-e9455d296105)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 241.43 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid dae7eba0-cf2f-4d08-a4da-868a40d2e510)
+    (property "Reference" "#PWR511" (at 297.38 237.62 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 247.78 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 241.43 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 241.43 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid b1ae49f6-fd92-497a-8090-ef7efedb028e))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR511") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 238.89) (xy 297.38 238.89))
+    (stroke (width 0) (type default))
+    (uuid 82a19c9f-a926-442d-b6b8-b1bee748f378)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 238.89 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid db1c781a-d983-4a53-acb0-225e79f0666b)
+    (property "Reference" "#PWR512" (at 297.38 235.08 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 245.24 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 238.89 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 238.89 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 6607a250-a4c2-43d4-87a3-296618f059b6))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR512") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 236.35) (xy 297.38 236.35))
+    (stroke (width 0) (type default))
+    (uuid 39717aad-616f-40ba-b39c-05b271ba8ddc)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 236.35 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 24342a84-2d30-457b-a54c-f4eb42103fe9)
+    (property "Reference" "#PWR513" (at 297.38 232.54 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 242.7 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 236.35 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 236.35 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 96c42aa2-d917-46d1-bd87-bf219c044330))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR513") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 233.81) (xy 297.38 233.81))
+    (stroke (width 0) (type default))
+    (uuid 11d62a8c-e0a8-49cb-8b01-bfce02245a06)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 233.81 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid e21f7c72-180a-4742-a689-17f2846d8945)
+    (property "Reference" "#PWR514" (at 297.38 230 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 240.16 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 233.81 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 233.81 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid ce07fca3-d4c2-4867-9f70-a7aa33aca791))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR514") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 231.27) (xy 297.38 231.27))
+    (stroke (width 0) (type default))
+    (uuid 743da4d7-0127-4acb-b39a-0ed9eb6c97b2)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 231.27 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 5802faef-d476-4302-9e7b-995e121d2b87)
+    (property "Reference" "#PWR515" (at 297.38 227.46 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 237.62 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 231.27 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 231.27 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid bad7c8aa-9344-4527-a33c-eb2826abd79b))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR515") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 228.73) (xy 297.38 228.73))
+    (stroke (width 0) (type default))
+    (uuid e8331931-3869-408c-a416-5d37a4abdfa9)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 228.73 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 392672b7-aa80-47d1-bc0b-11a022c4816d)
+    (property "Reference" "#PWR516" (at 297.38 224.92 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 235.08 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 228.73 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 228.73 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid f9375272-a64c-4e72-9d57-0f09cd0cf4f1))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR516") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 226.19) (xy 297.38 226.19))
+    (stroke (width 0) (type default))
+    (uuid 72eb95c5-7891-4b68-be40-0c2c54c20374)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 226.19 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 043a14cd-91aa-4f01-b2a4-443f84366f15)
+    (property "Reference" "#PWR517" (at 297.38 222.38 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 232.54 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 226.19 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 226.19 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid f03f04a8-a49b-4830-b990-56319892cf44))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR517") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 223.65) (xy 297.38 223.65))
+    (stroke (width 0) (type default))
+    (uuid 3fa186c5-7544-4f4e-9029-2e3290b6a920)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 223.65 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid d266adbe-47d8-45e2-9622-03d7c575f3b8)
+    (property "Reference" "#PWR518" (at 297.38 219.84 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 230 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 223.65 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 223.65 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid e9df1b6b-51f2-4ec1-8a91-a92eb156acca))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR518") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 218.57) (xy 297.38 218.57))
+    (stroke (width 0) (type default))
+    (uuid 48a40af1-33c3-4aa5-ba05-e39c087352b0)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 218.57 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 5ee74a73-addc-4809-af87-a3334bd09fa0)
+    (property "Reference" "#PWR519" (at 297.38 214.76 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 224.92 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 218.57 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 218.57 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 00f17cf2-261a-4db9-ae64-0e71453ed2a4))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR519") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 216.03) (xy 297.38 216.03))
+    (stroke (width 0) (type default))
+    (uuid 1603dc33-10ba-4048-8b73-9746c1b920d1)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 216.03 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 6218fb73-4c62-4cd9-93d2-f2d40b32d62e)
+    (property "Reference" "#PWR520" (at 297.38 212.22 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 222.38 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 216.03 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 216.03 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid f1c969e3-5dc4-4cd8-a704-e6a0d4781930))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR520") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 213.49) (xy 297.38 213.49))
+    (stroke (width 0) (type default))
+    (uuid 8a2c1add-dadb-478b-9640-13946598a5c9)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 213.49 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid c896e094-1271-48c7-9ef6-2302af16fee7)
+    (property "Reference" "#PWR521" (at 297.38 209.68 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 219.84 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 213.49 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 213.49 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 7ae2f870-a45e-4262-a463-a22b3b4808ed))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR521") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 210.95) (xy 297.38 210.95))
+    (stroke (width 0) (type default))
+    (uuid 9981c6d6-9b89-47a7-bad7-0cb80db35c65)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 210.95 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid aa8c8d88-b9f2-473a-b5bc-7e63bf73be32)
+    (property "Reference" "#PWR522" (at 297.38 207.14 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 217.3 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 210.95 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 210.95 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 3e2b4eb7-6ce0-465a-9f31-41924df211d4))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR522") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 208.41) (xy 297.38 208.41))
+    (stroke (width 0) (type default))
+    (uuid e3aee52f-473f-433f-8b40-894ed2c24121)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 208.41 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid b3ccbe1e-0a90-47f9-b349-a320484f6af5)
+    (property "Reference" "#PWR523" (at 297.38 204.6 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 214.76 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 208.41 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 208.41 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid a406cc9d-288b-42af-985b-76eaa5e41894))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR523") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 205.87) (xy 297.38 205.87))
+    (stroke (width 0) (type default))
+    (uuid d70f0e19-b801-48ce-91e4-25a44d872d5a)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 205.87 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 0f7db645-7bfa-4124-a8b9-f75e9140d94d)
+    (property "Reference" "#PWR524" (at 297.38 202.06 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 212.22 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 205.87 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 205.87 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid ece41928-1516-488f-adc3-cced0393768f))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR524") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 203.33) (xy 297.38 203.33))
+    (stroke (width 0) (type default))
+    (uuid 71a6cb8a-f7fb-4299-b72e-c9da8d805d54)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 203.33 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 49daf076-6f7a-45fc-ab47-42b04f40c75f)
+    (property "Reference" "#PWR525" (at 297.38 199.52 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 209.68 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 203.33 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 203.33 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 160cc722-196e-4e32-b814-2ae43ba6f089))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR525") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 190.63) (xy 297.38 190.63))
+    (stroke (width 0) (type default))
+    (uuid 9371d8b5-71e8-4270-bea1-0ab37979e757)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 190.63 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid c08f5c09-d8ed-41bf-820f-c2f52480e58a)
+    (property "Reference" "#PWR526" (at 297.38 186.82 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 196.98 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 190.63 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 190.63 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 4a91b5c8-6b25-4313-a4d8-f1ddfb1e8cc7))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR526") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 180.47) (xy 297.38 180.47))
+    (stroke (width 0) (type default))
+    (uuid d642cbed-3f3f-4e40-a832-67c226597c11)
+  )
+  (symbol (lib_id "power:GND") (at 297.38 180.47 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 8a82ab9d-17f3-4cf6-abe2-7cc68eaa13d2)
+    (property "Reference" "#PWR527" (at 297.38 176.66 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 297.38 186.82 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 180.47 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 180.47 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid e69e77a1-0a81-4aac-b56c-3de50797745d))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR527") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 274.45) (xy 297.38 274.45))
+    (stroke (width 0) (type default))
+    (uuid 131621ee-3386-462f-890b-08b7350c75ed)
+  )
+  (symbol (lib_id "power:+3V3") (at 297.38 274.45 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 7ce7c84e-f3d3-4806-bdab-cd4c803652f6)
+    (property "Reference" "#PWR528" (at 297.38 270.64 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "+3V3" (at 297.38 270.894 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 274.45 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 274.45 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 113ab7da-461e-4972-91fe-2fef1090a5da))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR528") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 188.09) (xy 297.38 188.09))
+    (stroke (width 0) (type default))
+    (uuid 54276dcb-b1d6-4776-9b51-935e5eebce27)
+  )
+  (symbol (lib_id "power:+3V3") (at 297.38 188.09 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 46c65fbd-8764-4d48-861d-ec5f178999e4)
+    (property "Reference" "#PWR529" (at 297.38 184.28 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "+3V3" (at 297.38 184.534 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 188.09 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 188.09 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid b780bd58-9b59-45bd-8fab-eaa710904961))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR529") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 185.55) (xy 297.38 185.55))
+    (stroke (width 0) (type default))
+    (uuid da1fd8f5-2258-43ba-b707-7a080637de42)
+  )
+  (symbol (lib_id "power:+3V3") (at 297.38 185.55 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 76adf3fd-7b68-40b6-b1f6-5f0e34207534)
+    (property "Reference" "#PWR530" (at 297.38 181.74 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "+3V3" (at 297.38 181.994 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 185.55 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 185.55 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 110e9599-746c-4db3-88f2-c5bc0bec1674))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR530") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 312.38 183.01) (xy 297.38 183.01))
+    (stroke (width 0) (type default))
+    (uuid c0788c16-7337-483c-936c-bb388ad0550b)
+  )
+  (symbol (lib_id "power:+3V3") (at 297.38 183.01 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 0b9b4eb0-1bd7-4c4a-9624-829aa4a20455)
+    (property "Reference" "#PWR531" (at 297.38 179.2 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "+3V3" (at 297.38 179.454 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 297.38 183.01 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 297.38 183.01 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 21d467a2-3902-4b9e-aac2-c6f541564adf))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR531") (unit 1)
+        )
+      )
+    )
+  )
+  (no_connect (at 312.38 271.91)
+    (uuid e2a7e8f6-e3a7-49b0-8075-031ad136ba64)
+  )
+  (no_connect (at 312.38 269.37)
+    (uuid 89921603-42e6-4773-8904-2a44115d7958)
+  )
+  (wire (pts (xy 312.38 221.11) (xy 290.38 221.11))
+    (stroke (width 0) (type default))
+    (uuid 19d370a5-fc79-42ff-83ce-2901a19a8da0)
+  )
+  (global_label "GPIO30" (shape output) (at 290.38 221.11 180)
+    (effects (font (size 1.27 1.27)) (justify right))
+    (uuid 5442ce7c-4f35-4fb7-a1ae-a4fa68b25b58)
+    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 290.38 221.11 180)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+  )
+  (text "MOSI" (at 279.38 224.61 0)
+    (effects (font (size 1.27 1.27)) (justify left top))
+    (uuid c1768ff6-5f5c-40e2-925b-fbcefa3aaa8a)
+  )
+  (wire (pts (xy 312.38 200.79) (xy 290.38 200.79))
+    (stroke (width 0) (type default))
+    (uuid fd379fd3-2019-4aef-a070-6f2755e1df8f)
+  )
+  (global_label "GPIO32" (shape output) (at 290.38 200.79 180)
+    (effects (font (size 1.27 1.27)) (justify right))
+    (uuid 14c5b07f-1aa9-417d-ba1c-5cff7adb56ed)
+    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 290.38 200.79 180)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+  )
+  (text "D/C" (at 279.38 204.29 0)
+    (effects (font (size 1.27 1.27)) (justify left top))
+    (uuid 66d8cdc6-84c1-4679-8843-8ee0c93b11c6)
+  )
+  (wire (pts (xy 312.38 198.25) (xy 290.38 198.25))
+    (stroke (width 0) (type default))
+    (uuid 91888de6-1888-4770-b624-b8859ace6c71)
+  )
+  (global_label "GPIO29" (shape output) (at 290.38 198.25 180)
+    (effects (font (size 1.27 1.27)) (justify right))
+    (uuid adc1f164-6bdf-4fc0-92ea-6e10f64e51d2)
+    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 290.38 198.25 180)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+  )
+  (text "SCK" (at 279.38 201.75 0)
+    (effects (font (size 1.27 1.27)) (justify left top))
+    (uuid e13f6976-48e0-49d3-9557-62d8f8cfddfd)
+  )
+  (wire (pts (xy 312.38 195.71) (xy 290.38 195.71))
+    (stroke (width 0) (type default))
+    (uuid 7c554324-470f-4106-9e88-12e7d6b3b030)
+  )
+  (global_label "GPIO31" (shape output) (at 290.38 195.71 180)
+    (effects (font (size 1.27 1.27)) (justify right))
+    (uuid bb73dfca-9c50-46e3-9bff-8013d841fda5)
+    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 290.38 195.71 180)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+  )
+  (text "CS" (at 279.38 199.21 0)
+    (effects (font (size 1.27 1.27)) (justify left top))
+    (uuid af3dafad-2042-4b81-837f-6f7d77673731)
+  )
+  (wire (pts (xy 312.38 193.17) (xy 290.38 193.17))
+    (stroke (width 0) (type default))
+    (uuid 91792f9e-05fe-4d21-bd63-e6fbd43878c3)
+  )
+  (global_label "GPIO33" (shape output) (at 290.38 193.17 180)
+    (effects (font (size 1.27 1.27)) (justify right))
+    (uuid 8e8402a4-d215-447c-b935-8a8d955b306c)
+    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 290.38 193.17 180)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+  )
+  (text "RESET" (at 279.38 196.67 0)
+    (effects (font (size 1.27 1.27)) (justify left top))
+    (uuid ed7a7e21-f27d-4cf7-90fa-0d49c44134b2)
+  )
+  (symbol (lib_id "pico_link_custom:AP3036BKTR-G1") (at 150 275 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 281526d3-abcc-4e70-be7c-57dea0f16c42)
+    (property "Reference" "U501" (at 150 266 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Value" "AP3036BKTR-G1" (at 150 284 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "Package_TO_SOT_SMD:SOT-23-6" (at 150 275 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "https://jlcpcb.com/api/file/downloadByFileSystemAccessId/8588905026865803264" (at 150 275 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 20884ee0-983a-467c-84cb-182a7e1d66e6))
+    (pin "2" (uuid 9cf3576e-fa4b-42f5-bb3a-c0c4a1d59b13))
+    (pin "3" (uuid 74d6feaf-4699-4407-bcef-f50a4b99d0ad))
+    (pin "4" (uuid 312383d9-cbe1-4e70-bcc7-1edba5f6dd32))
+    (pin "5" (uuid b59907ec-f4b5-4bcc-8915-58d1d35b0b29))
+    (pin "6" (uuid 34055054-ba98-45b0-9e67-e5ecf30b2def))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "U501") (unit 1)
+        )
+      )
+    )
+  )
+  (symbol (lib_id "Device:R") (at 128 260 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid bc7a2750-5815-4088-9fc0-63278672d854)
+    (property "Reference" "R501" (at 130.032 260 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Value" "5.1R" (at 128 260 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "Resistor_SMD:R_0402_1005Metric" (at 128 260 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "~" (at 128 260 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 073d3b7a-76cf-4972-9652-16e99f810f6c))
+    (pin "2" (uuid 4caedccb-5c34-4006-9ee3-38503162e7fd))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "R501") (unit 1)
+        )
+      )
+    )
+  )
+  (symbol (lib_id "Device:C") (at 165 255 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 848b7cfa-ee01-4972-9240-5d96f07e86cb)
+    (property "Reference" "C501" (at 165.635 257.54 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Value" "10uF" (at 165.635 252.46 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "Capacitor_SMD:C_0805_2012Metric" (at 165 255 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "~" (at 165 255 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 88c5c31f-56c8-4d72-af56-cbbb105901cc))
+    (pin "2" (uuid 071d22a9-c8ac-4f2a-815b-bcae4eea6188))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "C501") (unit 1)
+        )
+      )
+    )
+  )
+  (symbol (lib_id "Device:L") (at 185 275 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 5eda42b1-a0ce-43bf-9240-a71f7af4f367)
+    (property "Reference" "L501" (at 183.73 275 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Value" "22uH" (at 186.905 275 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "Inductor_SMD:L_1210_3225Metric" (at 185 275 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "~" (at 185 275 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid f6f671f0-d030-4e00-af84-c9676dd2d9b0))
+    (pin "2" (uuid a8b83472-ec3c-47a1-9118-ece59ae96809))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "L501") (unit 1)
+        )
+      )
+    )
+  )
+  (symbol (lib_id "Device:C") (at 170 258 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid acff4383-cadf-4d1e-b946-ecb7a3701dd4)
+    (property "Reference" "C502" (at 170.635 260.54 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Value" "1uF" (at 170.635 255.46 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "Capacitor_SMD:C_0805_2012Metric" (at 170 258 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "~" (at 170 258 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid fb1e57a8-c725-469c-ad97-f23ce15e6587))
+    (pin "2" (uuid fc462019-22c9-4a7c-9719-d0d81e1e76f4))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "C502") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 142.38 277.54) (xy 132.38 277.54))
+    (stroke (width 0) (type default))
+    (uuid c0af1a10-b636-4354-9342-91b17d14e52d)
+  )
+  (global_label "GPIO34" (shape output) (at 132.38 277.54 180)
+    (effects (font (size 1.27 1.27)) (justify right))
+    (uuid 6d57f555-b332-40e4-9b27-819653bae1ff)
+    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 132.38 277.54 180)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+  )
+  (text "BL_CTRL" (at 121.38 281.04 0)
+    (effects (font (size 1.27 1.27)) (justify left top))
+    (uuid d4d81597-6d61-44a2-8463-b7b9778ba159)
+  )
+  (wire (pts (xy 142.38 275) (xy 134.38 275))
+    (stroke (width 0) (type default))
+    (uuid 2a762fd4-4bc8-4753-a5dd-b52aeebd6a71)
+  )
+  (symbol (lib_id "power:GND") (at 134.38 275 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 05727497-e719-4291-9225-568f1a075e56)
+    (property "Reference" "#PWR532" (at 134.38 271.19 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 134.38 281.35 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 134.38 275 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 134.38 275 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid c2b2dd3e-66cf-4df9-95ed-e900036abe5c))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR532") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 142.38 272.46) (xy 130 272.46))
+    (stroke (width 0) (type default))
+    (uuid 727e7d20-cb9e-401a-9f0f-cfd2305d8ddd)
+  )
+  (wire (pts (xy 130 272.46) (xy 130 263.81))
+    (stroke (width 0) (type default))
+    (uuid 99eb1769-d6ee-4994-83b4-952aa4c6d90d)
+  )
+  (wire (pts (xy 130 263.81) (xy 128 263.81))
+    (stroke (width 0) (type default))
+    (uuid 8202f848-e20f-4a2f-a2b3-8e25507237f2)
+  )
+  (wire (pts (xy 142.38 272.46) (xy 142.38 276.99))
+    (stroke (width 0) (type default))
+    (uuid f63e47ba-f7d8-4d4b-ab3b-39d0ac98ac6a)
+  )
+  (wire (pts (xy 142.38 276.99) (xy 312.38 276.99))
+    (stroke (width 0) (type default))
+    (uuid 564eebb3-c7c7-4e7e-a0c7-a32b01549b64)
+  )
+  (junction (at 142.38 272.46) (diameter 0) (color 0 0 0 0)
+    (uuid 7495139b-ec9f-4dc0-950e-6d06bff965ca)
+  )
+  (wire (pts (xy 128 256.19) (xy 128 252.19))
+    (stroke (width 0) (type default))
+    (uuid cf70935a-bdd4-47b7-9147-64c3f8dfa12b)
+  )
+  (symbol (lib_id "power:GND") (at 128 252.19 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 21359cd4-aed7-49da-9649-face0093910f)
+    (property "Reference" "#PWR533" (at 128 248.38 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 128 258.54 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 128 252.19 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 128 252.19 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 1d6ffa54-a941-400d-9999-f20e2a67ca0f))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR533") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 157.62 272.46) (xy 164.62 272.46))
+    (stroke (width 0) (type default))
+    (uuid 310cb29d-683b-414a-83d2-8a47f33be6b9)
+  )
+  (wire (pts (xy 164.62 272.46) (xy 169.62 272.46))
+    (stroke (width 0) (type default))
+    (uuid ea1ea95f-86ba-4f56-a9c6-94eaf7abfe01)
+  )
+  (wire (pts (xy 164.62 272.46) (xy 165 272.46))
+    (stroke (width 0) (type default))
+    (uuid ad6ff6fd-7c59-4ee0-99e2-333407e1c110)
+  )
+  (junction (at 164.62 272.46) (diameter 0) (color 0 0 0 0)
+    (uuid 76f236c2-baca-4395-8fca-e82729bf2449)
+  )
+  (symbol (lib_id "power:+3V3") (at 169.62 272.46 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 28f3b123-ebf9-4084-8cc1-d26539888963)
+    (property "Reference" "#PWR534" (at 169.62 268.65 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "+3V3" (at 169.62 268.904 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 169.62 272.46 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 169.62 272.46 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid bceeb406-e108-4b30-bbaf-281c2933fb69))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR534") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 165 272.46) (xy 165 258.81))
+    (stroke (width 0) (type default))
+    (uuid 8b5452df-ae21-4431-baa5-64f67391231a)
+  )
+  (wire (pts (xy 165 251.19) (xy 165 247.19))
+    (stroke (width 0) (type default))
+    (uuid 534813ea-ba1c-4af6-a496-719bc3ca9837)
+  )
+  (symbol (lib_id "power:GND") (at 165 247.19 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid d0383457-fe5d-48a2-a10a-0441117577cf)
+    (property "Reference" "#PWR535" (at 165 243.38 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 165 253.54 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 165 247.19 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 165 247.19 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 1dc609b2-7c15-4535-8c9f-3f1237312a67))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR535") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 157.62 275) (xy 185 275))
+    (stroke (width 0) (type default))
+    (uuid da0edfd5-7bed-45d9-a5fd-4d3b3e7d1288)
+  )
+  (wire (pts (xy 185 275) (xy 185 271.19))
+    (stroke (width 0) (type default))
+    (uuid 848c3f14-1455-47fb-8685-28dc4fa71f05)
+  )
+  (wire (pts (xy 157.62 277.54) (xy 185 277.54))
+    (stroke (width 0) (type default))
+    (uuid 84abf79e-5d61-4dd0-9cba-5298e7abdb5e)
+  )
+  (wire (pts (xy 185 277.54) (xy 185 278.81))
+    (stroke (width 0) (type default))
+    (uuid 21b17169-f358-466f-95c6-cf301a138929)
+  )
+  (wire (pts (xy 157.62 277.54) (xy 157.62 261.81))
+    (stroke (width 0) (type default))
+    (uuid c6c54a36-8d5a-4f17-b4e5-5928c4ee3fab)
+  )
+  (wire (pts (xy 157.62 261.81) (xy 170 261.81))
+    (stroke (width 0) (type default))
+    (uuid fb803174-b300-44a4-b2b6-d361a9900ce2)
+  )
+  (wire (pts (xy 157.62 277.54) (xy 157.62 279.53))
+    (stroke (width 0) (type default))
+    (uuid 384f831f-02ba-4e52-a88d-967a03e79128)
+  )
+  (wire (pts (xy 157.62 279.53) (xy 312.38 279.53))
+    (stroke (width 0) (type default))
+    (uuid fdf8b350-fb0e-428c-b570-90a35cab26be)
+  )
+  (junction (at 157.62 277.54) (diameter 0) (color 0 0 0 0)
+    (uuid 0cf35f21-9c4d-4057-97b9-8d50aba965b4)
+  )
+  (wire (pts (xy 170 254.19) (xy 170 250.19))
+    (stroke (width 0) (type default))
+    (uuid 14346c15-bd12-418b-99e4-ade8eee5daac)
+  )
+  (symbol (lib_id "power:GND") (at 170 250.19 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 49bb8ee3-4f31-4a92-810d-9383ad2df981)
+    (property "Reference" "#PWR536" (at 170 246.38 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 170 256.54 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 170 250.19 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 170 250.19 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 7e0abf09-c238-473e-8942-f228e8391474))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "#PWR536") (unit 1)
+        )
+      )
+    )
+  )
+  (text "4-wire SPI mode strap: IM0=GND, IM1=+3V3, IM2=+3V3 (pins 36/37/38)" (at 227.38 192.63 0)
+    (effects (font (size 1.27 1.27)) (justify left top))
+    (uuid fd579777-85c2-47f6-9424-51d3b0359641)
+  )
+  (text "Display subsystem (pilink-7el.5) -- Crystalfontz CFAF240320A0-024SN, 240x320 native\n(rotated 90deg to 320x240 in firmware via ST7789V MADCTL/MV), 4-wire SPI.\nJ501 pin table sourced directly from Crystalfontz's own datasheet (Rev 1v2, 2021-03-26),\nsection 6, SPI-mode column (4-wire SPI selected via IM0=0/IM1=1/IM2=1). SDO (pin 4) and\nTE (pin 5) are marked no-connect per the datasheet (write-only use, no tearing-effect\nsync needed). DB0-17 (pins 6-23), DOTCLK (26), ENABLE (28), VSYNC (29), HSYNC (30) and\nRD (31) are all tied to GND per the datasheet's explicit 'fix low if not used' guidance\nfor the unused parallel-bus/RGB-interface pins -- not left floating. IM0 (36) is also\ntied GND and IM1/IM2 (37/38) to +3V3 for the 4-wire SPI mode strap. VCC (3) and VCI (39)\nboth go to +3V3 (digital I/O and analog display power rails, both 3.3V per the\ndatasheet). This sheet's own +3V3/GND power symbols don't drive those nets --\npower.kicad_sch does -- same convention as every other populated child sheet in this\nproject (see their own notes for why a per-sheet power_pin_not_driven ERC result on\nstandalone single-sheet checks is expected and not a real defect)." (at 20 300 0)
+    (effects (font (size 1.27 1.27)))
+    (uuid b643acd0-f8ee-43e6-be49-3f6c609cbf5d)
+  )
+  (text "Connector: J501 is the LCSC AFC01-S40FCA-00 (C262674, Jushuo), 40-position, 0.5mm\npitch, bottom-contact, flip-top-lock SMT FPC/ZIF connector -- confirmed directly from\nits own LCSC spec table (pitch/position-count/contact-style/locking-feature all match\nthe panel's own '40 Position, 0.50mm Pitch ZIF connector' spec and its 500mA/50V rating\nis comfortably above this interface's actual currents). No stock KiCad symbol or\nfootprint exists for this exact part, so both were hand-authored for this bead\n(pico_link_custom:CFAF240320A0_FPC40 in symbols/pico_link_custom.kicad_sym;\nConnector_FPC:AFC01-S40FCA-00 in footprints/Connector_FPC.pretty/, registered in\nfp-lib-table). The symbol's single-column pin layout is a schematic drawing\nconvenience, not a physical pinout diagram -- pin *numbers* match the datasheet\nexactly, which is what the netlist cares about. The footprint's pad pitch/position\ncount/bottom-contact style are confirmed against the part's own LCSC spec table, but\nthe exact pad outline dimensions are typical-for-this-connector-family placeholders,\nNOT measured from Jushuo's real mechanical drawing: that PDF's dimension-drawing page\ndid not yield extractable numeric text with the tooling available in this agent\nenvironment (no pdftotext/poppler-utils, no KiCad GUI to open the part directly).\nThis is an explicit, unresolved verification gap -- flag for a human KiCad-GUI pass\nbefore PCB fab, same caveat class this project already applies to the RP2350 QFN-80\nand PSRAM USON-8 hand-authored footprints." (at 20 360 0)
+    (effects (font (size 1.27 1.27)))
+    (uuid d3d3d5c7-bb11-4ca6-94fd-526311d57df6)
+  )
+  (text "GPIO assignment: GPIO29 (SCK/RS), GPIO30 (MOSI/SDA), GPIO31 (CS), GPIO32 (D-C/WR),\nGPIO33 (RESET), GPIO34 (backlight CTRL/enable) -- picked from the generic bidirectional\nGPIO pool rp2350b_memory.kicad_sch exposes as global labels for every RP2350B GPIO not\nalready committed elsewhere. Confirmed free by grepping all of hardware/*.kicad_sch for\nevery GPIOx global label before picking (2026-11-15): input.kicad_sch claims only\nGPIO22-28 (A/B/X/Y + the volume encoder's 3 signals, per the two 2026-11-15 rotary-\nencoder ADRs); esp32_bt.kicad_sch uses named ESP32_* global labels, not GPIOx, and its\nRP2350-side GPIO mapping is still an open item on rp2350b_memory.kicad_sch (not this\nsheet's concern); usb_c.kicad_sch is still an empty skeleton. GPIO29-34 were untouched\nby all of the above. Each GPIOx label keeps the generic pool name as its real net\nidentity (required for it to actually join the same-named label on\nrp2350b_memory.kicad_sch) with a plain, non-connected text caption underneath for the\nlogical function name -- same convention input.kicad_sch uses for A/B/X/Y/VOL_*, and\nfor the same reason: a second schematic label on the same net would trip ERC's\nmultiple_net_names check." (at 20 425 0)
+    (effects (font (size 1.27 1.27)))
+    (uuid b8f19b3b-6bc9-4ba1-b5e8-7c0742da8ef3)
+  )
+  (text "Backlight driver: the panel's LED_A/LED_K backlight string needs ~9V (VF 8.1-9.9V typ\n9.0V) at 40mA per the datasheet's section 11.1 -- not achievable from the 3.3V/5V rails\ndirectly. U501/L501/C501/C502/R501 are copied directly from Crystalfontz's own 'LED\nBacklight Reference Schematic' (datasheet section 11.2): Diodes AP3036BKTR-G1 (SOT-23-6\nboost LED driver; pin1=CTRL, pin2=VOUT, pin3=VIN, pin4=SW, pin5=GND, pin6=FB per Diodes'\nown AP3036B datasheet DS37004 Rev 2-2), L501 22uH 1210 (SW-VOUT), C501 10uF 0805 (VIN\nbypass), C502 1uF 0805 (VOUT-GND), R501 5.1R 0402 (FB-GND, sets ILED = VFB/RFB =\n200mV/5.1R ~= 39.2mA, matching the panel's 40mA spec). VIN comes from this project's\n+3V3 rail (within AP3036B's 2.5-16V input range). CTRL goes to GPIO34 -- tied high\nenables the driver; firmware may instead PWM this same pin for brightness dimming per\nAP3036B's 'High Frequency Dimming Control' feature. Both are valid with this circuit;\nwhich one firmware uses is out of scope for this schematic.\n\nAP3036BKTR-G1 is LCSC C526368 -- re-checked live via the jlcpcb-search MCP tool on\n2026-11-15 (get_component_details, lcsc=C526368): still 0 units in stock, same as this\nbead's own investigation comment found. The bead-named fallback, AW9364DNR (LCSC\nC401007, 11,060 units in stock), was independently checked against its own datasheet\n(downloaded and text-extracted directly, since no pdftotext/poppler was available) --\nit is Awinic's '4-Channel 1-wire Dimming LED Driver', a linear constant-current LED\n*sink* (VIN 2.8V-5.5V, up to 4 LEDs, 20mA/channel sink current, no inductor, no boost\nstage), not a boost converter. It cannot produce this backlight's required ~9V output\nfrom a 3.3V input at all -- this is an architecture mismatch, not just a pinout\ndifference, so it was rejected as a substitute rather than wired in. A further search\nof JLCPCB's 'LED Drivers' category for other in-stock single-cell boost LED drivers\n(PT4115: buck-only, needs 6-30V input; AL1692: AC-DC mains flyback, 8.5-20V input;\nNSI450xx: passive 2-terminal CCRs) found none sharing AP3036B's topology at this input\nvoltage. AP3036BKTR-G1 is kept here as the only verified-correct circuit for this\nbacklight; its 0-stock status is flagged as a sourcing risk for pilink-7el.8 (BOM\ncompilation) to resolve -- wait for restock, find a true topology-equivalent part via\nfurther research, or a human sourcing call -- not a defect in this schematic." (at 20 475 0)
+    (effects (font (size 1.27 1.27)))
+    (uuid d580fa24-c63c-44b2-a59d-ee9cf513e297)
+  )
 )

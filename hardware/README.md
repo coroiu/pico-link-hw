@@ -191,6 +191,170 @@ ImageMagick/Ghostscript -- was available in this environment to produce a
 bitmap screenshot; the PDF's own text/geometry stream was inspected
 instead).
 
+### Display subsystem (pilink-7el.5)
+
+`display.kicad_sch` now has J501 (the display's 40-pin FPC connector), U501
+(the backlight boost driver) and its L501/C501/C502/R501 support parts, for
+the Crystalfontz **CFAF240320A0-024SN** panel (240x320 native, rotated
+90deg to 320x240 in firmware via ST7789V MADCTL/MV). Why this panel was
+chosen over the originally-assumed 24-pin part is recorded in
+`pilink-7el.5`'s own bead comments (Crystalfontz product page fetch
+confirming the 40-pin 0.5mm ZIF FPC connector, full pin table from the
+official datasheet) — the bead's description points at a
+`.planning/decisions/` ADR file for this that does not actually exist on
+disk or in `INDEX.md`; filed as follow-up bead `pilink-kkn`
+(discovered-from `pilink-7el.5`) to write it, rather than linking a
+dangling reference here.
+
+**Connector and pin table.** J501 is a 40-position, 0.5mm-pitch,
+bottom-contact, flip-top-lock SMT FPC/ZIF connector — LCSC `C262674`
+(Jushuo `AFC01-S40FCA-00`), confirmed directly from its own LCSC spec table
+(pitch/position-count/contact-style/locking-feature all match the panel's
+own "40 Position, 0.50mm Pitch ZIF connector" spec; its 500mA/50V rating is
+comfortably above this interface's actual currents). No stock KiCad symbol
+or footprint exists for this exact part, so both were hand-authored for
+this bead: the symbol (`pico_link_custom:CFAF240320A0_FPC40` in
+`symbols/pico_link_custom.kicad_sym`) and the footprint
+(`Connector_FPC:AFC01-S40FCA-00` in `footprints/Connector_FPC.pretty/`,
+registered in `fp-lib-table`). All 40 pin *numbers* and *names* are copied
+directly from Crystalfontz's own datasheet (Rev 1v2, 2021-03-26), section
+6, SPI-mode column — the symbol's single-column pin layout is a schematic
+drawing convenience, not a physical pinout diagram, so only the numbers
+matter for the netlist. The footprint's pad pitch/position-count/contact
+style are confirmed against the connector's own LCSC spec table, but the
+exact pad outline dimensions are typical-for-this-connector-family
+placeholders, **not** measured from Jushuo's real mechanical drawing — that
+PDF's dimension-drawing page didn't yield extractable numeric text with the
+tooling available in this agent environment (no `pdftotext`/poppler-utils,
+no KiCad GUI to open the part directly). This is an explicit, unresolved
+verification gap, flagged for a human KiCad-GUI pass before PCB fab, same
+caveat class this project already applies to the RP2350 QFN-80 and PSRAM
+USON-8 hand-authored footprints.
+
+Per the datasheet: SDO (pin 4) and TE (pin 5) are no-connect (write-only
+use, no tearing-effect sync needed). DB0-17 (pins 6-23), DOTCLK (26),
+ENABLE (28), VSYNC (29), HSYNC (30) and RD (31) are all tied to `GND` per
+the datasheet's explicit "fix low if not used" guidance for the unused
+parallel-bus/RGB-interface pins — not left floating. IM0 (36) is tied `GND`
+and IM1/IM2 (37/38) tied `+3V3` for the 4-wire SPI mode strap (per the
+datasheet's mode table). VCC (3) and VCI (39) both go to `+3V3`.
+
+**GPIO assignment.** `GPIO29` (SCK/RS), `GPIO30` (MOSI/SDA), `GPIO31` (CS),
+`GPIO32` (D-C/WR), `GPIO33` (RESET), `GPIO34` (backlight CTRL/enable) —
+picked from the generic bidirectional GPIO pool `rp2350b_memory.kicad_sch`
+exposes as global labels for every RP2350B GPIO not already committed
+elsewhere. Confirmed free by grepping all of `hardware/*.kicad_sch` for
+every `GPIOx` global label before picking (2026-11-15): `input.kicad_sch`
+claims only `GPIO22`-`GPIO28` (A/B/X/Y + the volume encoder's 3 signals,
+per the two 2026-11-15 rotary-encoder ADRs); `esp32_bt.kicad_sch` uses named
+`ESP32_*` global labels, not `GPIOx`; `usb_c.kicad_sch` (merged as
+`pilink-7el.7` while this bead was in progress — re-checked live against
+`origin/master` before finalizing this sheet's own GPIO picks) uses
+`USB_DP`/`USB_DM` only, no `GPIOx` claims. `GPIO29`-`GPIO34` were untouched
+by all of the above. Each label
+keeps the generic pool name as its real net identity (required for it to
+actually join the same-named label on `rp2350b_memory.kicad_sch`) with a
+plain, non-connected text caption underneath for the logical function name
+— same convention `input.kicad_sch` uses for A/B/X/Y/VOL_\*. The labels use
+shape `output` (RP2350 drives all six as outputs — SPI master signals plus
+the backlight enable/PWM pin), matching the convention `esp32_bt.kicad_sch`
+already established for its own RP2350-driven labels.
+
+**Backlight driver.** The panel's `LED_A`/`LED_K` backlight string needs
+~9V (VF 8.1-9.9V typ 9.0V) at 40mA per the datasheet's section 11.1 — not
+achievable from the 3.3V/5V rails directly. U501/L501/C501/C502/R501 are
+copied directly from Crystalfontz's own "LED Backlight Reference Schematic"
+(datasheet section 11.2): Diodes **AP3036BKTR-G1** (SOT-23-6 boost LED
+driver; pin1=CTRL, pin2=VOUT, pin3=VIN, pin4=SW, pin5=GND, pin6=FB per
+Diodes' own AP3036B datasheet DS37004 Rev 2-2 — no stock KiCad symbol for
+this exact part either, hand-authored as
+`pico_link_custom:AP3036BKTR-G1`), L501 22uH 1210 (SW-VOUT), C501 10uF 0805
+(VIN bypass), C502 1uF 0805 (VOUT-GND), R501 5.1R 0402 (FB-GND, sets
+ILED = VFB/RFB = 200mV/5.1R ≈ 39.2mA, matching the panel's 40mA spec). VIN
+comes from this project's `+3V3` rail (within AP3036B's 2.5-16V input
+range, and matching Crystalfontz's own circuit's "VIN 3V" label). CTRL goes
+to `GPIO34`; tied high enables the driver, or firmware can PWM the same pin
+for brightness dimming per AP3036B's "High Frequency Dimming Control"
+feature — both are valid with this circuit, and which one firmware uses is
+out of scope for this schematic.
+
+AP3036BKTR-G1 is LCSC `C526368` — re-checked live via the `jlcpcb-search`
+MCP tool on 2026-11-15 (`get_component_details`, `lcsc=C526368`): **still 0
+units in stock**, same as this bead's own investigation comment found.
+The bead-named fallback, AW9364DNR (LCSC `C401007`, 11,060 units in stock),
+was independently checked against its own datasheet (downloaded and
+text-extracted directly, since no `pdftotext`/poppler-utils was available
+in this environment) — it is Awinic's "4-Channel 1-wire Dimming LED
+Driver", a linear constant-current LED **sink** (VIN 2.8V-5.5V, up to 4
+LEDs, 20mA/channel sink current, no inductor, no boost stage), **not** a
+boost converter. It cannot produce this backlight's required ~9V output
+from a 3.3V input at all — an architecture mismatch, not just a pinout
+difference — so it was rejected as a substitute rather than wired in. A
+further search of JLCPCB's "LED Drivers" category for other in-stock
+single-cell boost LED drivers found none sharing AP3036B's topology at this
+input voltage (PT4115: buck-only, needs 6-30V input; AL1692: AC-DC mains
+flyback, 8.5-20V input; NSI450xx: passive 2-terminal CCRs). AP3036BKTR-G1 is
+kept here as the only circuit that is actually correct for this backlight;
+its 0-stock status is flagged as a sourcing risk for `pilink-7el.8` (BOM
+compilation) to resolve — wait for restock, find a true topology-equivalent
+part via further research, or a human sourcing call — not a defect in this
+schematic. Filed as follow-up bead `pilink-av8` (discovered-from
+`pilink-7el.5`).
+
+References use `500`-`599` for this sheet (`power.kicad_sch`: 1-99,
+`rp2350b_memory.kicad_sch`: 100-199, `esp32_bt.kicad_sch`: 200-299,
+`input.kicad_sch`: 300-399, `usb_c.kicad_sch`: 400-499 — `usb_c.kicad_sch`'s
+own README section above already called `500`-`599` for whenever this
+sheet got populated, so this isn't a new reservation): J501, U501, L501,
+C501, C502, R501, `#PWR501`-`#PWR536`. Checked directly against
+`origin/master` (which already had `usb_c.kicad_sch` merged, including its
+own `R401`/`R402`, by the time this bead's implementation ran) via a
+project-wide netlist export: all 64 real components project-wide have a
+unique reference, zero collisions.
+
+Validated with `kicad-cli sch erc --severity-all --exit-code-violations`:
+the **root** `pico-link-hw.kicad_sch` reports **0 errors** / 409 warnings
+(up from 270 on `origin/master` before this bead) — all of the increase is
+either the pre-existing "library/footprint not configured" notice (this
+environment has no global KiCad library table, so every newly-referenced
+stock library name — `Device`, `Package_TO_SOT_SMD`, `Capacitor_SMD`,
+`Inductor_SMD`, `Resistor_SMD`, plus this project's own `pico_link_custom`
+— adds its own warning line, same root cause already documented for every
+other populated sheet) or `endpoint_off_grid` (100 instances, all on this
+sheet — several of the backlight subcircuit's coordinates aren't aligned to
+KiCad's default connection grid; purely cosmetic, does not affect netlist
+correctness, and is flagged here rather than silently left for a human to
+notice). Checking `display.kicad_sch` **standalone** additionally reports 2
+`power_pin_not_driven` and 6 `pin_not_driven` errors — the same
+non-root-sheet artifact already documented for every other populated child
+sheet (this sheet's `+3V3`/`GND` aren't driven by `power.kicad_sch` in a
+single-sheet view, and the 6 SPI/backlight-CTRL `GPIOxx` labels have no
+driver until `rp2350b_memory.kicad_sch` — which already exposes them in
+its generic pool — is loaded alongside this sheet); both resolve to 0 at
+the root level. A project-wide netlist export (`kicad-cli sch export
+netlist` on the root sheet) was used to directly verify every net by hand
+(`GPIO29`-`GPIO34`, the 27-pin `GND` tie, the 4-pin `+3V3` tie, and the
+backlight loop `U501`-`L501`-`C502`-`J501 LED_A` / `U501`-`R501`-`J501
+LED_K`) — all resolve correctly.
+
+**Implementation note for future edits to this sheet:** this file was
+generated programmatically (not hand-typed), and two non-obvious KiCad 8.0.9
+behaviors were discovered the hard way while building it, worth keeping in
+mind if this sheet is edited by hand or regenerated: (1) a symbol's local Y
+offset in its pin `(at ...)` entry is *negated* relative to its placed
+world position (confirmed empirically against this project's own rotary
+encoder and resistor placements) — i.e. a pin's world Y = the symbol's
+placed Y *minus* the pin's local Y, not plus; (2) in this specific KiCad
+build, a wire that references a stock passive symbol's pin (`Device:R` /
+`Device:C` / `Device:L`) can silently fail to resolve into the netlist if
+that wire's S-expression appears *before* the symbol's own placement
+block in the file — placing the symbol first, and keeping every wire that
+touches one net point contiguous with any `(junction ...)` marker last
+among them, avoided it reliably. Neither is documented KiCad behavior as
+far as this bead could find; both were found by bisecting a crashing/
+silently-wrong file with `kicad-cli sch export netlist` until the pattern
+was isolated.
+
 ### Input subsystem (pilink-7el.6, amended by pilink-cmn then pilink-3rm)
 
 `input.kicad_sch` originally had the d-pad + button switches: 4 discrete
@@ -417,7 +581,7 @@ same caveat as every other sheet) for a non-overlapping layout; this is an
 agent-driven check against a rendered export, not a human sign-off in the
 KiCad GUI.
 
-**Blind-authoring caveat (the one remaining empty child sheet):** neither
+**Blind-authoring caveat (all six child sheets now populated):** neither
 KiCad nor `kicad-cli` was available in the agent environment the project
 skeleton was written in. `display.kicad_sch` was hand-authored as KiCad 8
 S-expression/JSON text at that time, cross-checked against KiCad's own
@@ -425,10 +589,11 @@ file-format docs and real KiCad-8-generated project files pulled from
 public repos — not written, opened, or validated by the actual KiCad GUI.
 `kicad-cli` **is** available now (KiCad 8.0.9) and was used for
 `power.kicad_sch`, `rp2350b_memory.kicad_sch`, `esp32_bt.kicad_sch`,
-`input.kicad_sch`, `usb_c.kicad_sch`, and the root sheet's hierarchy (see
-above); the same validation still needs to happen for `display.kicad_sch`
-before trusting or building on it. If anything fails to parse, that's a
-bug in this skeleton, not a sign the approach is wrong.
+`input.kicad_sch`, `usb_c.kicad_sch`, and (by `pilink-7el.5`, after this
+sheet's own `usb_c.kicad_sch` section was written) `display.kicad_sch` too
+— see that bead's own section above for its sheet-standalone and
+root-level ERC numbers. If anything fails to parse, that's a bug in this
+skeleton, not a sign the approach is wrong.
 
 PCB routing, DRC/ERC, and gerber export still need to happen in the KiCad GUI
 on a machine that has it installed — same caveat as before, now narrowed to
