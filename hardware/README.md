@@ -217,24 +217,31 @@ registered in `fp-lib-table`). All 40 pin *numbers* and *names* are copied
 directly from Crystalfontz's own datasheet (Rev 1v2, 2021-03-26), section
 6, SPI-mode column — the symbol's single-column pin layout is a schematic
 drawing convenience, not a physical pinout diagram, so only the numbers
-matter for the netlist. The footprint's pad geometry is measured directly
-from Jushuo's own mechanical drawing (customer drawing rev A, 2024-05-18 —
-its dimension-drawing page is vector art with no extractable text, so it
-was rendered to an image and read directly, on a review round after the
-earlier draft of this sheet had used family-typical placeholder dimensions
-instead): 0.50mm pad pitch, 0.30x1.30mm pads, 19.50mm span across all 40
-pads (the drawing's own CKTS=40 row), matching this footprint's -9.75mm to
-+9.75mm pad placement. The two mounting/fitting-nail pads are 2.00x1.60mm,
-centered 1.70mm beyond pad-1/pad-40 — that offset is derived from two of
-the drawing's dimensions rather than read off a single one, so it's good
-but slightly less certain than the pad pitch/size numbers. The body/
-courtyard outline was not re-derived from the drawing and is still a
-family-typical approximation — it only affects DRC clearance spacing, not
-solder-pad accuracy, so it's a smaller remaining gap than the pad geometry
-was. Still worth a human KiCad-GUI visual cross-check before PCB fab, same
-caveat class this project already applies to the RP2350 QFN-80 and PSRAM
-USON-8 hand-authored footprints, but the acceptance-criterion-level gap
-(pad geometry measured vs. guessed) is now closed.
+matter for the netlist. The footprint's pad geometry went through two
+review rounds: an earlier claim of having "rendered Jushuo's mechanical
+drawing to an image and read it directly" turned out to be mis-transcribed
+(wrong row orientation, wrong mounting-pad offset) — re-checked by
+downloading the actual LCSC-hosted datasheet PDF for this exact part
+(`https://www.lcsc.com/datasheet/C262674.pdf`) and extracting its text
+directly, which showed it is a generic company reliability/process spec
+book (electrical ratings, salt-spray/vibration test conditions, reflow
+profile, SOP) with no per-position dimensioned CAD drawing in it at all —
+there was never a "page 2 dimension drawing" to read numbers from. The
+corrected geometry instead comes from the authoritative EasyEDA/JLCPCB
+official library footprint for this exact LCSC part (`C262674`,
+`FPC-SMD_AFC01-S40FCA-00`, fetched via easyeda.com's public component API):
+0.50mm pad pitch, 0.30x1.30mm pads, 19.50mm span across all 40 pads
+(pads at -9.75mm to +9.75mm) — unchanged from the prior revision, since
+those numbers were already correct. The two mounting/fitting-nail pads are
+2.00x1.60mm, centered 1.70mm beyond pad-1/pad-40 in X (also unchanged) but
+now correctly offset 2.68mm from the signal pad row in Y, with the signal
+row on the opposite side from the mounting pads (the prior revision had
+them on the same side, 1.4mm apart, which also put pin 1 on the wrong pad).
+The body/courtyard outline was not re-derived and is still a family-typical
+approximation — it only affects DRC clearance spacing, not solder-pad
+accuracy. Still worth a human KiCad-GUI visual cross-check before PCB fab,
+same caveat class this project already applies to the RP2350 QFN-80 and
+PSRAM USON-8 hand-authored footprints.
 
 Per the datasheet: SDO (pin 4) and TE (pin 5) are no-connect (write-only
 use, no tearing-effect sync needed). DB0-17 (pins 6-23), DOTCLK (26),
