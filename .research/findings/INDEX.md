@@ -15,3 +15,4 @@ Research lives here; the decisions it informs live in `.planning/decisions/`.
 | 2026-11-15 | [Sustainably-stocked wide-bar display panel, height >= 240px](2026-11-15-display-sustainable-stock.md) | Current |
 | 2026-11-15 | [Best LCSC-stocked display panel, with the height>=240px constraint relaxed](2026-11-15-display-lcsc-relaxed-size.md) | Current |
 | 2026-11-15 | [USB-C default-power compliance for the ~0.65A worst-case peak draw](2026-11-15-usb-c-default-power-compliance.md) | Current |
+| 2026-11-15 | [Vertical-mount USB-C receptacle for the PCB back side](2026-11-15-vertical-usb-c-receptacle-selection.md) | Current |
