@@ -5,7 +5,7 @@
 	(uuid "67690554-0bd2-4641-9632-1f8c8fb6736a")
 	(paper "A3")
 	(title_block
-		(title "ESP32-WROOM-32U BT coprocessor (pilink-7el.4)")
+		(title "ESP32-WROOM-32UE BT coprocessor (pilink-7el.4)")
 		(date "2026-11-14")
 		(rev "A")
 		(company "Pico Link")
@@ -488,7 +488,7 @@
 				)
 			)
 
-		(symbol "RF_Module:ESP32-WROOM-32U"
+		(symbol "RF_Module:ESP32-WROOM-32UE"
 				(exclude_from_sim no)
 				(in_bom yes)
 				(on_board yes)
@@ -501,7 +501,7 @@
 						(justify left)
 					)
 				)
-				(property "Value" "ESP32-WROOM-32U"
+				(property "Value" "ESP32-WROOM-32UE"
 					(at 1.27 34.29 0)
 					(effects
 						(font
@@ -510,8 +510,8 @@
 						(justify left)
 					)
 				)
-				(property "Footprint" "RF_Module:ESP32-WROOM-32U"
-					(at 0 -38.1 0)
+				(property "Footprint" "RF_Module:ESP32-WROOM-32UE"
+					(at 16.51 -34.29 0)
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -519,8 +519,8 @@
 						(hide yes)
 					)
 				)
-				(property "Datasheet" "https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32d_esp32-wroom-32u_datasheet_en.pdf"
-					(at -7.62 1.27 0)
+				(property "Datasheet" "https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32e_esp32-wroom-32ue_datasheet_en.pdf"
+					(at 0 0 0)
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -528,7 +528,7 @@
 						(hide yes)
 					)
 				)
-				(property "Description" "RF Module, ESP32-D0WD SoC, Wi-Fi 802.11b/g/n, Bluetooth, BLE, 32-bit, 2.7-3.6V, external antenna, SMD"
+				(property "Description" "RF Module, ESP32-D0WD-V3 SoC, without PSRAM, Wi-Fi 802.11b/g/n, Bluetooth, BLE, 32-bit, 2.7-3.6V, external antenna, SMD"
 					(at 0 0 0)
 					(effects
 						(font
@@ -546,7 +546,7 @@
 						(hide yes)
 					)
 				)
-				(property "ki_fp_filters" "ESP32?WROOM?32U*"
+				(property "ki_fp_filters" "ESP32?WROOM?32UE*"
 					(at 0 0 0)
 					(effects
 						(font
@@ -555,7 +555,7 @@
 						(hide yes)
 					)
 				)
-				(symbol "ESP32-WROOM-32U_0_1"
+				(symbol "ESP32-WROOM-32UE_0_1"
 					(rectangle
 						(start -12.7 33.02)
 						(end 12.7 -33.02)
@@ -568,7 +568,7 @@
 						)
 					)
 				)
-				(symbol "ESP32-WROOM-32U_1_1"
+				(symbol "ESP32-WROOM-32UE_1_1"
 					(pin power_in line
 						(at 0 -35.56 90)
 						(length 2.54)
@@ -713,10 +713,10 @@
 							)
 						)
 					)
-					(pin bidirectional line
-						(at -15.24 -5.08 0)
-						(length 2.54)
-						(name "SHD/SD2"
+					(pin no_connect line
+						(at -12.7 -5.08 0)
+						(length 2.54) hide
+						(name "NC"
 							(effects
 								(font
 									(size 1.27 1.27)
@@ -731,10 +731,10 @@
 							)
 						)
 					)
-					(pin bidirectional line
-						(at -15.24 -7.62 0)
-						(length 2.54)
-						(name "SWP/SD3"
+					(pin no_connect line
+						(at -12.7 -7.62 0)
+						(length 2.54) hide
+						(name "NC"
 							(effects
 								(font
 									(size 1.27 1.27)
@@ -749,10 +749,10 @@
 							)
 						)
 					)
-					(pin bidirectional line
-						(at -15.24 -12.7 0)
-						(length 2.54)
-						(name "SCS/CMD"
+					(pin no_connect line
+						(at -12.7 -12.7 0)
+						(length 2.54) hide
+						(name "NC"
 							(effects
 								(font
 									(size 1.27 1.27)
@@ -785,10 +785,10 @@
 							)
 						)
 					)
-					(pin bidirectional line
-						(at -15.24 -10.16 0)
-						(length 2.54)
-						(name "SCK/CLK"
+					(pin no_connect line
+						(at -12.7 -10.16 0)
+						(length 2.54) hide
+						(name "NC"
 							(effects
 								(font
 									(size 1.27 1.27)
@@ -803,10 +803,10 @@
 							)
 						)
 					)
-					(pin bidirectional line
-						(at -15.24 0 0)
-						(length 2.54)
-						(name "SDO/SD0"
+					(pin no_connect line
+						(at -12.7 0 0)
+						(length 2.54) hide
+						(name "NC"
 							(effects
 								(font
 									(size 1.27 1.27)
@@ -821,10 +821,10 @@
 							)
 						)
 					)
-					(pin bidirectional line
-						(at -15.24 -2.54 0)
-						(length 2.54)
-						(name "SDI/SD1"
+					(pin no_connect line
+						(at -12.7 -2.54 0)
+						(length 2.54) hide
+						(name "NC"
 							(effects
 								(font
 									(size 1.27 1.27)
@@ -1275,19 +1275,19 @@
 			)
 	)
 
-  (symbol (lib_id "RF_Module:ESP32-WROOM-32U") (at 180.34 190.5 0) (unit 1)
+  (symbol (lib_id "RF_Module:ESP32-WROOM-32UE") (at 180.34 190.5 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 50aaedf0-7ff6-4dd3-afce-890bf06f1c5f)
     (property "Reference" "U201" (at 167.64 224.79 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "ESP32-WROOM-32U-N4" (at 214.9 224.79 0)
+    (property "Value" "ESP32-WROOM-32UE-N4" (at 214.9 224.79 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "RF_Module:ESP32-WROOM-32U" (at 180.34 152.4 0)
+    (property "Footprint" "RF_Module:ESP32-WROOM-32UE" (at 180.34 152.4 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (property "Datasheet" "https://documentation.espressif.com/esp32-wroom-32d_esp32-wroom-32u_datasheet_en.pdf" (at 180.34 190.5 0)
+    (property "Datasheet" "https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32e_esp32-wroom-32ue_datasheet_en.pdf" (at 180.34 190.5 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (pin "1" (uuid 98891b52-fa00-4ee9-8998-363c5d630797))
@@ -1831,24 +1831,6 @@
   (no_connect (at 195.58 177.8)
     (uuid 2555867f-72c1-4f83-a243-4e124faba876)
   )
-  (no_connect (at 165.1 195.58)
-    (uuid 968af535-4c3f-4d04-8756-ba3b8a9fa7ba)
-  )
-  (no_connect (at 165.1 198.12)
-    (uuid 4065bec5-75ac-43d6-887d-e651eaf05bda)
-  )
-  (no_connect (at 165.1 203.2)
-    (uuid e1bbc1d5-c299-4e30-9bf2-88bc3a70da3c)
-  )
-  (no_connect (at 165.1 200.66)
-    (uuid c188cbe7-263c-4900-8238-765888b8613a)
-  )
-  (no_connect (at 165.1 190.5)
-    (uuid b927a3eb-e0c4-4d76-8c42-655e8a4c533a)
-  )
-  (no_connect (at 165.1 193.04)
-    (uuid af2adce6-5877-49cf-9d1f-f4238e241c93)
-  )
   (no_connect (at 195.58 182.88)
     (uuid 53458845-2f1f-4441-aed0-8a89a7db79f7)
   )
@@ -1870,19 +1852,19 @@
   (no_connect (at 195.58 198.12)
     (uuid 4a1b0ec2-a110-44ea-8275-46c0d7904dc8)
   )
-  (text "ESP32-WROOM-32U BT Classic coprocessor (pilink-7el.4). Runs Espressif's\ncontroller_hci_uart example firmware; exposes HCI-over-UART to BTstack on\nRP2350 (see .planning/decisions/2026-11-13-esp32-bt-coprocessor-not-rm2.md).\nNo profile-level Bluetooth (A2DP/AVRCP) runs on this chip. U.FL antenna\nconnector is already part of the WROOM-32U module (confirmed below) --\nno separate antenna component needed on this sheet; mount/placement is\npilink-8hx.4's job." (at 20 15 0)
+  (text "ESP32-WROOM-32UE BT Classic coprocessor (pilink-7el.4, swapped from\nESP32-WROOM-32U per pilink-wot/.planning/decisions/2026-11-15-esp32-wroom-32ue-swap.md).\nRuns Espressif's controller_hci_uart example firmware; exposes HCI-over-UART\nto BTstack on RP2350 (see\n.planning/decisions/2026-11-13-esp32-bt-coprocessor-not-rm2.md). No\nprofile-level Bluetooth (A2DP/AVRCP) runs on this chip. U.FL antenna\nconnector is already part of the WROOM-32UE module (confirmed below) --\nno separate antenna component needed on this sheet; mount/placement is\npilink-8hx.4's job." (at 20 15 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid 2eb5d0e6-33f8-437a-aaef-94abe8bcb6da)
   )
-  (text "Flash variant: ESP32-WROOM-32U-N4 (4MB flash, no PSRAM). JLCPCB/LCSC\nC328062, Espressif Systems MPN ESP32-WROOM-32U-N4. JLCPCB lists it as an\nExtended-library part (not Basic -- incurs the standard extended-part\nhandling fee, not a sourcing-availability risk). Live stock checked\n2026-11-14: multiple current LCSC snapshots for C328062 show stock in\nthe low thousands (~2,944-3,383 units seen across snapshots taken\nminutes apart), comfortably above any realistic build quantity for this\nproject. N4 is sufficient: this firmware is Espressif's HCI-controller-\nonly example (no Wi-Fi station app, no Bluedroid/A2DP stack, no display/\nUI code) -- a minimal single-app-partition ESP-IDF image, well under 1MB,\nwith 3x+ headroom left in 4MB even with a two-OTA-slot partition table for\nfuture field updates over the RP2350 bridge-flash path. No reason to pay\nfor N8/N16's extra flash here." (at 20 33 0)
+  (text "Flash variant: ESP32-WROOM-32UE-N4 (4MB flash, no PSRAM). JLCPCB/LCSC\nC701344, Espressif Systems MPN ESP32-WROOM-32UE-N4 (was C328062 /\nESP32-WROOM-32U-N4 before the pilink-wot swap). JLCPCB lists it as an\nExtended-library part (not Basic -- incurs the standard extended-part\nhandling fee, not a sourcing-availability risk). Live stock checked\n2026-11-14 (research bead pilink-8zj): multiple current LCSC snapshots for\nC701344 show stock around ~3,321 units, the same order of magnitude as the\nprevious 32U-N4 part, comfortably above any realistic build quantity for\nthis project. N4 is sufficient: this firmware is Espressif's HCI-controller-\nonly example (no Wi-Fi station app, no Bluedroid/A2DP stack, no display/\nUI code) -- a minimal single-app-partition ESP-IDF image, well under 1MB,\nwith 3x+ headroom left in 4MB even with a two-OTA-slot partition table for\nfuture field updates over the RP2350 bridge-flash path. No reason to pay\nfor N8/N16's extra flash here." (at 20 33 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid ff04cd22-f493-4d6c-8fa7-659e4e4323bc)
   )
-  (text "RISK FLAG (discovered during this bead, filed as follow-up\npilink-8zj): Espressif's own ESP32-WROOM-32D & ESP32-WROOM-32U\ndatasheet (documentation.espressif.com, Datasheet Version 2.8, dated\n2026-09-16 -- i.e. current as of this bead) is titled on its cover page\n\"NOT RECOMMENDED FOR NEW DESIGNS (NRND)\", with the same banner repeated\nin the running page header. This was not surfaced in the prior ADR/\nresearch pass. NRND does not mean unavailable -- JLCPCB/LCSC stock is\nhealthy (see above) and the part is still in production -- but it does\nmean Espressif itself steers new designs toward ESP32-WROOM-32UE\ninstead. The ESP32-WROOM-32UE datasheet (v2.1) carries no NRND/EOL\nwatermark and lists the same 18.0 x 19.2 x 3.2mm package size as the\n32U, suggesting (not confirmed pin-for-pin in the fetched text, which\nonly states the 32UE/32E pin-layout equivalence, not 32UE/32U) it may be\na low-risk future swap. This bead keeps ESP32-WROOM-32U per the parent\nADR's already-settled module choice -- re-opening that choice is out of\nthis bead's scope -- but flags it for the orchestrator/user to decide\nwhether to swap to 32UE before PCB fab." (at 20 63 0)
+  (text "RISK FLAG RESOLVED (pilink-wot): this sheet previously used\nESP32-WROOM-32U, which Espressif's own datasheet marks \"NOT RECOMMENDED\nFOR NEW DESIGNS (NRND)\" (Datasheet Version 2.8, 2026-09-16). Research\nbead pilink-8zj (.research/findings/2026-11-14-esp32-wroom-32ue-swap-eval.md)\nconfirmed ESP32-WROOM-32UE is a real drop-in: pin-for-pin identical net\nassignment across all 39 positions (diffed directly against both\ndatasheets' Table 3), identical 18.0 x 19.2 x 3.2mm package envelope, not\nitself NRND/EOL, and comparable LCSC/JLCPCB stock in the same N4 variant\n(C701344, ~3,321 units at research time). The user approved the swap\n(.planning/decisions/2026-11-15-esp32-wroom-32ue-swap.md) and U201 on\nthis sheet is now RF_Module:ESP32-WROOM-32UE / ESP32-WROOM-32UE-N4,\nresolving the NRND flag. No GPIO/net/pin changes were needed or made.\n\nRESIDUAL RISK (unresolved, needs human check before fab): the research\nfound the two footprints' pad *positions* differ by a small, consistent\noffset between the KiCad library files -- side pads (1-14, 25-38) shifted\n~0.155mm in Y, and the central ground/thermal pad-39 cluster shifted\n~0.38mm -- despite identical pad numbering, pad count, and 1.27mm pitch.\nThis is not a different pinout or package size, just two separately\nmaintained footprint files. Run a DRC/courtyard check in KiCad against\nthe ESP32-WROOM-32UE datasheet's own mechanical drawing before fab --\nsame standard caveat this project already applies to every footprint,\nsince there is no GUI tool in this agent environment to run DRC." (at 20 63 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid dd296697-f243-482f-81bc-5c12d3bd18a8)
   )
-  (text "Pinout cross-checked pin-by-pin against Espressif's own ESP32-WROOM-32D\n& ESP32-WROOM-32U datasheet Table 3 \"Pin Definitions\" (same document as\nabove) -- KiCad's built-in RF_Module:ESP32-WROOM-32U symbol matches\nexactly for all 39 pins (GND x4 on pins 1/15/38/39, all strapping/IO\nassignments, NC on pin 32). One cosmetic difference: the datasheet names\npin 2 \"3V3\" (\"Power supply\"); the KiCad symbol labels the same pin\n\"VDD\" -- same net, no functional discrepancy. Datasheet confirms the\n32U vs 32D difference is exactly the antenna connector: \"ESP32-WROOM-32D\ncomes with a PCB antenna. ESP32-WROOM-32U comes with a connector for an\nexternal antenna\" (U.FL/Hirose, MHF I/I-PEX, or AMC/Amphenol-compatible),\nconfirming no separate antenna-connector component belongs on this sheet." (at 20 101 0)
+  (text "Pinout cross-checked pin-by-pin against Espressif's own ESP32-WROOM-32D\n& ESP32-WROOM-32U datasheet Table 3 \"Pin Definitions\" (same document as\nabove) -- KiCad's built-in RF_Module:ESP32-WROOM-32U symbol matched\nexactly for all 39 pins (GND x4 on pins 1/15/38/39, all strapping/IO\nassignments, NC on pin 32). One cosmetic difference: the datasheet names\npin 2 \"3V3\" (\"Power supply\"); the KiCad symbol labels the same pin\n\"VDD\" -- same net, no functional discrepancy. Datasheet confirms the\n32U vs 32D difference is exactly the antenna connector: \"ESP32-WROOM-32D\ncomes with a PCB antenna. ESP32-WROOM-32U comes with a connector for an\nexternal antenna\" (U.FL/Hirose, MHF I/I-PEX, or AMC/Amphenol-compatible),\nconfirming no separate antenna-connector component belongs on this sheet.\n\nUpdate (pilink-wot): this sheet now uses ESP32-WROOM-32UE instead of\nESP32-WROOM-32U (see RISK FLAG note below). Research bead pilink-8zj\nre-diffed Table 3 of the 32E/32UE datasheet against the above and found\nidentical pin/net assignment on every pin -- the only difference is that\npins 17-22 (GPIO6-11, flash-SPI, already unconnected in this design) are\nlabelled by SPI signal name in the 32D/32U table and simply \"NC\" in the\n32E/32UE table. The cross-check above remains valid for the part now\nplaced on this sheet." (at 20 113.3 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid b1957ad6-cf56-4d78-9002-ad9acb12439b)
   )
