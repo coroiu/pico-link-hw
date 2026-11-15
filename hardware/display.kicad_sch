@@ -1439,7 +1439,7 @@
 			)
 		)
 	)
-	(symbol "pico_link_custom:AP3036BKTR-G1"
+	(symbol "pico_link_custom:AP3031KTR-G1"
 		(pin_names
 			(offset 0.508)
 		)
@@ -1454,7 +1454,7 @@
 				)
 			)
 		)
-		(property "Value" "AP3036BKTR-G1"
+		(property "Value" "AP3031KTR-G1"
 			(at 0 -7.62 0)
 			(effects
 				(font
@@ -1471,7 +1471,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://jlcpcb.com/api/file/downloadByFileSystemAccessId/8588905026865803264"
+		(property "Datasheet" "https://jlcpcb.com/api/file/downloadByFileSystemAccessId/8586177158310481920"
 			(at 0 0 0)
 			(effects
 				(font
@@ -1480,7 +1480,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Diodes Incorporated AP3036B, SOT-23-6, boost LED driver. Pin1=CTRL (EN/PWM dimming), pin2=VOUT, pin3=VIN, pin4=SW, pin5=GND, pin6=FB -- per Diodes' own AP3036B datasheet (DS37004 Rev 2-2). Used here as the backlight driver for the CFAF240320A0-024SN display's LED_A/LED_K string, exactly matching Crystalfontz's own 'LED Backlight Reference Schematic' (datasheet section 11.2): L1 22uH 1210 (VIN to SW), C16 10uF 0805 (VIN bypass), C17 1uF 0805 (VOUT to GND), R6 5.1 ohm 0402 (FB to GND, sets ILED ~=39.2mA). LCSC C526368 -- re-checked live via jlcpcb-search MCP on 2026-11-15: still 0 units in stock (same as the bead's investigation comment). The bead-named fallback AW9364DNR (LCSC C401007) was independently verified against its own datasheet and rejected: it is a 4-channel linear constant-current LED *sink* (VIN 2.8-5.5V, 20mA/channel, no inductor), not a boost converter, and cannot produce this backlight's required ~9V/40mA string voltage -- using it would not work, not just differ in pinout. AP3036BKTR-G1 is kept here as the only circuit that is actually correct for this backlight; the 0-stock status is a BOM/sourcing risk flagged for pilink-7el.8, not a schematic defect."
+		(property "Description" "Diodes Incorporated AP3031KTR-G1, SOT-23-6, boost LED driver -- in-stock substitute for AP3036BKTR-G1 (LCSC C526368, confirmed 0 stock twice, see pilink-av8). Pin1=SW (connect external inductor + external Schottky -- unlike AP3036B, AP3031 has NO internal Schottky/VOUT pin), pin2=GND, pin3=FB (reference 200mV, same as AP3036B, so R501 5.1R is unchanged: ILED=200mV/5.1R~=39.2mA), pin4=CTRL (same enable/PWM-dimming behavior as AP3036B's CTRL), pin5=OV (Over-voltage Protection Input -- 'connect to the output directly'; this pin and its VOUT wire don't exist in the AP3036B circuit), pin6=VIN -- per the real AP3031 Pin Description table, independently re-extracted in this bead (pilink-av8) via a local zlib-inflate+regex PDF text extractor (no poppler/pypdf available in this sandbox) run on the LCSC-hosted datasheet PDF for C82636. That PDF carries a 'Rev 1.6, Dec 2012, BCD Semiconductor Manufacturing Limited' letterhead, not the 'DS41442' Diodes-branded doc number -- BCD Semiconductor's LED-driver line was acquired by Diodes Incorporated, which now sells this exact silicon as AP3031KTR-G1 (LCSC/JLCPCB list it under the Diodes brand; the datasheet content -- pin table, electricals, application circuits -- matches regardless of letterhead). The datasheet's own 'Typical Application' circuit (Figure 24, 3*13 WLEDs for an LCD backlight) specifies L=4.7uH, C_IN=10uF, C_OUT=0.47uF at 1MHz switching -- used here instead of AP3036B's 22uH/1uF values (C_IN=10uF already matched, kept). External Schottky D501 (absent from the AP3036B circuit) added from SW to VOUT per the datasheet's pin1 note. LCSC C82636 -- confirmed live via jlcpcb-search MCP 2026-11-15: 11,130 units in stock, Boost topology, VIN 2.7V-16V, 1MHz switching, built-in OVP/soft-start/current-limit/OTSD."
 			(at 0 0 0)
 			(effects
 				(font
@@ -1498,7 +1498,7 @@
 				(hide yes)
 			)
 		)
-		(symbol "AP3036BKTR-G1_0_1"
+		(symbol "AP3031KTR-G1_0_1"
 			(rectangle
 				(start -5.08 5.08)
 				(end 5.08 -5.08)
@@ -1511,7 +1511,7 @@
 				)
 			)
 		)
-		(symbol "AP3036BKTR-G1_1_1"
+		(symbol "AP3031KTR-G1_1_1"
 			(pin input line
 				(at -7.62 -2.54 0)
 				(length 2.54)
@@ -1522,7 +1522,7 @@
 						)
 					)
 				)
-				(number "1"
+				(number "4"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1540,7 +1540,7 @@
 						)
 					)
 				)
-				(number "5"
+				(number "2"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1558,7 +1558,7 @@
 						)
 					)
 				)
-				(number "6"
+				(number "3"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1566,17 +1566,17 @@
 					)
 				)
 			)
-			(pin passive line
+			(pin input line
 				(at 7.62 -2.54 180)
 				(length 2.54)
-				(name "VOUT"
+				(name "OV"
 					(effects
 						(font
 							(size 1.27 1.27)
 						)
 					)
 				)
-				(number "2"
+				(number "5"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1594,7 +1594,7 @@
 						)
 					)
 				)
-				(number "4"
+				(number "1"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1612,7 +1612,170 @@
 						)
 					)
 				)
-				(number "3"
+				(number "6"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+	)
+	(symbol "Device:D"
+		(pin_numbers hide)
+		(pin_names
+			(offset 1.016) hide)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "D"
+			(at 0 2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "D"
+			(at 0 -2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Diode"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Device" "D"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "diode"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "TO-???* *_Diode_* *SingleDiode* D_*"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "D_0_1"
+			(polyline
+				(pts
+					(xy -1.27 1.27) (xy -1.27 -1.27)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 1.27 0) (xy -1.27 0)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 1.27 1.27) (xy 1.27 -1.27) (xy -1.27 0) (xy 1.27 1.27)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "D_1_1"
+			(pin passive line
+				(at -3.81 0 0)
+				(length 2.54)
+				(name "K"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 3.81 0 180)
+				(length 2.54)
+				(name "A"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -2635,19 +2798,19 @@
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid ed7a7e21-f27d-4cf7-90fa-0d49c44134b2)
   )
-  (symbol (lib_id "pico_link_custom:AP3036BKTR-G1") (at 150 275 0) (unit 1)
+  (symbol (lib_id "pico_link_custom:AP3031KTR-G1") (at 150 275 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 281526d3-abcc-4e70-be7c-57dea0f16c42)
     (property "Reference" "U501" (at 150 266 0)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Value" "AP3036BKTR-G1" (at 150 284 0)
+    (property "Value" "AP3031KTR-G1" (at 150 284 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Footprint" "Package_TO_SOT_SMD:SOT-23-6" (at 150 275 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (property "Datasheet" "https://jlcpcb.com/api/file/downloadByFileSystemAccessId/8588905026865803264" (at 150 275 0)
+    (property "Datasheet" "https://jlcpcb.com/api/file/downloadByFileSystemAccessId/8586177158310481920" (at 150 275 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (pin "1" (uuid 20884ee0-983a-467c-84cb-182a7e1d66e6))
@@ -2720,7 +2883,7 @@
     (property "Reference" "L501" (at 183.73 275 0)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Value" "22uH" (at 186.905 275 0)
+    (property "Value" "4.7uH" (at 186.905 275 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Footprint" "Inductor_SMD:L_1210_3225Metric" (at 185 275 0)
@@ -2745,7 +2908,7 @@
     (property "Reference" "C502" (at 170.635 260.54 0)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Value" "1uF" (at 170.635 255.46 0)
+    (property "Value" "0.47uF" (at 170.635 255.46 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Footprint" "Capacitor_SMD:C_0805_2012Metric" (at 170 258 0)
@@ -2763,6 +2926,53 @@
         )
       )
     )
+  )
+  (symbol (lib_id "Device:D") (at 181.19 268 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 2d150a37-8bbb-4bf6-95ef-627fddd48f0e)
+    (property "Reference" "D501" (at 181.19 265.46 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Value" "B5819W" (at 181.19 270.54 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "Diode_SMD:D_SOD-123" (at 181.19 268 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "https://jlcpcb.com/partdetail/C64885" (at 181.19 268 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid dc746af7-816f-4fe4-989a-78c33a5fda1b))
+    (pin "2" (uuid 9a81f447-60c9-4ebd-9a11-56338b6adff1))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/7cc5f89e-fc6a-4b18-aa69-bec78e8d3aef"
+          (reference "D501") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 185 268) (xy 185 275))
+    (stroke (width 0) (type default))
+    (uuid f447c50f-2821-42c9-8bb7-76d68fbb9b05)
+  )
+  (junction (at 185 275) (diameter 0) (color 0 0 0 0)
+    (uuid 97a51a60-cdec-4812-87e3-bc148191cb15)
+  )
+  (wire (pts (xy 177.38 268) (xy 177.38 277.54))
+    (stroke (width 0) (type default))
+    (uuid 8fd7a4b9-42fe-4013-8fee-192c6db5abae)
+  )
+  (wire (pts (xy 177.38 277.54) (xy 160 277.54))
+    (stroke (width 0) (type default))
+    (uuid 897a0a0a-b657-4017-959e-9a7753e22d02)
+  )
+  (junction (at 160 277.54) (diameter 0) (color 0 0 0 0)
+    (uuid 6667fbe8-1c13-425b-b474-91573ed21ecd)
+  )
+  (text "D501: Schottky diode, SW to VOUT -- AP3031 has no internal Schottky/VOUT pin (unlike\nAP3036B), so pin1 (SW)'s own datasheet text 'Connect external inductor and Schottky'\nrequires this external diode. B5819W (LCSC C64885, SOD-123, 40V/1.5A, Vf 600mV@1A --\ncomfortably above the panel's ~9V/40mA operating point in both reverse-voltage margin\nand forward current) picked from JLCPCB's in-stock Schottky diode listing (525,050\nunits live 2026-11-15 via jlcpcb-search MCP); verified against its own LCSC spec sheet,\nnot assumed. Anode ties to the SW/L501 node, cathode ties to the VOUT node (same node\nas C502, LED_A and U501 pin5/OV -- OV needs no separate wire since it already shares\nthis pin slot/net with VOUT, see the Backlight driver note below)." (at 20 540 0)
+    (effects (font (size 1.27 1.27)))
+    (uuid f49c7b23-1e3a-4b8a-9c21-7d5e8a2c6f10)
   )
   (wire (pts (xy 142.38 277.54) (xy 132.38 277.54))
     (stroke (width 0) (type default))
@@ -3016,7 +3226,7 @@
     (effects (font (size 1.27 1.27)))
     (uuid b8f19b3b-6bc9-4ba1-b5e8-7c0742da8ef3)
   )
-  (text "Backlight driver: the panel's LED_A/LED_K backlight string needs ~9V (VF 8.1-9.9V typ\n9.0V) at 40mA per the datasheet's section 11.1 -- not achievable from the 3.3V/5V rails\ndirectly. U501/L501/C501/C502/R501 are copied directly from Crystalfontz's own 'LED\nBacklight Reference Schematic' (datasheet section 11.2): Diodes AP3036BKTR-G1 (SOT-23-6\nboost LED driver; pin1=CTRL, pin2=VOUT, pin3=VIN, pin4=SW, pin5=GND, pin6=FB per Diodes'\nown AP3036B datasheet DS37004 Rev 2-2), L501 22uH 1210 (VIN-SW), C501 10uF 0805 (VIN\nbypass), C502 1uF 0805 (VOUT-GND), R501 5.1R 0402 (FB-GND, sets ILED = VFB/RFB =\n200mV/5.1R ~= 39.2mA, matching the panel's 40mA spec). VIN comes from this project's\n+3V3 rail (within AP3036B's 2.5-16V input range). CTRL goes to GPIO34 -- tied high\nenables the driver; firmware may instead PWM this same pin for brightness dimming per\nAP3036B's 'High Frequency Dimming Control' feature. Both are valid with this circuit;\nwhich one firmware uses is out of scope for this schematic.\n\nAP3036BKTR-G1 is LCSC C526368 -- re-checked live via the jlcpcb-search MCP tool on\n2026-11-15 (get_component_details, lcsc=C526368): still 0 units in stock, same as this\nbead's own investigation comment found. The bead-named fallback, AW9364DNR (LCSC\nC401007, 11,060 units in stock), was independently checked against its own datasheet\n(downloaded and text-extracted directly, since no pdftotext/poppler was available) --\nit is Awinic's '4-Channel 1-wire Dimming LED Driver', a linear constant-current LED\n*sink* (VIN 2.8V-5.5V, up to 4 LEDs, 20mA/channel sink current, no inductor, no boost\nstage), not a boost converter. It cannot produce this backlight's required ~9V output\nfrom a 3.3V input at all -- this is an architecture mismatch, not just a pinout\ndifference, so it was rejected as a substitute rather than wired in. A further search\nof JLCPCB's 'LED Drivers' category for other in-stock single-cell boost LED drivers\n(PT4115: buck-only, needs 6-30V input; AL1692: AC-DC mains flyback, 8.5-20V input;\nNSI450xx: passive 2-terminal CCRs) found none sharing AP3036B's topology at this input\nvoltage. AP3036BKTR-G1 is kept here as the only verified-correct circuit for this\nbacklight; its 0-stock status is flagged as a sourcing risk for pilink-7el.8 (BOM\ncompilation) to resolve -- wait for restock, find a true topology-equivalent part via\nfurther research, or a human sourcing call -- not a defect in this schematic." (at 20 475 0)
+  (text "Backlight driver: the panel's LED_A/LED_K backlight string needs ~9V (VF 8.1-9.9V typ\n9.0V) at 40mA per the datasheet's section 11.1 -- not achievable from the 3.3V/5V rails\ndirectly. This was originally Diodes AP3036BKTR-G1 (LCSC C526368), copied directly from\nCrystalfontz's own 'LED Backlight Reference Schematic' (datasheet section 11.2), but\nAP3036BKTR-G1 was found to be at 0 stock (confirmed twice independently, see pilink-av8)\nwith no restock date, so U501 is now Diodes AP3031KTR-G1 (LCSC C82636, 11,130 units in\nstock, re-confirmed live via jlcpcb-search MCP 2026-11-15) -- same SOT-23-6 package, same\nboost topology and 200mV FB reference, but NOT pin-compatible: pin1=SW, pin2=GND, pin3=FB,\npin4=CTRL, pin5=OV, pin6=VIN, per the real AP3031 datasheet's own Pin Description table\n(independently re-extracted for pilink-av8 via a local zlib-inflate+regex PDF text\nextractor, no poppler/pypdf available in this sandbox). Three circuit differences from\nthe old AP3036B layout, all applied here:\n(1) AP3031 has no internal Schottky/VOUT pin -- pin1 (SW) datasheet text 'Connect\nexternal inductor and Schottky' requires the new external diode D501 (SW to VOUT, see\nits own note below) that AP3036B's circuit didn't need.\n(2) AP3031 adds pin5 OV (Over-voltage Protection Input, datasheet: 'Connect to the\noutput directly'). This symbol places OV at the exact pin slot/wire the old VOUT pin\noccupied, so OV is already on the VOUT net (shared with C502, LED_A and D501's cathode)\nwithout needing a separate drawn wire -- same electrical connection the bead asked for,\njust inherited from the existing node rather than a new wire segment.\n(3) L501 is 4.7uH (was 22uH) and C502 is 0.47uF (was 1uF), per the AP3031 datasheet's own\n'Typical Application' circuit (Figure 24, 3*13 WLEDs for an LCD backlight, 1MHz\nswitching) -- not AP3036B's values, which were tuned for a different IC. C501 (10uF VIN\nbypass) already matched that same reference circuit's C_IN and needed no change.\nR501 (FB-GND) stays 5.1R unchanged -- AP3031's FB reference is 200mV, identical to\nAP3036B's, so ILED = VFB/RFB = 200mV/5.1R ~= 39.2mA still matches the panel's 40mA spec\nexactly. VIN comes from this project's +3V3 rail (within AP3031's 2.7-16V input range,\nsame margin as before). CTRL goes to GPIO34 -- tied high enables the driver; firmware may\ninstead PWM this same pin for brightness dimming per AP3031's 'High Frequency Dimming\nControl' feature (same behavior AP3036B's CTRL had). Both are valid with this circuit;\nwhich one firmware uses is out of scope for this schematic.\n\nSourcing history: AP3036BKTR-G1 (LCSC C526368) was re-checked live via jlcpcb-search MCP\non 2026-11-15 and found still at 0 units in stock, same as pilink-7el.5's and pilink-av8's\nown investigation comments. The bead-named fallback, AW9364DNR (LCSC C401007), was\nindependently checked against its own datasheet and rejected: it is Awinic's '4-Channel\n1-wire Dimming LED Driver', a linear constant-current LED *sink* (VIN 2.8V-5.5V, no\ninductor, no boost stage), architecturally unable to produce this backlight's required\n~9V output from a 3.3V input -- an architecture mismatch, not just a pinout difference.\nAP3031KTR-G1 is a genuine topology-equivalent, in-stock substitute, verified against its\nown real datasheet text (not assumed from the part number alone) -- see pilink-av8 for\nthe full investigation and sourcing detail." (at 20 475 0)
     (effects (font (size 1.27 1.27)))
     (uuid d580fa24-c63c-44b2-a59d-ee9cf513e297)
   )

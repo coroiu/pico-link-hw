@@ -985,7 +985,7 @@
 		)
 	)
 
-	(symbol "AP3036BKTR-G1"
+	(symbol "AP3031KTR-G1"
 		(pin_names
 			(offset 0.508)
 		)
@@ -1000,7 +1000,7 @@
 				)
 			)
 		)
-		(property "Value" "AP3036BKTR-G1"
+		(property "Value" "AP3031KTR-G1"
 			(at 0 -7.62 0)
 			(effects
 				(font
@@ -1017,7 +1017,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://jlcpcb.com/api/file/downloadByFileSystemAccessId/8588905026865803264"
+		(property "Datasheet" "https://jlcpcb.com/api/file/downloadByFileSystemAccessId/8586177158310481920"
 			(at 0 0 0)
 			(effects
 				(font
@@ -1026,7 +1026,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Diodes Incorporated AP3036B, SOT-23-6, boost LED driver. Pin1=CTRL (EN/PWM dimming), pin2=VOUT, pin3=VIN, pin4=SW, pin5=GND, pin6=FB -- per Diodes' own AP3036B datasheet (DS37004 Rev 2-2). Used here as the backlight driver for the CFAF240320A0-024SN display's LED_A/LED_K string, exactly matching Crystalfontz's own 'LED Backlight Reference Schematic' (datasheet section 11.2): L1 22uH 1210 (VIN to SW), C16 10uF 0805 (VIN bypass), C17 1uF 0805 (VOUT to GND), R6 5.1 ohm 0402 (FB to GND, sets ILED ~=39.2mA). LCSC C526368 -- re-checked live via jlcpcb-search MCP on 2026-11-15: still 0 units in stock (same as the bead's investigation comment). The bead-named fallback AW9364DNR (LCSC C401007) was independently verified against its own datasheet and rejected: it is a 4-channel linear constant-current LED *sink* (VIN 2.8-5.5V, 20mA/channel, no inductor), not a boost converter, and cannot produce this backlight's required ~9V/40mA string voltage -- using it would not work, not just differ in pinout. AP3036BKTR-G1 is kept here as the only circuit that is actually correct for this backlight; the 0-stock status is a BOM/sourcing risk flagged for pilink-7el.8, not a schematic defect."
+		(property "Description" "Diodes Incorporated AP3031KTR-G1, SOT-23-6, boost LED driver -- in-stock substitute for AP3036BKTR-G1 (LCSC C526368, confirmed 0 stock twice, see pilink-av8). Pin1=SW (connect external inductor + external Schottky -- unlike AP3036B, AP3031 has NO internal Schottky/VOUT pin), pin2=GND, pin3=FB (reference 200mV, same as AP3036B, so R501 5.1R is unchanged: ILED=200mV/5.1R~=39.2mA), pin4=CTRL (same enable/PWM-dimming behavior as AP3036B's CTRL), pin5=OV (Over-voltage Protection Input -- 'connect to the output directly'; this pin and its VOUT wire don't exist in the AP3036B circuit), pin6=VIN -- per the real AP3031 Pin Description table, independently re-extracted in this bead (pilink-av8) via a local zlib-inflate+regex PDF text extractor (no poppler/pypdf available in this sandbox) run on the LCSC-hosted datasheet PDF for C82636. That PDF carries a 'Rev 1.6, Dec 2012, BCD Semiconductor Manufacturing Limited' letterhead, not the 'DS41442' Diodes-branded doc number -- BCD Semiconductor's LED-driver line was acquired by Diodes Incorporated, which now sells this exact silicon as AP3031KTR-G1 (LCSC/JLCPCB list it under the Diodes brand; the datasheet content -- pin table, electricals, application circuits -- matches regardless of letterhead). The datasheet's own 'Typical Application' circuit (Figure 24, 3*13 WLEDs for an LCD backlight) specifies L=4.7uH, C_IN=10uF, C_OUT=0.47uF at 1MHz switching -- used here instead of AP3036B's 22uH/1uF values (C_IN=10uF already matched, kept). External Schottky D501 (absent from the AP3036B circuit) added from SW to VOUT per the datasheet's pin1 note. LCSC C82636 -- confirmed live via jlcpcb-search MCP 2026-11-15: 11,130 units in stock, Boost topology, VIN 2.7V-16V, 1MHz switching, built-in OVP/soft-start/current-limit/OTSD."
 			(at 0 0 0)
 			(effects
 				(font
@@ -1044,7 +1044,7 @@
 				(hide yes)
 			)
 		)
-		(symbol "AP3036BKTR-G1_0_1"
+		(symbol "AP3031KTR-G1_0_1"
 			(rectangle
 				(start -5.08 5.08)
 				(end 5.08 -5.08)
@@ -1057,7 +1057,7 @@
 				)
 			)
 		)
-		(symbol "AP3036BKTR-G1_1_1"
+		(symbol "AP3031KTR-G1_1_1"
 			(pin input line
 				(at -7.62 -2.54 0)
 				(length 2.54)
@@ -1068,7 +1068,7 @@
 						)
 					)
 				)
-				(number "1"
+				(number "4"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1086,7 +1086,7 @@
 						)
 					)
 				)
-				(number "5"
+				(number "2"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1104,7 +1104,7 @@
 						)
 					)
 				)
-				(number "6"
+				(number "3"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1112,17 +1112,17 @@
 					)
 				)
 			)
-			(pin passive line
+			(pin input line
 				(at 7.62 -2.54 180)
 				(length 2.54)
-				(name "VOUT"
+				(name "OV"
 					(effects
 						(font
 							(size 1.27 1.27)
 						)
 					)
 				)
-				(number "2"
+				(number "5"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1140,7 +1140,7 @@
 						)
 					)
 				)
-				(number "4"
+				(number "1"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1158,7 +1158,7 @@
 						)
 					)
 				)
-				(number "3"
+				(number "6"
 					(effects
 						(font
 							(size 1.27 1.27)
