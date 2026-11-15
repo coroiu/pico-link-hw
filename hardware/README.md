@@ -194,8 +194,8 @@ instead).
 ### Display subsystem (pilink-7el.5)
 
 `display.kicad_sch` now has J501 (the display's 40-pin FPC connector), U501
-(the backlight boost driver) and its L501/C501/C502/R501 support parts, for
-the Crystalfontz **CFAF240320A0-024SN** panel (240x320 native, rotated
+(the backlight boost driver) and its L501/C501/C502/R501/D501 support parts,
+for the Crystalfontz **CFAF240320A0-024SN** panel (240x320 native, rotated
 90deg to 320x240 in firmware via ST7789V MADCTL/MV). Why this panel was
 chosen over the originally-assumed 24-pin part is recorded in
 `.planning/decisions/2026-11-15-display-panel-crystalfontz-cfaf240320a0.md`,
@@ -297,76 +297,98 @@ already established for its own RP2350-driven labels.
 
 **Backlight driver.** The panel's `LED_A`/`LED_K` backlight string needs
 ~9V (VF 8.1-9.9V typ 9.0V) at 40mA per the datasheet's section 11.1 — not
-achievable from the 3.3V/5V rails directly. U501/L501/C501/C502/R501 are
-copied directly from Crystalfontz's own "LED Backlight Reference Schematic"
-(datasheet section 11.2): Diodes **AP3036BKTR-G1** (SOT-23-6 boost LED
-driver; pin1=CTRL, pin2=VOUT, pin3=VIN, pin4=SW, pin5=GND, pin6=FB per
-Diodes' own AP3036B datasheet DS37004 Rev 2-2 — no stock KiCad symbol for
-this exact part either, hand-authored as
-`pico_link_custom:AP3036BKTR-G1`), L501 22uH 1210 (VIN-SW — an earlier
-version of this sheet wired it SW-VOUT instead, which shorts the boost
-converter's internal Schottky diode output node to its switch node and
-produces no boost at all; fixed to match both Diodes' and Crystalfontz's
-own reference circuits), C501 10uF 0805
-(VIN bypass), C502 1uF 0805 (VOUT-GND), R501 5.1R 0402 (FB-GND, sets
-ILED = VFB/RFB = 200mV/5.1R ≈ 39.2mA, matching the panel's 40mA spec). VIN
-comes from this project's `+3V3` rail (within AP3036B's 2.5-16V input
-range, and matching Crystalfontz's own circuit's "VIN 3V" label). CTRL goes
-to `GPIO34`; tied high enables the driver, or firmware can PWM the same pin
-for brightness dimming per AP3036B's "High Frequency Dimming Control"
-feature — both are valid with this circuit, and which one firmware uses is
-out of scope for this schematic.
+achievable from the 3.3V/5V rails directly. This was originally Diodes
+**AP3036BKTR-G1** (SOT-23-6 boost LED driver; pin1=CTRL, pin2=VOUT, pin3=VIN,
+pin4=SW, pin5=GND, pin6=FB), copied directly from Crystalfontz's own "LED
+Backlight Reference Schematic" (datasheet section 11.2), but AP3036BKTR-G1
+(LCSC `C526368`) was found to be at 0 stock with no restock date — confirmed
+twice independently (`pilink-7el.5`'s own investigation, then re-checked live
+again for this bead, `pilink-av8`). U501 is now Diodes **AP3031KTR-G1**
+(LCSC `C82636`, 11,130 units in stock, re-confirmed live via `jlcpcb-search`
+MCP 2026-11-15) — same SOT-23-6 package and boost topology, **not**
+pin-compatible: pin1=SW, pin2=GND, pin3=FB, pin4=CTRL, pin5=OV, pin6=VIN, per
+the real AP3031 datasheet's own Pin Description table. That table was
+independently re-extracted for this bead via a local zlib-inflate+regex PDF
+text extractor (no `pdftotext`/poppler-utils or `pypdf` available in this
+environment, `pip`/`apt` installs blocked by the sandbox's auto-mode
+classifier) run against the LCSC-hosted datasheet PDF for `C82636`. That PDF
+carries a "Rev 1.6, Dec 2012, BCD Semiconductor Manufacturing Limited"
+letterhead rather than a "DS41442" Diodes-branded doc number — BCD
+Semiconductor's LED-driver line was acquired by Diodes Incorporated, which
+now sells this exact silicon as AP3031KTR-G1 (LCSC/JLCPCB list it under the
+Diodes brand; the pin table, electricals and application-circuit numbers
+match regardless of letterhead).
 
-AP3036BKTR-G1 is LCSC `C526368` — re-checked live via the `jlcpcb-search`
-MCP tool on 2026-11-15 (`get_component_details`, `lcsc=C526368`): **still 0
-units in stock**, same as this bead's own investigation comment found.
+Three concrete circuit differences from the old AP3036B layout, both symbol
+and external parts:
+
+1. **AP3031 has no internal Schottky/VOUT pin.** Pin1 (SW)'s own datasheet
+   text reads "Connect external inductor and Schottky", so a new Schottky
+   diode, **D501**, was added from the SW node to the VOUT node — a part
+   the AP3036B circuit didn't need. Picked **B5819W** (LCSC `C64885`,
+   SOD-123, 40V/1.5A, Vf 600mV@1A — comfortably above the panel's ~9V/40mA
+   operating point in both reverse-voltage margin and forward current),
+   confirmed in stock (525,050 units live via `jlcpcb-search` MCP
+   2026-11-15) and checked against its own LCSC spec sheet, not assumed
+   from the part number.
+2. **AP3031 adds pin5, OV** (Over-voltage Protection Input; datasheet:
+   "Connect to the output directly. On OVP condition, the output voltage
+   will be clamped"). The hand-authored symbol places OV at the exact pin
+   slot/wire the old VOUT pin occupied, so OV lands on the VOUT net (shared
+   with C502, `LED_A` and D501's cathode) without a separately drawn wire —
+   electrically identical to "wire OV to VOUT", just inherited from the
+   existing node rather than a new segment.
+3. **L501 is 4.7uH (was 22uH) and C502 is 0.47uF (was 1uF)**, per the AP3031
+   datasheet's own "Typical Application" circuit (Figure 24, 3×13 WLEDs for
+   an LCD backlight, 1MHz switching) — not AP3036B's values, which were
+   tuned for a different IC. C501 (10uF VIN bypass) already matched that
+   same reference circuit's `C_IN` and needed no change.
+
+R501 (FB-GND) stays **5.1R unchanged** — AP3031's FB reference voltage is
+200mV, identical to AP3036B's, so ILED = VFB/RFB = 200mV/5.1R ≈ 39.2mA still
+matches the panel's 40mA spec exactly. VIN comes from this project's `+3V3`
+rail (within AP3031's 2.7V-16V input range, the same margin as before).
+CTRL goes to `GPIO34`; tied high enables the driver, or firmware can PWM the
+same pin for brightness dimming per AP3031's "High Frequency Dimming
+Control" feature (the same behavior AP3036B's CTRL had) — both are valid
+with this circuit, and which one firmware uses is out of scope for this
+schematic.
+
 The bead-named fallback, AW9364DNR (LCSC `C401007`, 11,060 units in stock),
-was independently checked against its own datasheet (downloaded and
-text-extracted directly, since no `pdftotext`/poppler-utils was available
-in this environment) — it is Awinic's "4-Channel 1-wire Dimming LED
-Driver", a linear constant-current LED **sink** (VIN 2.8V-5.5V, up to 4
-LEDs, 20mA/channel sink current, no inductor, no boost stage), **not** a
-boost converter. It cannot produce this backlight's required ~9V output
-from a 3.3V input at all — an architecture mismatch, not just a pinout
-difference — so it was rejected as a substitute rather than wired in. A
-further search of JLCPCB's "LED Drivers" category for other in-stock
-single-cell boost LED drivers found none sharing AP3036B's topology at this
-input voltage (PT4115: buck-only, needs 6-30V input; AL1692: AC-DC mains
-flyback, 8.5-20V input; NSI450xx: passive 2-terminal CCRs). AP3036BKTR-G1 is
-kept here as the only circuit that is actually correct for this backlight;
-its 0-stock status is flagged as a sourcing risk for `pilink-7el.8` (BOM
-compilation) to resolve — wait for restock, find a true topology-equivalent
-part via further research, or a human sourcing call — not a defect in this
-schematic. Filed as follow-up bead `pilink-av8` (discovered-from
-`pilink-7el.5`).
+was independently checked against its own datasheet and rejected: it is
+Awinic's "4-Channel 1-wire Dimming LED Driver", a linear constant-current
+LED **sink** (VIN 2.8V-5.5V, up to 4 LEDs, 20mA/channel sink current, no
+inductor, no boost stage), **not** a boost converter — it cannot produce
+this backlight's required ~9V output from a 3.3V input at all, an
+architecture mismatch rather than a pinout difference. A further search of
+JLCPCB's "LED Drivers" category for other in-stock single-cell boost LED
+drivers at this input voltage found none sharing AP3036B's topology
+(PT4115: buck-only, needs 6-30V input; AL1692: AC-DC mains flyback, 8.5-20V
+input; NSI450xx: passive 2-terminal CCRs) — AP3031KTR-G1, found separately,
+is the genuine topology-equivalent, in-stock substitute. See bead
+`pilink-av8` (discovered-from `pilink-7el.5`) for the full sourcing
+investigation and the independent re-verification against AP3031's real
+datasheet text.
 
 References use `500`-`599` for this sheet (`power.kicad_sch`: 1-99,
 `rp2350b_memory.kicad_sch`: 100-199, `esp32_bt.kicad_sch`: 200-299,
 `input.kicad_sch`: 300-399, `usb_c.kicad_sch`: 400-499 — `usb_c.kicad_sch`'s
 own README section above already called `500`-`599` for whenever this
 sheet got populated, so this isn't a new reservation): J501, U501, L501,
-C501, C502, R501, `#PWR501`-`#PWR536`. Checked directly against
-`origin/master` (which already had `usb_c.kicad_sch` merged, including its
-own `R401`/`R402`, by the time this bead's implementation ran) via a
-project-wide netlist export: all 64 real components project-wide have a
-unique reference, zero collisions.
+C501, C502, R501, D501, `#PWR501`-`#PWR536`. Checked directly against
+`origin/master` via a project-wide netlist export: all 65 real components
+project-wide have a unique reference, zero collisions.
 
-Validated with `kicad-cli sch erc --severity-all --exit-code-violations`:
-the **root** `pico-link-hw.kicad_sch` reports **0 errors** / 143 warnings
-(up from 142 on `origin/master` before the wiring-fix round, up from 48 on
-`origin/master` before this bead entirely). The earlier "409 warnings"
-figure from this bead's first draft was inflated by this environment's
-fresh KiCad 10.0.8 install having no global library table yet (fixed
-separately by the orchestrator, by copying KiCad's own default
-`sym-lib-table`/`fp-lib-table` templates into the config directory) — once
-that was fixed, the real number was 142, not 409. The remaining increase
-over the pre-bead baseline is `endpoint_off_grid` (101 instances, all on
-this sheet — several of the backlight subcircuit's coordinates, including
-the corrected VIN-to-L501 wire from the backlight-wiring fix below, aren't
-aligned to KiCad's default connection grid; purely cosmetic, does not
-affect netlist correctness) and `isolated_pin_label` (42, the renamed-in-
-KiCad-10 equivalent of the `global_label_dangling` warnings every other
-sheet already has for its own not-yet-connected GPIOs). Checking
+Validated with `kicad-cli sch erc --severity-all --exit-code-violations`
+(this sandbox does have `kicad-cli` 10.0.8, even though the GUI/DRC are
+not available): the **root** `pico-link-hw.kicad_sch` reports **0 errors**
+/ 148 warnings, up from 144 on `origin/master` immediately before this
+bead (`pilink-av8`). The +4 is `endpoint_off_grid` on D501's own new
+coordinates — the same warning class already present at 102 (now 106)
+other points project-wide, nearly all in this exact backlight subcircuit
+(several of its coordinates were already off KiCad's default connection
+grid before this bead touched it; purely cosmetic, does not affect netlist
+correctness). `isolated_pin_label` is unchanged at 42. Checking
 `display.kicad_sch` **standalone** additionally reports 2
 `power_pin_not_driven` and 6 `pin_not_driven` errors — the same
 non-root-sheet artifact already documented for every other populated child
@@ -374,11 +396,15 @@ sheet (this sheet's `+3V3`/`GND` aren't driven by `power.kicad_sch` in a
 single-sheet view, and the 6 SPI/backlight-CTRL `GPIOxx` labels have no
 driver until `rp2350b_memory.kicad_sch` — which already exposes them in
 its generic pool — is loaded alongside this sheet); both resolve to 0 at
-the root level. A project-wide netlist export (`kicad-cli sch export
-netlist` on the root sheet) was used to directly verify every net by hand
-(`GPIO29`-`GPIO34`, the 27-pin `GND` tie, the 4-pin `+3V3` tie, and the
-backlight loop `U501`-`L501`-`C502`-`J501 LED_A` / `U501`-`R501`-`J501
-LED_K`) — all resolve correctly.
+the root level, unchanged by this bead. A project-wide netlist export
+(`kicad-cli sch export netlist` on the root sheet) was used to directly
+verify every net by hand, in particular the redrawn backlight loop:
+`D501.2`/`L501.1`/`U501.1(SW)` on one node, `C502.2`/`D501.1`/
+`J501.1(LED_A)`/`U501.5(OV)` on another, `J501.2(LED_K)`/`R501.2`/
+`U501.3(FB)` on a third (unchanged from before), plus `U501.6(VIN)` on
+`+3V3`, `U501.2(GND)` on `GND` and `U501.4(CTRL)` on `GPIO34` — all resolve
+exactly as intended, confirming the AP3031 pin remap and D501 addition
+didn't silently miswire anything.
 
 **Implementation note for future edits to this sheet:** this file was
 generated programmatically (not hand-typed). Two things worth knowing if
