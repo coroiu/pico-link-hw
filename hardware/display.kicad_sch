@@ -810,7 +810,7 @@
 			(pin input line
 				(at -7.62 -36.83 0)
 				(length 2.54)
-				(name "DB0"
+				(name "DB17"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -828,7 +828,7 @@
 			(pin input line
 				(at -7.62 -34.29 0)
 				(length 2.54)
-				(name "DB1"
+				(name "DB16"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -846,7 +846,7 @@
 			(pin input line
 				(at -7.62 -31.75 0)
 				(length 2.54)
-				(name "DB2"
+				(name "DB15"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -864,7 +864,7 @@
 			(pin input line
 				(at -7.62 -29.21 0)
 				(length 2.54)
-				(name "DB3"
+				(name "DB14"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -882,7 +882,7 @@
 			(pin input line
 				(at -7.62 -26.67 0)
 				(length 2.54)
-				(name "DB4"
+				(name "DB13"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -900,7 +900,7 @@
 			(pin input line
 				(at -7.62 -24.13 0)
 				(length 2.54)
-				(name "DB5"
+				(name "DB12"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -918,7 +918,7 @@
 			(pin input line
 				(at -7.62 -21.59 0)
 				(length 2.54)
-				(name "DB6"
+				(name "DB11"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -936,7 +936,7 @@
 			(pin input line
 				(at -7.62 -19.05 0)
 				(length 2.54)
-				(name "DB7"
+				(name "DB10"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -954,7 +954,7 @@
 			(pin input line
 				(at -7.62 -16.51 0)
 				(length 2.54)
-				(name "DB8"
+				(name "DB9"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -972,7 +972,7 @@
 			(pin input line
 				(at -7.62 -13.97 0)
 				(length 2.54)
-				(name "DB9"
+				(name "DB8"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -990,7 +990,7 @@
 			(pin input line
 				(at -7.62 -11.43 0)
 				(length 2.54)
-				(name "DB10"
+				(name "DB7"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1008,7 +1008,7 @@
 			(pin input line
 				(at -7.62 -8.89 0)
 				(length 2.54)
-				(name "DB11"
+				(name "DB6"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1026,7 +1026,7 @@
 			(pin input line
 				(at -7.62 -6.35 0)
 				(length 2.54)
-				(name "DB12"
+				(name "DB5"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1044,7 +1044,7 @@
 			(pin input line
 				(at -7.62 -3.81 0)
 				(length 2.54)
-				(name "DB13"
+				(name "DB4"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1062,7 +1062,7 @@
 			(pin input line
 				(at -7.62 -1.27 0)
 				(length 2.54)
-				(name "DB14"
+				(name "DB3"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1080,7 +1080,7 @@
 			(pin input line
 				(at -7.62 1.27 0)
 				(length 2.54)
-				(name "DB15"
+				(name "DB2"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1098,7 +1098,7 @@
 			(pin input line
 				(at -7.62 3.81 0)
 				(length 2.54)
-				(name "DB16"
+				(name "DB1"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1116,7 +1116,7 @@
 			(pin input line
 				(at -7.62 6.35 0)
 				(length 2.54)
-				(name "DB17"
+				(name "DB0"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1480,7 +1480,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Diodes Incorporated AP3036B, SOT-23-6, boost LED driver. Pin1=CTRL (EN/PWM dimming), pin2=VOUT, pin3=VIN, pin4=SW, pin5=GND, pin6=FB -- per Diodes' own AP3036B datasheet (DS37004 Rev 2-2). Used here as the backlight driver for the CFAF240320A0-024SN display's LED_A/LED_K string, exactly matching Crystalfontz's own 'LED Backlight Reference Schematic' (datasheet section 11.2): L1 22uH 1210 (SW to VOUT), C16 10uF 0805 (VIN bypass), C17 1uF 0805 (VOUT to GND), R6 5.1 ohm 0402 (FB to GND, sets ILED ~=39.2mA). LCSC C526368 -- re-checked live via jlcpcb-search MCP on 2026-11-15: still 0 units in stock (same as the bead's investigation comment). The bead-named fallback AW9364DNR (LCSC C401007) was independently verified against its own datasheet and rejected: it is a 4-channel linear constant-current LED *sink* (VIN 2.8-5.5V, 20mA/channel, no inductor), not a boost converter, and cannot produce this backlight's required ~9V/40mA string voltage -- using it would not work, not just differ in pinout. AP3036BKTR-G1 is kept here as the only circuit that is actually correct for this backlight; the 0-stock status is a BOM/sourcing risk flagged for pilink-7el.8, not a schematic defect."
+		(property "Description" "Diodes Incorporated AP3036B, SOT-23-6, boost LED driver. Pin1=CTRL (EN/PWM dimming), pin2=VOUT, pin3=VIN, pin4=SW, pin5=GND, pin6=FB -- per Diodes' own AP3036B datasheet (DS37004 Rev 2-2). Used here as the backlight driver for the CFAF240320A0-024SN display's LED_A/LED_K string, exactly matching Crystalfontz's own 'LED Backlight Reference Schematic' (datasheet section 11.2): L1 22uH 1210 (VIN to SW), C16 10uF 0805 (VIN bypass), C17 1uF 0805 (VOUT to GND), R6 5.1 ohm 0402 (FB to GND, sets ILED ~=39.2mA). LCSC C526368 -- re-checked live via jlcpcb-search MCP on 2026-11-15: still 0 units in stock (same as the bead's investigation comment). The bead-named fallback AW9364DNR (LCSC C401007) was independently verified against its own datasheet and rejected: it is a 4-channel linear constant-current LED *sink* (VIN 2.8-5.5V, 20mA/channel, no inductor), not a boost converter, and cannot produce this backlight's required ~9V/40mA string voltage -- using it would not work, not just differ in pinout. AP3036BKTR-G1 is kept here as the only circuit that is actually correct for this backlight; the 0-stock status is a BOM/sourcing risk flagged for pilink-7el.8, not a schematic defect."
 			(at 0 0 0)
 			(effects
 				(font
@@ -2564,7 +2564,7 @@
     (stroke (width 0) (type default))
     (uuid 19d370a5-fc79-42ff-83ce-2901a19a8da0)
   )
-  (global_label "GPIO30" (shape output) (at 290.38 221.11 180)
+  (global_label "GPIO31" (shape output) (at 290.38 221.11 180)
     (effects (font (size 1.27 1.27)) (justify right))
     (uuid 5442ce7c-4f35-4fb7-a1ae-a4fa68b25b58)
     (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 290.38 221.11 180)
@@ -2594,7 +2594,7 @@
     (stroke (width 0) (type default))
     (uuid 91888de6-1888-4770-b624-b8859ace6c71)
   )
-  (global_label "GPIO29" (shape output) (at 290.38 198.25 180)
+  (global_label "GPIO30" (shape output) (at 290.38 198.25 180)
     (effects (font (size 1.27 1.27)) (justify right))
     (uuid adc1f164-6bdf-4fc0-92ea-6e10f64e51d2)
     (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 290.38 198.25 180)
@@ -2609,7 +2609,7 @@
     (stroke (width 0) (type default))
     (uuid 7c554324-470f-4106-9e88-12e7d6b3b030)
   )
-  (global_label "GPIO31" (shape output) (at 290.38 195.71 180)
+  (global_label "GPIO29" (shape output) (at 290.38 195.71 180)
     (effects (font (size 1.27 1.27)) (justify right))
     (uuid bb73dfca-9c50-46e3-9bff-8013d841fda5)
     (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 290.38 195.71 180)
@@ -2937,13 +2937,17 @@
     (stroke (width 0) (type default))
     (uuid 848c3f14-1455-47fb-8685-28dc4fa71f05)
   )
-  (wire (pts (xy 157.62 277.54) (xy 185 277.54))
+  (wire (pts (xy 157.62 272.46) (xy 195 272.46))
     (stroke (width 0) (type default))
     (uuid 84abf79e-5d61-4dd0-9cba-5298e7abdb5e)
   )
-  (wire (pts (xy 185 277.54) (xy 185 278.81))
+  (wire (pts (xy 195 272.46) (xy 195 278.81))
     (stroke (width 0) (type default))
     (uuid 21b17169-f358-466f-95c6-cf301a138929)
+  )
+  (wire (pts (xy 195 278.81) (xy 185 278.81))
+    (stroke (width 0) (type default))
+    (uuid 7b2c9e4d-3a1f-4e8b-9c6a-1f0d5e8b4a2c)
   )
   (wire (pts (xy 157.62 277.54) (xy 157.62 261.81))
     (stroke (width 0) (type default))

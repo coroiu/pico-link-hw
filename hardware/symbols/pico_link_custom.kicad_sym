@@ -355,7 +355,7 @@
 			(pin input line
 				(at -7.62 -36.83 0)
 				(length 2.54)
-				(name "DB0"
+				(name "DB17"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -373,7 +373,7 @@
 			(pin input line
 				(at -7.62 -34.29 0)
 				(length 2.54)
-				(name "DB1"
+				(name "DB16"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -391,7 +391,7 @@
 			(pin input line
 				(at -7.62 -31.75 0)
 				(length 2.54)
-				(name "DB2"
+				(name "DB15"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -409,7 +409,7 @@
 			(pin input line
 				(at -7.62 -29.21 0)
 				(length 2.54)
-				(name "DB3"
+				(name "DB14"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -427,7 +427,7 @@
 			(pin input line
 				(at -7.62 -26.67 0)
 				(length 2.54)
-				(name "DB4"
+				(name "DB13"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -445,7 +445,7 @@
 			(pin input line
 				(at -7.62 -24.13 0)
 				(length 2.54)
-				(name "DB5"
+				(name "DB12"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -463,7 +463,7 @@
 			(pin input line
 				(at -7.62 -21.59 0)
 				(length 2.54)
-				(name "DB6"
+				(name "DB11"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -481,7 +481,7 @@
 			(pin input line
 				(at -7.62 -19.05 0)
 				(length 2.54)
-				(name "DB7"
+				(name "DB10"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -499,7 +499,7 @@
 			(pin input line
 				(at -7.62 -16.51 0)
 				(length 2.54)
-				(name "DB8"
+				(name "DB9"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -517,7 +517,7 @@
 			(pin input line
 				(at -7.62 -13.97 0)
 				(length 2.54)
-				(name "DB9"
+				(name "DB8"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -535,7 +535,7 @@
 			(pin input line
 				(at -7.62 -11.43 0)
 				(length 2.54)
-				(name "DB10"
+				(name "DB7"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -553,7 +553,7 @@
 			(pin input line
 				(at -7.62 -8.89 0)
 				(length 2.54)
-				(name "DB11"
+				(name "DB6"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -571,7 +571,7 @@
 			(pin input line
 				(at -7.62 -6.35 0)
 				(length 2.54)
-				(name "DB12"
+				(name "DB5"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -589,7 +589,7 @@
 			(pin input line
 				(at -7.62 -3.81 0)
 				(length 2.54)
-				(name "DB13"
+				(name "DB4"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -607,7 +607,7 @@
 			(pin input line
 				(at -7.62 -1.27 0)
 				(length 2.54)
-				(name "DB14"
+				(name "DB3"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -625,7 +625,7 @@
 			(pin input line
 				(at -7.62 1.27 0)
 				(length 2.54)
-				(name "DB15"
+				(name "DB2"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -643,7 +643,7 @@
 			(pin input line
 				(at -7.62 3.81 0)
 				(length 2.54)
-				(name "DB16"
+				(name "DB1"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -661,7 +661,7 @@
 			(pin input line
 				(at -7.62 6.35 0)
 				(length 2.54)
-				(name "DB17"
+				(name "DB0"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1026,7 +1026,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Diodes Incorporated AP3036B, SOT-23-6, boost LED driver. Pin1=CTRL (EN/PWM dimming), pin2=VOUT, pin3=VIN, pin4=SW, pin5=GND, pin6=FB -- per Diodes' own AP3036B datasheet (DS37004 Rev 2-2). Used here as the backlight driver for the CFAF240320A0-024SN display's LED_A/LED_K string, exactly matching Crystalfontz's own 'LED Backlight Reference Schematic' (datasheet section 11.2): L1 22uH 1210 (SW to VOUT), C16 10uF 0805 (VIN bypass), C17 1uF 0805 (VOUT to GND), R6 5.1 ohm 0402 (FB to GND, sets ILED ~=39.2mA). LCSC C526368 -- re-checked live via jlcpcb-search MCP on 2026-11-15: still 0 units in stock (same as the bead's investigation comment). The bead-named fallback AW9364DNR (LCSC C401007) was independently verified against its own datasheet and rejected: it is a 4-channel linear constant-current LED *sink* (VIN 2.8-5.5V, 20mA/channel, no inductor), not a boost converter, and cannot produce this backlight's required ~9V/40mA string voltage -- using it would not work, not just differ in pinout. AP3036BKTR-G1 is kept here as the only circuit that is actually correct for this backlight; the 0-stock status is a BOM/sourcing risk flagged for pilink-7el.8, not a schematic defect."
+		(property "Description" "Diodes Incorporated AP3036B, SOT-23-6, boost LED driver. Pin1=CTRL (EN/PWM dimming), pin2=VOUT, pin3=VIN, pin4=SW, pin5=GND, pin6=FB -- per Diodes' own AP3036B datasheet (DS37004 Rev 2-2). Used here as the backlight driver for the CFAF240320A0-024SN display's LED_A/LED_K string, exactly matching Crystalfontz's own 'LED Backlight Reference Schematic' (datasheet section 11.2): L1 22uH 1210 (VIN to SW), C16 10uF 0805 (VIN bypass), C17 1uF 0805 (VOUT to GND), R6 5.1 ohm 0402 (FB to GND, sets ILED ~=39.2mA). LCSC C526368 -- re-checked live via jlcpcb-search MCP on 2026-11-15: still 0 units in stock (same as the bead's investigation comment). The bead-named fallback AW9364DNR (LCSC C401007) was independently verified against its own datasheet and rejected: it is a 4-channel linear constant-current LED *sink* (VIN 2.8-5.5V, 20mA/channel, no inductor), not a boost converter, and cannot produce this backlight's required ~9V/40mA string voltage -- using it would not work, not just differ in pinout. AP3036BKTR-G1 is kept here as the only circuit that is actually correct for this backlight; the 0-stock status is a BOM/sourcing risk flagged for pilink-7el.8, not a schematic defect."
 			(at 0 0 0)
 			(effects
 				(font

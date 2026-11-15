@@ -198,13 +198,10 @@ instead).
 the Crystalfontz **CFAF240320A0-024SN** panel (240x320 native, rotated
 90deg to 320x240 in firmware via ST7789V MADCTL/MV). Why this panel was
 chosen over the originally-assumed 24-pin part is recorded in
-`pilink-7el.5`'s own bead comments (Crystalfontz product page fetch
+`.planning/decisions/2026-11-15-display-panel-crystalfontz-cfaf240320a0.md`,
+plus `pilink-7el.5`'s own bead comments (Crystalfontz product page fetch
 confirming the 40-pin 0.5mm ZIF FPC connector, full pin table from the
-official datasheet) — the bead's description points at a
-`.planning/decisions/` ADR file for this that does not actually exist on
-disk or in `INDEX.md`; filed as follow-up bead `pilink-kkn`
-(discovered-from `pilink-7el.5`) to write it, rather than linking a
-dangling reference here.
+official datasheet).
 
 **Connector and pin table.** J501 is a 40-position, 0.5mm-pitch,
 bottom-contact, flip-top-lock SMT FPC/ZIF connector — LCSC `C262674`
@@ -220,16 +217,24 @@ registered in `fp-lib-table`). All 40 pin *numbers* and *names* are copied
 directly from Crystalfontz's own datasheet (Rev 1v2, 2021-03-26), section
 6, SPI-mode column — the symbol's single-column pin layout is a schematic
 drawing convenience, not a physical pinout diagram, so only the numbers
-matter for the netlist. The footprint's pad pitch/position-count/contact
-style are confirmed against the connector's own LCSC spec table, but the
-exact pad outline dimensions are typical-for-this-connector-family
-placeholders, **not** measured from Jushuo's real mechanical drawing — that
-PDF's dimension-drawing page didn't yield extractable numeric text with the
-tooling available in this agent environment (no `pdftotext`/poppler-utils,
-no KiCad GUI to open the part directly). This is an explicit, unresolved
-verification gap, flagged for a human KiCad-GUI pass before PCB fab, same
+matter for the netlist. The footprint's pad geometry is measured directly
+from Jushuo's own mechanical drawing (customer drawing rev A, 2024-05-18 —
+its dimension-drawing page is vector art with no extractable text, so it
+was rendered to an image and read directly, on a review round after the
+earlier draft of this sheet had used family-typical placeholder dimensions
+instead): 0.50mm pad pitch, 0.30x1.30mm pads, 19.50mm span across all 40
+pads (the drawing's own CKTS=40 row), matching this footprint's -9.75mm to
++9.75mm pad placement. The two mounting/fitting-nail pads are 2.00x1.60mm,
+centered 1.70mm beyond pad-1/pad-40 — that offset is derived from two of
+the drawing's dimensions rather than read off a single one, so it's good
+but slightly less certain than the pad pitch/size numbers. The body/
+courtyard outline was not re-derived from the drawing and is still a
+family-typical approximation — it only affects DRC clearance spacing, not
+solder-pad accuracy, so it's a smaller remaining gap than the pad geometry
+was. Still worth a human KiCad-GUI visual cross-check before PCB fab, same
 caveat class this project already applies to the RP2350 QFN-80 and PSRAM
-USON-8 hand-authored footprints.
+USON-8 hand-authored footprints, but the acceptance-criterion-level gap
+(pad geometry measured vs. guessed) is now closed.
 
 Per the datasheet: SDO (pin 4) and TE (pin 5) are no-connect (write-only
 use, no tearing-effect sync needed). DB0-17 (pins 6-23), DOTCLK (26),
@@ -239,8 +244,17 @@ parallel-bus/RGB-interface pins — not left floating. IM0 (36) is tied `GND`
 and IM1/IM2 (37/38) tied `+3V3` for the 4-wire SPI mode strap (per the
 datasheet's mode table). VCC (3) and VCI (39) both go to `+3V3`.
 
-**GPIO assignment.** `GPIO29` (SCK/RS), `GPIO30` (MOSI/SDA), `GPIO31` (CS),
+**GPIO assignment.** `GPIO29` (CS), `GPIO30` (SCK/RS), `GPIO31` (MOSI/SDA),
 `GPIO32` (D-C/WR), `GPIO33` (RESET), `GPIO34` (backlight CTRL/enable) —
+chosen (not just "picked from the free pool") to match the RP2350B's own
+hardware SPI1 function-select table (RP2350 datasheet Table 677, the
+QFN-80/RP2350B-specific GPIO function rows): GPIO29=SPI1 CSn, GPIO30=SPI1
+SCK, GPIO31=SPI1 TX — confirmed directly against the datasheet after an
+earlier version of this sheet put SCK/MOSI/CS on the wrong three of these
+pins (29/30/31 in SCK/MOSI/CS order), which would have forced firmware onto
+bit-banged PIO instead of the real SPI1 peripheral. D/C, RESET and the
+backlight enable don't need a hardware-SPI-capable pin, so GPIO32-34 (plain
+GPIO/SIO function) are fine for them —
 picked from the generic bidirectional GPIO pool `rp2350b_memory.kicad_sch`
 exposes as global labels for every RP2350B GPIO not already committed
 elsewhere. Confirmed free by grepping all of `hardware/*.kicad_sch` for
@@ -268,7 +282,11 @@ copied directly from Crystalfontz's own "LED Backlight Reference Schematic"
 driver; pin1=CTRL, pin2=VOUT, pin3=VIN, pin4=SW, pin5=GND, pin6=FB per
 Diodes' own AP3036B datasheet DS37004 Rev 2-2 — no stock KiCad symbol for
 this exact part either, hand-authored as
-`pico_link_custom:AP3036BKTR-G1`), L501 22uH 1210 (SW-VOUT), C501 10uF 0805
+`pico_link_custom:AP3036BKTR-G1`), L501 22uH 1210 (VIN-SW — an earlier
+version of this sheet wired it SW-VOUT instead, which shorts the boost
+converter's internal Schottky diode output node to its switch node and
+produces no boost at all; fixed to match both Diodes' and Crystalfontz's
+own reference circuits), C501 10uF 0805
 (VIN bypass), C502 1uF 0805 (VOUT-GND), R501 5.1R 0402 (FB-GND, sets
 ILED = VFB/RFB = 200mV/5.1R ≈ 39.2mA, matching the panel's 40mA spec). VIN
 comes from this project's `+3V3` rail (within AP3036B's 2.5-16V input
@@ -313,18 +331,22 @@ project-wide netlist export: all 64 real components project-wide have a
 unique reference, zero collisions.
 
 Validated with `kicad-cli sch erc --severity-all --exit-code-violations`:
-the **root** `pico-link-hw.kicad_sch` reports **0 errors** / 409 warnings
-(up from 270 on `origin/master` before this bead) — all of the increase is
-either the pre-existing "library/footprint not configured" notice (this
-environment has no global KiCad library table, so every newly-referenced
-stock library name — `Device`, `Package_TO_SOT_SMD`, `Capacitor_SMD`,
-`Inductor_SMD`, `Resistor_SMD`, plus this project's own `pico_link_custom`
-— adds its own warning line, same root cause already documented for every
-other populated sheet) or `endpoint_off_grid` (100 instances, all on this
-sheet — several of the backlight subcircuit's coordinates aren't aligned to
-KiCad's default connection grid; purely cosmetic, does not affect netlist
-correctness, and is flagged here rather than silently left for a human to
-notice). Checking `display.kicad_sch` **standalone** additionally reports 2
+the **root** `pico-link-hw.kicad_sch` reports **0 errors** / 143 warnings
+(up from 142 on `origin/master` before the wiring-fix round, up from 48 on
+`origin/master` before this bead entirely). The earlier "409 warnings"
+figure from this bead's first draft was inflated by this environment's
+fresh KiCad 10.0.8 install having no global library table yet (fixed
+separately by the orchestrator, by copying KiCad's own default
+`sym-lib-table`/`fp-lib-table` templates into the config directory) — once
+that was fixed, the real number was 142, not 409. The remaining increase
+over the pre-bead baseline is `endpoint_off_grid` (101 instances, all on
+this sheet — several of the backlight subcircuit's coordinates, including
+the corrected VIN-to-L501 wire from the backlight-wiring fix below, aren't
+aligned to KiCad's default connection grid; purely cosmetic, does not
+affect netlist correctness) and `isolated_pin_label` (42, the renamed-in-
+KiCad-10 equivalent of the `global_label_dangling` warnings every other
+sheet already has for its own not-yet-connected GPIOs). Checking
+`display.kicad_sch` **standalone** additionally reports 2
 `power_pin_not_driven` and 6 `pin_not_driven` errors — the same
 non-root-sheet artifact already documented for every other populated child
 sheet (this sheet's `+3V3`/`GND` aren't driven by `power.kicad_sch` in a
@@ -338,22 +360,21 @@ backlight loop `U501`-`L501`-`C502`-`J501 LED_A` / `U501`-`R501`-`J501
 LED_K`) — all resolve correctly.
 
 **Implementation note for future edits to this sheet:** this file was
-generated programmatically (not hand-typed), and two non-obvious KiCad 8.0.9
-behaviors were discovered the hard way while building it, worth keeping in
-mind if this sheet is edited by hand or regenerated: (1) a symbol's local Y
-offset in its pin `(at ...)` entry is *negated* relative to its placed
-world position (confirmed empirically against this project's own rotary
-encoder and resistor placements) — i.e. a pin's world Y = the symbol's
-placed Y *minus* the pin's local Y, not plus; (2) in this specific KiCad
-build, a wire that references a stock passive symbol's pin (`Device:R` /
-`Device:C` / `Device:L`) can silently fail to resolve into the netlist if
-that wire's S-expression appears *before* the symbol's own placement
-block in the file — placing the symbol first, and keeping every wire that
-touches one net point contiguous with any `(junction ...)` marker last
-among them, avoided it reliably. Neither is documented KiCad behavior as
-far as this bead could find; both were found by bisecting a crashing/
-silently-wrong file with `kicad-cli sch export netlist` until the pattern
-was isolated.
+generated programmatically (not hand-typed). Two things worth knowing if
+this sheet is edited by hand or regenerated: (1) a symbol's local Y offset
+in its pin `(at ...)` entry is *negated* relative to its placed world
+position — i.e. a pin's world Y = the symbol's placed Y *minus* the pin's
+local Y, not plus. This isn't a quirk, it's standard KiCad convention
+(symbol libraries are drawn Y-up, schematics are laid out Y-down), but it's
+easy to get backwards when computing pin positions by hand, which is
+exactly what caused the backlight-driver miswiring this bead's review
+round caught and fixed (see the backlight driver section above) — do the
+Y-negation deliberately, not by trial and error, when placing wires against
+a symbol's pin coordinates. (2) An earlier draft of this note claimed a
+wire could silently drop from the netlist depending on file ordering
+relative to its symbol's placement block; that could not be reproduced
+under `kicad-cli` 10.0.8 during this bead's review round, so treat it as
+unconfirmed rather than a real KiCad behavior to code around.
 
 ### Input subsystem (pilink-7el.6, amended by pilink-cmn then pilink-3rm)
 
