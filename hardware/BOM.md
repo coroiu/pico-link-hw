@@ -122,7 +122,7 @@ guarantee than this BOM's first draft claimed.
 | Y101 | 1 | 12MHz crystal | 3.2x2.5mm (3225-4Pin) | C20625731 | ABM8-272-T3 | Extended | **365 — low, recheck before ordering build quantity** |
 | C101, C102 | 2 | 15pF, C0G/NPO, 50V | 0402 | C1548 | 0402CG150J500NT | Extended† | 307,300 |
 | R101, R102, R103 | 3 | 1k | 0402 | C11702 | 0402WGF1001TCE | Extended† | 18,224,200 |
-| SW101, SW102 | 2 | Tactile switch (PTS645 family) | SMD 6x6mm | C221872 | PTS645SK50SMTR92LFS | Extended† | 8,950 |
+| SW101, SW102 | 2 | SKRTLAE010 (side-actuated/right-angle tactile switch — swapped from top-actuated PTS645 for top-edge pinhole access, pilink-7el.10) | SMD, right-angle, 4.5x3.4x3.3mm | C110293 | SKRTLAE010 | Extended | 42,775 |
 | L101 | 1 | 3.3uH (RP2350B internal VREG inductor) | Coilcraft LPS4018 footprint | **not in JLCPCB catalog** | Coilcraft LPS4018-332xxx (exact suffix TBD) | n/a | n/a — see assembly flag 2 |
 | C103, C104, C105, C118 | 4 | 4.7uF, X5R, 6.3V | 0402 | C380302 | TCC0402X5R475M6R3AT | Extended† | 1,333,700 |
 | R104 | 1 | 33R | 0402 | C25105 | 0402WGF330JTCE | Extended† | 78,400 |
