@@ -51,10 +51,27 @@ Ezurio fallback doc, USB-C/antenna/FPC placement check).
 ## This repo has no build/test automation
 
 There's no `cargo build`, no CI, no code to compile. "Quality gates" here
-mean: DRC/ERC in KiCad and dimension/fit checks in OpenSCAD, done by a human
-with those GUI tools — neither is installed in a bare agent environment, so
-an agent writing schematic/PCB/enclosure files should say so plainly rather
-than claiming something was verified that wasn't.
+mean DRC/ERC in KiCad and dimension/fit checks in OpenSCAD — what's actually
+available for these differs by tool, and an agent should say plainly which
+checks it could and couldn't run rather than lumping both under one blanket
+disclaimer:
+
+- **KiCad**: `kicad-cli` is installed on this machine and runs headlessly —
+  no GUI needed. `kicad-cli sch erc --severity-all --exit-code-violations`
+  and `kicad-cli pcb drc` are real, runnable checks (as is
+  `kicad-cli sch export netlist` for cross-sheet collision checks); run the
+  relevant one after any schematic/PCB change and report the actual
+  violation count, don't claim "no DRC/ERC possible here." What genuinely
+  still needs a human with the GUI: visual/placement sign-off and anything
+  `kicad-cli` doesn't check (silkscreen legibility, visual footprint
+  sanity, final review before fab).
+- **OpenSCAD**: genuinely not installed in this environment (no `openscad`
+  binary) — dimension/fit checks for the enclosure still need a human with
+  the GUI (or a CLI install elsewhere) actually running it.
+
+This was previously documented as "neither tool is installed," which is no
+longer true for KiCad — `kicad-cli` was added to this machine without a
+matching update here. Keep this note current if that changes again.
 
 ## Development workflow
 

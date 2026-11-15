@@ -637,9 +637,12 @@ sheet's own `usb_c.kicad_sch` section was written) `display.kicad_sch` too
 root-level ERC numbers. If anything fails to parse, that's a bug in this
 skeleton, not a sign the approach is wrong.
 
-PCB routing, DRC/ERC, and gerber export still need to happen in the KiCad GUI
-on a machine that has it installed — same caveat as before, now narrowed to
-"the skeleton needs a first open" rather than "nothing exists yet".
+`kicad-cli` can run PCB DRC and gerber export headlessly once a real PCB
+exists (`kicad-cli pcb drc`, `kicad-cli pcb export gerbers`) — this doesn't
+require the GUI, same as the `sch erc` runs already used above. What
+genuinely still needs the GUI (or the planned headless `pcbnew` scripting
+for placement, see `pilink-7el.9`): the actual routing itself, and a human's
+visual/placement sign-off before fab.
 
 `placeholder.kicad_pcb` is a trivial seed file (just a 20x20mm board outline,
 no components) for the `preview/` docker-compose service — it proves the
