@@ -131,13 +131,19 @@ out to close for the two closest-fit candidates (see findings 2 and 4).
   with just an FPC tail in the style the project's current design doc
   specifies (bare panel + 0.5mm-pitch FPC connector direct to the project
   PCB). No bare-panel-only SKU of this exact cell was found in this
-  research. Adopting this candidate most likely means either (a) adapting
-  the project's display interface to Waveshare's breakout module's
-  connector/pinout instead of a bare FPC panel, or (b) sourcing the same
-  underlying panel cell bare from Waveshare's OEM/panel supplier directly
-  (not identified in this research) — a real integration cost, even though
-  the panel's optical size and resolution exactly match the baseline and no
-  enclosure-cutout change should be needed.
+  research. Adopting this candidate most likely means one of: (a) mounting
+  Waveshare's breakout module as-is inside the enclosure (simplest, no
+  interface change, but the module is a larger assembly — ~27.3x51.2mm with
+  an onboard voltage translator — than the bare panel the enclosure design
+  doc assumed, so internal mounting depth/volume is affected even if the
+  visible window cutout doesn't need to change); (b) desoldering the bare
+  panel's FPC tail off the breakout module and discarding the rest (voids
+  any warranty, not confirmed physically feasible without the module's own
+  schematic); or (c) sourcing the same underlying panel cell bare from
+  Waveshare's OEM/panel supplier directly (not identified in this
+  research). None of these is free — "zero enclosure change" understates
+  the real integration cost to (at least) "zero visible window-cutout
+  change, nonzero internal mounting/depth consideration."
 - **Stock / price:** both SKUs show "Add to Cart" with per-unit pricing
   (SKU 31122 ~$12.99 list, SKU 23822 ~$11.99 list, with volume breaks) but
   neither product page displays a stock count or lead time — unlike the
@@ -179,7 +185,7 @@ out to close for the two closest-fit candidates (see findings 2 and 4).
 - **Contrast ratio:** datasheet states **contrast ratio min 800 / typ
   1500:1** (newhavendisplay.com/content/specs/NHD-2.4-240320AF-CSXP.pdf).
   That's still the clearest documented contrast win in this document —
-  roughly 1.6-1.9x the 900:1 figure found for the same-size-class Waveshare
+  roughly 1.7x the 900:1 figure found for the same-size-class Waveshare
   candidate in finding 2, and well above the ~500:1 bare-panel baseline.
 - **Luminance:** 1200 cd/m² typ, described as "High Brightness/Sunlight
   Readable," normally-black, anti-glare, transmissive.
@@ -300,9 +306,12 @@ seriously. Direct findings:
   outdoor readability) were checked incidentally, and now with a real,
   sourced example rather than an unsourced claim: DisplayModule
   **DM-TFT20-436**, a 2.0" 240x320 transflective, resistive-touch, ST7789-
-  driver TFT module, documents **contrast ratio min 200 / typ 250:1** at
-  200 cd/m² luminance (displaymodule.com product listing; datasheet hosted
-  at cdn.shopify.com/.../DM-TFT20-436_Datasheet.pdf) — *worse* than every
+  driver TFT module, documents **contrast ratio typ 250:1** at 200 cd/m²
+  luminance (displaymodule.com product listing; datasheet hosted at
+  cdn.shopify.com/.../DM-TFT20-436_Datasheet.pdf). Only the typ figure is
+  confirmed on DM-TFT20-436's own datasheet — a "min 200:1" figure exists
+  but belongs to the sibling part DM-TFT20-435, not this one; not repeating
+  that misattribution here. 250:1 is still *worse* than every
   transmissive IPS candidate above, consistent with the general pattern
   that transflective trades contrast for sunlight legibility without
   backlight power. Since this device isn't primarily an outdoors/no-
@@ -311,7 +320,10 @@ seriously. Direct findings:
 
 ## Recommendation
 
-Three real, datasheet-backed candidates emerged, all ST7789-family (no
+Three real candidates emerged (sourced from manufacturer datasheets for
+Newhaven and the DisplayModule transflective comparison, and from
+Waveshare's own vendor spec table rather than a standalone datasheet PDF —
+see the per-candidate disclosure above), all ST7789-family (no
 firmware driver rewrite), each with a different risk/contrast tradeoff:
 
 - **If minimizing physical and enclosure change matters most, and the
@@ -417,5 +429,5 @@ Sources:
 - https://www.orientdisplay.com/pdf/AFY240320A0-2.4INTH.pdf (Orient Display AFY240320A0-2.4INTH Rev B, 2.4" 240x320 IPS, contrast ratio ~500-750 range, luminance 800-1000 cd/m²)
 - https://lcsc.com/product-detail/LCD-Screen_Orient-Display-AFY240320A0-2-4INTH-R_C20578695.html (LCSC C20578695, 0 units on-hand at check time 2026-11-15)
 - https://www.orientdisplay.com/?p=324361 (AFY240320A0-2.4INTH-C product page, confirms ST7789V driver for this family)
-- https://www.displaymodule.com/products/2-inch-tft-display-240x320-transflective-resistive-with-spi-mcu-rgb and https://cdn.shopify.com/s/files/1/0264/7629/files/DM-TFT20-436_Datasheet.pdf (DM-TFT20-436, 2.0" 240x320 transflective, ST7789 driver, contrast ratio min 200 / typ 250:1 — sources the previously-unsourced "transflective 250:1" claim)
+- https://www.displaymodule.com/products/2-inch-tft-display-240x320-transflective-resistive-with-spi-mcu-rgb and https://cdn.shopify.com/s/files/1/0264/7629/files/DM-TFT20-436_Datasheet.pdf (DM-TFT20-436, 2.0" 240x320 transflective, ST7789 driver, contrast ratio typ 250:1 — sources the previously-unsourced "transflective 250:1" claim; a "min 200:1" figure exists but belongs to sibling part DM-TFT20-435, not this one)
 - docs/plans/2026-11-13-custom-hardware-design.md (project's already-chosen 1.9" ST7789V 320x170 baseline)
