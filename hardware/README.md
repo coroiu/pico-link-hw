@@ -92,25 +92,37 @@ them instead of only trusting the schematic's embedded cache.
 
 Every RP2350B GPIO not consumed by this sheet is brought out as a global
 label matching its pin name, so the other still-empty child sheets can pick
-it up later without hierarchical sheet pins (GPIO47 is the one exception —
-it's committed to the PSRAM's chip-select here).
+it up later without hierarchical sheet pins. GPIO47 is withheld from this
+pool (committed to the PSRAM's chip-select here), and so are 8 more GPIOs
+(GPIO0/1/4/5/6/7/20/21) whose `GPIOn` label was replaced, in place, by the
+matching `ESP32_*` name — see the "ESP32 BT coprocessor subsystem" section
+below for that assignment (`pilink-kt4`).
 
-`kicad-cli sch erc --severity-all` on this sheet **alone** reports 2 errors
-(`power_pin_not_driven` for `+3V3`/`GND`, expected and documented in the
-sheet's own notes — this sheet doesn't generate `+3V3`/`GND`,
-`power.kicad_sch` does, so a standalone single-sheet ERC run can't see that
-driver) and 53 warnings: 51 are the intentional not-yet-connected global
-labels for sibling sheets that don't exist yet, and 2 are a pre-existing,
-unrelated "library not configured" notice for this project's own custom
-symbol libraries. `kicad-cli sch erc --severity-all` on the root
-`pico-link-hw.kicad_sch` (which flattens the whole hierarchy — now
-including `esp32_bt.kicad_sch` — and does see `power.kicad_sch`'s
-regulator) reports **0 errors**, 57 warnings, all `global_label_dangling`
-(51 from this sheet's own not-yet-wired GPIO/interface labels, 6 from
-`esp32_bt.kicad_sch`'s — both expected until the remaining sibling sheets
-exist). The stale "Symbol has been modified in library" notice from an
-earlier round no longer appears; it was fixed by re-syncing the embedded
-flash symbol to the stock library part.
+`kicad-cli sch erc --severity-all` on this sheet **alone** (KiCad
+10.0.8) reports 2 errors (`power_pin_not_driven` for `+3V3`/`GND`,
+expected and documented in the sheet's own notes — this sheet doesn't
+generate `+3V3`/`GND`, `power.kicad_sch` does, so a standalone
+single-sheet ERC run can't see that driver) and 54 warnings: 51
+`isolated_pin_label` ("Label connected to only one pin") for GPIO labels
+whose other end lives on a sibling sheet this standalone, single-sheet
+check can't see — this now includes the 8 `ESP32_*` labels too, for the
+same reason the pre-existing +3V3/GND check can't see `power.kicad_sch`
+in isolation, not a new defect — plus 1 `footprint_link_issues` and 2
+`lib_symbol_issues` notices, pre-existing and unrelated to this change
+(this project's custom footprint/symbol libraries aren't registered in
+the global table this standalone invocation uses).
+
+`kicad-cli sch erc --severity-all --exit-code-violations` on the **root**
+`pico-link-hw.kicad_sch` (which flattens the whole hierarchy and does see
+every sibling sheet, the check that reflects real connectivity) reports
+**0 errors, 26 warnings**, all `isolated_pin_label` on `GPIOn` labels this
+project genuinely hasn't assigned to anything yet (GPIO2/3/8-19/35-39/
+42-46) plus the pre-existing `SWD`/`SWCLK` labels — none of the 8
+`ESP32_*` labels remain in this list, confirming `pilink-kt4`'s fix; see
+the ESP32 section below for the before/after numbers and root cause. The
+stale "Symbol has been modified in library" notice from an earlier round
+no longer appears; it was fixed by re-syncing the embedded flash symbol to
+the stock library part.
 
 Schematic connectivity (the netlist export and both ERC runs above) is
 verified clean. The visual layout went through two review rounds of
@@ -152,9 +164,45 @@ sheets, so a hierarchical label would need root-sheet pin wiring that
 doesn't exist yet; a global label joins same-named nets project-wide
 without it): `ESP32_EN`, `ESP32_BOOT0`, `ESP32_HCI_TXD/RXD/RTS/CTS`,
 `ESP32_FLASH_TXD0/RXD0`. See the sheet's own text notes for the full
-rationale and citations. RP2350-side GPIO assignment is pilink-7el.3,
-in progress in parallel -- this sheet does not touch
-`rp2350b_memory.kicad_sch`.
+rationale and citations.
+
+**RP2350-side GPIO assignment (`pilink-kt4`):** these 8 global labels
+previously had no RP2350-side counterpart at all --
+`rp2350b_memory.kicad_sch` only exposed its pins as generic `GPIOn`
+labels, so every `ESP32_*` net was single-ended (one pad, `U201` only)
+in the exported netlist, and ERC never caught it because a standalone
+global label is legal. Fixed by replacing 8 of that sheet's `GPIOn`
+global labels, in place, with these `ESP32_*` names, picked from the
+[RP2350 datasheet](https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf)
+section 9.4, "GPIO Bank 0 Functions" (RP2350B has exactly 2 UART
+peripherals, UART0/UART1, confirmed from that section, not assumed;
+cited by section rather than table number since table numbering has
+shifted across datasheet revisions):
+
+| Net | RP2350 GPIO (pin) | Function |
+| --- | --- | --- |
+| `ESP32_HCI_RXD` | GPIO4 (pin 1) | UART1 TX (F2) |
+| `ESP32_HCI_TXD` | GPIO5 (pin 2) | UART1 RX (F2) |
+| `ESP32_HCI_RTS` | GPIO6 (pin 3) | UART1 CTS (F2) |
+| `ESP32_HCI_CTS` | GPIO7 (pin 4) | UART1 RTS (F2) |
+| `ESP32_FLASH_RXD0` | GPIO0 (pin 77) | UART0 TX (F2) |
+| `ESP32_FLASH_TXD0` | GPIO1 (pin 78) | UART0 RX (F2) |
+| `ESP32_EN` | GPIO20 (pin 20) | plain GPIO (bit-banged) |
+| `ESP32_BOOT0` | GPIO21 (pin 21) | plain GPIO (bit-banged) |
+
+UART1 (GPIO4-7) carries the HCI link as a full 4-wire group with
+hardware flow control, matching the "4-wire HCI UART, not optional"
+requirement in
+[`.planning/decisions/2026-11-13-esp32-bt-coprocessor-not-rm2.md`](../.planning/decisions/2026-11-13-esp32-bt-coprocessor-not-rm2.md);
+RTS/CTS cross modem-style (ESP32's RTS output lands on RP2350's CTS
+input, and vice versa). UART0 (GPIO0/1) carries only the esptool
+bridge-flashing link, which needs no flow control. GPIO20/21 (freed
+back into the generic pool by `pilink-3rm`'s d-pad-to-encoder swap) are
+plain bit-banged outputs for EN/BOOT0 strapping -- no peripheral
+function needed. All 8 GPIOs were confirmed free by grepping every
+populated sheet's actual `global_label`/`label` usage (not just their
+absence as a generic `GPIOn` label on this one sheet) before picking
+them.
 
 Flash variant: ESP32-WROOM-32UE-**N4** (JLCPCB/LCSC `C701344`). Sufficient
 for an HCI-controller-only firmware image (no Wi-Fi/Bluedroid/display
@@ -188,10 +236,27 @@ tool in this agent environment to run DRC.
 
 Validated with `kicad-cli sch erc --severity-all --exit-code-violations`:
 the **root** `pico-link-hw.kicad_sch` (whole-project, the check that
-reflects real connectivity) reports 0 errors / 6 warnings, all
-`global_label_dangling` on the RP2350-interface labels above -- expected,
-since their other end (pilink-7el.3) doesn't exist yet. Checking
-`esp32_bt.kicad_sch` **standalone** additionally reports 2
+reflects real connectivity) reported 0 errors / 6 warnings at the time
+this paragraph was first written, all `isolated_pin_label` ("Label
+connected to only one pin") on the 8 RP2350-interface labels above --
+expected, since their other end (then pilink-7el.3, i.e.
+`rp2350b_memory.kicad_sch`) hadn't wired them up yet.
+
+**Update (`pilink-kt4`):** now that `rp2350b_memory.kicad_sch` actually
+ties the 8 `ESP32_*` nets to real RP2350 GPIOs (see above), re-running
+the same command reports **0 errors / 26 warnings**, and none of the 26
+are on an `ESP32_*` net anymore -- confirming the fix. The remaining 26
+are all the same `isolated_pin_label` check, one per still-genuinely-free
+`GPIOn` label this project hasn't assigned to anything yet (GPIO2/3/8-19/
+35-39/42-46) plus the pre-existing `SWD`/`SWCLK` labels, which really do
+reach no debug header or test pad yet (tracked as `pilink-2ar`, along
+with U103's unconnected pad 9/centre pad and J501 MP1/MP2 + SW303's
+unconnected mounting/shield pads -- same single-pad-net root cause
+class, out of this bead's scope) -- not a
+regression, just more of the same check firing on more labels because
+KiCad 10's `kicad-cli` flags every singly-connected global label, not
+only the ones this bead happened to fix. Checking `esp32_bt.kicad_sch`
+**standalone** additionally reports 2
 `power_pin_not_driven` errors on +3V3/GND -- an artifact of a single
 non-root sheet not seeing power.kicad_sch's real U1/GND driver, not a
 real defect (confirmed by testing: adding a local PWR_FLAG to silence it
@@ -280,7 +345,7 @@ datasheet's mode table). VCC (3) and VCI (39) both go to `+3V3`.
 **GPIO assignment.** `GPIO29` (CS), `GPIO30` (SCK/RS), `GPIO31` (MOSI/SDA),
 `GPIO32` (D-C/WR), `GPIO33` (RESET), `GPIO34` (backlight CTRL/enable) —
 chosen (not just "picked from the free pool") to match the RP2350B's own
-hardware SPI1 function-select table (RP2350 datasheet Table 677, the
+hardware SPI1 function-select table (RP2350 datasheet section 9.4, the
 QFN-80/RP2350B-specific GPIO function rows): GPIO29=SPI1 CSn, GPIO30=SPI1
 SCK, GPIO31=SPI1 TX — confirmed directly against the datasheet after an
 earlier version of this sheet put SCK/MOSI/CS on the wrong three of these
