@@ -1,5 +1,11 @@
 # Replace LEFT/RIGHT d-pad switches with a rotary encoder for volume
 
+> **Superseded in part** by
+> `2026-11-15-rotary-encoder-replaces-full-dpad.md`: this ADR's decision to
+> keep UP/DOWN as dedicated switches no longer holds — UP/DOWN are removed
+> too. This ADR's reasoning for replacing LEFT/RIGHT specifically still
+> stands and is not superseded.
+
 ## Context
 
 `.planning/decisions/2026-11-14-dpad-instead-of-joystick.md` settled on a
