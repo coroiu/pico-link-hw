@@ -73,6 +73,33 @@ This was previously documented as "neither tool is installed," which is no
 longer true for KiCad — `kicad-cli` was added to this machine without a
 matching update here. Keep this note current if that changes again.
 
+## Optional: KiCad MCP server (machine-specific, not assumed)
+
+On machines where it's been set up, a `mixelpixx/KiCAD-MCP-Server`
+installation lives outside this repo (under `~/mcp-servers/KiCAD-MCP-Server`)
+and is registered with Claude Code as a **local-scope** MCP server named
+`kicad` — local scope deliberately, since its config embeds this machine's
+absolute paths (Node binary, Python venv) and writing that to the repo's own
+`.mcp.json` (project scope) would violate the no-absolute-paths rule above.
+It needs Node.js 18+ (this machine uses `nvm` for that, since its system
+default was older) and a Python venv built with `--system-site-packages` so
+it can import the system's `pcbnew`.
+
+Its `KICAD_MCP_OPERATING_MODE` env var gates capability: `readonly` exposes
+only inspection/validation tools (board/schematic info, ERC/DRC, nets,
+clearance checks — tools outside the allow-list are hidden from the list
+entirely, not just rejected on call); `write` (or unset) exposes everything,
+including footprint placement and routing. Check `claude mcp list` for
+whether it's configured and which mode it's in — don't assume either. A
+newly-added or reconfigured MCP server's tools only become callable in a
+**new** session; registering or reconfiguring it mid-conversation doesn't
+make the change usable in that same conversation.
+
+This is additional capability, not a dependency — `pilink-7el.9` (PCB
+layout)'s own plan (headless `pcbnew` scripting + Freerouting, verified with
+plain `kicad-cli pcb drc`) needs none of it and already works with zero
+extra installs.
+
 ## Development workflow
 
 - **Work comes from beads.** Pick from `bd ready` and claim with
