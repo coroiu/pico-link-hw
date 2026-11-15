@@ -24,14 +24,21 @@ Current status and next steps: `.planning/roadmap.md`.
 - **RP2350B** — USB Audio Class device, display/UI, app logic. Same flash
   (16MB QSPI NOR) and PSRAM (8MB QSPI) parts as the Pimoroni Pico Plus 2 W
   this replaces.
-- **ESP32-WROOM-32U** — dedicated Bluetooth Classic coprocessor (U.FL
+- **ESP32-WROOM-32UE** — dedicated Bluetooth Classic coprocessor (U.FL
   antenna), running Espressif's HCI-over-UART controller firmware; BTstack
   on RP2350 stays the host. See
   `.planning/decisions/2026-11-13-esp32-bt-coprocessor-not-rm2.md` for why,
-  instead of Raspberry Pi's RM2 module.
-- **Display** — 1.9" ST7789V IPS, 320x170, SPI (up from the current 240x240
-  panel).
-- **Input** — 5-way joystick + 4 tact buttons, same logical layout as today.
+  instead of Raspberry Pi's RM2 module, and
+  `.planning/decisions/2026-11-15-esp32-wroom-32ue-swap.md` for the -32U to
+  -32UE swap.
+- **Display** — Crystalfontz CFAF240320A0-024SN, ST7789V, 240x320 native
+  rotated to 320x240, SPI, 800:1 contrast (up from the current 240x240
+  panel). See
+  `.planning/decisions/2026-11-15-display-panel-crystalfontz-cfaf240320a0.md`.
+- **Input** — rotary encoder (sole directional control, double-duty by
+  firmware context) + tact buttons, same logical layout as today minus the
+  d-pad. See
+  `.planning/decisions/2026-11-15-rotary-encoder-replaces-full-dpad.md`.
 - **USB-C** exits the rear of the enclosure.
 
 ## Roadmap
