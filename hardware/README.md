@@ -565,18 +565,31 @@ the bead's own pin-table investigation) is tied directly to GND, the
 standard chassis-to-signal-ground tie most USB-C reference designs use for
 a single-ground-plane board like this one.
 
-**No VBUS overcurrent protection on this sheet.** An 0805 PTC resettable
-fuse (LCSC `C269104`) was added here during implementation, beyond the
-bead's own investigation (which only asked to "consider" one), and removed
-again on review: its 500mA hold current doesn't cover `power.kicad_sch`'s
-own ~0.6–0.65A worst-case peak once derating is accounted for, and its
-0.15–0.85Ω series resistance was never checked against the AMS1117's tight
-dropout margin. VBUS goes straight from J401 to the `+5V` net
-`power.kicad_sch` expects from this sheet (that sheet's own text note says
-"+5V arrives from the USB-C sheet (pilink-7el.7)", with a `PWR_FLAG`
-placeholder already in place pending it). Properly sizing VBUS overcurrent
-protection is tracked as its own follow-up bead rather than guessed at
-again here.
+**F401, VBUS overcurrent protection (pilink-imx):** a first attempt here
+(LCSC `C269104`, Brightking `SMD0805B050TF`, 500mA hold) was removed on
+review because its hold current didn't cover this project's own worst-case
+draw and its series resistance was never checked against the AMS1117's
+dropout margin. F401 is now LCSC `C269106` (Brightking `SMD0805B100TFT`), an
+0805 PTC resettable fuse, 1A hold / 1.95A trip / 6V max / R@25°C=40mΩ, 5,460
+units in stock at research time (lower than its siblings but not zero —
+worth rechecking at order time). Placed in series between the connector's
+VBUS and the `+5V` net `power.kicad_sch` expects from this sheet, same
+position the earlier attempt used.
+
+Sizing: worst-case steady current re-derived from `power.kicad_sch`'s own
+budget (RP2350B tens of mA + ESP32-WROOM-32U up to 500mA per Espressif's
+TX-burst spec + display ~50-100mA incl. backlight) = ~0.6-0.65A. The 1A hold
+variant (`C269106`) was picked over the 750mA sibling (`C269105`,
+R@25°C=90mΩ) because 0.65A is 65% of a 1A hold rating vs 87% of a 750mA
+rating — 65% leaves headroom for the ambient-temperature hold-current
+derating all PTC fuses exhibit once enclosed (this family's own derating
+curve is a scanned, non-text-extractable image in its datasheet, so this
+uses the general ≤75-80%-of-rated guideline for this part class as a
+flagged assumption, not read off this datasheet's own curve). R@25°C=40mΩ
+adds only ~26mV drop at the 0.65A worst case — negligible against the
+AMS1117's own dropout margin (already flagged elsewhere in this repo as
+tight against USB's worst-case 4.5V VBUS floor); this fuse doesn't
+meaningfully worsen that pre-existing, already-documented concern.
 
 No `PWR_FLAG` is added on this sheet's own `+5V`/`GND` nets:
 `power.kicad_sch` already carries both (`#FLG01` on `+5V`, `#FLG02` on
@@ -589,23 +602,22 @@ local flag once a real upstream driver/flag exists.
 
 References use a new `400`-`499` block for this sheet (`power.kicad_sch`:
 1-99, `rp2350b_memory.kicad_sch`: 100-199, `esp32_bt.kicad_sch`: 200-299,
-`input.kicad_sch`: 300-399): J401, R401-R402, `#PWR401`-`#PWR405`.
+`input.kicad_sch`: 300-399): J401, F401, R401-R402, `#PWR401`-`#PWR405`.
 `display.kicad_sch`, still empty, is expected to take `500`-`599` whenever
 it's populated, though that bead owns the final call.
 
-**ERC note:** two of this sheet's nets (CC1→R401, CC2→R402) are legitimate
-2-pin passive nets with no power-type pin directly on them (the GND power
-pin is one hop further, past the resistor). `kicad-cli sch erc` flags a
-plain, unlabelled net shaped like that as `wire_dangling` even when both
-ends are verifiably correct — confirmed by checking each endpoint against
-an isolated single-component ERC run first, then bisecting the false
-positive down to "no label and no power-type pin anywhere on this specific
-net." Fixed by adding a local `(label ...)` on each of the two nets (`CC1`,
-`CC2`) — the same plain-label convention `rp2350b_memory.kicad_sch` already
-uses for its own bus signals (`QSPI_SS`/`QSPI_SD0-3`/etc.), not a
-workaround invented just for this tool. VBUS itself has no such issue now:
-it runs straight to the `+5V` power symbol, a power-type pin directly on
-the net.
+**ERC note:** three of this sheet's nets (CC1→R401, CC2→R402, and the raw
+VBUS→F401 leg) are legitimate 2-pin passive/bidirectional nets with no
+power-type pin directly on them (the GND/+5V power pin is one hop further,
+past the resistor/fuse). `kicad-cli sch erc` flags a plain, unlabelled net
+shaped like that as `wire_dangling` even when both ends are verifiably
+correct — confirmed by checking each endpoint against an isolated
+single-component ERC run first, then bisecting the false positive down to
+"no label and no power-type pin anywhere on this specific net." Fixed by
+adding a local `(label ...)` on each of the three nets (`CC1`, `CC2`,
+`VBUS_RAW`) — the same plain-label convention `rp2350b_memory.kicad_sch`
+already uses for its own bus signals (`QSPI_SS`/`QSPI_SD0-3`/etc.), not a
+workaround invented just for this tool.
 
 Validated with `kicad-cli sch erc --severity-all --exit-code-violations`:
 `usb_c.kicad_sch` checked standalone reports 2 errors (`power_pin_not_driven`
