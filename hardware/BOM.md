@@ -4,7 +4,7 @@ Consolidated BOM for all six populated subsystem schematics (`power`,
 `rp2350b_memory`, `esp32_bt`, `display`, `input`, `usb_c`), compiled for
 `pilink-7el.8`. Every reference, value and footprint below was read
 directly from the `.kicad_sch` files on `origin/master` at commit
-`8c9b2d4` (2026-11-15) — not from memory or the design docs — by grepping
+`5fef711` (2026-11-15) — not from memory or the design docs — by grepping
 every placed `(symbol (lib_id ...))` instance and its `Reference`/`Value`/
 `Footprint` properties in each sheet. LCSC part numbers and stock were
 checked **live** on 2026-11-15 via the `jlcpcb-search` MCP server (local
@@ -23,7 +23,7 @@ dataset/tool defect, not reality; JLCPCB's own site should be the
 tie-breaker for Basic-vs-Extended on the generic passives below before
 ordering. Confirmed for at least one row: a later review queried JLCPCB's
 real component-search API directly and found `C15850` (10uF/25V/0805,
-used as U1/C119/C201/C501 below) is actually **Basic**, not Extended as
+used as C1/C119/C201/C501 below) is actually **Basic**, not Extended as
 this tool reported — rows marked `†` below should be treated as unverified
 either way, not assumed Extended. This same later check also surfaced that
 this tool can give false negatives on catalog *presence*, not just
@@ -85,21 +85,19 @@ guarantee than this BOM's first draft claimed.
    `.planning/decisions/2026-11-15-display-panel-crystalfontz-cfaf240320a0.md`).
    It is a manual/mechanical assembly step, not a JLCPCB SMT part; don't
    look for it in the LCSC columns below.
-5. **L501 (display backlight inductor)'s footprint is corrected on a
-   separate branch (`pilink-2wq`, PR #31) — not yet merged to master as of
-   this writing.** The schematic on master still draws a placeholder,
-   `Inductor_SMD:L_1210_3225Metric` (EIA 1210, 3.2x2.5mm), from before the
-   real part was picked. No 4.7uH JLCPCB-catalog part in that placeholder
-   footprint with adequate saturation current was found (the one 4.7uH
-   catalog hit in an 0805 package, `C356840`, is rated only 700mA — fails
-   the bead's own gotcha below). The part picked instead, `C354574`
-   (Cenker `CKCS4018-4.7uH/M`), meets the current/Isat gotcha; its real
-   package is 4.0x4.0x1.8mm — **larger** than the 1210 placeholder, not
-   smaller as an earlier draft of this BOM said. PR #31 updates
-   `display.kicad_sch` to the matching `Inductor_SMD:L_Cenker_CKCS4018`
-   footprint directly; once it merges this is no longer a layout-time
-   footprint decision, just a PCB area/placement note for `pilink-7el.9` to
-   budget the correct, larger footprint. Flagged on `pilink-2wq` too.
+5. **L501 (display backlight inductor)'s footprint fix has merged to
+   master** (`pilink-2wq`, commit `ce6e0e1`). `display.kicad_sch` now
+   carries the matching `Inductor_SMD:L_Cenker_CKCS4018` footprint
+   directly — no placeholder remains. For context: no 4.7uH
+   JLCPCB-catalog part in the old placeholder footprint
+   (`Inductor_SMD:L_1210_3225Metric`, EIA 1210, 3.2x2.5mm) with adequate
+   saturation current was found (the one 4.7uH catalog hit in an 0805
+   package, `C356840`, is rated only 700mA — fails the bead's own gotcha
+   below). The part picked instead, `C354574` (Cenker `CKCS4018-4.7uH/M`),
+   meets the current/Isat gotcha; its real package is 4.0x4.0x1.8mm —
+   **larger** than the old 1210 placeholder. This is now just a PCB
+   area/placement note for `pilink-7el.9`: budget the correct, larger
+   4x4mm footprint.
 6. **Extended-part handling fees apply** to every row marked "Extended"
    below (JLCPCB charges a per-part extended-component fee in addition to
    placement cost) — already called out for U501/D501 by the bead's own
@@ -155,7 +153,7 @@ guarantee than this BOM's first draft claimed.
 | U501 | 1 | AP3031KTR-G1 (backlight boost driver) | SOT-23-6 | C82636 | AP3031KTR-G1 | **Extended (confirmed — bead-carried gotcha)** | 11,130 |
 | R501 | 1 | 5.1R | 0402 | C25174 | 0402WGJ051JTCE | Extended† | 119,600 |
 | C501 | 1 | 10uF, X5R, 25V | 0805 | C15850 | CL21A106KAYNNNE | **Basic (confirmed via JLCPCB API)** | 1,999,860 |
-| L501 | 1 | 4.7uH, Isat 1.7A (≥ AP3031's 1.2-1.4A switch current — bead-carried gotcha, **satisfied**) | 4.0x4.0x1.8mm (schematic still has the old 1210 placeholder on master as of this writing — see flag 5; `Inductor_SMD:L_Cenker_CKCS4018` is pending on PR #31) | C354574 | CKCS4018-4.7uH/M | Extended† | 7,420 |
+| L501 | 1 | 4.7uH, Isat 1.7A (≥ AP3031's 1.2-1.4A switch current — bead-carried gotcha, **satisfied**) | `Inductor_SMD:L_Cenker_CKCS4018`, 4.0x4.0x1.8mm (merged, see flag 5) | C354574 | CKCS4018-4.7uH/M | Extended† | 7,420 |
 | C502 | 1 | 0.47uF, X7R, **50V** (≥25V bead-carried gotcha, **satisfied** — OVP clamp is 15.5-19.5V) | 0805 | C49955 | 0805B474K500NT | Extended† | 109,200 |
 | D501 | 1 | B5819W (Schottky) | SOD-123 | C64885 | B5819W | **Extended (confirmed — bead-carried gotcha)** | 525,050 |
 
@@ -175,7 +173,7 @@ guarantee than this BOM's first draft claimed.
 | J401 | 1 | TYPE-C-31-M-12 (USB-C receptacle) | SMT 16P | C165948 | TYPE-C-31-M-12 | Extended (confirmed) | 513,950 |
 | F401 | 1 | SMD0805B100TFT (1A hold PTC fuse) | 0805 | C269106 | SMD0805B100TFT | Extended† | 5,460 |
 | R401, R402 | 2 | 5.1k | 0402 | C25905 | 0402WGF5101TCE | Extended† | 704,500 |
-| R403, R404 | 2 | 10k (CC1/CC2 ADC voltage-sense series-protection, `pilink-1sj` — **pending PR #30, not yet merged to master** as of this writing) | 0402 | C60489 | RC0402JR-0710KL | Extended† | 21,253,700 |
+| R403, R404 | 2 | 10k (CC1/CC2 ADC voltage-sense series-protection, `pilink-1sj` — merged, commit `5fef711`) | 0402 | C60489 | RC0402JR-0710KL | Extended† | 21,253,700 |
 
 † See "Known limitation of this stock check" above — this tool reported
 every generic 0402/0603/0805 R/C jellybean part as `Extended`, which
@@ -186,21 +184,23 @@ ordering; it changes the assembly-fee total but not sourcing feasibility.
 ## Totals
 
 Counted directly from the six `.kicad_sch` files (every non-`#PWR`/`#FLG`
-reference designator, 2026-11-15): power 4, rp2350b_memory 33, esp32_bt 6,
-display 7, input 12, usb_c 4 — **66 real components on master as of this
-writing**. Of those, 65 are ordinary JLCPCB SMT line items (U103 included —
+reference designator, re-verified on master at commit `5fef711`,
+2026-11-15): power 4, rp2350b_memory 33, esp32_bt 6, display 7, input 12,
+usb_c 6 (J401, F401, R401-R404 — `pilink-1sj`'s R403/R404 CC-sense taps,
+commit `5fef711`, are now on master) — **68 real components on current
+master**. Of those, 67 are ordinary JLCPCB SMT line items (U103 included —
 it's a normal catalog part, not a gap, see flag 2) and L101 is the one
-catalog-gap part. The display panel itself is a 67th physical part that
+catalog-gap part. The display panel itself is a 69th physical part that
 was never a schematic symbol (it connects via J501, which *is* counted
 above) and is sourced outside LCSC/JLCPCB entirely (flag 4).
 
-**Once PR #30 merges** (adds R403/R404 to `usb_c.kicad_sch`), usb_c becomes
-6 refs and the project-wide total becomes **68 real components** (67
-ordinary + L101's one gap), 69 counting the display panel. **Once PR #31
-also merges**, L501's footprint in the schematic matches the row above
-without the placeholder caveat. Neither PR had merged to master as of this
-BOM's last update — recount before treating these totals as current if
-significant time has passed.
+Both PRs this BOM previously tracked as pending have merged: `pilink-2wq`'s
+L501 footprint fix (commit `ce6e0e1`) and `pilink-1sj`'s R403/R404 CC-sense
+taps (commit `5fef711`) are both reflected directly in the counts and rows
+above — there is no more pending-PR state to track for either. The only
+remaining "pending" item in this BOM is L101's unresolved JLCPCB catalog
+status (flag 2/assembly flag 2 above), which is a sourcing question, not a
+merge-status one.
 
 ## Not verified by this bead
 
