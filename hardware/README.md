@@ -11,7 +11,7 @@ each pointing at its own (currently empty) child `.kicad_sch`:
 
 - `power.kicad_sch` — power subsystem (pilink-7el.2)
 - `rp2350b_memory.kicad_sch` — RP2350B + flash/PSRAM (pilink-7el.3)
-- `esp32_bt.kicad_sch` — ESP32-WROOM-32U BT coprocessor (pilink-7el.4)
+- `esp32_bt.kicad_sch` — ESP32-WROOM-32UE BT coprocessor (pilink-7el.4, amended by pilink-wot)
 - `display.kicad_sch` — ST7789V display (pilink-7el.5)
 - `input.kicad_sch` — buttons + volume/menu encoder (pilink-7el.6, amended by pilink-cmn then pilink-3rm)
 - `usb_c.kicad_sch` — USB-C connector (pilink-7el.7)
@@ -112,11 +112,13 @@ as of this revision. This is still an agent-driven check against a
 rendered export, not a human sign-off in the KiCad GUI, so treat it as a
 good-faith check rather than a final layout approval.
 
-### ESP32 BT coprocessor subsystem (pilink-7el.4)
+### ESP32 BT coprocessor subsystem (pilink-7el.4, amended by pilink-wot)
 
-`esp32_bt.kicad_sch` now has U201 (ESP32-WROOM-32U-N4, KiCad's built-in
-`RF_Module:ESP32-WROOM-32U` symbol/footprint, pinout cross-checked pin-by-
-pin against Espressif's own datasheet Table 3), EN strapping (R201 10k +
+`esp32_bt.kicad_sch` now has U201 (ESP32-WROOM-32UE-N4, KiCad's built-in
+`RF_Module:ESP32-WROOM-32UE` symbol/footprint, pinout cross-checked pin-by-
+pin against Espressif's own datasheet Table 3 -- originally against the
+32D/32U datasheet in pilink-7el.4, re-confirmed identical against the
+32E/32UE datasheet by research bead pilink-8zj), EN strapping (R201 10k +
 C203 1uF RC delay, per Espressif's Hardware Design Guidelines Schematic
 Checklist), GPIO0/BOOT0 strapping (R202 10k pull-up only, no cap, per the
 same checklist), and 3V3 decoupling (C201 10uF + C202 100nF). GPIO2 is
@@ -142,17 +144,35 @@ rationale and citations. RP2350-side GPIO assignment is pilink-7el.3,
 in progress in parallel -- this sheet does not touch
 `rp2350b_memory.kicad_sch`.
 
-Flash variant: ESP32-WROOM-32U-**N4** (JLCPCB/LCSC C328062). Sufficient for
-an HCI-controller-only firmware image (no Wi-Fi/Bluedroid/display code);
-live LCSC stock checked 2026-11-14 in the low thousands of units.
+Flash variant: ESP32-WROOM-32UE-**N4** (JLCPCB/LCSC `C701344`). Sufficient
+for an HCI-controller-only firmware image (no Wi-Fi/Bluedroid/display
+code); live LCSC stock checked 2026-11-14 (research bead pilink-8zj) at
+~3,321 units, comfortably above any realistic build quantity. (Before the
+`pilink-wot` swap below, this was ESP32-WROOM-32U-**N4**, JLCPCB/LCSC
+`C328062`, with stock in the low thousands of units.)
 
-**Risk flag for the user/orchestrator:** Espressif's current datasheet
-(v2.8, 2026-09-16) marks ESP32-WROOM-32U "NOT RECOMMENDED FOR NEW DESIGNS
-(NRND)" -- not surfaced in the original ADR. Stock is still healthy and the
-part is still in production, but Espressif steers new designs toward
-ESP32-WROOM-32UE instead. This bead keeps the already-decided U variant
-(re-opening that choice is out of scope here) but flags it for a decision
-before PCB fab -- tracked as follow-up bead `pilink-8zj`.
+**Risk flag resolved (`pilink-wot`):** Espressif's datasheet (v2.8,
+2026-09-16) marked ESP32-WROOM-32U "NOT RECOMMENDED FOR NEW DESIGNS
+(NRND)" -- not surfaced in the original ADR, and flagged as a follow-up
+risk by bead `pilink-8zj`. Stock was still healthy and the part was still
+in production, but Espressif steers new designs toward ESP32-WROOM-32UE
+instead. Research bead `pilink-8zj`
+([`.research/findings/2026-11-14-esp32-wroom-32ue-swap-eval.md`](../.research/findings/2026-11-14-esp32-wroom-32ue-swap-eval.md))
+confirmed ESP32-WROOM-32UE is pin-for-pin identical (all 39 pins, diffed
+directly against both datasheets), same package envelope, not itself
+NRND/EOL, with comparable LCSC/JLCPCB stock in the same N4 variant, and
+that KiCad 8.0.9's stock `RF_Module` library already ships a ready-made
+ESP32-WROOM-32UE symbol/footprint pair. The user approved the swap
+([`.planning/decisions/2026-11-15-esp32-wroom-32ue-swap.md`](../.planning/decisions/2026-11-15-esp32-wroom-32ue-swap.md))
+and `pilink-wot` implemented it: U201 is now `RF_Module:ESP32-WROOM-32UE`
+/ `ESP32-WROOM-32UE-N4`, with no GPIO/net/pin changes. One residual item
+is **not** resolved by this swap and still needs a human DRC/courtyard
+check before fab: the two footprints' pad positions differ by a small,
+consistent offset between the KiCad library files (~0.155mm in Y on the
+side pads, ~0.38mm on the central ground/thermal pad-39 cluster) despite
+identical pad numbering, pad count, and pitch -- same standard caveat
+this project already applies to every footprint, since there is no GUI
+tool in this agent environment to run DRC.
 
 Validated with `kicad-cli sch erc --severity-all --exit-code-violations`:
 the **root** `pico-link-hw.kicad_sch` (whole-project, the check that
