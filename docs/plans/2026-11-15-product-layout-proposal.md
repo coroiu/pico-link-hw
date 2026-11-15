@@ -200,24 +200,40 @@ Practical rules that follow:
    band re-reads as a black stiffener, not gold contacts, on closer
    inspection. Full certainty still needs a physical panel, but
    **back-face is now the working assumption for the PCB re-place, not an
-   even coin flip**. The preferred fix works either way: swap J501 for a
-   **dual-contact** ZIF (`FC-05B40P21H20`, LCSC `C23398824`, JLCPCB
-   Extended part, 2,635 units in stock as of 2026-11-15 -- same 2mm height
-   above board as the current part), which mates with the FPC fingers
-   facing either direction and removes this question as a design
-   dependency entirely. If that part doesn't work out, the fallbacks are a
-   confirmed top-contact part (`HC-FPC-0.5-40P-CSH20`, LCSC `C19273956`,
-   16,755 units in stock -- note `AFC01-S40FCC-00`/LCSC `C262282`, despite
-   the similar part number, is *also* bottom-contact per its own JLCPCB
-   catalog entry and is not a valid substitute) or an S-fold with J501
-   outboard of the panel edge (roughly 25-28 mm of added board width
-   beyond the panel's edge, vs. none for the J-fold). **Whichever part
-   replaces J501, check its pin-1 location against the current part's
-   before treating it as a drop-in footprint swap** -- if pin-1 lands at
-   the opposite tail end, the schematic's J501 pin mapping must be
-   reversed, not just the footprint. See
+   even coin flip**. The preferred fix works either way, in the original
+   J-fold geometry, with no width penalty: swap J501's current part (LCSC
+   `C262674`) for the candidate **dual-contact** ZIF `FC-05B40P21H20`
+   (LCSC `C23398824`, JLCPCB Extended part, 2,635 units in stock as of
+   2026-11-15 -- same 2mm height above board as the current part), which
+   mates with the FPC fingers facing either direction and removes this
+   question as a design dependency entirely.
+
+   If that swap doesn't work out, which fix applies depends on which side
+   the contacts actually turn out to be on, and on whether the J-fold or
+   an outboard S-fold is used -- a single tight J-fold bend flips which
+   face ends up toward the PCB, while an S-fold's two bends net to no
+   flip:
+   - **Front-face:** J-fold + current bottom-contact part (no change), or
+     outboard S-fold + a top-contact swap.
+   - **Back-face** (the working assumption): J-fold + a confirmed
+     top-contact swap (`HC-FPC-0.5-40P-CSH20`, LCSC `C19273956`, 16,755
+     units in stock), or outboard S-fold + **no part change at all** (the
+     current bottom-contact part already works once the fold doesn't flip
+     which face points at the PCB) -- at the cost of roughly 28-35 mm of
+     added board width beyond the panel's edge for the S-fold (re-derived
+     from the ~33 mm of free FPC cable and J501's own depth, not from its
+     25.4 mm length, which stays parallel to the panel edge either way),
+     vs. none for the J-fold.
+   - Note `AFC01-S40FCC-00`/LCSC `C262282`, despite the similar part
+     number, is *also* bottom-contact per its own JLCPCB catalog entry and
+     is not a valid top-contact substitute.
+
+   **Whichever part replaces J501, check its pin-1 location against the
+   current part's before treating it as a drop-in footprint swap** -- if
+   pin-1 lands at the opposite tail end, the schematic's J501 pin mapping
+   must be reversed, not just the footprint. See
    `.research/findings/2026-11-15-display-fpc-contact-side.md` finding 1
-   for the full detail on all of this.
+   for the full placement-rule matrix and detail on all of this.
 3. **Which edge the FPC leaves from (any option can use either):**
    - **FPC-left (toward the knob).** The panel's 7.39 mm dead ledge sits on
      the knob side, where clearance is needed anyway for the knob overhanging

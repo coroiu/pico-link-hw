@@ -39,6 +39,26 @@ measurements of the same frame-to-FPC gap. See the updated finding 1 and
 the "Concrete J501 placement rule" / "What would still need a human"
 sections below.
 
+**Update (2026-11-15, post-review on PR #40, round 4):** round 3's S-fold
+fallback (finding 1, fallback plan C) derived its added-width figure from
+J501's full 25.4mm courtyard length, as if the connector's long axis sat
+perpendicular to the panel edge once moved outboard — it doesn't; the
+standing orientation rule keeps the long axis **parallel** to the edge in
+every fallback, including this one. That section is reworked from the
+actual geometry (the ~33.05mm of free FPC cable, not J501's footprint) and
+now gives a corrected ~28-35mm range instead of a single ~25mm figure. The
+same section also wrongly claimed an S-fold only avoids the contact-side
+risk when paired with the dual-contact part — an outboard S-fold's two
+bends net to no flip, so it actually works with the **current**
+bottom-contact part under the back-face working assumption, no connector
+swap needed. A full placement-rule matrix (one concrete rule per actual
+contact side) is added below. This round also updates the dual-contact
+candidate's datasheet status: its vector strokes could be rendered and
+read this round (confirming height and pin-1 location directly off the
+drawing), so it is no longer accurate to call that drawing unreadable. See
+the updated fallback plan C, the new placement-rule matrix, and the
+updated Method note and "What would still need a human" sections below.
+
 ## Method note
 
 No PDF rasterizer (`pdftoppm`/poppler, ImageMagick, Ghostscript) or Python
@@ -74,6 +94,24 @@ either — so that part's mated-height and pin-1-location dimensions could
 only be sourced from JLCPCB's structured catalog fields and product-page
 text, not read directly off its own CAD drawing. This is flagged inline
 where it applies (finding 1's fallback plan A).
+
+**Round 4 addition:** the glyph-indexed-text limitation above blocks
+decoding *character codes* from the dual-contact candidate's vector PDF,
+but not the drawing's *strokes* — the vector path-paint operators that
+actually draw the dimension lines, arrows, and (for a CAD-exported PDF)
+the stroked/outlined text itself don't depend on font-encoding tables the
+way character-code text does. Rendering those paths directly (rasterizing
+the page's vector content with PIL rather than trying to resolve character
+codes) produced a readable image of the drawing this round, confirming
+**Height Above Board: 2.00 +/-0.15mm** from its section A-A view (matching
+JLCPCB's catalog "2mm" field used in finding 1's fallback plan A) and **pin
+1 marked "NO.1" next to an "A" orientation marker**. This is now a
+confirmed primary-source reading off the part's own CAD drawing, not a
+catalog-field-only figure — the fallback plan A note and "What would still
+need a human" section below are updated accordingly. It still doesn't by
+itself confirm whether this part's pin-1 end lands at the same physical
+tail end as AFC01-S40FCA-00's — that's a cross-part comparison, not a
+single-drawing reading, and still hasn't been done.
 
 ## Findings
 
@@ -190,16 +228,19 @@ AFC01-S40FCC-00 case below):
   before ordering). This is the strongly preferred fix: it eliminates the
   contact-side risk as a design dependency rather than betting on one
   reading of an ambiguous drawing.
-  - **What this does *not* confirm:** mated height is sourced from the
-    same class of catalog field as finding 3's AFC01 height (not a primary
-    CAD drawing — this part's own datasheet PDF is a vector CAD export
-    with glyph-indexed text that couldn't be decoded with this
-    environment's toolchain, same limitation noted in the Method note
-    above; no PDF rasterizer or ToUnicode-aware text extractor is
-    available here), and **pin-1's physical location on this part's
-    footprint was not independently verified**. See the pin-1 note below —
-    this must be checked before `pilink-7el.12`/`pilink-7el.11` commits to
-    it as a footprint swap.
+  - **Confirmed this round (round 4):** the part's own CAD drawing (its
+    glyph-indexed text still can't be decoded, but its vector strokes
+    could be rendered and read directly — see the Method note above)
+    independently confirms **Height Above Board: 2.00 +/-0.15mm** from
+    section A-A, matching the JLCPCB catalog field used above, and shows
+    **pin 1 marked "NO.1" next to an "A" orientation marker**. Both are
+    now primary-source-confirmed, not catalog-field-only figures.
+  - **What this still does *not* confirm:** whether this part's pin-1 end
+    is at the **same physical tail end** as AFC01-S40FCA-00's — that's a
+    cross-part comparison this round didn't do, not a limitation of this
+    part's own drawing. See the pin-1 note below — this must be checked
+    before `pilink-7el.12`/`pilink-7el.11` commits to it as a footprint
+    swap.
 
 **Fallback plan B (if plan A doesn't pan out): a confirmed single-sided
 top-contact part.**
@@ -236,27 +277,90 @@ reason noted above.
 **Fallback plan C (if no connector swap is acceptable): route an S-fold
 instead of a J-fold**, with J501 outboard of the panel edge instead of
 underneath it. Rough placement numbers (not previously given):
+
+**Correction (2026-11-15, fourth review round on PR #40):** the previous
+version of this section derived the added width from J501's full 25.4mm
+courtyard *length*, as if moving the connector outboard put that length
+across the gap. That's wrong: J501's long axis stays **parallel** to the
+panel's FPC exit edge in this plan too (see orientation below, unchanged
+from the J-fold) — moving it outboard only exposes its **depth** (the
+short axis: body 5.35mm / courtyard 6.9mm, ~5-7mm), which runs away from
+the edge, not its length, which runs alongside it. Re-derived below from
+the actual geometry instead.
+
 - **Orientation:** same rule as the J-fold — J501's long axis parallel to
   the panel's FPC exit edge, opening facing that edge.
-- **Position:** instead of sitting **under** the panel, inset ~24mm in
-  from the FPC edge (the J-fold plan), J501 moves to just **outside** the
-  panel's own footprint, beside its FPC edge. That consumes roughly
-  **25-28mm of additional PCB width beyond the panel's edge** — J501's own
-  ~25.4mm courtyard length plus a few mm of clearance for the fold itself
-  — board area the J-fold plan doesn't need at all (it tucks entirely
-  under the panel). This matches the proposal's existing rough "~25mm of
-  width" figure, now attached to a reason.
+- **Position, re-derived:** instead of tucking back **under** the panel
+  (as the J-fold does, entirely inside the panel's own footprint), the
+  tail now has to run the other way — **outward**, away from the panel's
+  edge — to reach a connector sitting beside the panel rather than beneath
+  it. The real driver of how far out is the FPC's own fixed free length,
+  not J501's footprint:
+  - Free FPC length, frame edge to tail end: **33.05 +/-0.5mm** (section
+    1.1).
+  - The fold itself consumes some of that length regardless of style. The
+    J-fold case already establishes a working figure for this document:
+    **~5.5mm** for its tight 180deg bend, leaving ~27.5mm to run flat
+    under the panel (section 2 point 2 / finding 4's own numbers). Using
+    that same order-of-magnitude bend allowance for the S-fold's loop (no
+    dimensioned figure exists for a looser bend, so this is the best
+    available anchor, not a new assumption): **33.05 +/-0.5mm minus
+    ~5.5mm = roughly 27-28mm** of run available before the loop closes —
+    approximately how far out from the panel's edge J501's **face** ends
+    up sitting.
+  - J501's body extends further outboard past its face by its own depth
+    (**~5.4-6.9mm**, body/courtyard), since the connector's opening still
+    faces the panel per the orientation rule above. Adding the face
+    distance and the depth: **~27-28mm + ~5-7mm = roughly 33-35mm** from
+    the panel's edge to the outer edge of J501's footprint, as a
+    worst-case, nearly-straightened-cable estimate.
+  - That worst case assumes the loop barely curves. A real S/Z-shaped bend
+    routed in open space (rather than forced flat under the panel) can
+    recover some of that length as overlap between the two bends and the
+    connector's own footprint — exactly how much depends on how the loop
+    is actually drawn, which this arithmetic can't settle without a real
+    routing attempt or a physical mockup.
+  - **Corrected added-width figure: roughly 28-35mm beyond the panel's
+    edge**, not a single ~25mm number, and not derived from J501's 25.4mm
+    length as the prior version of this section assumed. The earlier
+    "~25-28mm" figure sits near the low end of this corrected range, but
+    that's incidental — it wasn't actually derived from this geometry, and
+    the true figure still needs a real routing attempt to narrow below
+    this ~7mm-wide range.
 - **Lateral/front-back offset:** unchanged, about 7.2mm from the panel
   centreline — that number comes from the tail's own position on the
   panel (finding 2), not from the fold style.
 - **Vertical:** the S-fold's two bends happen in open space beside the
   panel rather than squeezed into the 3.4mm under-panel gap, so it
-  sidesteps finding 4's bend-radius fit risk entirely — at the cost of the
-  extra width above, and of whatever contact-type part it's paired with
-  (an S-fold still needs the fingers to end up facing the PCB at the
-  connector, so it only sidesteps the *bend-radius height* risk in finding
-  4, not the contact-side question in this finding, unless also paired
-  with a dual-contact part).
+  sidesteps finding 4's bend-radius fit risk entirely, at the cost of the
+  extra width above.
+- **Contact-side compatibility, corrected:** the previous version of this
+  plan claimed an S-fold only avoids the contact-side risk (finding 1,
+  above) if paired with the dual-contact part. That's also wrong. A
+  J-fold's single tight 180deg bend flips which face of the tail ends up
+  pointing toward the PCB; an S-fold's two bends (out, then back) net to
+  **no flip** — the tail's contacts end up facing the **same** side
+  relative to the PCB that they already face when flat and unbent. That
+  means an outboard S-fold works with the **current bottom-contact
+  AFC01-S40FCA-00 part, with no connector swap at all**, if the real
+  contact side turns out to be back-face (this finding's working
+  assumption): back-face contacts already face toward the PCB when flat,
+  and a no-flip route leaves them facing toward the PCB — exactly what a
+  bottom-contact connector needs. See the placement-rule matrix below for
+  every combination.
+
+**Placement-rule matrix (by actual contact side):** combining the
+fold-style analysis above (a J-fold's single bend flips which face points
+toward the PCB; an S-fold's two bends don't) with the three fallback
+options, here is the concrete rule for each possible contact side, so
+`pilink-7el.12` has a rule to act on whichever way the physical-
+confirmation question eventually resolves:
+
+| Actual contact side | Works with... |
+|---|---|
+| **Front-face** | J-fold (original plan, J501 under the panel, ~24mm inset) + current **bottom-contact** AFC01-S40FCA-00, no part change — the fold's single flip puts front-facing contacts toward the PCB, which is what bottom-contact needs. *Or:* outboard S-fold (no flip) + a **top-contact** swap (`HC-FPC-0.5-40P-CSH20`) — with no flip, front-facing contacts stay facing away from the PCB, which needs top-contact. |
+| **Back-face** (this finding's working assumption) | J-fold + a **top-contact** swap (`HC-FPC-0.5-40P-CSH20`) — the fold's single flip puts back-facing contacts facing away from the PCB, needing top-contact. *Or:* outboard S-fold (no flip), **no part change** — with no flip, back-facing contacts stay facing toward the PCB, which is exactly what the current bottom-contact AFC01-S40FCA-00 already needs. |
+| **Either side** | Swap to the **dual-contact** `FC-05B40P21H20` and keep the original J-fold geometry (J501 under the panel, ~24mm inset, no width penalty) — it accepts the FPC from either face, regardless of which side the contacts are actually on. This is the preferred fix: it removes the dependency on resolving contact side at all, and needs no change to the proven J-fold geometry or an S-fold's extra board width. |
 
 None of the three fallbacks is committed to in advance. `pilink-7el.12`
 should still check contact side against a real panel (or get Crystalfontz
@@ -518,13 +622,19 @@ point 2), for **either** FPC exit side:
   *rear* view, putting the numbered contacts on the back face. Treat
   **back-face as the working assumption** for `pilink-7el.12`, not a
   coin-flip, though it's not 100% certain without a physical panel.
-  **Preferred fix regardless of which face turns out correct: swap J501
-  for the dual-contact `FC-05B40P21H20` (LCSC `C262674` -> `C23398824`)**,
-  which mates with either orientation and removes the dependency on
-  resolving this question at all. If a dual-contact part isn't usable,
-  fall back to the confirmed top-contact `HC-FPC-0.5-40P-CSH20` (LCSC
-  `C19273956`) or an S-fold with J501 outboard of the panel edge (now with
-  rough placement numbers) — see finding 1 for all three fallbacks, the
+  **Preferred fix regardless of which face turns out correct:** swap
+  J501's current part (LCSC `C262674`) for the candidate **dual-contact**
+  replacement `FC-05B40P21H20` (LCSC `C23398824`) — it mates with either
+  orientation and removes the dependency on resolving this question at
+  all, with no change to the proven J-fold geometry. If that swap isn't
+  usable, which fix applies depends on which side the contacts actually
+  turn out to be on — see the placement-rule matrix in finding 1: a
+  **top-contact** swap (`HC-FPC-0.5-40P-CSH20`, LCSC `C19273956`) if
+  staying with a J-fold, or **no part change at all** if routing an
+  outboard S-fold instead, under the back-face working assumption (an
+  S-fold's two bends net to no flip, so the current bottom-contact
+  AFC01-S40FCA-00 already works in that geometry — it only costs extra
+  board width, not a part swap). See finding 1 for the full matrix, the
   required pin-1-orientation check for whichever part is chosen, and why
   `AFC01-S40FCC-00` (LCSC `C262282`) is **not** a valid top-contact
   substitute despite the name.
@@ -536,13 +646,14 @@ point 2), for **either** FPC exit side:
   tail and look, or probe continuity against the pin table) — though this
   is no longer blocking, since the dual-contact J501 fallback works either
   way.
-- A physical `FC-05B40P21H20` part or its dimensioned CAD drawing (this
-  part's own datasheet is a vector PDF whose text uses glyph-indexed
-  fonts this environment's toolchain couldn't decode — no ToUnicode-aware
-  PDF text extractor or rasterizer was available, same limitation as the
-  Method note above), to confirm its pin-1 physical location against
-  AFC01-S40FCA-00's before `pilink-7el.11`/`pilink-7el.12` treats this as
-  a drop-in footprint swap rather than a pin-mapping change.
+- Confirmation that `FC-05B40P21H20`'s pin 1 (now confirmed, round 4, at
+  the "NO.1"/"A"-marked end on the part's own CAD drawing — rendered
+  directly from the PDF's vector strokes, see the Method note above) lands
+  at the **same physical tail end** as AFC01-S40FCA-00's pin 1, before
+  `pilink-7el.11`/`pilink-7el.12` treats this as a drop-in footprint swap
+  rather than a pin-mapping change. The part's own drawing is no longer
+  unreadable — the remaining gap is a cross-part comparison (this part's
+  drawing against AFC01-S40FCA-00's), not a missing primary source.
 - A physical J501 part or its real engineering drawing from Jushuo
   (not available online in a dimensioned form), to confirm "Height Above
   Board: 2mm" to better than catalog-field precision, and to confirm
