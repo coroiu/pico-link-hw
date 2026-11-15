@@ -13,3 +13,4 @@ Research lives here; the decisions it informs live in `.planning/decisions/`.
 | 2026-11-15 | [Higher-contrast panel in the same wide-bar aspect ratio (320x170 class)](2026-11-15-display-wide-bar-aspect-contrast.md) | Current |
 | 2026-11-15 | [Wide-bar display panels with height >= 240px (no height loss vs. the old panel)](2026-11-15-display-wide-bar-height240-contrast.md) | Current |
 | 2026-11-15 | [Sustainably-stocked wide-bar display panel, height >= 240px](2026-11-15-display-sustainable-stock.md) | Current |
+| 2026-11-15 | [Best LCSC-stocked display panel, with the height>=240px constraint relaxed](2026-11-15-display-lcsc-relaxed-size.md) | Current |
