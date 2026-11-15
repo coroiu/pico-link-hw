@@ -237,11 +237,25 @@ those numbers were already correct. The two mounting/fitting-nail pads are
 now correctly offset 2.68mm from the signal pad row in Y, with the signal
 row on the opposite side from the mounting pads (the prior revision had
 them on the same side, 1.4mm apart, which also put pin 1 on the wrong pad).
-The body/courtyard outline was not re-derived and is still a family-typical
-approximation — it only affects DRC clearance spacing, not solder-pad
-accuracy. Still worth a human KiCad-GUI visual cross-check before PCB fab,
-same caveat class this project already applies to the RP2350 QFN-80 and
-PSRAM USON-8 hand-authored footprints.
+A round-4 review caught a follow-on bug from the Y-offset fix above: the
+pad row moved, but the body outline (F.Fab), courtyard (F.CrtYd),
+silkscreen lines, pin-1 marker and `REF**` text were left at their old
+coordinates, so they collided with the moved pads — the courtyard no
+longer enclosed pads 1-40, and the silkscreen/fab lines, pin-1 dot ran
+straight through the pad row. Fixed by re-deriving the body/courtyard/
+silkscreen geometry from the same EasyEDA footprint's non-pad shapes
+(`ComponentShape`/`3DModel`/`TopSilk` layers, same `easyeda.com` API
+fetch), converting EasyEDA's internal units to mm with the 0.254mm/unit
+scale factor (cross-checked against the known 0.5mm pin pitch): F.Fab body
+outline x=±12.20mm, y=-2.33..3.02mm (asymmetric — the housing legitimately
+overhangs the pad footprints on the actuator side, same as the real part);
+F.CrtYd x=±12.70mm, y=-3.60..3.30mm, enclosing the body outline and all 42
+pads with ≥0.25mm margin; silkscreen lines and the pin-1 dot repositioned
+clear of every pad's Y range. Still a simplified axis-aligned approximation
+of the connector's true stepped housing shape, not a literal trace of it.
+Worth a human KiCad-GUI visual cross-check and DRC run before PCB fab, same
+caveat class this project already applies to the RP2350 QFN-80 and PSRAM
+USON-8 hand-authored footprints.
 
 Per the datasheet: SDO (pin 4) and TE (pin 5) are no-connect (write-only
 use, no tearing-effect sync needed). DB0-17 (pins 6-23), DOTCLK (26),
