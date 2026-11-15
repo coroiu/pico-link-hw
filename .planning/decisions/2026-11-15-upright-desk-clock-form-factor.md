@@ -177,4 +177,16 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
     from ~12.5mm to ~17mm. See
     `.research/findings/2026-11-15-encoder-ec11e18244au-specs.md`;
   - `pilink-8wx`: antenna part.
+  - `pilink-3ob`: **resolved** — re-verified the 6c envelope figures above
+    against the corrected ~17 mm knob / ~4 mm bushing proud figures.
+    Standing height (~58 mm) and the table-contact footprint (~122 x
+    50 mm) are both unaffected: the knob tops out around 23 mm above the
+    floor (well under the 58 mm body/leg top) and never touches the
+    table. What does change: the knob's own forward reach past the body's
+    base front edge, from about 7 mm (old, incorrect figure) to about
+    11.5 mm (corrected), giving a new overall bounding depth (knob tip to
+    the back of the feet) of about 61.5 mm, versus the ~50 mm
+    table-footprint depth. The proposal doc's 6c "Dimensions" section has
+    the full derivation and the side-profile diagram's knob blob is
+    redrawn to match.
 - **`AGENTS.md`** hardware summary gains a form-factor line pointing here.

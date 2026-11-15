@@ -582,7 +582,7 @@ Drawn in the face's own frame: rotate 20 degrees to get the real orientation.
        ...then the wedge cavity to the floor: about 2.6 mm at the PCB's
           front edge, growing to about 19 mm at its rear edge
  Buttons: actuator top at d 2.5 (PCB + 5.0); caps flush at d 0, flange under the plate.
- Knob:    shaft tip at d -17 (shaft tip 24.5 mm above PCB [4.5 mm housing + 20 mm shaft], PCB seated at d 7.5, so d 7.5 - 24.5 = -17; pilink-g8a corrected); knob base 0.8 above face.
+ Knob:    shaft tip at d -17 (shaft tip 24.5 mm above PCB [4.5 mm housing + 20 mm shaft], PCB seated at d 7.5, so d 7.5 - 24.5 = -17; pilink-g8a corrected); knob base (where it seats on the bushing) at d -4, i.e. about 4 mm proud of the face (bushing top 11.5 mm above PCB - 7.5 mm face depth = 4; pilink-3ob, same reference point as the bushing-proud figure used elsewhere in this doc). The earlier "0.8 above face" was a leftover of the pre-correction model, where the (misread) "7.5 mm" body-height figure happened to put the housing/bushing flush with the face (0 mm proud); 0.8 was never re-derived once that model was corrected.
 ```
 
 ### Notes and decisions made for this profile (reversible, for the ADR to adopt or change)
@@ -832,17 +832,17 @@ directly:
                              /###   ===    //
                             /####   ===    \\                           \ = rear legs (pair, splayed +/-40 mm; only one visible)
                            //###   ===    //\\
-             KKKKK         /####   ===    /  \\                         + = estimated centre of mass
-  30         K   KKKKKKKKK//###   ===    /    \\\
-            KK           K/####   ===   //      \\
-            K            //###   +==    /        \\                     K = knob, ~17 mm proud (corrected, pilink-g8a; centre ~19 mm up the face)
-           KK            /####EEE===   //         \\
-          KK            //###EEE===eee /           \\\                  E/e = encoder body / THT leads behind PCB
-  20      K             /####EE====ee //             \\
-         KK            //###EEE===eee /               \\
-         K             /###EEE===eee //                \\               U = USB-C exits rear, low; cable runs down between the legs
-         KKKKKKK      //###EEE===eee /                   \\
-               KKKKKKK/### EE===eee UUU                   \\
+         KKKKK         /####   ===    /  \\                         + = estimated centre of mass
+  30     K   KKKKKKKKK//###   ===    /    \\\
+        KK           K/####   ===   //      \\
+        K            //###   +==    /        \\                     K = knob, ~17 mm proud (corrected, pilink-g8a; centre ~19 mm up the face)
+        KK            /####EEE===   //         \\
+      KK            //###EEE===eee /           \\\                  E/e = encoder body / THT leads behind PCB
+  20  K             /####EE====ee //             \\
+      KK            //###EEE===eee /               \\
+      K             /###EEE===eee //                \\               U = USB-C exits rear, low; cable runs down between the legs
+      KKKKKKK      //###EEE===eee /                   \\
+            KKKKKKK/### EE===eee UUU                   \\
   10                 //###   ===    / UUUUUUUU             \\
                     //###   ===    //        UUUUUUUUU      \\\
                     /       ===    /                 UUUUUUU  \\
@@ -850,6 +850,14 @@ directly:
                    ________________                            ______   o = feet
    0                ooooooooooooo                              ooooo
          -10       0         10        20        30        40        50          x mm (user on the left)```
+
+(Note: the knob blob (K) above is redrawn about 4 mm further from the face
+than the version this diagram first shipped with, matching the corrected
+~17 mm proud / ~4 mm bushing-proud figures below — the knob's own length
+barely changes (about 12.5 mm tip-to-near-edge before, about 13 mm now),
+but both ends sit about 4 mm further out, since the old model wrongly had
+the bushing flush with the face instead of standing proud of it. See
+`pilink-3ob` for the derivation.)
 
 ### Front elevation (face-true), to scale: 1 col = 1.5 mm, 1 row = 2.5 mm
 
@@ -890,16 +898,49 @@ directly:
   behind the PCB for the encoder's through-hole leads, and a 2.0 mm back
   wall. The knob adds about **17 mm** in front (corrected from an earlier
   ~13 mm figure that misread the Alps body-height dimension; see
-  `pilink-g8a`). This ~4 mm increase is a direct correction of the knob's
-  own protrusion; it has not been re-propagated into the other
-  depth/footprint figures below (e.g. "Standing" and the front-to-back
-  envelope numbers derived from the 6c diagrams), which should be
-  re-verified against the corrected knob protrusion in a follow-up pass.
-- **Standing:** about **58 mm tall** including feet. The body alone is
-  about 28 mm front-to-back at the base. With legs, the footprint is about
-  **122 W x 50 D** mm, and the feet sit about 46 mm behind the front edge.
-  So the device is roughly 4x taller and has about the same depth as the
-  flat options, which is genuinely small on a desk.
+  `pilink-g8a`).
+- **Knob's forward reach, re-derived (`pilink-3ob`):** the knob sits about
+  19 mm up the *leaning* face, not at the body's base, so its 17 mm proud
+  distance doesn't add straight onto body thickness — it has to go through
+  the face's 15 deg lean first. Resolving the perpendicular-to-face
+  protrusion into horizontal (front-to-back) and vertical components:
+  - at the knob's own height, the face has already receded about
+    19 x sin(15 deg) = ~4.9 mm behind the body's base front edge (the face
+    leans back as it rises, same slope as the side-profile diagram).
+  - the knob's 17 mm proud distance resolves to about 17 x cos(15 deg) =
+    ~16.4 mm horizontal reach (and 17 x sin(15 deg) = ~4.4 mm extra rise) at
+    that point.
+  - net: the knob tip lands about 4.9 - 16.4 = **~11.5 mm forward of the
+    body's own base front edge**, and about 19 x cos(15 deg) + 4.4 =
+    ~22.8 mm above the floor. Under the old, incorrect ~12.5 mm figure this
+    was only about 4.9 - 12.5 x cos(15 deg) = ~-7.2 mm forward (~7 mm) — so
+    the corrected figure adds about 4.3 mm of extra forward overhang,
+    consistent with the ~4.5 mm increase in the protrusion itself (reduced
+    a little by the lean).
+  - the bushing (4 mm proud) resolves the same way but barely reaches the
+    base edge's own forward plane (4.9 - 4 x cos(15 deg) = ~1.1 mm *behind*
+    it) — only the knob cap itself, not the bushing, is the device's
+    forward-most point.
+- **Standing:** about **58 mm tall** including feet — **confirmed
+  unaffected by the knob correction** (`pilink-3ob`). The knob's own top is
+  only about 23 mm above the floor (derived above), well below the 58 mm
+  body/leg-structure top, so the knob was never the tallest feature,
+  before or after the correction. The body alone is about 28 mm
+  front-to-back **at the base** — also unaffected, since the knob isn't
+  present down at the base. With legs, the table-contact **footprint** is
+  about **122 W x 50 D** mm, and the feet sit about 46 mm behind the front
+  edge — likewise unaffected, since the knob doesn't touch the table. So
+  the device is roughly 4x taller and has about the same *footprint* depth
+  as the flat options, which is genuinely small on a desk.
+- **Overall bounding depth, including the knob (new figure, `pilink-3ob`):**
+  the knob's tip, not the base front edge, is now the device's actual
+  forward-most point, about 11.5 mm ahead of it (derived above). The full
+  front-to-back envelope — knob tip to the back of the feet — is therefore
+  about 50 + 11.5 = **~61.5 mm**, noticeably deeper than the ~52 mm
+  footprint-depth comparison to the flat options above. Nothing changes
+  about the table footprint, legs or stability math (the knob doesn't
+  touch the table) — this figure only matters for overall clearance, e.g.
+  packaging or anything placed directly in front of the device.
 - **Mass estimate:** about **110 g** (+/-30%). That's roughly 60 g of PLA
   shell, 10 g of legs, 16 g of PCB, the 10.9 g panel, about 10 g of parts
   and about 5 g of knob. No ballast assumed. This number drives everything
