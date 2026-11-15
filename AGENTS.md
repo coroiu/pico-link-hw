@@ -39,7 +39,13 @@ Current status and next steps: `.planning/roadmap.md`.
   firmware context) + tact buttons, same logical layout as today minus the
   d-pad. See
   `.planning/decisions/2026-11-15-rotary-encoder-replaces-full-dpad.md`.
-- **USB-C** exits the rear of the enclosure.
+- **USB-C** exits the rear of the enclosure (vertical-mount receptacle on
+  the PCB back, since the board stands upright).
+- **Form factor** — upright desk-clock body (~75° from the table) on two
+  splayed rear legs; knob left, screen middle, buttons right on one face;
+  PCB parallel to the face. See
+  `.planning/decisions/2026-11-15-upright-desk-clock-form-factor.md` and
+  `docs/plans/2026-11-15-product-layout-proposal.md` (section 6c).
 
 ## Roadmap
 
