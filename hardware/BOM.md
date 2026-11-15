@@ -104,6 +104,23 @@ guarantee than this BOM's first draft claimed.
    carried-over note, but it applies project-wide to every other
    Extended-flagged row too (subject to the caveat above about this
    tool's Basic/Extended reporting).
+7. **J401 (USB-C receptacle, `pilink-7el.11`) is through-hole, mounted on
+   the PCB's BACK side, not SMT.** Swapped from a horizontal SMD part
+   (TYPE-C-31-M-12) to a vertical through-hole part (TYPE-C-31-D-09) per
+   the upright-desk-clock form factor decision — the connector now needs
+   to exit the rear of the enclosure perpendicular to the PCB. Per
+   `pilink-0do`'s assembly-approach research
+   (`.research/findings/2026-11-15-vertical-usb-c-receptacle-selection.md`),
+   the recommendation is **JLCPCB double-sided PCBA** (machine-populate
+   both sides; J401 is the only back-side part) rather than hand-soldering
+   a THT part onto the back after a front-only PCBA run — this connector
+   takes the one repeated mechanical load on the whole board (plug
+   insertion/removal, rated 3.57kgf insertion / 1.02kgf min removal), where
+   a machine-soldered joint is materially more reliable than a hand-
+   soldered one. No live JLCPCB PCBA quote exists yet (needs real
+   Gerbers/CPL/BOM from PCB layout, not yet done — `pilink-7el.9`/
+   `pilink-7el.12`); ordering assembly is the user's call per `AGENTS.md`,
+   not decided here.
 
 ## Power (`power.kicad_sch`, refs 1-99)
 
@@ -170,7 +187,7 @@ guarantee than this BOM's first draft claimed.
 
 | Ref | Qty | Value / Part | Package | LCSC | Mfr P/N | Basic/Ext† | Stock (checked 2026-11-15) |
 |---|---|---|---|---|---|---|---|
-| J401 | 1 | TYPE-C-31-M-12 (USB-C receptacle) | SMT 16P | C165948 | TYPE-C-31-M-12 | Extended (confirmed) | 513,950 |
+| J401 | 1 | TYPE-C-31-D-09 (USB-C receptacle, vertical-mount, swapped from horizontal SMD TYPE-C-31-M-12 in `pilink-7el.11` per the upright-desk-clock form factor) | **Through-hole**, vertical, back-of-PCB mount, 6.50mm body height | C7463258 | TYPE-C-31-D-09 | Extended (confirmed) | 5,651 (live JLCPCB API, 2026-11-15; the `jlcpcb-search` MCP tool's own local snapshot reads 5,490 — known stale-cache gap, recheck before ordering) |
 | F401 | 1 | SMD0805B100TFT (1A hold PTC fuse) | 0805 | C269106 | SMD0805B100TFT | Extended† | 5,460 |
 | R401, R402 | 2 | 5.1k | 0402 | C25905 | 0402WGF5101TCE | Extended† | 704,500 |
 | R403, R404 | 2 | 10k (CC1/CC2 ADC voltage-sense series-protection, `pilink-1sj` — merged, commit `5fef711`) | 0402 | C60489 | RC0402JR-0710KL | Extended† | 21,253,700 |
@@ -217,3 +234,28 @@ merge-status one.
   on JLCPCB's own site before finalizing assembly cost.
 - **No money was spent and no order was placed** — this is a sourcing
   document only.
+
+## Addendum: `pilink-7el.11` (J401 vertical-mount swap, 2026-11-15)
+
+- J401's symbol/pinout is unchanged (same `Connector:USB_C_Receptacle_USB2.0_16P`,
+  same nets) — only its `Value`/`Footprint`/`Datasheet` properties on
+  `usb_c.kicad_sch` and this BOM's J401 row changed, per the swap documented
+  above and in that sheet's own notes.
+- A new hand-authored footprint,
+  `Connector_USB_Custom:USB_C_Receptacle_HRO_TYPE-C-31-D-09`
+  (`hardware/footprints/Connector_USB_Custom.pretty/`, registered in
+  `hardware/fp-lib-table`), was added — no stock KiCad footprint matches
+  this exact manufacturer part. See that footprint's own `descr` for full
+  datasheet-dimension sourcing. PR #41 review caught the shell/peg slots'
+  X offset mis-measured as ~3.30mm; fixed to the correct ±2.50mm
+  (5.00mm slot-centerline spacing per the datasheet's own PCB-layout
+  drawing), along with a minor silkscreen-clearance tweak and removal of
+  an erroneous `pad_prop_heatsink` property on the S1 pads.
+- `kicad-cli sch erc --severity-all --exit-code-violations` was re-run
+  after the swap on the root sheet: 0 errors / 26 warnings (unchanged from
+  the pre-swap baseline, since this is a footprint-geometry-only fix — no
+  symbol/net/pin behavior changed).
+- **Not done by this bead**: no PCB placement or routing (board has no
+  real layout yet — `hardware/placeholder.kicad_pcb`), so no
+  `kicad-cli pcb drc` was run and the footprint's exact pad geometry was
+  not checked in a live board context. That's `pilink-7el.12`'s job.
