@@ -178,15 +178,22 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
     `.research/findings/2026-11-15-encoder-ec11e18244au-specs.md`;
   - `pilink-8wx`: antenna part.
   - `pilink-3ob`: **resolved** — re-verified the 6c envelope figures above
-    against the corrected ~17 mm knob / ~4 mm bushing proud figures.
-    Standing height (~58 mm) and the table-contact footprint (~122 x
-    50 mm) are both unaffected: the knob tops out around 23 mm above the
-    floor (well under the 58 mm body/leg top) and never touches the
-    table. What does change: the knob's own forward reach past the body's
-    base front edge, from about 7 mm (old, incorrect figure) to about
-    11.5 mm (corrected), giving a new overall bounding depth (knob tip to
-    the back of the feet) of about 61.5 mm, versus the ~50 mm
+    against the corrected ~17 mm knob / ~4 mm bushing proud figures, and
+    against the knob cap's own Ø18 mm (9 mm radius) size, not just the
+    shaft-axis point. Standing height (~58 mm) and the table-contact
+    footprint (~122 x 50 mm) are both unaffected: the knob cap's own top
+    rim edge tops out around 31 mm above the floor (axis point ~22.8 mm
+    plus 9 mm x cos(15 deg) ≈ 8.7 mm for the cap's radius), well under the
+    58 mm body/leg top, and never touches the table. What does change:
+    the knob's own forward reach past the body's base front edge. The
+    shaft-axis point alone moves from about 7 mm (old, incorrect
+    protrusion figure) to about 11.5 mm (corrected protrusion figure); the
+    knob cap's lower-front rim edge — the device's true forward-most
+    point, 9 mm x sin(15 deg) ≈ 2.3 mm further forward than the axis point
+    — reaches about 13.8 mm. That gives a new overall bounding depth (knob
+    rim to the back of the feet) of about 64 mm, versus the ~50 mm
     table-footprint depth. The proposal doc's 6c "Dimensions" section has
     the full derivation and the side-profile diagram's knob blob is
-    redrawn to match.
+    redrawn to match (shifted ~4 mm further from the face, with every
+    other diagram element left at its original position).
 - **`AGENTS.md`** hardware summary gains a form-factor line pointing here.

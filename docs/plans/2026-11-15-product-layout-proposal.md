@@ -832,17 +832,17 @@ directly:
                              /###   ===    //
                             /####   ===    \\                           \ = rear legs (pair, splayed +/-40 mm; only one visible)
                            //###   ===    //\\
-         KKKKK         /####   ===    /  \\                         + = estimated centre of mass
-  30     K   KKKKKKKKK//###   ===    /    \\\
-        KK           K/####   ===   //      \\
-        K            //###   +==    /        \\                     K = knob, ~17 mm proud (corrected, pilink-g8a; centre ~19 mm up the face)
-        KK            /####EEE===   //         \\
-      KK            //###EEE===eee /           \\\                  E/e = encoder body / THT leads behind PCB
-  20  K             /####EE====ee //             \\
-      KK            //###EEE===eee /               \\
-      K             /###EEE===eee //                \\               U = USB-C exits rear, low; cable runs down between the legs
-      KKKKKKK      //###EEE===eee /                   \\
-            KKKKKKK/### EE===eee UUU                   \\
+         KKKKK             /####   ===    /  \\                         + = estimated centre of mass
+  30     K   KKKKKKKKK    //###   ===    /    \\\
+        KK           K    /####   ===   //      \\
+        K                //###   +==    /        \\                     K = knob, ~17 mm proud (corrected, pilink-g8a; centre ~19 mm up the face)
+       KK                /####EEE===   //         \\
+      KK                //###EEE===eee /           \\\                  E/e = encoder body / THT leads behind PCB
+  20  K                 /####EE====ee //             \\
+     KK                //###EEE===eee /               \\
+     K                 /###EEE===eee //                \\               U = USB-C exits rear, low; cable runs down between the legs
+     KKKKKKK          //###EEE===eee /                   \\
+           KKKKKKK    /### EE===eee UUU                   \\
   10                 //###   ===    / UUUUUUUU             \\
                     //###   ===    //        UUUUUUUUU      \\\
                     /       ===    /                 UUUUUUU  \\
@@ -921,26 +921,47 @@ the bushing flush with the face instead of standing proud of it. See
     base edge's own forward plane (4.9 - 4 x cos(15 deg) = ~1.1 mm *behind*
     it) — only the knob cap itself, not the bushing, is the device's
     forward-most point.
+  - the figures above (~11.5 mm forward, ~22.8 mm above the floor) are the
+    **shaft-axis point only** — they treat the knob as a zero-size point on
+    the shaft axis. The real knob cap is a disc, Ø18 mm (9 mm radius,
+    proposal line ~513), perpendicular to that axis, so its rim reaches
+    further than the axis point in two different directions (review on
+    `pilink-3ob`):
+    - the cap's **lower-front rim edge** — the point nearest the user, 9 mm
+      out from the axis along the "down the face" direction — sits about
+      9 x sin(15 deg) = ~2.3 mm further forward than the axis point: about
+      11.5 + 2.3 = **~13.8 mm forward of the body's own base front edge**.
+    - the cap's **upper rim edge** — 9 mm out from the axis along the "up
+      the face" direction, the opposite side of the rim — sits about
+      9 x cos(15 deg) = ~8.7 mm higher than the axis point: about
+      22.8 + 8.7 = **~31 mm above the floor**.
+    - these two rim points are the knob's true physical extremes forward
+      and upward; the axis-only figures above undercount both by ignoring
+      the cap's own size.
 - **Standing:** about **58 mm tall** including feet — **confirmed
-  unaffected by the knob correction** (`pilink-3ob`). The knob's own top is
-  only about 23 mm above the floor (derived above), well below the 58 mm
-  body/leg-structure top, so the knob was never the tallest feature,
-  before or after the correction. The body alone is about 28 mm
-  front-to-back **at the base** — also unaffected, since the knob isn't
-  present down at the base. With legs, the table-contact **footprint** is
-  about **122 W x 50 D** mm, and the feet sit about 46 mm behind the front
-  edge — likewise unaffected, since the knob doesn't touch the table. So
-  the device is roughly 4x taller and has about the same *footprint* depth
-  as the flat options, which is genuinely small on a desk.
+  unaffected by the knob correction** (`pilink-3ob`). The knob cap's own
+  top edge is only about 31 mm above the floor (the real physical extreme,
+  derived above — not the ~23 mm shaft-axis figure, which ignores the
+  cap's 9 mm radius), well below the 58 mm body/leg-structure top, so the
+  knob was never the tallest feature, before or after the correction. The
+  body alone is about 28 mm front-to-back **at the base** — also
+  unaffected, since the knob isn't present down at the base. With legs,
+  the table-contact **footprint** is about **122 W x 50 D** mm, and the
+  feet sit about 46 mm behind the front edge — likewise unaffected, since
+  the knob doesn't touch the table. So the device is roughly 4x taller and
+  has about the same *footprint* depth as the flat options, which is
+  genuinely small on a desk.
 - **Overall bounding depth, including the knob (new figure, `pilink-3ob`):**
-  the knob's tip, not the base front edge, is now the device's actual
-  forward-most point, about 11.5 mm ahead of it (derived above). The full
-  front-to-back envelope — knob tip to the back of the feet — is therefore
-  about 50 + 11.5 = **~61.5 mm**, noticeably deeper than the ~52 mm
-  footprint-depth comparison to the flat options above. Nothing changes
-  about the table footprint, legs or stability math (the knob doesn't
-  touch the table) — this figure only matters for overall clearance, e.g.
-  packaging or anything placed directly in front of the device.
+  the knob cap's lower-front rim edge, not the base front edge or the
+  shaft-axis point, is the device's actual forward-most point, about
+  13.8 mm ahead of the base front edge (the real physical extreme, derived
+  above). The full front-to-back envelope — knob rim to the back of the
+  feet — is therefore about 50 + 13.8 = **~64 mm**, noticeably deeper than
+  the flat options' ~52 mm depth (see footprint comparison above). Nothing
+  changes about the table footprint, legs or stability math (the knob
+  doesn't touch the table) — this figure only matters for overall
+  clearance, e.g. packaging or anything placed directly in front of the
+  device.
 - **Mass estimate:** about **110 g** (+/-30%). That's roughly 60 g of PLA
   shell, 10 g of legs, 16 g of PCB, the 10.9 g panel, about 10 g of parts
   and about 5 g of knob. No ballast assumed. This number drives everything
