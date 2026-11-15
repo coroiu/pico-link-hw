@@ -55,7 +55,7 @@ this manufacturer's lineup on JLCPCB.
 
 | LCSC | Part | Pins | Mounting (LCSC field) | Stock (research time) | Datasheet-confirmed height above PCB |
 |---|---|---|---|---|---|
-| **C7463258** | **TYPE-C-31-D-09** | **16P (full)** | **Through Hole** | **5,490** | **6.50mm** |
+| **C7463258** | **TYPE-C-31-D-09** | **16P (full)** | **Through Hole** | **5,651** | **6.50mm** |
 | C22464498 | TYPE-C-31-D-16 | 16P | Through Hole | 442 | 8.8mm (`H` column in its own datasheet's size table) |
 | C22464480 | TYPE-C-31-D-15 | 16P | Surface Mount, Vertical | 426 | 8.8mm (same `H`-table scheme as D-16) |
 | C22464422 | TYPE-C-31-D-06A | 16P | Surface Mount, Vertical | 145 | not checked (low stock ruled it out early) |
@@ -68,25 +68,31 @@ table are reproducible from the `jlcpcb-search` MCP tool; not re-pasted
 here in full.)
 
 Datasheet drawings were pulled directly (`krhro.com` PDFs, linked from each
-LCSC page) for the three real contenders (D-09, D-15, D-16):
+LCSC page) for the three real contenders (D-09, D-15, D-16). For D-09, the
+PDF was re-rendered to an image and measured pixel-for-pixel against its
+own labeled dimension lines for this revision (rather than re-transcribing
+a prior pass's reading), to settle pad/drill/slot geometry and footprint
+size definitively:
 - **D-09**: pin table is `A1 GND / A4 VBUS / A5 CC1 / A6 DP1 / A7 DN1 /
   A8 SBU1 / A9 VBUS / A12 GND` and the mirrored B-side — an exact match for
   KiCad's stock `Connector:USB_C_Receptacle_USB2.0_16P` symbol (the same
   symbol already used for J401), so no new symbol is needed, only a new
-  footprint. Recommended PCB layout is a plated-through-hole pattern (16
-  signal PTHs + 4 larger shell/peg PTHs), confirming genuine through-hole
-  shell retention, not SMT tabs. Overall body height above the PCB: 6.50mm.
-  Body footprint: ~7.70mm wide x 4.30mm deep (the datasheet's "8.34mm" figure
-  is the shell's outer edge measured along the *same* width axis as the
-  7.70mm hole-pattern span, not a second, orthogonal dimension — the two
-  were wrongly treated as width x length in an earlier pass of this finding).
+  footprint. Recommended PCB layout is a plated-through-hole pattern: 16
+  round signal PTHs plus 4 oval plated-*slot* PTHs for the shell/mounting
+  pegs (exact pad/drill/slot sizes in "Footprint" below) — genuine
+  through-hole shell retention, not SMT tabs. Overall body height above
+  the PCB: 6.50mm. Shell outline: 8.34mm along the long axis, directly
+  labeled on the datasheet's mating-face view. The 7.70mm and 4.30mm
+  figures used elsewhere for the hole pattern are pin-to-pin/slot-to-slot
+  spans (signal-row width and peg-slot-row pitch), not the outline — see
+  "Footprint" below for the actual copper/keep-out size.
 - **D-15 / D-16**: same HRO vertical mechanical family, same pin table, but
   sold as a *range* of standoff heights (`D-16` = 8.8mm up through `D-16I`
   = 18.5mm; `D-15` = 8.8mm up through `D-15G` = 15.0mm) — these are meant
   for boards mounted well back from an enclosure's panel face, needing a
   long shell to reach the opening. The *shortest* member of either family
   is still 8.8mm, taller than D-09's 6.5mm, and both have far lower stock
-  (442/426 vs. 5,490). Ruled out in favor of D-09.
+  (442/426 vs. D-09's 5,651). Ruled out in favor of D-09.
 - **M-15** (`C223908`) looked promising from the LCSC field alone
   ("Mounting Type: Through Hole") but its own part-number prefix (`M-`,
   not `D-`) is HRO's horizontal-family prefix, same as the current J401
@@ -114,11 +120,12 @@ LCSC page) for the three real contenders (D-09, D-15, D-16):
   (DP/DM to the existing `USB_DP`/`USB_DM` global labels, CC1/CC2 to
   R401/R402 + the R403/R404 sense taps, VBUS through F401, GND/SHIELD to
   ground) carries over unchanged. Only the footprint changes.
-- **Mounting / retention**: through-hole — 16 signal pins plus 4 larger
-  shell/peg pins all go into drilled, plated holes per the recommended PCB
-  layout in the datasheet. This satisfies the "through-hole shell pegs
-  preferred over SMT-only tabs" requirement directly, for both the signal
-  pins and the mechanical shell.
+- **Mounting / retention**: through-hole — 16 round signal pins plus 4 oval
+  shell/peg pegs all go into drilled, plated holes (the pegs into plated
+  *slots*, not round holes) per the recommended PCB layout in the
+  datasheet. This satisfies the "through-hole shell pegs preferred over
+  SMT-only tabs" requirement directly, for both the signal pins and the
+  mechanical shell.
 - **Height above PCB**: **6.50mm**, datasheet-confirmed. This **exceeds**
   the ~5mm back cavity figure given in `pilink-0do`'s own bead description
   by about 1.5mm (that ~5mm figure and the "a local back-shell boss is OK"
@@ -133,28 +140,49 @@ LCSC page) for the three real contenders (D-09, D-15, D-16):
   back-shell OpenSCAD work should add a ~1.5-2mm boss around the connector
   cutout** (some margin beyond the bare 1.5mm gap for solder-side clearance
   and tolerance) rather than assume a flush 5mm-deep pocket.
-- **Footprint**: ~7.70mm wide x 4.30mm deep on the PCB (see the datasheet
-  note above on the 8.34mm figure) — well within the ~118 x 50mm board
-  outline; this bead doesn't place it (PCB layout is
-  `pilink-8hx`/`pilink-7el.9`'s job), just confirms it physically fits a
-  back-side placement near the bottom edge between the two leg mounts, per
-  the decision doc's "exiting the rear wall low, between the legs."
+- **Footprint**: the datasheet's recommended PCB layout gives two
+  through-hole patterns:
+  - **16 round signal PTHs**, Ø0.70mm drill inside a Ø0.90mm pad (both
+    dimension leader lines point at the *same* hole — Ø0.90 is the copper
+    annulus, Ø0.70 is the hole through it), on a 1.10mm pad pitch, spanning
+    7.70mm center-to-center from the outermost column on one side to the
+    outermost column on the other.
+  - **4 oval shell/peg plated slots**, a 0.60mm x 1.30mm drilled slot
+    inside a 1.00mm x 1.70mm pad, on a 4.30mm center-to-center pitch from
+    the top slot-row to the bottom slot-row.
+  7.70mm and 4.30mm are hole-pattern spans, **not the part's outline**.
+  Adding each pad's own size to its hole-span gives the actual copper/pad
+  extent: **~8.60mm x ~5.30mm** (7.70mm hole-pitch + 0.90mm signal-pad
+  diameter on the long axis — the round signal pads are the outermost
+  copper there; 4.30mm hole-pitch + 1.00mm peg-pad width on the short
+  axis — the oval peg pads are the outermost copper there). The shell's
+  own physical outline is separately labeled at 8.34mm along its long
+  axis, slightly smaller than that copper extent. Either way it's well
+  within the ~118 x 50mm board outline; this bead doesn't place it (PCB
+  layout is `pilink-8hx`/`pilink-7el.9`'s job), just confirms it
+  physically fits a back-side placement near the bottom edge between the
+  two leg mounts, per the decision doc's "exiting the rear wall low,
+  between the legs."
 - **Through-hole legs protrude through the front of the board, not hidden
   under the shell**: the datasheet's side view gives a pin/leg length of
   **2.10mm** below the shell's mounting reference plane. On this project's
   standard 1.6mm-thick PCB, a 2.10mm leg protrudes roughly **0.5mm out the
   front (component) side** of the board — it does not stay hidden under the
-  shell the way an earlier pass of this finding assumed. That front-side
-  protrusion plus the shell's footprint creates a **front-side keep-out of
-  roughly 8mm x 4.3mm** around the connector that other front-side
-  placement (components, silkscreen, routing) needs to respect.
-- **Stock**: 5,490 units at research time (2026-11-15) — an Extended-
-  library part like J401 already is (standard per-part assembly handling
-  fee, not a sourcing-availability risk at this project's prototype
-  quantities). Far below J401's own 509,865-unit stock, but not a
-  low-stock part either; worth re-checking at order time the way this
-  project already re-checks every part before ordering (same caveat
-  already flagged for F401 and the display panel in other findings).
+  shell. That front-side protrusion plus the shell's footprint creates a
+  **front-side keep-out of roughly 8.6mm x 5.3mm** (the same copper/pad
+  extent computed under "Footprint" above) around the connector that other
+  front-side placement (components, silkscreen, routing) needs to respect.
+- **Stock**: 5,651 units, live-checked via JLCPCB's public parts API at
+  review time (2026-11-15) — an Extended-library part like J401 already is
+  (standard per-part assembly handling fee, not a sourcing-availability
+  risk at this project's prototype quantities). Far below J401's own
+  509,865-unit stock, but not a low-stock part either. Note: the
+  `jlcpcb-search` MCP tool's local database reports 5,490 for this same
+  part as of the same date — that tool's figure is a periodically-
+  refreshed snapshot, not a true live read, so don't lean on it for
+  currency. Recheck actual live stock at order time regardless of which
+  number is quoted here (same caveat already flagged for F401 and the
+  display panel in other findings).
 - **Datasheet**: https://datasheet.lcsc.com/datasheet/pdf/26cf9302eb505927cdbd9bd7e2981be6.pdf?productCode=C7463258
 - **JLCPCB listing**: https://jlcpcb.com/partdetail/C7463258
 
@@ -169,17 +197,18 @@ Two real options once a through-hole vertical connector is on the back:
 
 **Recommendation: double-sided JLCPCB PCBA (option 1).** This connector has
 20 total legs (16 signal + 4 shell/peg). The datasheet's recommended PCB
-layout gives the 16 signal pads as **Ø0.70mm** through-holes and the 4
-shell/peg pads as **Ø0.90mm**, with a minimum pad-to-pad pitch of about
-**1.10mm** in the drawing — not the 0.5mm figure an earlier pass of this
-finding assumed (0.5mm pitch is physically impossible for a 0.70mm-diameter
-pad in any case, since adjacent pads would overlap). The legs themselves
-are **not** hidden under the shell: at **2.10mm** long on a standard
-1.6mm-thick board, they protrude roughly **0.5mm out the front (component)
-side**, where a THT part's joints are normally soldered with ordinary
-front/bottom-side access (wave soldering in production, or hand soldering
-with a normal iron) — not a hidden-pad rework case needing selective
-soldering or reflow/hot-air.
+layout specifies, for the 16 signal positions, a **Ø0.70mm drill inside a
+Ø0.90mm pad** (both leader lines point at the same hole — Ø0.90 is the
+copper annulus, Ø0.70 is the hole through it), on a **1.10mm** pad pitch —
+a normal THT pitch, not a fine-pitch part. The 4 shell/peg positions are
+not round pads at all: they're **oval plated slots**, a 0.60mm x 1.30mm
+drilled slot inside a 1.00mm x 1.70mm pad. The legs themselves are **not**
+hidden under the shell: at **2.10mm** long on a standard 1.6mm-thick board,
+they protrude roughly **0.5mm out the front (component) side**, where a
+THT part's joints are normally soldered with ordinary front/bottom-side
+access (wave soldering in production, or hand soldering with a normal
+iron) — not a hidden-pad rework case needing selective soldering or
+reflow/hot-air.
 
 Given that, the case for professional (JLCPCB) assembly over hand-soldering
 rests on **reliability under repeated mechanical load**, not on pad
@@ -236,8 +265,9 @@ cost logic to a THT part:
 This is ultimately a small-money, physical-assembly decision — ordering
 PCBA is the user's call per `AGENTS.md`, not something to decide here. This
 finding's job is to make that call well-informed: pick double-sided PCBA
-unless cost pressure at order time says otherwise, given the fine-pitch,
-load-bearing nature of this specific part.
+unless cost pressure at order time says otherwise, given the load-bearing
+nature of this specific part (not pad-pitch difficulty — 1.10mm is a
+normal THT pitch, not fine-pitch).
 
 ## Open items for `pilink-7el.11` (the schematic/footprint swap bead, not this one)
 
@@ -254,14 +284,22 @@ load-bearing nature of this specific part.
 
 ## Verification performed vs. not performed
 
-- **Performed**: live JLCPCB/LCSC stock and part-detail lookups via the
-  `jlcpcb-search` MCP tool (2026-11-15, re-confirmed during this revision —
-  C7463258 stock still 5,490, C22464498/D-16 stock 442); direct reading of
-  the actual manufacturer datasheet PDFs (not just the LCSC structured
-  fields) for D-09, D-15, D-16, and (added in this revision) D-02/C707317,
-  to confirm pin table, orientation, pad sizes/pitch, leg length, and
-  height dimension, rather than trusting the LCSC `Mounting Type` field,
-  part-number pattern, or an un-rechecked prior reading alone.
+- **Performed**: JLCPCB/LCSC stock and part-detail lookups via the
+  `jlcpcb-search` MCP tool (2026-11-15) — that tool's own database reports
+  C7463258 at 5,490 units as of this revision, which does not match a
+  direct JLCPCB public-API check at review time (5,651 units); treat the
+  MCP tool's figure as a periodic snapshot, not true live stock
+  (C22464498/D-16 stock 442 is from the same MCP tool and wasn't
+  independently cross-checked). Direct reading of the actual manufacturer
+  datasheet PDFs (not just the LCSC structured fields) for D-09, D-15,
+  D-16, and D-02/C707317, to confirm pin table, orientation, pad sizes/
+  pitch, leg length, and height dimension, rather than trusting the LCSC
+  `Mounting Type` field or part-number pattern alone. For D-09
+  specifically, the PDF was re-rendered to an image for this revision and
+  measured pixel-for-pixel against its own labeled dimension lines (pad
+  diameters, drill/slot sizes, hole pitches, shell outline) rather than
+  re-transcribing a prior pass's reading, to settle the pad/drill/slot
+  geometry and footprint size definitively.
 - **Not performed** (needs a human or a later bead):
   - No physical/CAD fit check against the actual OpenSCAD back-shell
     model — `pilink-8hx`'s enclosure work doesn't exist yet to check
