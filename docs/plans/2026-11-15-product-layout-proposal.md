@@ -42,8 +42,8 @@ side, H = long side). Tolerance is +/-0.3 mm unless stated.
 | FPC length | 33.05 +/-0.5 mm from frame bottom edge to tail end (an 11 mm wide section, then a 20 mm tail) |
 | FPC widths | 35.45 mm near the panel, then a 20.50 mm tail ending in 40 contacts at 0.5 mm pitch |
 | FPC thickness | 0.3 +/-0.05 mm |
-| Tail lateral offset | Tail spans about 18.0 to 38.6 mm from the frame's left edge (front view), so its centre is **about 7.3 mm right of the panel centreline**. I measured this off the drawing at its scale, so it's +/-0.5 mm; there's no dimension for it on the drawing |
-| Contact side | **Not dimensioned.** The isometric render appears to show the fingers on the display-face side. That's an inference and needs confirming (see section 3.2) |
+| Tail lateral offset | Tail spans about 18.0 to 38.45 mm from the frame's left edge (front view), so its centre is **about 7.2 mm right of the panel centreline**. There's still no explicit dimension for this on the drawing, but `pilink-0o2` re-measured it with a pixel-calibrated reading of the drawing's own 42 mm frame dimension (not eyeballing a thumbnail), tightening the uncertainty to about +/-0.2 mm |
+| Contact side | **Not explicitly dimensioned**, but `pilink-0o2` confirmed at moderate-high confidence: the isometric render, inspected closely, shows the fingers facing the same side as the display-face. Consistent with J501 being confirmed bottom-contact (a back-face reading wouldn't mate after a 180deg fold). Full physical certainty still needs a real panel (see section 3.2 / `.research/findings/2026-11-15-display-fpc-contact-side.md`) |
 
 In **landscape** (panel rotated 90 degrees, as the firmware assumes):
 
@@ -98,7 +98,11 @@ That's cheap, and nobody presses them by accident.
 - **J501** (Jushuo AFC01-S40FCA-00, bottom-contact flip-lock ZIF): body
   24.4 x 5.35 mm, courtyard 25.4 x 6.9 mm, per the repo footprint
   `hardware/footprints/Connector_FPC.pretty/AFC01-S40FCA-00.kicad_mod`.
-  Height not confirmed; about 2 mm is typical for this class (`pilink-0o2`).
+  Height **confirmed 2.0 mm above board**, from JLCPCB's structured
+  catalog data for this exact LCSC part (Jushuo's own hosted datasheet
+  turned out to have no dimensioned drawing at all). Leaves about 1.4 mm
+  of spare in the ~3.4 mm under-panel gap (`pilink-0o2`, see
+  `.research/findings/2026-11-15-display-fpc-contact-side.md`).
 - **J401** USB-C (HRO TYPE-C-31-M-12), about 3.3 mm tall, was assumed here
   sitting edge-mount at the PCB's rear edge. **Superseded by section 6c /
   the ADR**: the chosen upright form factor needs a vertical-mount
@@ -138,26 +142,43 @@ Practical rules that follow:
    ESP32 and USB-C need space of their own.
 2. **FPC routing: J-fold under the panel.** The tail leaves the panel's
    left/right edge, makes a 180 degree fold down past the panel edge, and
-   runs back *under* the panel into J501. The bend radius is about 1.7 mm
-   (half the 3.4 mm gap), which uses about 5.5 mm of FPC. That leaves about
-   27.5 mm running back under the panel. J501 therefore sits:
+   runs back *under* the panel into J501. Crystalfontz's own datasheet
+   gives the real bend limits (`pilink-0o2`): **R = 1.5 mm minimum bend
+   radius**, plus a 2 mm minimum straight run before the bend starts. The
+   180-degree fold itself therefore needs about `2 x 1.5 mm + 0.3 mm FPC
+   thickness` = **~3.3 mm** of the 3.4 mm gap -- it fits, but with only
+   about **0.1 mm of spare**, not the comfortable margin the original
+   "about 1.7 mm, half the gap" estimate implied. Treat this as a tolerance
+   risk to carry into `pilink-7el.12` (panel seating, PCB thickness,
+   adhesive layers under the panel all eat into that 0.1 mm). The fold
+   uses about 5.5 mm of FPC length, leaving about 27.5 mm running back
+   under the panel. J501 therefore sits:
    - **under the panel**, with its long axis **parallel to the FPC edge**
      (front-to-back) and its opening facing that edge;
    - with its insertion face about **24 mm in from the panel's FPC edge**
      (centre about 26.5 mm in, so about 3 mm toward the FPC side of the
      panel centre). Slack in the fold allows about +/-2 mm;
-   - offset **about 7.3 mm front-to-back** from the panel centreline. It goes
-     toward the user if the FPC is on the left, toward the rear if the FPC is
-     on the right (the native-right side of the module maps there after
-     rotation).
+   - offset **about 7.2 mm front-to-back** from the panel centreline
+     (refined from a pixel-calibrated re-measurement of the drawing,
+     `pilink-0o2`; was ~7.3 mm eyeballed). It goes toward the user if the
+     FPC is on the left, toward the rear if the FPC is on the right (the
+     native-right side of the module maps there after rotation).
    - A **~3 mm bend strip** beside the panel's FPC edge must stay clear of
      the encoder body and switches.
+   - J501's own body height is confirmed **2.0 mm** (JLCPCB catalog data
+     for this exact part), leaving a comfortable ~1.4 mm of the 3.4 mm gap
+     spare for the connector itself (separate from the fold's own, much
+     tighter, 0.1 mm margin above).
    This only works if the FPC contacts face the PCB after the fold. That
-   matches J501's bottom-contact type **only if** the fingers are on the
-   display-face side of the tail. **This is unverified** (`pilink-0o2`). If
-   they turn out to be on the back face, the alternatives are a top-contact
-   J501 (one BOM swap, same location) or an S-fold with J501 outboard of the
-   panel edge (worse: it takes about 25 mm of width or a slack loop).
+   matches J501's confirmed bottom-contact type **only if** the fingers are
+   on the display-face side of the tail. `pilink-0o2` confirmed this at
+   moderate-high confidence (a close look at the datasheet's isometric
+   render shows the fingers facing the display side, consistent with
+   J501's bottom-contact type), but it's still not a dimensioned text
+   callout -- full certainty needs a physical panel. If they turn out to be
+   on the back face, the alternatives are a top-contact J501 (one BOM swap,
+   same location) or an S-fold with J501 outboard of the panel edge (worse:
+   it takes about 25 mm of width or a slack loop).
 3. **Which edge the FPC leaves from (any option can use either):**
    - **FPC-left (toward the knob).** The panel's 7.39 mm dead ledge sits on
      the knob side, where clearance is needed anyway for the knob overhanging
