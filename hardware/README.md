@@ -174,8 +174,10 @@ in the exported netlist, and ERC never caught it because a standalone
 global label is legal. Fixed by replacing 8 of that sheet's `GPIOn`
 global labels, in place, with these `ESP32_*` names, picked from the
 [RP2350 datasheet](https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf)
-Table 677 "GPIO Bank 0 Functions" (RP2350B has exactly 2 UART
-peripherals, UART0/UART1, confirmed from that table, not assumed):
+section 9.4, "GPIO Bank 0 Functions" (RP2350B has exactly 2 UART
+peripherals, UART0/UART1, confirmed from that section, not assumed;
+cited by section rather than table number since table numbering has
+shifted across datasheet revisions):
 
 | Net | RP2350 GPIO (pin) | Function |
 | --- | --- | --- |
@@ -343,7 +345,7 @@ datasheet's mode table). VCC (3) and VCI (39) both go to `+3V3`.
 **GPIO assignment.** `GPIO29` (CS), `GPIO30` (SCK/RS), `GPIO31` (MOSI/SDA),
 `GPIO32` (D-C/WR), `GPIO33` (RESET), `GPIO34` (backlight CTRL/enable) —
 chosen (not just "picked from the free pool") to match the RP2350B's own
-hardware SPI1 function-select table (RP2350 datasheet Table 677, the
+hardware SPI1 function-select table (RP2350 datasheet section 9.4, the
 QFN-80/RP2350B-specific GPIO function rows): GPIO29=SPI1 CSn, GPIO30=SPI1
 SCK, GPIO31=SPI1 TX — confirmed directly against the datasheet after an
 earlier version of this sheet put SCK/MOSI/CS on the wrong three of these
