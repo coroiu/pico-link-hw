@@ -240,6 +240,38 @@ from the antenna-end edge (board (99, 5.0)); it is not in the footprint.
 The pocket does not depend on it. The plug's cable-exit direction and the
 coax minimum bend radius are also unverified.
 
+### Pigtail slack stowage (`pilink-phg`)
+
+The antenna pigtail is ~240mm (INFERRED from the part number
+KH-FPC2.4G-1.13IPEX-240, not on the LCSC listing) against an ~18-30mm run
+from U201's back-side U.FL to the top-wall mount: ~210mm of excess. It
+can't be trimmed (no crimp tooling).
+
+**Shorter part: not swapped.** The `-100` Kinghelm variants (C709378,
+C709379 -3239, C709381 -6417) show no cable length, element size, gain or
+stock on their LCSC pages (and -3239 is reported as 32x39mm, far bigger
+than the niche); the AIWF026 (C49242188, 100mm cable) is 0.02dB over the
+2.33dBi cert-safe ceiling. The 240mm part with a coil is the only option
+with known gain/size. BOM unchanged (the antenna is not in `BOM.md`; it is
+hand-ordered). If a short, in-ceiling, in-stock part is found later, it
+removes the spool.
+
+**Stowage.** B.Cu is nearly empty left of U201 and the cavity behind the
+PCB is 3.0mm deep, so a single-layer flat spiral is wound on a printed post
+there (`pigtail_spool()` in `back_shell.scad`): O10mm post (first turn
+centreline R 5.57 >= the 5mm coax minimum bend radius, TE UMCC 5mm / Data
+Alliance 4.5mm), three O2 lugs at R 12, centre board (73,18) = face (75,34).
+5 turns = 245.8mm (4.6 turns give 210mm), outer edge R <= 10.65. It is
+4.7mm short of the U201 relief's left edge and well clear of H4 (59,4).
+The short plug-to-spool run passes through the relief. Per the PR #64
+review, the plug-side bend fits inside the relief only if the cable centre
+starts at bz <= ~2.9 against the relief's top wall.
+
+**Not verified:** no render (no OpenSCAD); J401's real body outline vs the
+spool (assumed >= ~15mm away); actual plug cable-exit direction and mated
+height; whether the cable can really be routed spool -> top-wall mount
+without kinking at the board edge; the 240mm cable length itself.
+
 ### USB-C cable-vs-table clearance (`pilink-8ry`)
 
 PR #52's review flagged, but left unresolved (out of that bead's own

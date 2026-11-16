@@ -355,9 +355,9 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE;  // 8.5mm
 // depth (~10mm, see the mount-depth note above). Estimated pigtail needed:
 //   5 + 2 + 10 + 1.45 ~= 18.5mm, call it ~30mm with bend radii/slack.
 // The part's pigtail is ~240mm (inferred from the part number), so ~210mm
-// of excess has to be stowed (coiled/looped) inside the enclosure -- more
-// than before in relative terms, because the run is now short. Where it
-// goes is NOT designed here (follow-up bead). Clearances checked:
+// of excess has to be stowed (coiled/looped) inside the enclosure.
+// pilink-phg: it is wound on a printed spool in the back shell's cavity
+// (back_shell.scad pigtail_spool(), board (73,18)), not in this mount. Clearances checked:
 //   - SW101/SW102 pinholes (face X 44/54, Q ~49.3) vs the cable at X ~100:
 //     >45mm apart.
 //   - Restored A/B/X/Y diamond (courtyard board y 13.58-36.43, front side)
