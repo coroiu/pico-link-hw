@@ -20,6 +20,17 @@
 // focuses on getting right, from the real placed-and-routed board, is
 // every opening's X/Y position and the window's size -- that is this
 // bead's actual scope per its acceptance criteria.
+//
+// REVISION (code-review NOT APPROVED on 8da37dc, fixed here): (1) the
+// display glass now actually registers at Z=RECESS_DEPTH (1.2mm) below
+// the outer face -- see display_cutouts()/panel pocket below -- instead
+// of the old geometry's real Z=FACE_T (2.0mm); (2) the board-to-face Y
+// mapping is confirmed (not just inherited) to match back_shell.scad's
+// own landed derivation -- see board_to_y() below; (3) the knob/encoder
+// and A/B/X/Y diamond positions are updated for pilink-2yw's merged
+// board re-placement (U201 moved off the knob column; knob -> true
+// board-vertical-centre; diamond shifted down 9mm), and the stale
+// "lower third" knob description is corrected.
 // =================================================================
 
 $fn = 48;
@@ -80,21 +91,27 @@ BOARD_H = 50.0;
 // file's X with a flat WALL offset and no scaling or guessing.
 function board_to_x(bx) = WALL + bx;
 
-// Y: NOT exact, and inherited here as an open assumption, not
-// re-derived. (FACE_H - 2*WALL) = 52mm of inner cavity height, but
-// BOARD_H = 50mm -- 2mm short. hardware/README.md flags this gap
-// explicitly: "the board (50mm tall) is 6mm shorter than the
-// enclosure face ... y = 50 - N ... implicitly assumes the board's
-// bottom edge lines up with the face's bottom edge, with that whole
-// 6mm difference taken up somewhere above the board's top edge ...
-// That assumption was never checked against the actual back-shell
-// boss/standoff design ... Flagged for pilink-8hx.1/.2 to confirm."
-// This file uses that same inherited assumption (board bottom = face
-// bottom, slack above the board's top edge) for lack of a better one.
-// If pilink-8hx.1's real board-mounting geometry puts the board
-// somewhere else in the 52mm cavity, every Y position below needs
-// RE-DERIVING, not just re-checking.
-TOP_SLACK = (FACE_H - 2 * WALL) - BOARD_H; // 2.0mm, assumed above the board
+// Y: NOT exact, but now CONFIRMED to match the convention
+// enclosure/back_shell.scad (pilink-8hx.1) independently landed on
+// after its own PR #52 review round, not just inherited as an open
+// assumption. hardware/README.md's raw rule ("N mm up the face" means
+// `y = 50 - N`) implicitly puts the board's bottom edge flush with the
+// face's bottom edge, leaving no room for either shell's own WALL_T
+// (2mm) wall -- back_shell.scad's review caught that its own PCB cavity
+// physically needs that bottom wall, and fixed it by deriving a 2mm
+// TOP_SLACK from the real inner-cavity height instead:
+// `TOP_SLACK_Y = (FACE_H - 2*WALL_T) - BOARD_H`, giving
+// `board_to_face()` Y = `FACE_H - (WALL_T + TOP_SLACK_Y + by)`, i.e.
+// Qface = 52 - by. This file's TOP_SLACK/board_to_y() below is the
+// exact same formula (WALL == WALL_T, TOP_SLACK == TOP_SLACK_Y, both
+// 2.0mm) -- so every Y position in this file already sits 2mm higher
+// than README's raw "y = 50 - N" figures (board bottom at face-y=WALL
+// =2, not 0), and that is a deliberate, now cross-confirmed choice
+// shared with back_shell.scad, not a silent deviation. (A prior review
+// round flagged this file's formula as an unreconciled 2mm change from
+// README's stated assumption -- it has since been reconciled: both
+// shells now derive and state the same 2mm.)
+TOP_SLACK = (FACE_H - 2 * WALL) - BOARD_H; // 2.0mm, matches back_shell.scad's TOP_SLACK_Y
 
 // Converts a board-local y (down-positive, 0 at the board's top edge)
 // to this file's y (up-positive, 0 at the face's bottom outer edge).
@@ -180,13 +197,30 @@ PANEL_CY  = board_to_y(PANEL_BOARD_CY);
 // placeholder numbers once pilink-7el.12 ran. Flagged for
 // pilink-8hx.5 to confirm this is still an acceptable look.
 
-// Outer bezel step: a shallow recess cut into the OUTER face surface
-// so the display glass sits visibly recessed, per this bead's own
-// description ("glass ~1.2mm below the face with the plate thinned
-// over the panel"). RECESS_DEPTH is a stated design target from the
-// bead description, not an independently measured part dimension.
-RECESS_DEPTH = 1.2; // mm
-BEZEL_MARGIN = 3.0; // mm each side, own choice (visible thin lip)
+// Glass registration depth: how far below the outer face the display
+// glass sits, per this bead's own description ("glass ~1.2mm below the
+// face with the plate thinned over the panel") and proposal 6c's body-
+// thickness stack-up ("face 2.0 ... 3.3mm panel stack" = 1.2mm glass
+// depth + 2.1mm panel frame thickness). RECESS_DEPTH is a stated design
+// target from those sources, not an independently measured part
+// dimension.
+//
+// FIX (code-review NOT APPROVED on 8da37dc, finding #1): the previous
+// geometry cut this same RECESS_DEPTH as a separate, WIDER bezel-margin
+// step into the OUTER face (0 to RECESS_DEPTH) while the panel's actual
+// registration ledge started at the INNER face (Z=FACE_T=2.0) and ran
+// forward -- so the glass really sat at Z=FACE_T (2.0mm), with the
+// 1.2mm cut just leaving an 0.8mm lip in front of it, not seating the
+// glass at 1.2mm as this comment and the README claimed. Fixed in
+// display_cutouts() below: the plate is now actually thinned to
+// RECESS_DEPTH over the full panel footprint (PANEL_W x PANEL_H +
+// POCKET_CLEARANCE), cut from the INNER face, so the floor of that cut
+// -- at Z=RECESS_DEPTH -- is the real surface the panel's frame
+// registers against, with the AA aperture (full face-plate depth, see
+// below) open in front of it. BEZEL_MARGIN (the old wider outer-step
+// size) is removed; there is no separate outer bezel step now, only the
+// panel-sized thinned pocket.
+RECESS_DEPTH = 1.2; // mm, glass depth below the outer face
 
 // Panel pocket (inner-face side): a retaining ledge sized to the full
 // 59 x 42mm frame plus clearance, backed by foam/rib retention
@@ -204,15 +238,26 @@ LEDGE_DEPTH = 2.2;      // mm, slightly over the panel's own 2.1mm
    Alps EC11E18244AU (SW303). */
 
 // Shaft/knob center, board-local.
-// Source: hardware/README.md placement table: "Shaft/knob centre at
-// (16, 31)".
+// Source: hardware/README.md placement table (updated by pilink-2yw,
+// merged 2026-11-16): "Shaft/knob centre at (16, 25) -- exactly
+// board-vertical-centre (50/2)". This SUPERSEDES the old (16, 31)
+// position: U201 (ESP32) used to share this column and forced the knob
+// low; pilink-2yw relocated U201 off the column (see
+// hardware/README.md's updated table / hardware/scripts/place.py), so
+// the knob could move to the board's true vertical centre instead.
 ENCODER_BOARD_CX = 16.0;
-ENCODER_BOARD_CY = 31.0;
+ENCODER_BOARD_CY = 25.0;
 ENCODER_CX = board_to_x(ENCODER_BOARD_CX);
 ENCODER_CY = board_to_y(ENCODER_BOARD_CY);
-// (= (18, 21) in this file's coords -- 21mm up from the face's bottom
-// edge, in the lower third of a 56mm-tall face, matching the ADR's
-// "knob centre in the lower third of the left zone".)
+// (= (18, 27) in this file's coords -- 27mm up from the face's bottom
+// edge, i.e. 1mm BELOW the face's own vertical centre (FACE_H/2 =
+// 28mm), under this file's board_to_y() mapping (2mm of the face's
+// 6mm board/face height slack sits below the board, 4mm above -- see
+// board_to_y() above). NOT "lower third" any more -- that description
+// was already false for the old (16,31) position (37.5% up a 56mm
+// face, past the lower third's 18.7mm cutoff) and is doubly inapplicable
+// now that the knob sits at the board's true vertical centre. Describe
+// it as "near face vertical centre" instead.)
 
 // Body / courtyard, used to size the inner-face pocket.
 // Source: docs/plans/2026-11-15-product-layout-proposal.md section
@@ -275,12 +320,35 @@ KNOB_PROUD_MM = 17.0; // informational only
    with a Y coordinate. */
 
 // Diamond positions, board-local [board_x, board_y].
-// Source: hardware/README.md placement table: "Centre (102, 25): Y
-// top (102,17), X left (94,25), B right (110,25), A bottom (102,33)".
-BTN_Y = [102, 17]; // top of diamond
-BTN_X = [94, 25];  // left of diamond
-BTN_B = [110, 25]; // right of diamond
-BTN_A = [102, 33]; // bottom of diamond
+// Source: hardware/README.md placement table, updated by pilink-2yw
+// (merged 2026-11-16): "Moved: centre (102, 34), shifted down 9mm from
+// the original (102, 25) as a rigid group ... Y top (102,26), X left
+// (94,34), B right (110,34), A bottom (102,42)" -- opened clear height
+// above the diamond for U201 (ESP32) to relocate there off the knob's
+// column. SUPERSEDES the old centre (102,25) / Y (102,17) / X (94,25) /
+// B (110,25) / A (102,33) figures -- every one of the 4 positions below
+// is the old board-y value +9.
+BTN_Y = [102, 26]; // top of diamond
+BTN_X = [94, 34];  // left of diamond
+BTN_B = [110, 34]; // right of diamond
+BTN_A = [102, 42]; // bottom of diamond
+
+// U201 (ESP32-WROOM-32UE) proximity check -- the "also check" item: with
+// U201 now at board (99, 11.6), directly ABOVE this new diamond centre
+// (102,34), do the two collide? Checked against the real F.CrtYd boxes
+// hardware/scripts/place.py cites (not re-measured, not assumed): U201's
+// courtyard is x:[89.22,108.78] y:[1.72,21.98] (anchor (99,11.6) +/-
+// (9.78, ~10.1)); the diamond's own courtyard, place.py's pre-shift
+// figure x:[88.93,115.07] y:[13.58,36.43] shifted +9 in Y to match this
+// move, is y:[22.58,45.43] (X unchanged). Gap between U201's bottom
+// (21.98) and the diamond's new top (22.58) is ~0.6mm -- adjacent, not
+// overlapping (matches place.py's own "~0.6mm diamond-clearance margin
+// left over" note). That's a PCB-copper-layer (component courtyard)
+// clearance, hardware's own concern, not this file's: this shell's
+// button bores only cut the 2mm face plate (Z 0..FACE_T), 5.5mm in
+// front of the PCB plane where U201 and the switches physically sit
+// (Z=FRONT_SHELL_DEPTH=7.5) -- there is no Z-axis overlap between this
+// file's geometry and U201 regardless of the PCB-side margin above.
 
 // Cap size / bore clearance.
 // Source: bead description + hardware/README.md: "4 A/B/X/Y plunger
@@ -320,19 +388,25 @@ PINHOLE_Z = FRONT_SHELL_DEPTH - 1.0;
 
 /* ================ Antenna clearance zone (reserved only) ================
    This bead does NOT design the antenna mount -- that is
-   pilink-8hx.4's own bead, running in parallel on its own files. This
-   only reserves the X zone in the top wall so the two beads don't
-   collide when merged, and marks it with a non-manifold debug outline
-   (OpenSCAD "%" modifier) that previews in F5 but is excluded from
-   the actual solid/STL -- it cuts or adds nothing real.
-   Source: the upright-desk-clock-form-factor ADR's "Verification"
-   section (pilink-5g8), which walked the real ESP32 module footprint
-   and found its antenna-end (U.FL) edge at board-local Y ~2.65-2.9,
-   X ~5-23 (centered X=14) -- "only ~2.7-2.9mm in from the board's own
-   top edge, on the left side". */
+   pilink-8hx.4's own bead (`enclosure/antenna_mount.scad`), merged
+   separately, which owns the real antenna geometry. This file only
+   marks a debug-only, non-cutting X zone in the top wall (OpenSCAD "%"
+   modifier -- previews in F5, excluded from the actual solid/STL, cuts
+   or adds nothing real) so a human looking at this file's render isn't
+   misled about where the antenna actually ended up.
+   UPDATED: the original marker (board-local X 5-23, centered 14) cited
+   the ADR's pilink-5g8 verification note about U201's U.FL-connector
+   edge -- that is still where the ESP32's U.FL pad is, but
+   pilink-8hx.4's own fix rounds moved the REAL antenna element/mount
+   well away from there, to face-local X 57.75-105.55mm (per
+   enclosure/README.md's antenna_mount.scad section / the file itself),
+   clear of SW101/SW102's pinhole channels. Marker moved to roughly
+   match that real position instead of the stale U.FL-pad location, so
+   it no longer actively misleads -- the real geometry is
+   antenna_mount.scad's, this is only an approximate visual flag. */
 
-ANT_ZONE_X0 = board_to_x(5);
-ANT_ZONE_X1 = board_to_x(23);
+ANT_ZONE_X0 = 57.75; // face-local mm, matches antenna_mount.scad's real element span
+ANT_ZONE_X1 = 105.55;
 
 /* ================================ Geometry ================================ */
 
@@ -369,18 +443,34 @@ module z_box(w, h, z0, z1, cx, cy) {
 }
 
 module display_cutouts() {
-    // full through-aperture, sized to the active area
+    // Full through-aperture, sized to the active area, open across the
+    // whole face-plate thickness -- nothing between the glass (which
+    // sits right behind this, within the panel pocket cut below) and
+    // the viewer.
     z_box(AA_W, AA_H, -0.5, FACE_T + 0.5, WINDOW_CX, WINDOW_CY);
-    // outer bezel recess, shallower and wider than the aperture
-    z_box(AA_W + 2 * BEZEL_MARGIN, AA_H + 2 * BEZEL_MARGIN,
-          -0.5, RECESS_DEPTH, WINDOW_CX, WINDOW_CY);
+    // Panel pocket: thins the plate to RECESS_DEPTH (1.2mm) over the
+    // panel's full outline + assembly clearance, cut from the INNER
+    // face (floor at Z=RECESS_DEPTH, roof at Z=FACE_T). The ring of
+    // remaining plate between the AA aperture above and this pocket's
+    // outer edge is the register surface the panel's frame shoulder
+    // seats against, so the glass -- immediately behind that floor,
+    // inside the AA aperture -- sits at Z=RECESS_DEPTH (1.2mm) below
+    // the outer face, per the bead's target and proposal 6c's stack-up
+    // (see RECESS_DEPTH comment above). This is the fix for the
+    // "glass sits at 2.0mm, not 1.2mm" review finding.
+    z_box(PANEL_W + 2 * POCKET_CLEARANCE, PANEL_H + 2 * POCKET_CLEARANCE,
+          RECESS_DEPTH, FACE_T + 0.5, PANEL_CX, PANEL_CY);
 }
 
-// Added material (not a cutout): a retaining ledge on the inner face,
-// surrounding the panel outline, for the panel's frame to register
-// against (with foam/rib retention behind it, assembled, not
-// modeled, pressing the panel forward against this ledge and the
-// window).
+// Added material (not a cutout): a lateral retaining collar on the
+// inner face, OUTSIDE the panel pocket cut in display_cutouts() above
+// (it starts at the pocket's own outer boundary, PANEL +
+// 2*POCKET_CLEARANCE, and is built forward from Z=FACE_T, i.e. entirely
+// behind and outside that pocket -- no overlap). The actual front-face
+// registration (where the glass seats at RECESS_DEPTH) is the pocket's
+// floor, not this collar; this collar's job is purely lateral retention
+// (keeps the panel centred) plus a stop for whatever foam/rib pushes it
+// forward from behind (assembled, not modeled).
 module panel_ledge() {
     translate([PANEL_CX, PANEL_CY, FACE_T])
         linear_extrude(height = LEDGE_DEPTH)
@@ -443,21 +533,32 @@ front_shell();
    2. Encoder bushing diameter is an ASSUMED 7mm, not confirmed from
       any source read for this bead -- confirm against a real part or
       Alps' CAD drawing before finalizing ENCODER_SHAFT_HOLE_DIA.
-   3. The board-to-face Y mapping (TOP_SLACK, assuming the board's
-      bottom edge = the face's bottom edge) is inherited from
-      hardware/README.md's own flagged, unconfirmed assumption -- not
-      independently re-derived here. If pilink-8hx.1's real PCB-mount
-      geometry disagrees, every Y position in this file needs
-      re-deriving.
+   3. RESOLVED (was open item 3): the board-to-face Y mapping is now
+      cross-confirmed to match enclosure/back_shell.scad's own landed
+      derivation (both shells independently arrived at the same 2mm
+      TOP_SLACK formula) -- see board_to_y()'s comment above. Not an
+      open item any more.
    4. The display window's real center (derived from the as-placed
       board) lands about 3.9mm off the face's exact horizontal center
       -- toward the knob side, the direction the "center the window,
       offset the panel" rule predicts, but not the same magnitude as
-      an idealized face-centered window. Flagged, not resolved.
+      an idealized face-centered window. Flagged, not resolved (display
+      position is unaffected by pilink-2yw's coordinate updates).
    5. This is a flat rectangular shell, not the ADR's ~15-degree-
       leaning body profile, and has no final corner/edge styling pass.
    6. Front-to-back shell fastener bosses (hidden heat-set inserts,
       per the aesthetic ADR) are not modeled here -- left for
       reconciliation with pilink-8hx.1's own mating geometry once both
       exist.
+   7. pilink-2yw (ESP32 relocation + knob/diamond re-placement, merged
+      2026-11-16) coordinate updates applied in this revision: knob
+      moved to board (16,25) (was (16,31)); A/B/X/Y diamond shifted
+      down 9mm to centre (102,34) (was (102,25)); SW101/SW102 pinholes
+      confirmed UNCHANGED at board (42,2.7)/(52,2.7) per
+      hardware/README.md's updated table. U201's new position (board
+      (99,11.6), directly above the new diamond) checked against the
+      diamond's and U201's own F.CrtYd boxes -- adjacent with ~0.6mm
+      PCB-side clearance, not overlapping, and irrelevant to this
+      file's own Z-layer regardless (see the comment by BTN_Y/BTN_X/
+      BTN_B/BTN_A above).
 */
