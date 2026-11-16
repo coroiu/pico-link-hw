@@ -360,7 +360,15 @@ plus `pilink-7el.5`'s own bead comments (Crystalfontz product page fetch
 confirming the 40-pin 0.5mm ZIF FPC connector, full pin table from the
 official datasheet).
 
-**Connector and pin table.** J501 is a 40-position, 0.5mm-pitch,
+**UPDATE (`pilink-4b6`, 2026-11-16): J501 was swapped from the
+bottom-contact `AFC01-S40FCA-00` described below to the dual-contact
+`FC-05B40P21H20` (LCSC `C23398824`) — see the "Known gaps" item 3 update
+further down and `BOM.md`'s `pilink-4b6` addendum for why (required
+pre-fab fix) and what remains unresolved (pin-1 concordance). The
+narrative below is kept for history/context on the original part choice
+and is otherwise still accurate (pin table sourcing, symbol rationale).**
+
+**Connector and pin table.** J501 was originally a 40-position, 0.5mm-pitch,
 bottom-contact, flip-top-lock SMT FPC/ZIF connector — LCSC `C262674`
 (Jushuo `AFC01-S40FCA-00`), confirmed directly from its own LCSC spec table
 (pitch/position-count/contact-style/locking-feature all match the panel's
@@ -1027,9 +1035,37 @@ the "why", not just the numbers.
    was left out rather than committed-and-violated. Also tracked by
    `pilink-rqd` alongside item 1 (same hand-preroute pass would cover
    both): re-add the rule alongside a hand-guided path for this one pair.
-3. **J501 is still the bottom-contact `AFC01-S40FCA-00`, and under this
-   project's own back-face working assumption that part is INCOMPATIBLE as
-   placed -- this is a required pre-fab fix, not an optional evaluation.**
+3. **UPDATE (`pilink-4b6`, 2026-11-16): the required J501 part swap below
+   has landed on the schematic/BOM side.** J501 is now the dual-contact
+   `FC-05B40P21H20` (LCSC `C23398824`, BXCONN) instead of the bottom-
+   contact-only `AFC01-S40FCA-00` -- see `display.kicad_sch`'s own J501
+   notes and `BOM.md`'s `pilink-4b6` addendum for the full rationale and
+   sourcing. This placement's own coordinates (insertion-face inset,
+   ~24mm; vertical offset, ~7.2mm; rotation) were **not** changed by that
+   bead (schematic/BOM scope only) and were not independently re-verified
+   against the new footprint's actual pad geometry in a live board
+   context -- its overall width (DIMB, 24.02mm) is close to but not
+   identical to the old footprint's (24.4mm), so a human KiCad-GUI pass
+   should re-confirm this placement still clears the panel-shadow keepout
+   and the 3.4mm under-panel gap once the new footprint's real dimensions
+   are checked. **The pin-1-concordance risk described below is still
+   UNRESOLVED**, not closed by the swap: `pilink-4b6` confirmed the new
+   part's own NO.1 location from its own CAD drawing, but found
+   `AFC01-S40FCA-00`'s LCSC-hosted datasheet has no dimensioned drawing at
+   all (re-confirmed independently, not just inherited from the research
+   finding below) -- so there is still no primary source to compare the
+   two parts' NO.1 ends against each other. The schematic's pin/net
+   mapping was carried over unchanged (no reversal) as a neutral default,
+   not a verified-correct choice. A human must physically compare real
+   samples of both connectors (or get a proper Jushuo drawing) before fab;
+   if their NO.1 ends turn out to be at opposite tail ends, J501's pin
+   mapping in the schematic must still be reversed at that point. The
+   original note is kept below for history/context.
+3a. **Original note (now superseded by the update above, kept for
+   history): J501 is still the bottom-contact `AFC01-S40FCA-00`, and under
+   this project's own back-face working assumption that part is
+   INCOMPATIBLE as placed -- this is a required pre-fab fix, not an
+   optional evaluation.**
    An earlier version of this note said J501's placement here "follows the
    back-face working assumption" as if that made the current part fine.
    That was wrong: `pilink-0o2`'s merged finding

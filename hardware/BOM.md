@@ -167,7 +167,7 @@ guarantee than this BOM's first draft claimed.
 | Ref | Qty | Value / Part | Package | LCSC | Mfr P/N | Basic/Ext† | Stock (checked 2026-11-15) |
 |---|---|---|---|---|---|---|---|
 | — | 1 | Crystalfontz CFAF240320A0-024SN (display panel) | 40-pin FPC cable, bonded to panel | **no LCSC listing — buy direct from Crystalfontz** | CFAF240320A0-024SN | n/a — not an SMT part, see assembly flag 4 | n/a |
-| J501 | 1 | AFC01-S40FCA-00 (40-pos 0.5mm FPC ZIF connector) | SMT | C262674 | AFC01-S40FCA-00 | Extended | 60,445 |
+| J501 | 1 | FC-05B40P21H20 (40-pos 0.5mm FPC ZIF connector, dual-contact/top-and-bottom-entry — swapped from bottom-contact-only AFC01-S40FCA-00 by pilink-4b6, REQUIRED pre-fab fix; see display.kicad_sch notes for the unresolved pin-1-concordance caveat) | SMT | C23398824 | FC-05B40P21H20 | Extended | 2,635 (checked 2026-11-16 via `jlcpcb-search` MCP, same session as the swap — not part of this table's 2026-11-15 snapshot) |
 | U501 | 1 | AP3031KTR-G1 (backlight boost driver) | SOT-23-6 | C82636 | AP3031KTR-G1 | **Extended (confirmed — bead-carried gotcha)** | 11,130 |
 | R501 | 1 | 5.1R | 0402 | C25174 | 0402WGJ051JTCE | Extended† | 119,600 |
 | C501 | 1 | 10uF, X5R, 25V | 0805 | C15850 | CL21A106KAYNNNE | **Basic (confirmed via JLCPCB API)** | 1,999,860 |
@@ -277,3 +277,67 @@ Re-checked live via `jlcpcb-search` MCP, 2026-11-16.
   real layout yet — `hardware/placeholder.kicad_pcb`), so no
   `kicad-cli pcb drc` was run and the footprint's exact pad geometry was
   not checked in a live board context. That's `pilink-7el.12`'s job.
+
+## Addendum: `pilink-4b6` (J501 dual-contact FPC connector swap, 2026-11-16)
+
+- **Required pre-fab fix, not an optional evaluation**: under this
+  project's back-face FPC-contact-side working assumption
+  (`.research/findings/2026-11-15-display-fpc-contact-side.md`), the
+  previously-specified bottom-contact-only AFC01-S40FCA-00 (C262674) does
+  NOT correctly mate the display FPC's J-fold geometry that
+  `pilink-7el.12` already built into the PCB layout. Swapped to the
+  dual-contact FC-05B40P21H20 (C23398824, BXCONN) — mates either contact
+  orientation, removing the dependency on resolving contact side at all,
+  with no change to the proven J-fold geometry (the finding's preferred
+  fix).
+- Live stock reconfirmed this session via `jlcpcb-search` MCP:
+  FC-05B40P21H20 (C23398824) — **2,635 units**, consistent with the
+  finding's 2026-11-15 reading. Comfortable for a small build; recheck
+  before a bulk order.
+- J501's symbol (`pico_link_custom:CFAF240320A0_FPC40`) and its pin/net
+  mapping are **unchanged** — only `Value`/`Footprint`/`Description` on
+  `display.kicad_sch` and this BOM's J501 row changed, plus a new
+  hand-authored footprint, `Connector_FPC:FC-05B40P21H20`
+  (`hardware/footprints/Connector_FPC.pretty/`, registered in the existing
+  `Connector_FPC` entry in `hardware/fp-lib-table`; the old
+  `AFC01-S40FCA-00` footprint file is left in place for history but no
+  longer referenced). Pitch (0.5mm) and the full 40-position span (19.5mm,
+  pins at -9.75..+9.75mm) are sourced directly from the new part's own CAD
+  drawing (recovered in this environment by hand-decompressing the
+  datasheet PDF's content stream and replaying its vector path/bezier
+  operators — no PDF rasterizer was installed). Its body/courtyard
+  Y-profile and MP1/MP2 mounting-pad geometry are reused placeholders from
+  the prior footprint (same connector class/similar overall size per the
+  new part's own DIMB formula), not independently measured — flag for a
+  human KiCad-GUI pass before fab, same caveat class as every other
+  hand-authored footprint in this project.
+- **UNRESOLVED, load-bearing risk — pin-1 physical-location concordance**:
+  neither this bead nor the underlying research finding could confirm
+  whether FC-05B40P21H20's NO.1 contact lands at the same physical tail
+  end as AFC01-S40FCA-00's. The new part's own CAD drawing does confirm
+  its own NO.1 location (independently re-derived this session, not just
+  taken on the finding's word). But AFC01-S40FCA-00's LCSC-hosted
+  datasheet (`C262674.pdf`) was independently re-checked this session and
+  reconfirmed to be a generic 29-page Jushuo reliability/process booklet
+  with a placeholder "AFC01-S\*\*FCA-00" watermark and **no dimensioned
+  drawing of the part at all** — so there is no primary source to compare
+  against. The new footprint places pad 1 at the same end as the old one
+  (schematic pin/net mapping carried over unchanged, no reversal applied)
+  as a neutral default, **not a verified-correct choice**. A human must
+  physically compare real samples of both connectors side by side (or get
+  a proper dimensioned drawing from Jushuo) before fab. If their NO.1 ends
+  turn out to be at opposite tail ends, J501's pin-to-net mapping in
+  `display.kicad_sch` must be reversed, not just the footprint swapped —
+  every signal (DB17-0, SDA, DOTCLK, HSYNC/VSYNC, RD/WR, RS, CS, RESET,
+  IMx, power/ground) would otherwise cross-wire.
+- `kicad-cli sch erc --severity-all --exit-code-violations` was re-run
+  after the swap on the root sheet — see this bead's PR body for the
+  actual before/after counts.
+- **Not done by this bead**: no PCB placement or routing change — this is
+  schematic/BOM scope only. `pilink-7el.12`'s existing J501 PCB placement
+  (insertion-face inset, vertical offset, rotation) was not touched; its
+  assumptions should be re-checked against the new footprint's actual pad
+  geometry (close to, but not identical to, the old footprint's) before
+  fab. No PCB re-placement was found to be strictly required by this
+  swap, but it was not independently re-verified in a live board context
+  either — flag as a follow-up if a human KiCad pass finds otherwise.
