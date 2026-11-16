@@ -45,6 +45,15 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
   - J501 behind the panel with its long axis vertical;
   - the ESP32 upper-left, above the encoder;
   - the knob centre in the lower third of the face.
+  - **SUPERSEDED (`pilink-2yw`, 2026-11-16):** the ESP32 (U201) no longer
+    shares a column with the encoder, and the knob is no longer in the
+    lower third -- Andreas asked for it re-centred after seeing it look
+    off-centre in the rendered preview. U201 moved to a pocket above the
+    (also-relocated) A/B/X/Y button diamond on the right side of the
+    board; the knob now centres at the board's true vertical middle. See
+    `hardware/README.md`'s "PCB layout" section for the current
+    coordinates and the geometric reasoning (why the two first-choice
+    spots next to the diamond didn't fit).
 - **Display FPC exits toward the buttons (right).** It J-folds behind the
   panel into J501.
 - **USB-C:** a **vertical-mount receptacle on the back of the PCB**, exiting
@@ -199,6 +208,18 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
 - **`AGENTS.md`** hardware summary gains a form-factor line pointing here.
 
 ## Verification: rear USB-C / antenna / FPC clearance check (`pilink-5g8`)
+
+**SUPERSEDED in part (`pilink-2yw`, 2026-11-16):** this section's U201
+coordinates and courtyard math below describe `pilink-7el.12`'s original
+placement (U201 upper-left, board-local (14,12.5)). `pilink-2yw` moved
+U201 to a pocket above the A/B/X/Y diamond on the right side of the board
+(see `hardware/README.md`'s "PCB layout" section for the real new
+coordinates) so the knob could re-centre. J401's own position and this
+section's J401-vs-U.FL distance figures are from before that move and
+have **not** been re-verified against it -- flagged for `pilink-8hx.4`
+(antenna mount), which was already mid-review/fix when this landed, to
+re-check once it picks this up. Kept below for historical context, not as
+a current statement of where U201 is.
 
 After the real placed/routed board landed (`pilink-7el.12`, PR #45,
 `hardware/pico-link-hw.kicad_pcb`), checked whether J401 (USB-C), the
