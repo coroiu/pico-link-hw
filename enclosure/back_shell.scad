@@ -571,36 +571,31 @@ module usbc_cutout() {
               USBC_BOSS_RISE + BACK_SHELL_DEPTH + 1.0]);
 }
 
-// pilink-9i4: the leg mount no longer has an outward boss (its circular top
-// face showed on the rear). The leg strut itself now runs up to the back
-// plate's rear face and is trimmed flush with it (see leg()), so the outside
-// shows only the strut growing out of the plate. The screw is driven from
-// INSIDE the cavity (front shell + PCB off), along the leg axis, through the
-// plate into a pilot hole in the SOLID leg; its head sits in a counterbore in
-// a flat pad on the cavity side of the plate (never visible from outside).
-LEG_PAD_D   = 9.0;
-LEG_PAD_TOP = BACK_WALL_T + 2.5;   // pad top bz (head clears the PCB at bz 9)
-LEG_PILOT_D = 1.8;                 // M2 self-tap pilot in the leg
-LEG_PILOT_LEN = 12.0;
-LEG_SCREW_DIR = [0, sin(LEG_BOSS_TILT), cos(LEG_BOSS_TILT)];  // local frame: toward the cavity is -DIR of the outward leg axis
-// axis point at depth bz (outward leg axis is rotate([TILT,0,0]) * +Z)
-function leg_axis_q(bz) = LEG_MOUNT_Q + bz * (-sin(LEG_BOSS_TILT) / cos(LEG_BOSS_TILT));
+// pilink-9i4 (rev 2): the leg-mount boss keeps the original scheme (heat-set
+// insert in the boss tip, screw from the foot through the leg). Its flat base
+// face used to sit proud of the plate (the tilted cylinder's base disc is only
+// cut by the rear plane, leaving half of it exposed), so the boss is extended
+// back along its own axis and clipped at the plate's inner side (bz = 1.0):
+// the cylinder runs into the rear surface with no exposed flat face.
+LEG_BOSS_EXTEND = 8.0;   // extension behind the base along the boss axis
 
-module leg_mount_pad_solids() {
-    for (x = [LEG_PFACE_LEFT, LEG_PFACE_RIGHT])
-        translate([x, leg_axis_q(BACK_WALL_T + 0.5*(LEG_PAD_TOP - BACK_WALL_T)), BACK_WALL_T - 0.01])
-            cylinder(h = LEG_PAD_TOP - BACK_WALL_T + 0.01, d = LEG_PAD_D, $fn = 32);
-}
-
-module leg_mount_screw_holes() {
+module leg_mount_boss_solids() {
     for (x = [LEG_PFACE_LEFT, LEG_PFACE_RIGHT])
         translate([x, LEG_MOUNT_Q, 0])
-            rotate([LEG_BOSS_TILT, 0, 0]) {
-                // through the plate along the leg axis (cylinder axis +Z = outward)
-                translate([0, 0, -12]) cylinder(h = 12.5, d = SCREW_CHANNEL_D, $fn = 24);
-                // head counterbore, from the pad top toward the plate
-                translate([0, 0, -12]) cylinder(h = 12 - 3.0, d = SCREW_HEAD_D, $fn = 24);
+            intersection() {
+                rotate([LEG_BOSS_TILT, 0, 0])
+                    translate([0, 0, -LEG_BOSS_EXTEND])
+                        boss_solid(height = LEG_MOUNT_BOSS_LEN + LEG_BOSS_EXTEND);
+                translate([-50, -50, -50]) cube([100, 100, 51.0]);
             }
+}
+
+module leg_mount_insert_pockets() {
+    for (x = [LEG_PFACE_LEFT, LEG_PFACE_RIGHT])
+        translate([x, LEG_MOUNT_Q, 0])
+            rotate([LEG_BOSS_TILT, 0, 0])
+                translate([0, 0, LEG_MOUNT_BOSS_LEN - INSERT_LEN])
+                    cylinder(h = INSERT_LEN + 0.1, d = INSERT_OD, $fn = 32);
 }
 
 // pilink-6lz: relief in the top wall so the Ø1.13 pigtail can cross the PCB
@@ -618,12 +613,12 @@ module back_shell_local() {
             back_shell_shell();
             pigtail_spool();
             pcb_mount_boss_solids();
-            leg_mount_pad_solids();
+            leg_mount_boss_solids();
         }
         usbc_cutout();
         pigtail_notch_cutout();
         pcb_mount_insert_pockets();
-        leg_mount_screw_holes();
+        leg_mount_insert_pockets();
     }
 }
 
@@ -717,49 +712,88 @@ module base_strip() {
 // boss, beyond just the screw) unmodelled -- a human should add that
 // once this is actually rendered and fitted.
 
-LEG_MOUNT_EMBED = 8.0;  // strut runs this far past the rear face before trimming
-
-// World-frame half-space of everything inside the back plate (bz >= 0).
-module back_plate_inside_halfspace() {
-    rotate([-LEAN_DEG, 0, 0]) translate([-500, -500, 0]) cube([1000, 1000, 500]);
-}
-
 module leg(side) {
     x = FACE_W/2 + side*LEG_OFFSET;
-    p_mount = [x, leg_mount_y, leg_mount_z];   // pilink-9i4: on the rear face itself
-    p_foot  = [x, leg_foot_y,  leg_foot_z];
-    // Unit vector mount -> foot, and the point LEG_MOUNT_EMBED behind the
-    // rear face (inside the plate) where the strut's flat end disc sits.
-    dir = [0, LEG_DY, LEG_DZ] / leg_length;
-    p_in = p_mount - LEG_MOUNT_EMBED * dir;
-    p_foot_strut = [p_foot[0], LEG_STRUT_D/2, p_foot[2]];  // sphere lowest point at Y=0 (PR #52 #3b)
+    p_mount = [x, leg_mount_tip_y, leg_mount_tip_z];
+    p_foot  = [x, leg_foot_y,      leg_foot_z];
+    // PR #52 review finding #3(b): the strut capsule's own foot-end
+    // sphere (r = LEG_STRUT_D/2) was centred AT p_foot (world Y=0, the
+    // table datum), so it reached 4mm BELOW the table -- the leg would
+    // have stood on this sphere, not on the modelled rubber foot. A
+    // sphere's lowest point is simply (centre Y - radius) regardless of
+    // its other coordinates, so raising the centre to Y=LEG_STRUT_D/2
+    // puts its lowest point exactly at Y=0; the flat foot pad below
+    // (still built at the true p_foot) fills the small remaining gap
+    // down to the table, and is what actually contacts it.
+    p_foot_strut = [p_foot[0], LEG_STRUT_D/2, p_foot[2]];
     difference() {
         union() {
-            // SOLID strut: hull of a flat disc inside the plate (perpendicular
-            // to the leg axis) and the foot sphere, then trimmed flush at the
-            // rear face below, so no cylinder top is ever visible.
+            // Strut: hull of a flat disc at the mount end and a sphere
+            // at the (raised) foot end. The foot end stays a sphere --
+            // direction-agnostic is fine there, since only its lowest
+            // point matters (review finding #3(b), above). The mount
+            // end is a disc, not a sphere (review finding #6, round 2,
+            // see the comment above p_mount): a sphere centred on the
+            // boss tip reaches back along the axis and fills part of
+            // the boss, including its own insert pocket, with solid
+            // strut material -- not actually flush. A disc perpendicular
+            // to the mount->foot axis, rotated by that same net world
+            // angle (LEG_BOSS_TILT - LEAN_DEG -- the boss's own axis,
+            // see the "Leg axis geometry" block) and centred AT p_mount,
+            // caps the strut at the boss's own tip face instead of past
+            // it. This does use an arbitrary-axis rotation; the old
+            // reason for avoiding one here ("can't test-render to
+            // verify") no longer applies now that the screw-head
+            // counterbore below (LEG_AXIS_TILT) already relies on
+            // exactly this kind of rotation and was independently
+            // re-verified by the PR #52 review.
             hull() {
-                translate(p_in)
+                translate(p_mount)
                     rotate([LEG_BOSS_TILT - LEAN_DEG, 0, 0])
-                        cylinder(h = MOUNT_CAP_T, d = LEG_STRUT_D, $fn = 32, center = true);
-                translate(p_foot_strut) sphere(d = LEG_STRUT_D, $fn = 32);
+                        cylinder(h = MOUNT_CAP_T, d = LEG_STRUT_D, $fn = 24, center = true);
+                translate(p_foot_strut) sphere(d = LEG_STRUT_D, $fn = 24);
             }
-            // Flat pad at the foot end for the rubber foot.
+            // Flat pad at the foot end for the rubber foot to stick to.
+            // Genuinely vertical (unlike the counterbore below): this
+            // is the part that must sit flat against the horizontal
+            // table regardless of the leg's own angle.
+            // (cylinder() is already centred in X/Z by the rotate below,
+            // so the translate only needs the foot's own X/Z position,
+            // same pattern as the counterbore block below.)
             translate([p_foot[0], p_foot[1] - 0.1, p_foot[2]])
                 rotate([-90, 0, 0])
                     cylinder(h = FOOT_PAD_T, d = FOOT_PAD_D, $fn = 32);
         }
-        // Trim flush with the back plate's rear face.
-        back_plate_inside_halfspace();
-        // Foot-pad registration recess (rubber foot), vertical.
+        // Screw channel: another capsule, hidden-fastener design (see
+        // LEG_MOUNT_BOSS_LEN comment above) -- a single long screw runs
+        // from the foot end up into the back-shell's insert, now along
+        // the SAME axis as that insert (review finding #2), since
+        // p_mount is the boss's own tip.
+        hull() {
+            translate(p_mount) sphere(d = SCREW_CHANNEL_D, $fn = 16);
+            translate(p_foot)  sphere(d = SCREW_CHANNEL_D, $fn = 16);
+        }
+        // Foot-pad registration recess: genuinely vertical (same axis
+        // as the pad above, not the screw) -- PR #52 review finding
+        // #3(a): previously stacked ABOVE the counterbore in the same
+        // (wrong) vertical frame, landing inside the strut above the
+        // pad instead of at the bottom. Now cut first, directly from
+        // the bottom (y ~ -0.1..0.9), where the rubber foot actually
+        // sits, within the FOOT_PAD_D=12mm pad (FOOT_RECESS_D=10.4mm
+        // fits inside it with margin).
         translate([p_foot[0], p_foot[1] - 0.1, p_foot[2]])
             rotate([-90, 0, 0])
                 cylinder(h = FOOT_RECESS_T + 0.1, d = FOOT_RECESS_D, $fn = 32);
-        // Small blind M2 pilot for the screw coming through the plate from the
-        // cavity side (invisible; the leg is otherwise solid).
-        translate(p_mount)
-            rotate([LEG_BOSS_TILT - LEAN_DEG, 0, 0])
-                translate([0, 0, -0.01]) cylinder(h = LEG_PILOT_LEN, d = LEG_PILOT_D, $fn = 16);
+        // Screw-head counterbore: review finding #2's last point -- was
+        // vertical (~38 deg off the screw axis), now aligned to
+        // LEG_AXIS_TILT (derived above), the same straight line as the
+        // screw channel and the boss's own insert. Starts just past the
+        // foot recess (so the two don't have to share one frame) and
+        // extends up into the strut along the real screw path.
+        translate([p_foot[0], p_foot[1] - 0.1, p_foot[2]])
+            rotate([LEG_AXIS_TILT, 0, 0])
+                translate([0, 0, FOOT_RECESS_T])
+                    cylinder(h = 3.0, d = SCREW_HEAD_D, $fn = 16);
     }
 }
 

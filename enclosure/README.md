@@ -277,13 +277,12 @@ the "U201 back-side relief", "J401 boss" and "leg boss" descriptions below
    protruding 0.5 inside its boss), so the opening is widened from 10 x 5 to
    12 x 6mm for the plug overmould. Whether a real cable boot enters it is
    still open (`pilink-q03`).
-3. **Leg mounts.** No outward boss any more. The strut runs to the rear face
-   and is trimmed flush with it (a flat elliptical joint, no cylinder top);
-   the screw is driven from inside the cavity along the leg axis through the
-   plate (Ø2.6 hole, head counterbore in a flat Ø9 pad on the cavity side,
-   head clears the PCB) into a blind Ø1.8 self-tap pilot in the leg. Legs are
-   otherwise solid (no screw channel or counterbore). The screw heads are
-   under the PCB, so legs go on before the PCB is fitted.
+3. **Leg mounts.** The original attachment scheme is kept (tilted boss with a
+   heat-set insert in its tip; leg screwed on from the foot through a hidden
+   channel). The boss is extended back along its axis by 8mm and clipped at the
+   plate's inner side, so it runs into the rear surface and no flat base face
+   is exposed. Strut and boss are solid apart from the Ø2.6 screw channel and
+   the insert pocket. No fillet (oblique cylinder-to-plane blend not modelled).
 4. **Feet pockets.** The shell's rear-bottom corner dips into the strip's
    y 0..1 band over z ~0..3.7, filling about half of each pocket. The pocket
    cutters (`feet_recess_cutters()`) are now subtracted from the shell too
