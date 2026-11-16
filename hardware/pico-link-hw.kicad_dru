@@ -9,3 +9,10 @@
 (rule skrtlae010_own_npth
 	(constraint hole_clearance (min 0.09mm))
 	(condition "A.Type=='Pad' && B.Type=='Pad' && ((A.memberOfFootprint('SW101') && B.memberOfFootprint('SW101')) || (A.memberOfFootprint('SW102') && B.memberOfFootprint('SW102')))"))
+
+# pilink-rqd: backlight boost (U501/D501). The switching node Net-(D501-A)
+# must stay >=1.2mm from the feedback net Net-(J501-LED_K), so the switching
+# edges do not couple into the analog feedback sense.
+(rule backlight_sw_vs_fb
+	(constraint clearance (min 1.2mm))
+	(condition "(A.NetName=='Net-(D501-A)' && B.NetName=='Net-(J501-LED_K)') || (A.NetName=='Net-(J501-LED_K)' && B.NetName=='Net-(D501-A)')"))
