@@ -1,114 +1,92 @@
 #!/usr/bin/env python3
-"""Local reroute of GPIO25 and ESP32_HCI_TXD out of the antenna keepout strip
-(pilink-a4u). Not run on its own: zones.py calls apply() on every run.
+"""Antenna-strip track keepout and guard (pilink-a4u, pilink-kiw).
 
-Freerouting ran both nets along the board's top edge (GPIO25 on B.Cu at
-y=1.19, x 59.4..102.9; ESP32_HCI_TXD on B.Cu at y=1.82, x 64.5..94.2), right
-under the U.FL antenna element. F.Cu between y 3.0 and 4.2 is empty there, so
-each net is moved to a straight F.Cu lane just below the GND pull-back strip
-(zones.py ANT_KO, y 0..3.0):
+The U.FL antenna element sits ~1mm above the board's top edge, so no routed
+copper may run along board x 54..106, y 0..3 (zones.py ANT_KO adds the
+pour-only KO_ANT_F/B rule areas for the GND pours).
 
-  * GPIO25: new via at (57.298, 3.289), F.Cu lane y=3.289 east to x=102.889,
-    where it joins the existing F.Cu drop to the net's lower via.
-  * ESP32_HCI_TXD: existing B.Cu run ends at (61.429, 4.851); new via there,
-    F.Cu diagonal to y=3.78, lane east to x=94.17, then down to the existing
-    via at (94.17, 4.103).
-
-Idempotent: matches the old Freerouting segments by position, and adds the
-new ones only if the old ones were found (or the new ones are absent).
+* route.py calls add_route_keepout() before the DSN export, so Freerouting
+  gets the strip as a track/via keepout on both layers (same mechanism as
+  sw_keepout.py), and remove_route_keepout() before saving.
+* zones.py calls check_strip() on every run: any track or via in the strip
+  other than the documented ALLOWED run is a hard failure (non-zero exit),
+  not a silent no-op. This replaces the old position-matching reroute of
+  GPIO25 / ESP32_HCI_TXD, which did nothing once Freerouting routed them
+  differently.
 """
+import sys
+
 import pcbnew
 
 MM = pcbnew.FromMM
 O = 100.0            # keep in sync with place.py ORIGIN
-TOL = 0.02
-W = 0.2
-VIA_D, VIA_DRILL = 0.6, 0.3
+STRIP = (54.0, 0.0, 106.0, 3.0)      # keep in sync with zones.py ANT_KO
+# The guard checks only copper under the antenna element itself (board x
+# 56.75..102.55) and ignores sub-0.05mm grazes of the strip's lower edge
+# (router grid rounding: committed GND stubs/via touch y=3.0 by ~10um).
+# Freerouting is given the full STRIP, margins included.
+CHECK = (56.75, 0.0, 102.55, 2.95)
+NAME = "KO_ANT_RT_"
+# Documented exception: tracks on these nets, on these layers, may stay in
+# the strip.
+ALLOWED = {("+3V3", pcbnew.B_Cu)}
 
 
-def _xy(v):
-    return (pcbnew.ToMM(v.x) - O, pcbnew.ToMM(v.y) - O)
+def _pt(x, y):
+    return pcbnew.VECTOR2I(MM(O + x), MM(O + y))
 
 
-def _near(a, b):
-    return abs(a[0] - b[0]) < TOL and abs(a[1] - b[1]) < TOL
+def remove_route_keepout(board):
+    for z in list(board.Zones()):
+        if z.GetZoneName().startswith(NAME):
+            board.Remove(z)
 
 
-def _seg(t, layer, a, b):
-    if t.Type() == pcbnew.PCB_VIA_T or t.GetLayer() != layer:
-        return False
-    s, e = _xy(t.GetStart()), _xy(t.GetEnd())
-    return (_near(s, a) and _near(e, b)) or (_near(s, b) and _near(e, a))
+def add_route_keepout(board):
+    """Track + via keepout over the strip, F.Cu and B.Cu (Freerouting only)."""
+    remove_route_keepout(board)
+    x0, y0, x1, y1 = STRIP
+    for layer, tag in ((pcbnew.F_Cu, "F"), (pcbnew.B_Cu, "B")):
+        z = pcbnew.ZONE(board)
+        z.SetLayer(layer)
+        z.SetIsRuleArea(True)
+        z.SetZoneName(NAME + tag)
+        z.SetDoNotAllowTracks(True)
+        z.SetDoNotAllowVias(True)
+        z.SetDoNotAllowZoneFills(True)
+        z.SetDoNotAllowPads(False)
+        z.SetDoNotAllowFootprints(False)
+        o = z.Outline()
+        o.NewOutline()
+        for x, y in ((x0, y0), (x1, y0), (x1, y1), (x0, y1)):
+            o.Append(_pt(x, y))
+        board.Add(z)
 
 
-def _pt(p):
-    return pcbnew.VECTOR2I(MM(O + p[0]), MM(O + p[1]))
-
-
-def _track(board, layer, net, a, b):
-    t = pcbnew.PCB_TRACK(board)
-    t.SetStart(_pt(a))
-    t.SetEnd(_pt(b))
-    t.SetLayer(layer)
-    t.SetWidth(MM(W))
-    t.SetNet(net)
-    board.Add(t)
-
-
-def _via(board, net, p):
-    v = pcbnew.PCB_VIA(board)
-    v.SetPosition(_pt(p))
-    v.SetWidth(pcbnew.F_Cu, MM(VIA_D))
-    v.SetDrill(MM(VIA_DRILL))
-    v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
-    v.SetNet(net)
-    board.Add(v)
-
-
-def apply(board):
-    F, B = pcbnew.F_Cu, pcbnew.B_Cu
-    # (net, via positions to drop, [(layer, a, b) segments to drop])
-    jobs = [
-        ("GPIO25", [(102.8895, 1.1862)], [
-            (B, (102.889, 1.186), (59.401, 1.186)),
-            (B, (59.401, 1.186), (56.098, 4.489)),
-        ]),
-        ("ESP32_HCI_TXD", [(94.1701, 1.8243)], [
-            (B, (94.17, 1.824), (64.455, 1.824)),
-            (B, (64.455, 1.824), (61.429, 4.851)),
-            (F, (94.17, 4.103), (94.17, 1.824)),
-        ]),
-    ]
-    found = 0
-    for net, vias, segs in jobs:
-        for t in list(board.GetTracks()):
-            if t.GetNetname() != net:
-                continue
-            if t.Type() == pcbnew.PCB_VIA_T:
-                if any(_near(_xy(t.GetPosition()), v) for v in vias):
-                    board.Remove(t)
-                    found += 1
-            elif any(_seg(t, l, a, b) for l, a, b in segs):
-                board.Remove(t)
-                found += 1
-    if not found:
-        return False   # already applied (or the router moved things)
-
-    g = board.FindNet("GPIO25")
-    # F.Cu drop (102.889, 1.186)-(102.889, 6.696): shorten its top end
+def strip_offenders(board):
+    """Tracks/vias whose copper overlaps the strip, minus the ALLOWED run."""
+    x0, y0, x1, y1 = CHECK
+    box = pcbnew.BOX2I(_pt(x0, y0), pcbnew.VECTOR2I(MM(x1 - x0), MM(y1 - y0)))
+    bad = []
     for t in board.GetTracks():
-        if (t.Type() != pcbnew.PCB_VIA_T and t.GetNetname() == "GPIO25"
-                and _seg(t, F, (102.889, 1.186), (102.889, 6.696))):
-            board.Remove(t)
-            break
-    _track(board, F, g, (102.889, 3.289), (102.889, 6.696))
-    _track(board, B, g, (56.098, 4.489), (57.298, 3.289))
-    _via(board, g, (57.298, 3.289))
-    _track(board, F, g, (57.298, 3.289), (102.889, 3.289))
+        if not t.GetBoundingBox().Intersects(box):
+            continue
+        if t.Type() == pcbnew.PCB_VIA_T:
+            bad.append(t)
+        elif (t.GetNetname(), t.GetLayer()) not in ALLOWED:
+            bad.append(t)
+    return bad
 
-    h = board.FindNet("ESP32_HCI_TXD")
-    _via(board, h, (61.429, 4.851))
-    _track(board, F, h, (61.429, 4.851), (62.499, 3.781))
-    _track(board, F, h, (62.499, 3.781), (94.17, 3.781))
-    _track(board, F, h, (94.17, 3.781), (94.17, 4.103))
-    return True
+
+def check_strip(board):
+    bad = strip_offenders(board)
+    for t in bad:
+        kind = "via" if t.Type() == pcbnew.PCB_VIA_T else "track"
+        p = t.GetStart()
+        print(f"ANTENNA STRIP VIOLATION: {kind} on {t.GetNetname()} "
+              f"{t.GetLayerName()} at ({pcbnew.ToMM(p.x) - O:.3f}, "
+              f"{pcbnew.ToMM(p.y) - O:.3f})", file=sys.stderr)
+    if bad:
+        sys.exit(f"{len(bad)} track/via item(s) in the antenna strip; re-run "
+                 "route.py (it exports the strip as a keepout) or fix by hand")
+    print("antenna strip clean (only the documented +3V3 B.Cu run, if any)")

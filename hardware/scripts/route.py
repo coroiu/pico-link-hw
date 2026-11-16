@@ -28,6 +28,7 @@ import sys
 import pcbnew
 
 from preroute import PREROUTE_NETS
+from antenna_reroute import add_route_keepout, remove_route_keepout
 from sw_keepout import add_sw_keepouts
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -59,6 +60,10 @@ def main():
     # Alps SKRTLAE010 no-copper areas: Freerouting exports rule areas as
     # keepouts, so tracks route around the switch bodies (pilink-ge9).
     add_sw_keepouts(board)
+    # Antenna strip (pilink-kiw): no tracks/vias there. Freerouting-only; it
+    # is removed again before the board is saved (zones.py adds the pour-only
+    # KO_ANT_* areas).
+    add_route_keepout(board)
 
     shutil.rmtree(WORK, ignore_errors=True)
     os.makedirs(WORK)
@@ -111,6 +116,7 @@ def main():
 
     if not pcbnew.ImportSpecctraSES(board, ses):
         sys.exit("SES import failed")
+    remove_route_keepout(board)
     pcbnew.SaveBoard(BOARD, board)
     tracks = [t for t in board.GetTracks()]
     vias = sum(1 for t in tracks if t.Type() == pcbnew.PCB_VIA_T)
