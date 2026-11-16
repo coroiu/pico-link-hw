@@ -1343,6 +1343,18 @@ scripts):
    same open RF risk and is not quantified here. Option 3 in 58z (move the
    antenna to the upper rear wall) got *easier*, since U201's connector
    now already faces that wall.
+   **Antenna-edge GND pull-back (`pilink-a4u`, user decision on 58z):**
+   `scripts/zones.py` adds pour-only rule areas `KO_ANT_F`/`KO_ANT_B`
+   (board x 54.25..104.05, y 0..3.0, both layers; element = board x
+   55.25..103.05, face X - 2.5, sitting ~2mm above the top edge). GND pours
+   now start at y=3.0 (was the board edge): element-to-nearest-GND-pour
+   ~5.0mm (was ~2mm). Tracks are NOT excluded: GPIO25 (B.Cu y~1.1),
+   ESP32_HCI_TXD (B.Cu y~1.8), +3V3 (B.Cu y~2.4) and a short GND track
+   (B.Cu y~3.0) run there, so nearest copper overall is the GPIO25/HCI
+   tracks at ~2.9mm from the element (nearest pad, U201 GND pad 38, ~4.7mm).
+   Going deeper than 3.0 would orphan U201 pad 38 / C201 pad 2 or need a
+   full re-route. The ~46mm guidance stays unmet by design pending a range
+   test. DRC 78/0 errors/0 unconnected/0 parity, netlist_check 334/0.
 9. **J401's low anchor (59, 45.5) vs. the product-layout proposal's "~15mm
    up" rear-USB-C intent (section 6c) -- investigated, not resolved as a
    simple accept (`pilink-8ry`).** **UPDATE (`pilink-hdl`, 2026-11-16): J401
