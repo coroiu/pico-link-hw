@@ -121,17 +121,12 @@ ANTENNA_KEEPOUT_FROM_METAL = ANTENNA_ELEMENT_LENGTH; // mm, see note above
 //
 // hardware/README.md "PCB layout (pilink-7el.12, upright desk-clock form
 // factor)" gives the real 118 x 50mm board's placement table in board-local
-// mm (origin top-left, x right, y down). That same section already flags,
-// in its own words, that mapping board-local coordinates onto the ~122 x
-// 56mm face is NOT yet settled -- "that assumption was never checked against
-// the actual back-shell boss/standoff design (which doesn't exist yet)...
-// Flagged for pilink-8hx.1/.2 to confirm". This file inherits that same
-// unconfirmed convention rather than inventing a different one, so all
-// three enclosure beads stay comparable:
-//   - board centered left-right in the face: offset = (FACE_W-BOARD_W)/2
-//   - board bottom edge flush with the face's bottom edge: offset =
-//     FACE_H-BOARD_H, all of the difference taken up above the board's own
-//     top edge (hardware/README.md's own "y = 50 - N" rule)
+// mm (origin top-left, x right, y down). The mapping onto the ~122 x 56mm
+// face is SETTLED (pilink-8hx.2 / pilink-3ym; shared with back_shell.scad's
+// board_to_face() and front_shell.scad's board_to_y()):
+//   - face_x = board_x + 2 (board centered left-right: (FACE_W-BOARD_W)/2)
+//   - Qface = 52 - board_y (2mm wall + 2mm TOP_SLACK above the board's
+//     top edge; the board is NOT bottom-flush)
 // X is the one axis that matters for this file: left-right position is
 // unaffected by the body's 15-degree lean, so board-local X and face-local
 // X are directly comparable to pilink-8hx.2's SW101/SW102 pinhole X values
@@ -145,7 +140,7 @@ FACE_H  = 56.0;  // mm, same ADR
 
 BOARD_TO_FACE_X_OFFSET = (FACE_W - BOARD_W) / 2; // = 2.0mm
 
-// pilink-3ym: the Y mapping is no longer the unconfirmed "bottom-flush,
+// pilink-3ym: the Y mapping is no longer the "bottom-flush,
 // 6mm above" assumption this file inherited from hardware/README.md. Both
 // shells (back_shell.scad board_to_face(), front_shell.scad board_to_y())
 // settled on Qface = 52 - board_y (2mm wall + 2mm TOP_SLACK above the
@@ -355,9 +350,9 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE;  // 8.5mm
 // depth (~10mm, see the mount-depth note above). Estimated pigtail needed:
 //   5 + 2 + 10 + 1.45 ~= 18.5mm, call it ~30mm with bend radii/slack.
 // The part's pigtail is ~240mm (inferred from the part number), so ~210mm
-// of excess has to be stowed (coiled/looped) inside the enclosure -- more
-// than before in relative terms, because the run is now short. Where it
-// goes is NOT designed here (follow-up bead). Clearances checked:
+// of excess has to be stowed (coiled/looped) inside the enclosure.
+// pilink-phg: it is wound on a printed spool in the back shell's cavity
+// (back_shell.scad pigtail_spool(), board (73,18)), not in this mount. Clearances checked:
 //   - SW101/SW102 pinholes (face X 44/54, Q ~49.3) vs the cable at X ~100:
 //     >45mm apart.
 //   - Restored A/B/X/Y diamond (courtyard board y 13.58-36.43, front side)
@@ -425,8 +420,8 @@ echo(str("[pilink-8hx.4] Display-panel shadow X ", PANEL_X_MIN_FACE_LOCAL, "-",
 // edge, in the FACE PLANE (face-Y, the same axis FACE_H/BOARD_H already
 // use) -- not in front of or behind them in Z. And that face-Y distance
 // *is* derivable to first order from constants already in this file, using
-// the same unconfirmed board-to-face mapping the X-axis numbers above
-// already rely on (so it carries the same caveat, not a new one).
+// the settled board-to-face mapping (Qface = 52 - board_y, face_x =
+// board_x + 2).
 //
 // Display-panel shadow Y start, board-local, from hardware/README.md:971
 // ("Treated as x:[28,87] y:[5,47] on the board") -- only the X range was
@@ -436,8 +431,7 @@ PANEL_Y_MIN_FACE_LOCAL = PANEL_Y_MIN_BOARD_LOCAL + BOARD_TO_FACE_Y_OFFSET; // 9.
 
 // The element itself sits on the top wall's INNER surface, i.e.
 // WALL_THICKNESS below the face's own top edge (face-y=0) -- an estimate,
-// not a confirmed figure, same caveat as everything else derived from the
-// unconfirmed board-to-face mapping.
+// not a confirmed figure (the board-to-face mapping itself is settled).
 ANTENNA_ELEMENT_FACE_Y_ESTIMATE = WALL_THICKNESS; // ~2.0mm below the face top edge (inner top-wall surface, Qface 54)
 
 // Board's own top edge (where SW101/SW102's copper and the board outline

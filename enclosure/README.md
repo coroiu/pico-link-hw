@@ -250,6 +250,43 @@ from the antenna-end edge (board (99, 5.0)); it is not in the footprint.
 The pocket does not depend on it. The plug's cable-exit direction and the
 coax minimum bend radius are also unverified.
 
+### Pigtail slack stowage (`pilink-phg`)
+
+The antenna pigtail is ~240mm (INFERRED from the part number
+KH-FPC2.4G-1.13IPEX-240, not on the LCSC listing) against an ~18-30mm run
+from U201's back-side U.FL to the top-wall mount: ~210mm of excess. It
+can't be trimmed (no crimp tooling).
+
+**Shorter part: not swapped.** Facts as listed on LCSC (not independently
+verified): C709378 (`-100`) lists no cable length, element size, gain or
+stock; C709379 (`-100-3239`) lists a 49mm length; C709381 (`KH-FPC4G-...-6417`)
+is a 4G (cellular) antenna with 2dBi listed, so not a 2.4GHz candidate;
+AIWF026 (C49242188, 100mm cable) is 0.02dB over the 2.33dBi cert-safe
+ceiling. None of the shorter parts has confirmed cable length, 2.4GHz band,
+size and in-ceiling gain together, so the 240mm part with a coil stays. BOM
+unchanged (the antenna has no row in `BOM.md`; tracked separately). If a
+verified short part is found, it removes the spool.
+
+**Stowage.** B.Cu is nearly empty left of U201 and the cavity behind the
+PCB is 3.0mm deep, so a flat spiral is wound on a printed post there
+(`pigtail_spool()` in `back_shell.scad`): O10mm post (first turn centreline
+R 5.57 >= the 5mm coax minimum bend radius, TE UMCC 5mm / Data Alliance
+4.5mm), three O2 lugs at R 12, centre board (73,18) = face (75,34). Both
+cable ends are fixed, so the inner end crosses back over the turns: the
+stack is 2 x 1.13 = 2.26mm, under the 2.6mm post/lug height and the 3.0mm
+cavity. Capacity: 4 turns = 182mm gross, ~160mm after crossover and
+entry/exit; a 5th turn (245.8mm gross) is tight and not counted on. So
+~160mm of the ~210mm excess is coiled and ~50mm stays a loose >=5mm-radius
+loop along the route (not yet designed). The spool is 4.7mm short of the
+U201 relief's left edge and clear of H4 (59,4). Per the PR #64 review, the
+plug-side bend fits inside the relief only if the cable centre starts at
+bz <= ~2.9 against the relief's top wall.
+
+**Not verified:** no render (no OpenSCAD); J401's real body outline vs the
+spool (assumed >= ~15mm away); actual plug cable-exit direction and mated
+height; whether the cable can really be routed spool -> top-wall mount
+without kinking at the board edge; the 240mm cable length itself.
+
 ### USB-C cable-vs-table clearance (`pilink-8ry`)
 
 PR #52's review flagged, but left unresolved (out of that bead's own
@@ -508,20 +545,19 @@ or is marked as this file's own assumption.
   doesn't fit (only 38.25mm of clear width there, less than the 45.8mm
   element) — fixed per a code-reviewer's NOT APPROVED verdict on the first
   version (PR #48), which had the element physically colliding with
-  SW101's pinhole channel. The resulting cable run to U201's U.FL connector
-  (face-local X-center ~16mm) is ~48mm, well within the part's ~240mm
-  (inferred) pigtail. Board-to-face coordinate mapping (board centered
-  left-right, bottom-flush in the face) is the same unconfirmed convention
-  hardware/README.md's own placement table already flags as pending
-  `pilink-8hx.1`/`.2` confirmation — carried here unchanged rather than
-  inventing a different one.
+  SW101's pinhole channel. U201 is now on the back of the board (`pilink-hdl`), so the cable run
+  from its U.FL to the mount is only ~18-30mm against the part's ~240mm
+  (inferred) pigtail; the ~210mm excess is stowed per the pigtail
+  stowage section above. Board-to-face coordinate mapping is settled
+  (`face_x = board_x + 2`, `Qface = 52 - board_y`), shared with the front
+  and back shells.
 - **Display/ground clearance guidance is NOT met — real RF trade-off, not
   pending:** a second review round found the governing number here is the
   face-Y distance (not a Z gap, as an earlier revision wrongly framed it),
   and it *is* derivable from this file's own constants: the element sits
-  roughly **4mm from the board's top edge and roughly 9mm from the display
-  panel's frame** (both estimates, same unconfirmed board-to-face mapping
-  as the X-axis numbers), against general adhesive-FPC-antenna practice
+  roughly **2mm from the board's top edge and roughly 7mm from the display
+  panel's frame** (both estimates; the board-to-face mapping itself is
+  settled), against general adhesive-FPC-antenna practice
   cited in the research finding (not a figure from any datasheet — the
   32UE's own datasheet carries no such keepout, and no antenna datasheet
   in this repo states one either) of keeping metal/ground clear within
