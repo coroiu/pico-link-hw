@@ -29,6 +29,7 @@ import os
 import pcbnew
 
 from preroute import PREROUTE_NETS
+from antenna_reroute import apply as reroute_antenna_tracks
 from sw_keepout import add_sw_keepouts
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -48,13 +49,16 @@ VIA_KEEPOUT = 0.35           # via edge to any foreign copper / pad / hole
 
 
 # pilink-a4u: no GND pour along the board's top edge under the U.FL antenna
-# element (enclosure top wall; face X 57.75..105.55 = board X 55.25..103.05,
-# face X = board X + 2.5; the element sits ~2mm above the board's top edge).
-# Pour-only rule area on both layers, +1mm X margin each side. Depth 3.0mm:
+# element. Element = face X 59.25..105.05 = board X 56.75..102.55 (face X =
+# board X + 2.5; land 58.25..106.05 less 1.0mm assembly clearance each end),
+# sitting ~1.0mm above the board's top edge (Q 54 vs board edge Q 53).
+# Pour-only rule area on both layers, ~2.75mm X margin each side (the end
+# margin keeps the pour corners ~2.5mm+ from the element). Depth 3.0mm:
 # U201 GND pad 38 (top at y 2.74) and C201 pad 2 stay on pour that remains.
-# Tracks are NOT excluded (GPIO25, ESP32_HCI_TXD, +3V3 run at y 1.1..2.6 under
-# U201's pigtail side and would need a full re-route); see README.
-ANT_KO = (54.25, 0.0, 104.05, 3.0)
+# GPIO25 / ESP32_HCI_TXD are moved to F.Cu lanes just below the strip by
+# antenna_reroute.py (applied below); only the +3V3 B.Cu run at y~2.4 (x 86..
+# 109, under U201's own antenna end) stays in the strip. See README.
+ANT_KO = (54.0, 0.0, 106.0, 3.0)
 
 
 def add_antenna_keepout(board):
@@ -171,6 +175,7 @@ def main():
         if pad.GetNetname() == "GND" and pad.GetNumber() == "2":
             pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
 
+    print("antenna reroute applied:", reroute_antenna_tracks(board))
     add_antenna_keepout(board)
     add_sw_keepouts(board)   # Alps SKRTLAE010 no-copper areas (pilink-ge9)
     full = (0, 0, BOARD_W, BOARD_H)
