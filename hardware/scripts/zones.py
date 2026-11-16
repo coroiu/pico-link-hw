@@ -36,7 +36,7 @@ BOARD = os.path.join(HERE, "..", "pico-link-hw.kicad_pcb")
 
 MM = pcbnew.FromMM
 ORIGIN = (100.0, 100.0)      # keep in sync with place.py
-BOARD_W, BOARD_H = 118.0, 50.0
+BOARD_W, BOARD_H = 120.5, 50.0
 # U1 heat spreader, board-relative mm (x0, y0, x1, y1) -- around U1 (14,10)
 # and its bulk caps C1/C2/C3 (pilink-2yw relocation; was (92.5,37.0,107.5,
 # 47.5) around the old U1 anchor (100,42), same relative box).

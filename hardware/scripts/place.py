@@ -54,14 +54,20 @@ POWER_CLASS = {"clearance": 0.2, "track_width": 0.5,
 POWER_NETS = ["+5V", "Net-(D501-A)"]
 
 ORIGIN = (100.0, 100.0)
-BOARD_W, BOARD_H = 118.0, 50.0
+BOARD_W, BOARD_H = 120.5, 50.0  # pilink-4qc: 118 -> 120.5
 HOLE_D = 2.2  # M2 clearance, NPTH
 # Back-shell boss mounting holes. Not at the board's bare corners: the
 # ESP32 (upper-left) and encoder (lower-left) courtyards already claim the
 # whole left edge, so holes are placed in the genuinely free pockets --
 # top-right and bottom-right of the button zone, the bottom-left strip
 # below the encoder, and the gap between the top-edge switches and J501.
-HOLES = [(10, 44), (112, 6), (112, 44), (59, 2.5)]  # H4 y 4->2.5: pilink-8ag screw-head vs panel
+# pilink-4qc: right holes follow the wider board (112 -> 114.5, same 6mm edge
+# margin). H4: the panel top edge is now y=4 (was 5), so (59,2.5)'s 4.0mm
+# screw head (reaches y=4.5) would overlap the 3.3mm-tall panel stack; there
+# is no room above it (head needs y<=1.5, hole edge 0.4mm from the board
+# edge), so H4 moves LEFT of the panel (panel x starts 33.12): head reaches
+# x=31, 2.1mm clear.
+HOLES = [(10, 44), (114.5, 6), (114.5, 44), (29, 2.5)]
 
 # Display panel shadow, per the ADR/proposal 6c panel-shadow rule: 59x42mm,
 # centred on the face window. Derived from J501's own anchor math below (not
@@ -73,7 +79,12 @@ HOLES = [(10, 44), (112, 6), (112, 44), (59, 2.5)]  # H4 y 4->2.5: pilink-8ag sc
 # table never had; this constant is now the single source either way).
 # y:[5,47] (height 42mm) centred on y=26, matching J501's own target
 # centreline.
-PANEL = {"x": (28.0, 87.0), "y": (5.0, 47.0)}
+# pilink-4qc: moved so the ACTIVE AREA (insets L 2.65 / R 7.39 / T,B 2.64 in
+# the 59x42 outline -> centre 27.13 in from the panel's left edge, 21 down)
+# is centred on the board: x-centre BOARD_W/2 = 60.25 -> left edge 33.12,
+# right edge 92.12; y-centre 25 -> y:[4,46]. (Older comment text above that
+# says x:[28,87] y:[5,47] is the pre-pilink-4qc geometry.)
+PANEL = {"x": (33.12, 92.12), "y": (4.0, 46.0)}
 
 MM = pcbnew.FromMM
 
@@ -151,18 +162,18 @@ P = {
     # x stays 59 (between the rear legs); that is inside the panel shadow
     # either way, so J401's front-side THT leg protrusion flag is NOT
     # resolved by moving it up (only moving it past x=87 would).
-    "J401": (59.0, 37.0, 0),
+    "J401": (60.25, 37.0, 0),  # pilink-4qc: x re-centred on the wider board (BOARD_W/2)
     # F401/R401-404 (USB-C ESD/CC pocket), right of the backlight cluster.
     # pilink-hdl: restored to their pre-pilink-2yw coordinates (undoing the
     # +9mm-in-Y rigid-group shift pilink-2yw applied to keep clear of
     # U201's old front-side pocket above the diamond) now that U201 has
     # left the front side of the board entirely (see U201 below) -- nothing
     # forces this pocket to stay shifted any more.
-    "F401": (84.0, 36.0, 0),
-    "R401": (84.0, 32.0, 0),
-    "R402": (84.0, 30.0, 0),
-    "R403": (88.0, 32.0, 0),
-    "R404": (88.0, 30.0, 0),
+    "F401": (89.12, 36.0, 0),
+    "R401": (89.12, 32.0, 0),
+    "R402": (89.12, 30.0, 0),
+    "R403": (93.12, 32.0, 0),
+    "R404": (93.12, 30.0, 0),
     # --- 3V3 LDO + bulk caps -----------------------------------------------
     # pilink-2yw relocated this cluster from the free pocket below the
     # button diamond (90-106,42-47.5) into the column U201 used to occupy
@@ -274,17 +285,19 @@ P = {
     # re-tuned here: the difference is sub-pad-pitch and doesn't change any
     # DRC/netlist result, but say the real built number rather than quoting
     # the finding's number as if it were hit exactly.
-    "J501": (59.4, 19.0, 270),
-    "C501": (70.0, 37.0, 0),
+    "J501": (64.52, 18.0, 270),  # pilink-4qc: moved with the panel (+5.12, -1) so the FPC-fold offsets are unchanged
+    # pilink-4qc: boost cluster moved with J501 (+5.12,-1) and the F401/R401-404 pocket +5.12 in x,
+    # keeping J501-LED_K -> U501 FB geometry (backlight_sw_vs_fb DRU rule).
+    "C501": (75.12, 36.0, 0),
     # L501 shifted 1.5mm further from U501 than a naive mirror of the old
     # layout would put it: at (70,41) its own pin 1 (SW node) landed only
     # 1.0mm from U501 pin 3 (FB), short of the custom DRU keepout below
     # (1.2mm) -- caught by DRC, not assumed.
-    "L501": (68.5, 41.0, 180),
-    "D501": (75.0, 38.0, 180),
-    "U501": (75.0, 41.0, 0),
-    "C502": (80.0, 38.0, 0),
-    "R501": (75.0, 44.0, 0),
+    "L501": (73.62, 40.0, 180),
+    "D501": (80.12, 37.0, 180),
+    "U501": (80.12, 40.0, 0),
+    "C502": (85.12, 37.0, 0),
+    "R501": (80.12, 43.0, 0),
     # --- user controls -----------------------------------------------------
     # Knob (SW303): the footprint's anchor is pad A (the solder side), NOT
     # the shaft -- the shaft/knob centre sits at local (+7.5,+2.5) from the
@@ -319,7 +332,7 @@ P = {
     # pilink-hdl: unchanged -- the knob was already exactly on board y=25
     # as of pilink-2yw; this bead's own job was restoring the DIAMOND to
     # y=25 too (see below) without re-opening the knob's own placement.
-    "SW303": (8.5, 22.5, 0),
+    "SW303": (6.0, 22.5, 0),  # pilink-4qc: shaft x 13.5 = 60.25 - 46.75, mirror of the diamond centre x=107
     "R304": (34.0, 30.0, 0),   # encoder A pull-up (GPIO22)
     "R303": (34.0, 32.0, 0),   # encoder B pull-up (GPIO23)
     "R309": (34.0, 34.0, 0),   # encoder push-switch pull-up (GPIO28)
@@ -337,10 +350,10 @@ P = {
     # no longer needs any front-side room above or beside this diamond at
     # all. Both the knob and the diamond now sit on board y=25
     # simultaneously, which is what this bead was asked to achieve.
-    "SW308": (102.0, 17.0, 0),  # Y (top)
-    "SW307": (94.0, 25.0, 0),   # X (left)
-    "SW306": (110.0, 25.0, 0),  # B (right)
-    "SW305": (102.0, 33.0, 0),  # A (bottom)
+    "SW308": (107.0, 17.0, 0),  # Y (top)
+    "SW307": (99.0, 25.0, 0),   # X (left)
+    "SW306": (115.0, 25.0, 0),  # B (right)
+    "SW305": (107.0, 33.0, 0),  # A (bottom)
     # Pull-ups: pilink-hdl restores these to their pre-pilink-2yw spot
     # (90, 6.0-10.8) -- the sliver right of U201's OLD front-side footprint
     # that pilink-2yw had to vacate them from is irrelevant now that U201
