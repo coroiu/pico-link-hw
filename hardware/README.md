@@ -1365,10 +1365,19 @@ JLCPCB's own library footprint ships with this geometry. Confirm in the
 JLCPCB DFM check at order time. No STEP model exists on EasyEDA for this
 part (only an embedded outline), so 3D is unchanged.
 
-Alps' no-copper area under the switch body: neither the stock footprint nor
-the EasyEDA footprint carries a keepout, and the Alps drawing was not
-consulted here, so no rule area was added. Open item for the human
-reviewing the Alps datasheet against the F.Cu/B.Cu GND pours.
+Alps' no-copper area under the switch body: taken from the Alps SKRT
+catalog land-pattern drawing ("Prohibited area of copper tracks"): 2.0mm
+wide centred on pad 2, 1.2mm tall, lower edge flush with the MP pads' outer
+edge, i.e. footprint-local x -1.0..+1.0, y +0.3..+1.5. `scripts/sw_keepout.py`
+adds it as an F.Cu rule area (no tracks, vias or pours) per switch; `zones.py`
+and `route.py` both call it so it survives pipeline re-runs and Freerouting
+sees it. B.Cu is not covered (far side of the board; the drawing's note is on
+the mounting layer). The pad-2 GND and pad-1 BOOTSEL/RESET routing that ran
+through it was replaced locally by `scripts/sw_reroute.py` (nothing else
+re-routed): GND leaves pad 2 through a via above its top edge to the B.Cu pour;
+the two pad-1 lands are tied by a B.Cu bar via a via beside each, with a B.Cu
+trunk to a via at the pull-up resistor. Pad 1's two lands are therefore
+joined on B.Cu, not F.Cu.
 
 After: 78 violations (0 errors, all warnings), 0 unconnected, 0 parity
 (master: 86 / 8 errors).

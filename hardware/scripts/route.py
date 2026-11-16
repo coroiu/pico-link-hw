@@ -28,6 +28,8 @@ import sys
 
 import pcbnew
 
+from sw_keepout import add_sw_keepouts
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 HW = os.path.normpath(os.path.join(HERE, ".."))
 BOARD = os.path.join(HW, "pico-link-hw.kicad_pcb")
@@ -53,6 +55,9 @@ def main():
             board.Remove(t)
     for z in list(board.Zones()):
         board.Remove(z)
+    # Alps SKRTLAE010 no-copper areas: Freerouting exports rule areas as
+    # keepouts, so tracks route around the switch bodies (pilink-ge9).
+    add_sw_keepouts(board)
 
     shutil.rmtree(WORK, ignore_errors=True)
     os.makedirs(WORK)
