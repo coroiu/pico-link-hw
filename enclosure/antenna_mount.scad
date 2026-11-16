@@ -212,7 +212,7 @@ ASSEMBLY_CLEARANCE = 1.0;     // mm, margin added around the element footprint o
 // pilink-0yp: the WIDTH axis (Y, the depth-constrained one) gets a tighter
 // 0.5mm per side. That is the cut the "Mount depth" note below had already
 // identified as the one that lands the stack inside the cavity budget.
-ASSEMBLY_CLEARANCE_WIDTH = 0.5; // mm per side on the width (Y) axis
+ASSEMBLY_CLEARANCE_WIDTH = 0.25; // mm per side on the width (Y) axis
 WALL_THICKNESS = 2.0;         // mm, nominal FDM shell wall -- pilink-8hx.1 may land on a different value; parameterized so it's a one-line change here
 PINHOLE_X_CLEARANCE = 3.0;    // mm, this file's own minimum-margin choice from a pinhole's edge to the mount's land edge (same figure the first version used for the left-wall margin, kept consistent rather than tuned differently just because the position moved)
 // *** FIX for PR #48 review item (mount depth vs. available wall depth) ***
@@ -258,7 +258,7 @@ STRAIN_RELIEF_CLIP_WALL = 0.8; // mm, clip ring's own radial wall thickness -- i
 
 // Land (adhesive mounting area) footprint, element + clearance on all sides.
 MOUNT_LAND_LENGTH = ANTENNA_ELEMENT_LENGTH + 2 * ASSEMBLY_CLEARANCE; // 47.8mm
-MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE_WIDTH;  // 7.5mm (pilink-0yp, was 8.5)
+MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE_WIDTH;  // 7.0mm (pilink-0yp, was 8.5)
 
 // *** FIX for PR #48 review item (mount depth vs. available wall depth,
 // blocking) ***
@@ -282,12 +282,17 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE_WIDTH;  // 7.
 //   total Y-span:                      9.0 + 1.0 + 1.0 = 11.0mm
 // pilink-0yp (2026-11-16): check_fit.py measured the real window as 10.1mm
 // (front inner face Z2.0 .. back inner wall Z12.1) against that 11.0mm span.
-// Resolved by tightening ASSEMBLY_CLEARANCE on the width axis only (0.5mm per
-// side, ASSEMBLY_CLEARANCE_WIDTH): land 7.5 + lip 0.5 = 8.0mm, so
-//   total Y-span: 8.0 + 1.0 + 1.0 = 10.0mm <= 10.1mm (0.05mm free per side
-//   when centred). The 6.5mm element still gets 0.5mm per side of by-eye
-//   placement margin. The stub and clip were NOT shortened (they are at their
-//   functional minimum, see below). Everything below this paragraph is the
+// Resolved by tightening ASSEMBLY_CLEARANCE on the width axis only (0.25mm per
+// side, ASSEMBLY_CLEARANCE_WIDTH): land 7.0 + lip 0.5 = 7.5mm, so
+//   total Y-span: 7.5 + 1.0 + 1.0 = 9.5mm vs the 10.1mm window = 0.6mm total,
+//   0.3mm per side NOMINAL, only if centred. (An earlier 10.0mm span left 0.05mm/side,
+//   below FDM tolerance; review of PR #84.) Honest caveat: +/-0.1-0.2mm FDM
+//   dimensional error on each of the mount, face plate and back wall can still eat
+//   most of that 0.3mm, so treat it as a marginal fit to confirm on a printed part
+//   (not verified physically). The margin budget assumes centring; real placement
+//   belongs to pilink-8hx.1/.2. The 6.5mm element gets 0.25mm per side of by-eye
+//   placement margin. The stub and clip were NOT shortened (functional minimum).
+//   Everything below this paragraph is the
 //   pre-fix history (the 11.0mm figures are the old numbers).
 //
 // That was down from ~19mm to ~11mm, but still about 1mm (~10%) OVER the

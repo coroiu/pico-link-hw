@@ -554,9 +554,11 @@ or is marked as this file's own assumption.
   finding was not chosen: its in-band gain sits fractionally over
   Espressif's cert-safe ceiling.)
 - **What's modeled:** a flat adhesive land sized to the element plus a 1mm
-  assembly margin on the length axis and 0.5mm per side on the
-  depth-constrained width axis (47.8 x 7.5mm land, 10.0mm Y-span in all
-  against the 10.1mm top-wall cavity, `pilink-0yp`), a raised locating lip around three sides,
+  assembly margin on the length axis and 0.25mm per side on the
+  depth-constrained width axis (47.8 x 7.0mm land, 9.5mm Y-span in all
+  against the 10.1mm top-wall cavity, `pilink-0yp`: 0.3mm per side nominal when
+  centred, marginal for FDM (+/-0.1-0.2mm per printed dimension) and unverified
+  on a printed part), a raised locating lip around three sides,
   a short cable channel + strain-relief clip stub toward the cavity below,
   and non-manifold (`%`) preview markers for the element itself and the
   clearance-guidance keepout zone from the research finding. It is a mount
