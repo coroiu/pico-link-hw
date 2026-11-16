@@ -209,9 +209,10 @@ P = {
     #
     # Antenna orientation unchanged (rot=0, U.FL end still toward y=0): the
     # original "RF-ideal: highest point, away from the table, above ground
-    # plane" reasoning (ADR) still applies at this new spot -- U201 is still
-    # within ~1mm of the board's top edge, just in the right-hand column
-    # instead of the left. What that reasoning did NOT anticipate is being
+    # plane" reasoning (ADR) still applies at this new spot -- U201's real
+    # F.CrtYd is 1.70mm from the board's top edge (measured, not the
+    # earlier "~1mm" guess), just in the right-hand column instead of the
+    # left. What that reasoning did NOT anticipate is being
     # directly above the diamond rather than directly above the encoder;
     # whether the U.FL->antenna-mount cable run is still short/clean from
     # here is pilink-8hx.4's own geometry to re-check now that U201 moved,
@@ -269,19 +270,22 @@ P = {
     # (8.5, 22.5) = (16,25) - (7.5,2.5)) -- no compromise was needed to
     # clear a real courtyard this time (U201 is gone from the column, the
     # LDO cluster placed above it leaves >=1.3mm clearance).
-    # Re the README's own board-to-face mapping caveat: under its stated
-    # (unverified) assumption that the board's bottom edge lines up with
-    # the face's bottom edge, "N mm up the face" = 50-25 = 25mm. The face
-    # is ~56mm tall, so if it were centred on the board instead (6mm of
-    # slack split evenly top/bottom) the face's own vertical centre would
-    # read as board y=28, not 25 -- i.e. this placement is exactly centred
-    # on the BOARD, which may read as up to ~3mm below the FACE's visual
-    # centre depending on which alignment the back shell actually uses.
-    # Still flagged for pilink-8hx.1/.2 to confirm against the real
-    # boss/standoff geometry, same as before -- just with a much smaller
-    # residual (3mm, down from the old 12mm-ish low-third offset) and a
-    # known cause (the 6mm board/face height delta) rather than an unknown
-    # one.
+    # Re the README's own board-to-face mapping caveat (corrected here,
+    # pilink-2yw code review, 2026-11-16 -- the two conventions below were
+    # previously swapped): under the README's stated (unverified)
+    # BOTTOM-ALIGNED default (board's bottom edge flush with the face's
+    # bottom edge), the face's own vertical centre (28mm up the ~56mm
+    # face) falls at board y=22, so this placement (board y=25) sits 3mm
+    # BELOW the face's visual centre under that convention -- not exactly
+    # centred on it. If instead the face is CENTRED on the board (6mm of
+    # slack split evenly top/bottom), the face's visual centre reads as
+    # board y=25 -- exactly matching this placement; "exactly centred" is
+    # only true under that second convention. Still flagged for
+    # pilink-8hx.1/.2 to confirm which convention the real boss/standoff
+    # geometry actually uses. Either way this is a real improvement over
+    # the old placement (board y=31), which was 9mm below face-centre
+    # under the bottom-aligned convention or 6mm under the centred one --
+    # there was never a single "~12mm-ish" figure.
     "SW303": (8.5, 22.5, 0),
     "R304": (34.0, 30.0, 0),   # encoder A pull-up (GPIO22)
     "R303": (34.0, 32.0, 0),   # encoder B pull-up (GPIO23)
