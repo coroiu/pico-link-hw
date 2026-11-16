@@ -3270,7 +3270,7 @@
     )
   )
   (symbol (lib_id "Connector_Generic:Conn_01x03") (at 149.86 248.92 0) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no)
+    (in_bom yes) (on_board yes) (dnp yes)
     (uuid 9c2f2e3a-6b1a-4a4a-8e3a-2f3c8b1d4a6e)
     (property "Reference" "J101" (at 149.86 243.84 0)
       (effects (font (size 1.27 1.27)))

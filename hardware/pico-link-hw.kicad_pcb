@@ -14975,7 +14975,7 @@
 		(path "/f1860524-9b6a-41dc-814e-76e5cac2088b/9c2f2e3a-6b1a-4a4a-8e3a-2f3c8b1d4a6e")
 		(sheetname "RP2350B + Memory")
 		(sheetfile "rp2350b_memory.kicad_sch")
-		(attr through_hole)
+		(attr through_hole dnp)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 1.33 1.27)
