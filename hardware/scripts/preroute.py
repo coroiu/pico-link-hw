@@ -7,7 +7,10 @@ Run after scripts/place.py and before scripts/route.py. Adds LOCKED tracks
 and vias; route.py keeps locked wiring (exported to Freerouting as fixed
 wiring) and routes everything else around it. Adapted from PR #33's
 preroute.py for the current placement (J401 on B.Cu, U101 on F.Cu).
-Idempotent: it first deletes every track/via on the nets it owns.
+Idempotent, also on a finished (routed) board: it first deletes only its own
+items -- LOCKED tracks/vias on the nets it owns -- so the router's unlocked
+copper on those nets (incl. all GND routing) and zones.py's locked +3V3
+stitching vias are untouched (pilink-ggt).
 
   * USB_DP / USB_DM: J401's data pads alternate DP/DM/DP/DM and are plated
     through, so DM is linked A7->B7 on F.Cu and DP A6->B6 on B.Cu (the two
@@ -42,8 +45,8 @@ LED_A = "Net-(D501-K)"  # backlight anode rail J501 pin 40 -> D501 pad 1
 BOOT_NET = "/RP2350B + Memory/BOOTSEL_NODE"
 RESET_NET = "/RP2350B + Memory/RESET_NODE"
 # GND is listed only for the SW101/SW102 pad-2 escape vias (below); route.py
-# keeps locked GND wiring, preroute.py clears all GND tracks/vias before
-# re-adding them, so no stale GND copper survives.
+# keeps locked GND wiring. preroute.py removes only LOCKED items on these
+# nets (its own); unlocked router GND copper is never touched.
 PREROUTE_NETS = ["USB_DP", "USB_DM", XIN, XOUT, LED_K, LED_A,
                  BOOT_NET, RESET_NET, "GND"]
 
@@ -51,7 +54,7 @@ PREROUTE_NETS = ["USB_DP", "USB_DM", XIN, XOUT, LED_K, LED_A,
 def main():
     board = pcbnew.LoadBoard(BOARD)
     for t in list(board.GetTracks()):
-        if t.GetNetname() in PREROUTE_NETS:
+        if t.IsLocked() and t.GetNetname() in PREROUTE_NETS:
             board.Remove(t)
 
     def pad(ref, num):
@@ -177,7 +180,7 @@ def main():
         path(net, F, [v_low, (rx, ry)])
 
     pcbnew.SaveBoard(BOARD, board)
-    print("pre-routed USB_DP/USB_DM/XIN/XOUT (locked)")
+    print("pre-routed USB D+/D-, XIN/XOUT, backlight, SW101/SW102 BOOTSEL/RESET + GND escapes (locked)")
     for n in ("USB_DP", "USB_DM"):
         print(n, round(sum(t.GetLength() / 1e6 for t in board.GetTracks()
                            if t.GetNetname() == n and t.GetClass() == "PCB_TRACK"), 2), "mm")
