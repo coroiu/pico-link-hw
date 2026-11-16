@@ -223,9 +223,13 @@ P = {
     #   PCB before the back wall) is 3.0mm. 3.2mm > 3.0mm by only 0.2mm --
     #   U201 overhangs the bare cavity by 0.2mm, the same class of problem
     #   J401 had (which needed a 2.0mm local boss for its own 1.5mm
-    #   overhang), just an order of magnitude smaller. This is a real,
-    #   non-zero finding -- U201 needs its own shallow local boss on B.Cu at
-    #   this spot, not a bare flat cavity -- flagged as a concrete follow-up
+    #   overhang), smaller for the module body alone. But 0.2mm understates
+    #   it: the mated U.FL plug (Hirose: max 2.5mm above the module PCB,
+    #   so roughly 3.3mm above the host PCB, module PCB ~0.8mm inferred) and
+    #   the Ø1.13mm pigtail also face the back shell and must exit/bend in
+    #   the same 3.0mm cavity -- real local relief, not a 0.2mm boss (see
+    #   README Known gap 8). This is a real, non-zero finding -- U201 needs
+    #   its own local relief on B.Cu at this spot -- flagged as a follow-up
     #   for back_shell.scad (see the discovered-from bead filed alongside
     #   this placement), not fixed in this PCB-only bead.
     #
@@ -466,6 +470,12 @@ def main():
             # B.Cu footprint rotates it 180 deg relative to what Flip()
             # produced (found when U201's antenna end silently turned
             # round on a second run, pilink-hdl) -- keep it idempotent.
+            # NOTE: this means the `rot` column of BACK_SIDE parts is only
+            # honoured on the FIRST (F.Cu -> B.Cu) run; editing it later is
+            # a no-op. To change a back-side part's orientation, flip it
+            # back to F.Cu in the board first. The board stores U201 at
+            # 180 (what Flip(LEFT_RIGHT) gives a rot-0 part), not 0.
+            print(f"{ref}: already on B.Cu, position only (rot column skipped)")
             continue
         if isinstance(rot, str):
             fx, fy = FACE[rot]
