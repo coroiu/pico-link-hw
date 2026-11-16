@@ -1049,6 +1049,19 @@ Inputs:
   goes inside the top wall**. That's RF-ideal: highest point, away from the
   table, above the ground plane. Clearance still needs checking against
   the part from `pilink-8wx`.
+  - **SUPERSEDED (`pilink-2yw`, 2026-11-16):** both bullets above described
+    `pilink-7el.12`'s original placement, which this bead replaced after
+    Andreas saw the knob sitting visibly low/off-centre in the rendered
+    preview. U201 (ESP32) moved out of the knob's column entirely, into a
+    pocket above the A/B/X/Y button diamond (which itself shifted down
+    9mm to make room); SW303 (the knob) now centres at the board's true
+    vertical middle, board y=25 (not "19mm up the face"/board y=31). The
+    antenna is still near the top edge (same RF rationale, now in the
+    right-hand column instead of the left), but it's now above the button
+    diamond rather than above the encoder -- `pilink-8hx.4` (antenna
+    mount) needs its own re-check against this new position, not assumed
+    equivalent. See `hardware/README.md`'s "PCB layout" section for the
+    real coordinates and the free-space analysis behind this move.
 - **USB-C: this is a real problem.** "Rear exit" now means *perpendicular
   to the PCB*, but J401 (HRO TYPE-C-31-M-12) is a horizontal, edge-mount
   receptacle. On an upright board's edge it would point down or sideways,

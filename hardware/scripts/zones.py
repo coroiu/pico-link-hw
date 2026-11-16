@@ -15,6 +15,13 @@ before being re-created.
     free-pocket location (board-local x~100,y~42) for the upright-form-
     factor placement (pilink-7el.12); the thermal math from pilink-mxx is
     unaffected by XY position.
+
+    pilink-2yw: U1/C1/C2/C3 moved again (to board-local x~14,y~10, the
+    column U201 vacated -- see place.py) to make room for U201's own
+    relocation. SPREADER re-centred to follow, same relative box around U1
+    as before (-7.5/-5 to +7.5/+5.5 from U1's anchor) -- otherwise this
+    zone keeps pouring over its OLD empty spot and shows up as DRC
+    "isolated_copper" (caught by drc_summary.py -v, not assumed).
 """
 import os
 
@@ -26,9 +33,10 @@ BOARD = os.path.join(HERE, "..", "pico-link-hw.kicad_pcb")
 MM = pcbnew.FromMM
 ORIGIN = (100.0, 100.0)      # keep in sync with place.py
 BOARD_W, BOARD_H = 118.0, 50.0
-# U1 heat spreader, board-relative mm (x0, y0, x1, y1) -- around U1 (100,42)
-# and its bulk caps C1/C2/C3.
-SPREADER = (92.5, 37.0, 107.5, 47.5)
+# U1 heat spreader, board-relative mm (x0, y0, x1, y1) -- around U1 (14,10)
+# and its bulk caps C1/C2/C3 (pilink-2yw relocation; was (92.5,37.0,107.5,
+# 47.5) around the old U1 anchor (100,42), same relative box).
+SPREADER = (6.5, 5.0, 21.5, 15.5)
 VIA_PITCH = 1.5
 VIA_D, VIA_DRILL = 0.6, 0.3
 VIA_KEEPOUT = 0.35           # via edge to any foreign copper / pad / hole
