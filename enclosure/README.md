@@ -245,17 +245,41 @@ it to 6.0mm): the pocket edge (face X 110.3) is 0.2mm short of the boss's
 left edge (110.5), so they never overlap, and the pocket only cuts the
 back wall below the boss (bz 1.2..2.0), not the boss itself. The pad overlaps the
 right leg boss base (x=101, Q=40) -- a plain union, leg geometry unchanged.
-**Assumed, not verified:** U.FL receptacle at module centre X, ~3mm in
-from the antenna-end edge (board (99, 5.0)); it is not in the footprint.
-The pocket does not depend on it. The plug's cable-exit direction and the
-coax minimum bend radius are also unverified.
+**U.FL receptacle position (verified, `pilink-bl2`).** Not in the KiCad
+footprint; read off Espressif's ESP32-WROOM-32E/32UE datasheet v2.1,
+Figure 11 (32UE top view; Figure 12 gives the receptacle itself,
+2.6 x 2.6mm body, 1.25+-0.15mm tall): centre **3.07mm in from the
+antenna-end edge and 3.27mm in from the long edge on the pin 25-38 side**,
+beside the antenna notch, not at module-centre X. On U201's B.Cu placement
+that is board (93.27, 5.07) = face (95.27, Q 46.9); the earlier assumed
+(99, 5.0) was 5.73mm off in X (Y was fine). The pocket (x 89.7..108.3) still
+contains it, 3.57mm from the pocket's left edge, and does not depend on it.
+The datasheet drawing also gives the module PCB as 0.8mm thick, which
+confirms the 0.8 used in the relief envelope. Not obtained from a primary
+drawing: the plug's cable-exit direction and the plug cable-centre height
+(no Hirose U.FL-LP-066 drawing could be opened; the plug mates on a round
+socket so the exit direction is picked at assembly) and the coax minimum
+bend radius. Bend check: the 3.3mm plug-top and 3.8mm envelope stand, so
+the vertical constraint (cable centre bz <= ~2.9) is unchanged and still
+unverified. In-plane, the U.FL is 5.07mm from the board top edge (room
+for a >=4.5mm bend toward the mount) and 3.27mm from the module's left
+edge / 3.57mm from the pocket's left wall (toward the spool, the first
+bend starts at the plug; a 4.5-5mm bend lands beyond the pocket wall, in
+the 3.0mm cavity, so the cable must have come down to fit under 3.0mm above the PCB by then). Spool
+capacity is unaffected; the U.FL-to-spool run got shorter (about 12mm of
+free run to the spool's lug circle, was about 17mm).
 
 ### Pigtail slack stowage (`pilink-phg`)
 
-The antenna pigtail is ~240mm (INFERRED from the part number
-KH-FPC2.4G-1.13IPEX-240, not on the LCSC listing) against an ~18-30mm run
-from U201's back-side U.FL to the top-wall mount: ~210mm of excess. It
-can't be trimmed (no crimp tooling).
+The antenna pigtail is ~240mm per the part number
+KH-FPC2.4G-1.13IPEX-240 and the "CABLE RF-1.13-L=240 MM" row of Kinghelm's
+datasheet table (LCSC `C4943394`), against an ~18-30mm run from U201's
+back-side U.FL to the top-wall mount: ~210mm of excess. It can't be
+trimmed (no crimp tooling). **Caution (`pilink-bl2`):** the same Kinghelm
+datasheet page's drawing dimensions the cable as "100+-2MM", contradicting
+its own table and part number; the real length is unresolved until a unit
+is measured. The spool is sized for the 240mm worst case; if the cable is
+~100mm it is simply under-filled (excess ~70mm, about 1.5 turns).
 
 **Shorter part: not swapped.** Facts as listed on LCSC (not independently
 verified): C709378 (`-100`) lists no cable length, element size, gain or
@@ -547,7 +571,7 @@ or is marked as this file's own assumption.
   version (PR #48), which had the element physically colliding with
   SW101's pinhole channel. U201 is now on the back of the board (`pilink-hdl`), so the cable run
   from its U.FL to the mount is only ~18-30mm against the part's ~240mm
-  (inferred) pigtail; the ~210mm excess is stowed per the pigtail
+  pigtail (240mm per its table, 100mm per its drawing, see `pilink-bl2`); the ~210mm excess is stowed per the pigtail
   stowage section above. Board-to-face coordinate mapping is settled
   (`face_x = board_x + 2`, `Qface = 52 - board_y`), shared with the front
   and back shells.
@@ -624,17 +648,18 @@ U201 at face X ~16" and any "U201 under the mount" wording above are stale.
 Changes in `antenna_mount.scad` (not rendered, arithmetic in Python):
 
 - **Pigtail exit** moved from 6mm in from the land's left end to 6mm in
-  from its right end: face X 99.55, 1.45mm from the assumed U.FL (face X
-  101, Qface 47, see the back-shell section for that assumption).
+  from its right end: face X 99.55. `pilink-bl2` then verified the U.FL
+  at face X 95.27 (Qface 46.9), so the lateral run is 4.28mm, not the 1.45mm
+  first computed against the assumed (101, 47); the exit was not moved.
 - **Route and length:** plug -> along the back cavity toward the board's
   top edge (5mm, inside the U201 relief) -> over the edge through the 2mm
   top-slack gap (2mm) -> into the mount (<= ~10mm of front-to-back travel,
-  the top-wall cavity depth) + 1.45mm lateral = ~18.5mm, ~30mm with bend
+  the top-wall cavity depth) + 4.28mm lateral = ~21mm, ~30mm with bend
   slack. The ~240mm pigtail (inferred) leaves ~210mm to stow; where is not
   designed yet (new bead).
 - **Clearances:** SW101/SW102 pinholes (X 44/54) >45mm from the cable;
   restored diamond (courtyard y 13.58..36.43, front side) 8.6mm in Y and on
-  the opposite board face; H2 boss >=9.5mm.
+  the opposite board face; H2 boss >=11mm (cable at X <= 99.55, `pilink-bl2`).
 - **`pilink-58z` RF numbers:** the element and mount X span did not move,
   but this file's Y mapping assumed the board bottom-flush (top edge 6mm
   below the face top); the shells use Qface = 52 - by (4mm). Corrected,
