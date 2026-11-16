@@ -47,7 +47,12 @@ export_pcb() {
   fi
   echo "[export] PCB source: $pcb"
 
-  if kicad-cli pcb export glb --subst-models -f -o "$SITE_DIR/models/pcb.glb" "$pcb" 2>&1; then
+  # --include-{tracks,pads,zones} are off by default (board body + 3D
+  # component models only) -- without them copper, pads and vias are
+  # invisible in the GLB, not just low-contrast.
+  if kicad-cli pcb export glb --subst-models -f \
+      --include-tracks --include-pads --include-zones \
+      -o "$SITE_DIR/models/pcb.glb" "$pcb" 2>&1; then
     echo "[export] wrote $SITE_DIR/models/pcb.glb"
   else
     echo "[export] WARNING: kicad-cli glb export failed for $pcb" >&2
