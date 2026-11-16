@@ -71,13 +71,17 @@ disclaimer:
   still needs a human with the GUI: visual/placement sign-off and anything
   `kicad-cli` doesn't check (silkscreen legibility, visual footprint
   sanity, final review before fab).
-- **OpenSCAD**: genuinely not installed in this environment (no `openscad`
-  binary) — dimension/fit checks for the enclosure still need a human with
-  the GUI (or a CLI install elsewhere) actually running it.
+- **OpenSCAD**: installed on this machine (2021.01, user-level, as
+  `openscad` on PATH). `openscad -o out.stl enclosure/<file>.scad` renders
+  headlessly — run it after any enclosure change and report warnings,
+  failed asserts and whether the result is a simple (manifold) solid. The
+  preview Docker image also ships OpenSCAD. What still needs a human: a
+  printed test fit, and anything a render can't show (feel, print quality).
 
-This was previously documented as "neither tool is installed," which is no
-longer true for KiCad — `kicad-cli` was added to this machine without a
-matching update here. Keep this note current if that changes again.
+KiCad and OpenSCAD were each previously documented here as "not
+installed" after they had been added. Keep this note current if that
+changes again, and if a needed tool is missing, ask the user to install
+it rather than just noting the gap.
 
 ## Optional: KiCad MCP server (machine-specific, not assumed)
 
