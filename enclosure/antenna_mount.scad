@@ -41,6 +41,21 @@
 // `.planning` bead `pilink-58z` for the RF-clearance trade-off this file
 // now surfaces instead of hiding.
 //
+// Re-check (pilink-adt, 2026-11-16, discovered-from pilink-2yw): this
+// file's U201/cable-run numbers below were derived against U201's OLD
+// board-local anchor (14, 12.5), upper-left near the encoder. pilink-2yw
+// (merged PR #53) relocated U201 to (99, 11.6), a pocket above the A/B/X/Y
+// diamond, and shifted the diamond itself down 9mm (centre (102,25) ->
+// (102,34)). Re-checked against hardware/README.md's current placement
+// table, not re-derived from scratch -- see U201_ANTENNA_X_* /
+// U201_ANTENNA_Y_* below (now sourced from the new anchor) and the two new
+// comment blocks this round adds: one confirming the diamond's new
+// position does not create a mount collision, one confirming pilink-58z's
+// RF-clearance numbers are untouched by this move. This mount's own X
+// position (face-local 57.75-105.55) and Y/depth stack-up are NOT
+// repositioned or re-derived here -- out of this bead's scope, and no
+// geometry finding below calls for it.
+//
 // A third NOT APPROVED round (47e528d) found the strain-relief clip, as
 // built after round 2, couldn't actually hold the cable: its snap-in slot
 // (1.43mm) was wider than the 1.13mm coax it was meant to grip; its wall
@@ -129,22 +144,41 @@ FACE_H  = 56.0;  // mm, same ADR
 BOARD_TO_FACE_X_OFFSET = (FACE_W - BOARD_W) / 2; // = 2.0mm, ASSUMPTION, see note above
 BOARD_TO_FACE_Y_OFFSET = FACE_H - BOARD_H;       // = 6.0mm, ASSUMPTION, see note above
 
-// U201 (ESP32-WROOM-32UE) antenna-connector-end edge, board-local, from
+// U201 (ESP32-WROOM-32UE) antenna-connector-end edge, board-local.
+//
+// *** RE-CHECK for pilink-adt (2026-11-16) ***
+// This used to read U201's OLD anchor (14, 12.5) via
 // .planning/decisions/2026-11-15-upright-desk-clock-form-factor.md's
-// "Verification: rear USB-C / antenna / FPC clearance check (pilink-5g8)":
-// "that module edge sits at board-local Y ~= 2.65-2.9, X ~= 5-23
-// (centered X=14)". The connector's exact position along that edge wasn't
-// confirmed from a rendered datasheet drawing there either -- same caveat
-// carried forward here.
-U201_ANTENNA_X_MIN = 5.0;
-U201_ANTENNA_X_MAX = 23.0;
-U201_ANTENNA_X_CENTER = 14.0;
-U201_ANTENNA_Y_MIN = 2.65;
-U201_ANTENNA_Y_MAX = 2.9;
+// "that module edge sits at board-local Y ~= 2.65-2.9, X ~= 5-23 (centered
+// X=14)" -- note the old anchor X (14) equals that old connector-center X
+// (14) exactly, and the old connector Y range (2.65-2.9) sits 9.6-9.85mm
+// in -Y from the old anchor Y (12.5): 12.5-9.85=2.65, 12.5-9.6=2.9. That is
+// this footprint's own fixed geometry (anchor-to-antenna-edge offset),
+// unrelated to board position, so it carries over unchanged to the new
+// placement.
+//
+// pilink-2yw (merged PR #53) relocated U201 to anchor (99, 11.6), rot 0
+// (hardware/README.md's placement table, "ESP32 (U201) relocated..." row)
+// -- same rotation, so the same fixed X=0 / Y=-9.6..-9.85 offset applies:
+//   X center = 99 + 0           = 99.0  (board-local)
+//   Y range  = 11.6 - 9.85..9.6 = 1.75-2.0 (board-local)
+// This is this file's own re-derivation from the footprint's fixed anchor
+// offset, not a newly-confirmed datasheet/drawing figure -- same caveat as
+// the old numbers it replaces. (hardware/README.md's own placement-table
+// note separately estimates U201's courtyard edge at "~1.1-1.75mm from the
+// top edge", a different reference point on the part than the connector
+// pad itself, but the same order of magnitude -- consistent, not
+// contradictory.) The connector's exact position along that edge still
+// isn't confirmed from a rendered datasheet drawing.
+U201_ANTENNA_X_MIN = 90.0;
+U201_ANTENNA_X_MAX = 108.0;
+U201_ANTENNA_X_CENTER = 99.0;
+U201_ANTENNA_Y_MIN = 1.75;
+U201_ANTENNA_Y_MAX = 2.0;
 
 // Face-local X center of U201's U.FL connector, used below to check the
 // resulting cable run length.
-U201_ANTENNA_FACE_X_CENTER = U201_ANTENNA_X_CENTER + BOARD_TO_FACE_X_OFFSET; // 16.0mm
+U201_ANTENNA_FACE_X_CENTER = U201_ANTENNA_X_CENTER + BOARD_TO_FACE_X_OFFSET; // 101.0mm (was 16.0mm against U201's old anchor -- see RE-CHECK comment above)
 
 // SW101/SW102 (BOOTSEL/RESET) top-edge pinhole X positions, board-local,
 // from hardware/README.md's placement table: "SW101 (42, 2.7), SW102
@@ -312,12 +346,25 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE;  // 8.5mm
 // Cable-run consequence (not a blocker -- see PR review item 2 and the
 // task that produced this fix): the new exit point (see
 // CABLE_CHANNEL_EXIT_X_INSET above) sits at face-local X = 57.75 + 6.0 =
-// 63.75mm, roughly 47.75mm in X alone from U201's connector-center at
-// face-local X=16.0mm. The part's pigtail is ~240mm (inferred from the
-// part number, per the research finding), so a ~50mm run leaves well over
-// 150mm of slack to coil inside the enclosure cavity during assembly --
-// not a real constraint here, unlike the old (false) assumption that
-// hugging the left wall was load-bearing for cable length.
+// 63.75mm.
+//
+// *** RE-CHECK for pilink-adt (2026-11-16) ***
+// This used to read ~47.75mm in X alone to U201's OLD connector-center
+// (face-local X=16.0mm, from U201's old board anchor (14,12.5)).
+// pilink-2yw relocated U201 to board anchor (99,11.6) -- see
+// U201_ANTENNA_X_CENTER's own re-derivation above -- which moves its
+// face-local connector-center X to U201_ANTENNA_FACE_X_CENTER = 99 + 2.0
+// = 101.0mm. The new X-only run is therefore:
+//   |101.0 - 63.75| = 37.25mm
+// i.e. now SHORTER (as expected -- U201 moved into the same right-hand
+// half of the board the mount already occupies, rather than the old
+// upper-left corner). The part's pigtail is still ~240mm (inferred from
+// the part number, per the research finding), so a ~37mm run leaves well
+// over 200mm of slack to coil inside the enclosure cavity during assembly
+// -- not a real constraint here, same conclusion as before just with a
+// smaller (and now correct) number. This is still an X-only approximation
+// (no Y/Z component of the real 3D cable path is modeled), same
+// simplification the file has used throughout.
 PINHOLE_EDGE_CLEARANCE_X = SW102_X_FACE_LOCAL + PINHOLE_DIAMETER / 2 + PINHOLE_X_CLEARANCE;
 MOUNT_X_MIN = PINHOLE_EDGE_CLEARANCE_X;                // 57.75mm
 MOUNT_X_MAX = MOUNT_X_MIN + MOUNT_LAND_LENGTH;         // 105.55mm
@@ -327,6 +374,61 @@ echo(str("[pilink-8hx.4] Mount X ", MOUNT_X_MIN, "-", MOUNT_X_MAX,
          "mm. SW101 pinhole X=", SW101_X_FACE_LOCAL, ", SW102 pinhole X=",
          SW102_X_FACE_LOCAL, " (+/-", PINHOLE_DIAMETER / 2,
          "mm radius each) -- both now clear of the mount by construction."));
+
+CABLE_CHANNEL_EXIT_FACE_X = MOUNT_X_MIN + CABLE_CHANNEL_EXIT_X_INSET; // 63.75mm
+CABLE_RUN_X_ONLY = abs(U201_ANTENNA_FACE_X_CENTER - CABLE_CHANNEL_EXIT_FACE_X);
+
+echo(str("[pilink-adt re-check] Cable-run (X-only approximation): channel exit ",
+         "face-X=", CABLE_CHANNEL_EXIT_FACE_X, "mm, U201 connector face-X=",
+         U201_ANTENNA_FACE_X_CENTER, "mm -> ", CABLE_RUN_X_ONLY,
+         "mm run, vs the part's ~240mm pigtail -- was ~47.75mm against U201's ",
+         "old anchor (14,12.5); now shorter after pilink-2yw's U201 move to ",
+         "(99,11.6)."));
+
+// *** Diamond-relocation collision check (pilink-adt, 2026-11-16) ***
+// pilink-2yw also shifted the A/B/X/Y diamond's whole group down 9mm
+// (board-local centre (102,25) -> (102,34); real courtyard union
+// x:[88.93,115.07] y:[13.58,36.43], per hardware/README.md's placement
+// table). Checked here with real numbers, not assumed equivalent to the
+// already-resolved SW101 pinhole case:
+//
+//   Diamond courtyard, face-local X: 88.93+2.0..115.07+2.0 = 90.93-117.07mm.
+//   Mount, face-local X:             MOUNT_X_MIN..MOUNT_X_MAX = 57.75-105.55mm.
+//   X-overlap: max(0, min(117.07,105.55) - max(90.93,57.75)) = 14.62mm.
+//
+// So yes, there IS X-overlap -- bigger than the panel's own 31.25mm would
+// suggest is impossible to avoid, but smaller than that figure, and (same
+// as the panel case below) this is NOT a repeat of the SW101 pinhole bug.
+// The diamond's buttons protrude through the FRONT FACE PLATE at
+// board-local Y 13.58-36.43 (face-Y ~19.6-42.4mm, mid-to-lower face), while
+// this mount sits in the TOP WALL, whose whole face-Y band (above the
+// panel) is only 0-11mm (PANEL_Y_MIN_FACE_LOCAL below) -- NOT to be
+// confused with this module's own local Y axis (front-to-back cavity
+// depth, see antenna_mount()'s own doc comment), a different axis
+// entirely. So this is a different structural layer *and* at least ~8mm
+// of face-Y separation even before accounting for the layer difference
+// (19.6 - 11 = 8.6mm, using the top wall's full available band as the
+// conservative/closest bound -- the element itself sits nearer face-Y~2mm,
+// even further away), not the few-mm shared-channel overlap that made the
+// SW101 case a real 3D collision. No redesign needed here; stated
+// explicitly with numbers rather than left to "should be fine."
+DIAMOND_X_MIN_BOARD_LOCAL = 88.93; // mm, hardware/README.md placement table (SW305-308 F.CrtYd union)
+DIAMOND_X_MAX_BOARD_LOCAL = 115.07;
+DIAMOND_Y_MIN_BOARD_LOCAL = 13.58;
+DIAMOND_X_MIN_FACE_LOCAL = DIAMOND_X_MIN_BOARD_LOCAL + BOARD_TO_FACE_X_OFFSET; // 90.93mm
+DIAMOND_X_MAX_FACE_LOCAL = DIAMOND_X_MAX_BOARD_LOCAL + BOARD_TO_FACE_X_OFFSET; // 117.07mm
+DIAMOND_Y_MIN_FACE_LOCAL = DIAMOND_Y_MIN_BOARD_LOCAL + BOARD_TO_FACE_Y_OFFSET; // 19.58mm
+DIAMOND_OVERLAP_X_MIN = max(MOUNT_X_MIN, DIAMOND_X_MIN_FACE_LOCAL);
+DIAMOND_OVERLAP_X_MAX = min(MOUNT_X_MAX, DIAMOND_X_MAX_FACE_LOCAL);
+DIAMOND_OVERLAP_X = DIAMOND_OVERLAP_X_MAX > DIAMOND_OVERLAP_X_MIN ? DIAMOND_OVERLAP_X_MAX - DIAMOND_OVERLAP_X_MIN : 0;
+
+echo(str("[pilink-adt re-check] Diamond courtyard face-X ",
+         DIAMOND_X_MIN_FACE_LOCAL, "-", DIAMOND_X_MAX_FACE_LOCAL,
+         "mm vs mount face-X ", MOUNT_X_MIN, "-", MOUNT_X_MAX, "mm: ",
+         DIAMOND_OVERLAP_X, "mm of X-overlap -- NOT a collision: diamond ",
+         "buttons are front-face-plate, face-Y>=", DIAMOND_Y_MIN_FACE_LOCAL,
+         "mm; this mount is top-wall, face-Y~0-11mm (see face-Y clearance ",
+         "check below) -- different layer, >=8mm Y-separation besides."));
 
 // *** Display-panel / ground-plane clearance check (PR #48 review item 3,
 // blocking) ***
@@ -425,6 +527,21 @@ echo(str("[pilink-8hx.4] Face-Y clearance ESTIMATE (unconfirmed board-to-face ",
          "top-wall X position (face is only ", FACE_H, "mm tall, ~11mm of ",
          "it above the panel). Real RF trade-off, tracked in pilink-58z -- ",
          "not resolved here, not left pending."));
+
+// *** pilink-58z confirmation (pilink-adt, 2026-11-16) ***
+// pilink-58z's ~46mm-vs-~9mm clearance shortfall is computed entirely from
+// PANEL_Y_MIN_BOARD_LOCAL (5.0, hardware/README.md:971's display-panel
+// shadow), BOARD_TO_FACE_Y_OFFSET (6.0, the board-to-face mapping ASSUMPTION
+// above), WALL_THICKNESS (2.0, this file's own constant) and
+// ANTENNA_KEEPOUT_FROM_METAL (46, the research finding) -- none of which
+// reference U201 or its board position anywhere in their derivation. Those
+// four numbers, and therefore CLEARANCE_TO_PANEL_FRAME_ESTIMATE (~9mm) and
+// pilink-58z's own shortfall figures, are unchanged by pilink-2yw's U201
+// move: U201 relocating around the board does not move the display panel,
+// change the board-to-face Y offset, or change the top wall's own
+// thickness. Confirmed explicitly, not left ambiguous -- pilink-58z's RF-
+// clearance product decision remains open and is genuinely unaffected by
+// this bead's re-check.
 
 module antenna_element_reference() {
   // Non-manifold preview of the antenna element itself, for visual

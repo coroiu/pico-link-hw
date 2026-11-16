@@ -142,12 +142,31 @@ or is marked as this file's own assumption.
   element) — fixed per a code-reviewer's NOT APPROVED verdict on the first
   version (PR #48), which had the element physically colliding with
   SW101's pinhole channel. The resulting cable run to U201's U.FL connector
-  (face-local X-center ~16mm) is ~48mm, well within the part's ~240mm
-  (inferred) pigtail. Board-to-face coordinate mapping (board centered
-  left-right, bottom-flush in the face) is the same unconfirmed convention
-  hardware/README.md's own placement table already flags as pending
-  `pilink-8hx.1`/`.2` confirmation — carried here unchanged rather than
-  inventing a different one.
+  is ~37.25mm (re-checked in `pilink-adt`, 2026-11-16 — was ~48mm against
+  U201's position before `pilink-2yw` relocated it to board anchor
+  (99, 11.6), face-local X-center ~101mm; the run got *shorter* since U201
+  moved into the same right-hand half of the board this mount already
+  occupies), well within the part's ~240mm (inferred) pigtail. Board-to-face
+  coordinate mapping (board centered left-right, bottom-flush in the face)
+  is the same unconfirmed convention hardware/README.md's own placement
+  table already flags as pending `pilink-8hx.1`/`.2` confirmation — carried
+  here unchanged rather than inventing a different one.
+- **Diamond relocation (`pilink-2yw`) re-checked, no new collision
+  (`pilink-adt`, 2026-11-16):** the A/B/X/Y diamond's real courtyard
+  (face-local X 90.93-117.07mm) does overlap this mount's X range by
+  14.62mm, but the diamond's buttons protrude through the *front face
+  plate* at face-Y>=~19.6mm, while this mount lives in the *top wall*,
+  whose own face-Y band (above the panel) tops out at ~11mm — a different
+  structural layer, with >=8.6mm of face-Y separation even before counting
+  the layer difference. Not the SW101-pinhole kind of 3D collision; see
+  `antenna_mount.scad`'s own diamond-check comment block for the numbers.
+- **`pilink-58z`'s RF-clearance numbers confirmed unaffected
+  (`pilink-adt`, 2026-11-16):** that bead's ~46mm-vs-~9mm shortfall is
+  derived purely from the display-panel shadow's Y start, the board-to-face
+  Y offset, the wall thickness, and the antenna's own keepout guidance —
+  none of which reference U201's board position. U201 moving does not move
+  the panel or change the top wall's depth, so `pilink-58z` is unchanged
+  and still an open product decision.
 - **Display/ground clearance guidance is NOT met — real RF trade-off, not
   pending:** a second review round found the governing number here is the
   face-Y distance (not a Z gap, as an earlier revision wrongly framed it),
