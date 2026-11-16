@@ -890,8 +890,142 @@ genuinely still needs the GUI (or the planned headless `pcbnew` scripting
 for placement, see `pilink-7el.9`): the actual routing itself, and a human's
 visual/placement sign-off before fab.
 
-`placeholder.kicad_pcb` is a trivial seed file (just a 20x20mm board outline,
-no components) for the `preview/` docker-compose service — it proves the
-PCB -> GLB export pipeline end-to-end before the real board exists. Delete it
-once the real PCB from pilink-7el lands; the preview pipeline picks up
-whatever `*.kicad_pcb` file it finds here.
+`placeholder.kicad_pcb` (the 20x20mm seed file for the `preview/`
+docker-compose service) was deleted when the real board landed
+(`pilink-7el.12`); the preview pipeline picks up `pico-link-hw.kicad_pcb`
+instead.
+
+## PCB layout (pilink-7el.12, upright desk-clock form factor)
+
+`pico-link-hw.kicad_pcb` is a placed, fully routed 2-layer board, 118 x
+50mm, 1.6mm, standing parallel to the enclosure's ~122 x 56mm face per
+[`.planning/decisions/2026-11-15-upright-desk-clock-form-factor.md`](../.planning/decisions/2026-11-15-upright-desk-clock-form-factor.md)
+and
+[`docs/plans/2026-11-15-product-layout-proposal.md`](../docs/plans/2026-11-15-product-layout-proposal.md)
+section 6c. This **replaces** `pilink-7el.9`'s PR #33 outright, not a tweak
+of it: that board's 100 x 55mm flat-slab outline, encoder-on-the-right,
+ESP32-at-the-left, front-centre 0-degree J501 and missing panel-shadow
+keep-out are all incompatible with the upright form factor and were never
+merged (the branch is kept only as a routing-feasibility reference).
+
+### How it is built
+
+The board is generated, not hand-drawn. From `hardware/`, in this order:
+
+| Step | Script | What it does |
+|---|---|---|
+| 1 | `scripts/place.py` | Outline, 4 M2 mounting holes, design-rule minimums, net classes, every footprint position |
+| 2 | `scripts/route.py` | Freerouting autoroute of every net (Specctra DSN/SES round-trip) |
+| 3 | `scripts/widen.py` | Widens +3V3/+1V1/VREG_LX/VBUS_RAW to 0.4mm wherever DRC allows |
+| 4 | `scripts/zones.py` | GND pours on both layers, +3V3 heat spreader and stitching vias at U1 |
+| check | `scripts/drc_summary.py -v` | `kicad-cli pcb drc` with schematic parity, summarised |
+| check | `scripts/netlist_check.py` | Pin-for-pin diff of board nets against a fresh schematic netlist |
+
+Each script is safe to re-run (each removes what it added before adding it
+again), but a later step's output is discarded by re-running an earlier
+one, so after any change run from that step to the end. After a schematic
+change, first update the board from the schematic (KiCad's F8, or the KiCad
+MCP server's `sync_schematic_to_board`), add any new part to the table in
+`place.py`, then run all four.
+
+`route.py` needs a Freerouting jar and either Java 21+ or Docker. Use
+Freerouting **v2.0.1**: v2.1.0 ignored the pass limit here and could loop
+without writing a result whenever a connection stayed unrouted. Even v2.0.1
+occasionally exited early without writing `board.ses` (an empty 0-byte
+file, no error in its own log) on this machine; `route.py` fails loudly
+(`SES import failed`) when that happens -- just re-run it.
+
+The board file was created with the KiCad MCP server's
+`create_board_from_schematic` (69 footprints, 106 nets, 387 pads synced
+straight from the schematic, including `pilink-kt4`'s ESP32-RP2350 wiring,
+`pilink-2ar`'s SWD header, `pilink-7el.10`'s SW101/102 swap and
+`pilink-7el.11`'s J401 swap). Its `autoroute` tool is still not used here:
+on a machine with snap-packaged Docker it stages the DSN in the system temp
+directory, which the container cannot see, so Freerouting starts with no
+input and hangs -- `route.py` does the same DSN/SES round-trip with the
+work directory beside the board instead.
+
+### Placement rules applied (coordinates in board-local mm, origin at the
+board's top-left corner, x right, y down -- so "N mm up the face" in the
+ADR/proposal means `y = 50 - N`)
+
+| Rule (ADR / proposal 6c) | Applied as |
+|---|---|
+| Outline ~118 x 50mm, parallel to the ~122 x 56mm face | `BOARD_W, BOARD_H = 118.0, 50.0` |
+| Knob (SW303) centre in the lower third of the left zone, ~19mm up the face | Shaft/knob centre at **(16, 31)** -- the footprint's own anchor is pad A, not the shaft (confirmed from the footprint's F.Fab shaft circle, centred at local (7.5, 2.5)), so the placed anchor is (8.5, 28.5) |
+| ESP32 (U201) upper-left, U.FL toward the top edge | Anchor **(14, 12.5)**. Confirmed from the stock `ESP32-WROOM-32UE` footprint's own F.Fab outline (not assumed): the antenna end is the short edge beyond pins 1/38 (local y=-9.6), opposite the single pad row 15-24 (local y=+9.35); rotation 0 puts that end toward y=0, the board's top edge |
+| Display panel shadow 59 x 42mm centred on the face window; only parts <=2.5mm tall under it | Treated as **x:[28,87] y:[5,47]** on the board. The RP2350B cluster (U101, its decoupling ring, flash/PSRAM, crystal) and the backlight boost (C501/L501/D501/U501/C502/R501) sit under it -- all comfortably under 2.5mm. The encoder, buttons, J501's own 2mm body (compliant) and ESP32 (not compliant, 3mm+) sit outside it in XY |
+| J501 under the panel, long axis vertical, ~24mm in from the panel's right edge to its insertion face (refined figure from `pilink-0o2`'s merged finding, superseding the ADR summary's "~26mm"), ~7.2mm up from the panel's vertical centreline | Rotated 270 deg (puts the 40-pin row along board Y and the pad-row/insertion side toward +X, facing the panel's right edge). Anchor **(59.4, 19)** |
+| A/B/X/Y diamond on the right, caps Ø8mm at +/-8mm centres, clear of the FPC bend strip | Centre **(102, 25)**: Y top (102,17), X left (94,25), B right (110,25), A bottom (102,33). SW305-308 <-> physical position is a layout choice (not schematic-constrained; firmware maps GPIO24-27 separately, `pilink-otf`), documented, not inferred |
+| J401 vertical receptacle on the back side, low, centred between the rear legs (+/-40mm) | Anchor **(59, 45.5)**, flipped to B.Cu (`FOOTPRINT.Flip`). Board centre is x=59, so legs at x=19/99 |
+| SW101/SW102 side-actuated, top edge, above the panel centre, clear of ESP32 and the button zone | SW101 **(42, 2.7)**, SW102 **(52, 2.7)** -- in the 5mm strip above the panel (y<5), laterally over the RP2350B/flash cluster |
+| Mounting holes for back-shell bosses | 4 holes: **(10,44), (112,6), (112,44), (59,4)** -- not at the bare board corners, since the ESP32 and encoder courtyards already claim the whole left edge; placed in the genuinely free pockets instead |
+| ~3mm clearance behind the board for the encoder's leads | Enclosure-side (Z-axis) concern, not a PCB XY placement; carried forward as a note for `pilink-8hx.1`/`.2`, not re-verified here |
+
+U201's own full reasoning, and every other component's, is in
+`scripts/place.py`'s comments -- read that file alongside this table for
+the "why", not just the numbers.
+
+### Verification (2026-11-16, KiCad 10.0.8)
+
+- `kicad-cli pcb drc --severity-all --schematic-parity`: **86 violations (8
+  errors), 0 unconnected items, 0 schematic-parity issues, 78 warnings**.
+  - All 8 errors are `hole_clearance` on SW101/SW102's own `SKRTLAE010`
+    footprint (its mechanical "MP" pads and pin-1 pad sit 0.0993-0.15mm from
+    its own NPTH, under this project's 0.2mm hole-clearance design rule) --
+    intrinsic to that footprint's own geometry, independent of placement
+    (same error, same magnitude, regardless of where SW101/SW102 are
+    placed on the board). Filed as a follow-up bead; not something
+    `place.py` can fix.
+  - The 78 warnings are silkscreen only (`silk_over_copper` 44,
+    `silk_overlap` 32, `silk_edge_clearance` 2) -- reference designators
+    overlapping copper/pads/each other in the denser clusters. Needs a GUI
+    silkscreen-declutter pass before fab, same caveat class as PR #33's 84
+    silkscreen warnings.
+- `scripts/netlist_check.py`: **334 schematic pins compared, 0 mismatches**.
+  The 24 single-pad nets listed are all genuinely-unassigned spare GPIOs
+  (documented in the RP2350B + Memory section above), not missed
+  connections.
+- Final board: **995 track segments, 96 vias**, both front and back
+  copper used (J401 is back-side).
+- No 3D render / GUI visual pass was done this round (no display in this
+  agent environment) -- a human visual/placement sign-off in the KiCad GUI
+  is still needed before fab, on top of the numbers above.
+
+### Known gaps / deviations from the ideal rules
+
+1. **No hand pre-route this round.** PR #33 hand-routed USB D+/D- and the
+   crystal as locked tracks before autorouting everything else
+   (`scripts/preroute.py`); this layout skips that step and lets
+   Freerouting route those nets too. They pass DRC (clearance, not
+   impedance-controlled) but are not length-matched or placed with the
+   same care. Worth adding back once this placement is confirmed good.
+2. **Backlight SW/FB keepout not enforced this round.** PR #33 added a
+   custom DRC rule (`pico-link-hw.kicad_dru`) keeping the backlight boost's
+   switching node (`Net-(D501-A)`) >=1.2mm from its feedback net
+   (`Net-(J501-LED_K)`), relying on the matching hand-preroute to make that
+   achievable. Without a hand-guided path for this pair, Freerouting routed
+   them as close as ~0.23mm (pad-to-track) to ~1.15mm (track-to-track) in
+   different passes of this layout -- still inside the project's own 0.15mm
+   default-clearance DRC minimum (electrically safe), but short of the
+   extra analog-noise margin the prior analysis recommended. The rule file
+   was left out rather than committed-and-violated; re-add it alongside a
+   hand-guided path for this one pair.
+3. **J501 is still the bottom-contact `AFC01-S40FCA-00`, not the
+   dual-contact `FC-05B40P21H20` (LCSC `C23398824`) `pilink-0o2`
+   recommended.** That recommendation resolves an open contact-side
+   question (front vs. back face) that's a schematic/BOM part swap, out of
+   this placement-only bead's scope (same pattern as `pilink-7el.10`/
+   `pilink-7el.11`, which were their own beads before this one placed the
+   resulting footprints). J501's placement here follows the finding's
+   back-face working assumption and its concrete inset/offset numbers, so
+   swapping the part later is a footprint-only change with no placement
+   rework. Filed as a follow-up bead.
+4. **Encoder-lead depth clearance (~3mm) and the J501 fold-height risk
+   (`pilink-0o2` finding 4) are enclosure/Z-axis concerns**, not visible to
+   PCB-level DRC -- still open for `pilink-8hx.1`/`.2`/`.4` to check
+   against the real part stack.
+5. **SW101/SW102's `SKRTLAE010` footprint has an internal hole-clearance
+   defect** (see Verification above) -- flagged as a new bead, not fixed
+   here (fixing it means re-sourcing/re-authoring the footprint, a
+   different bead's scope).
