@@ -1212,3 +1212,17 @@ verification entry above:
      now above the button diamond instead of above the encoder; whatever
      antenna-mount geometry that PR is converging on was derived against
      the old position.
+8. **J401's low anchor (59, 45.5) vs. the product-layout proposal's "~15mm
+   up" rear-USB-C intent (section 6c) -- investigated and resolved as an
+   accept, not a re-placement (`pilink-8ry`).** An analytical check of the
+   merged `enclosure/back_shell.scad` geometry (board_to_face Y-mapping
+   fix + USB-C boss-pad clamp both already merged) found the mated cable's
+   idealized straight-line exit path clears the back-shell's own base
+   strip and the table with a positive, if thin in one spot (~2.55mm
+   minimum, ~5mm out from the connector face), margin -- no PCB
+   re-placement of J401 is warranted. Residual risk (a real cable's
+   molded boot, unconfirmed since no cable is chosen, could still be
+   thicker than that thin margin) is tracked as a physical fit-check,
+   `pilink-q03`, not a PCB change. Full numbers and reasoning:
+   `enclosure/README.md`'s "USB-C cable-vs-table clearance (`pilink-8ry`)"
+   section.

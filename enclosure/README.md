@@ -110,6 +110,98 @@ NOTE asked for (whether the rear USB-C port and its mating plug clear the
 two rear legs), computed analytically rather than rendered; see the
 file's own comments for the numbers and reasoning.
 
+### USB-C cable-vs-table clearance (`pilink-8ry`)
+
+PR #52's review flagged, but left unresolved (out of that bead's own
+scoping call), a real concern: J401 sits low on the board (board-local
+(59, 45.5), only ~4.5mm from the board's bottom edge) — well short of the
+product-layout proposal's "~15mm up" intent (section 6c) — and the
+back-shell's own base strip, directly below it, might force a mated
+cable's molded boot to hit the table or the strip before it can exit
+cleanly. This bead investigated the *current* merged geometry (not the
+placement question itself) analytically, since OpenSCAD still isn't
+available here.
+
+**Numbers used** (all read directly from the current `back_shell.scad`,
+not re-derived): `USBC_QFACE = 6.5mm` (J401's position in the shell's own
+"height up the face" convention — already reflects the finding-#1
+`board_to_face()` Y-mapping fix merged in this same bead, +2mm over the
+original, pre-fix figure); connector height above the PCB back surface
+`USBC_HEIGHT_ABOVE_PCB = 6.5mm` (so its outer mating face actually
+overhangs 1.5mm *past* the back wall's own outer surface, at local
+`bz = -1.5mm`, not `bz = 0` — the connector height exceeds the bare
+5.0mm cavity by design, per the USB-C finding); base strip `BASE_STRIP_DEPTH
+= 14.5mm`, `BASE_STRIP_T = 2.0mm` (its table-facing thickness/top-surface
+height); shell lean `LEAN_DEG = 15`.
+
+Projecting the connector's own mating axis outward (the direction a
+plugged-in cable's body would run, straight-line/worst-case, ignoring any
+droop) through the shell's `rotate([-LEAN_DEG,0,0])` world transform:
+
+- The connector's outer mating face sits at world `(Y, Z) = (5.89mm,
+  -3.13mm)` relative to the file's own table-level datum (Y=0).
+- Clearance above the base strip's top surface (Y=2.0mm) **right at the
+  connector face** is **3.89mm**.
+- That clearance *shrinks* as the straight-line path runs outward (down
+  and back, per the 15-degree lean), reaching a **minimum of ~2.55mm**
+  about **5.2mm out from the connector's own mating face** — exactly the
+  point where the path crosses the base strip's own back edge (world
+  Z=-8.12mm, using the strip's `front_edge_z` stand-in reference). Beyond
+  that point the strip no longer exists underneath the path at all, so
+  there's no further interference; the path reaches table level (Y=0)
+  about 22.8mm out from the connector face.
+- **No point along this idealized, zero-thickness line dips below the
+  strip or the table** — a real improvement over the stale number quoted
+  in `pilink-8ry`'s own description (~2.4mm *into* collision), which
+  predates this file's finding-#1 (`board_to_face()` Y-mapping, +2mm) and
+  finding-#4 (USB-C boss-pad clamp) fixes already merged here.
+
+**Residual risk, not fully closed by the above:** the governing minimum
+(~2.55mm) occurs only ~5mm out from the connector's mating face — still
+inside the rigid, molded "cable boot" region of a real USB-C cable, not
+the flexible jacket beyond it. No specific cable is chosen for this
+product, and the USB-C receptacle finding
+(`../.research/findings/2026-11-15-vertical-usb-c-receptacle-selection.md`)
+only covers the *receptacle*'s own dimensions (bare shell 9.0 x 3.2mm) —
+it says nothing about a mating plug's own molded strain-relief boot,
+whose size varies a lot by cable and isn't pinned down by any part
+chosen in this project. Generic USB-C cable boots commonly add a few mm
+of overmold around the bare plug shell for strain relief, which is a
+widely-observed commercial pattern, not a datasheet figure. If a real
+cable's boot extends more than ~2.5mm below the bare connector's own
+centreline at that ~5mm-out point, it would plausibly clip the top of the
+base strip even though this zero-thickness line clears.
+
+**This number is a conservative (worst-case) one, not an optimistic
+one**: the base strip's own Z position is keyed off this file's
+documented `front_edge_z` approximation (`BACK_SHELL_DEPTH = 6.6mm`,
+*not* the real front-shell edge, which the file's own `BODY_T` stack-up
+says sits a further `FACE_T + FRONT_CAVITY = 7.5mm` forward). Correcting
+that stand-in — a known, already-flagged simplification, not something
+this bead's own scope allows fixing (`back_shell.scad`'s geometry isn't
+touched here) — would shift the whole base-strip + leg assembly about
+7.5mm further forward, away from the back wall and the connector,
+moving the strip's back edge from Z=-8.12mm to about Z=-0.6mm; the real
+strip, once the front shell's actual base profile exists, likely
+wouldn't even reach back far enough to sit under the connector's cable
+path at all. So real-world clearance should be *at least* as good as the
+numbers above, not worse.
+
+**Conclusion: accept the current back-shell geometry (option (a) from the
+bead description) — no PCB re-placement of J401 (option (b)) is
+warranted from this analysis.** The governing idealized-line clearance is
+positive throughout, by a comfortable margin everywhere except one
+~5mm-out pinch point, and the file's own known conservative approximation
+means the real, as-built clearance is likely better than computed here.
+This isn't a confident "any cable fits" guarantee, though — the
+~2.55mm pinch-point margin could plausibly be consumed by a chunky
+cable's molded boot, which isn't picked for this project and can't be
+checked without one. Flagged as a physical fit-check for once a back-shell
+prototype and a real cable both exist (a human action, not something to
+resolve further here) — tracked as `pilink-q03` (discovered from
+`pilink-8ry`), not a PCB re-placement bead, since nothing here points to
+J401's placement itself being the problem.
+
 ## `antenna_mount.scad` (pilink-8hx.4)
 
 Internal mount for the adhesive U.FL 2.4GHz antenna, for the top wall of
