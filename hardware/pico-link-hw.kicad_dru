@@ -8,4 +8,4 @@
 # above zero so a real mis-placement still flags). Every other part keeps 0.2mm.
 (rule skrtlae010_own_npth
 	(constraint hole_clearance (min 0.09mm))
-	(condition "A.memberOfFootprint('SW101') || A.memberOfFootprint('SW102') || B.memberOfFootprint('SW101') || B.memberOfFootprint('SW102')"))
+	(condition "A.Type=='Pad' && B.Type=='Pad' && ((A.memberOfFootprint('SW101') && B.memberOfFootprint('SW101')) || (A.memberOfFootprint('SW102') && B.memberOfFootprint('SW102')))"))

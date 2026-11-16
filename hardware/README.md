@@ -1348,12 +1348,27 @@ scripts):
 
 The 8 `hole_clearance` errors on the Alps SKRTLAE010 are the part's real
 geometry, not a footprint bug: KiCad's stock footprint and JLCPCB/EasyEDA's
-own C110293 footprint have identical pad/peg coordinates (pin-1 pad edge
-0.0993mm, MP tab edge 0.15mm from the 0.9mm NPTH pegs). No override
-footprint is warranted. Instead `pico-link-hw.kicad_dru` relaxes
-`hole_clearance` to 0.09mm for SW101/SW102 only; all other parts keep 0.2mm.
-JLCPCB's published capability is "NPTH to Track 0.2mm" (tracks, not SMD
-pads), so this relies on JLCPCB assembly accepting their own library
-footprint; confirm in the JLCPCB DFM check at order time. No STEP model
-exists on EasyEDA for this part (only an embedded outline), so 3D is unchanged.
-After: 78 violations (0 errors, all warnings), 0 unconnected, 0 parity.
+own C110293 footprint have the same pad/peg coordinates. KiCad's rounded
+pads give 0.0993mm (pin 1) / 0.15mm (MP tabs) to the 0.9mm NPTH pegs;
+EasyEDA's square pad-1 corners make the real gap about 0.075mm. No override
+footprint is warranted. `pico-link-hw.kicad_dru` relaxes `hole_clearance` to
+0.09mm only for pad-to-pad pairs inside the same SW101/SW102 footprint
+(`A.Type=='Pad' && B.Type=='Pad'`, same footprint), so pours, tracks and
+vias still get the full 0.2mm (zones refilled; they pull back to 0.2mm).
+
+Risk, stated plainly: JLCPCB's NPTH position tolerance is about +/-0.075mm,
+about equal to the real ~0.075mm gap, so a drill can clip the edge of pad 1.
+JLCPCB's published "NPTH to Track 0.2mm" covers tracks, not SMD pads. What
+mitigates it: the hole is a mechanical locating peg, pad 1 is a 0.75x1.8mm
+switch tab (a clipped corner leaves the bulk of the solder area), and
+JLCPCB's own library footprint ships with this geometry. Confirm in the
+JLCPCB DFM check at order time. No STEP model exists on EasyEDA for this
+part (only an embedded outline), so 3D is unchanged.
+
+Alps' no-copper area under the switch body: neither the stock footprint nor
+the EasyEDA footprint carries a keepout, and the Alps drawing was not
+consulted here, so no rule area was added. Open item for the human
+reviewing the Alps datasheet against the F.Cu/B.Cu GND pours.
+
+After: 78 violations (0 errors, all warnings), 0 unconnected, 0 parity
+(master: 86 / 8 errors).
