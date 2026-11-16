@@ -1,0 +1,127 @@
+#!/usr/bin/env python3
+"""Hand pre-route of USB D+/D- and the crystal (pilink-rqd).
+
+Usage (from hardware/):  python3 scripts/preroute.py
+
+Run after scripts/place.py and before scripts/route.py. Adds LOCKED tracks
+and vias; route.py keeps locked wiring (exported to Freerouting as fixed
+wiring) and routes everything else around it. Adapted from PR #33's
+preroute.py for the current placement (J401 on B.Cu, U101 on F.Cu).
+Idempotent: it first deletes every track/via on the nets it owns.
+
+  * USB_DP / USB_DM: J401's data pads alternate DP/DM/DP/DM and are plated
+    through, so DM is linked A7->B7 on F.Cu and DP A6->B6 on B.Cu (the two
+    links cross on different layers). Each net then rises from B7/B6 on
+    F.Cu to a via, runs B.Cu as a 45-degree parallel pair under U101's
+    body to a via just inside pins 66/67, and returns to the pin on F.Cu.
+  * XIN / XOUT: out of U101's bottom edge between decoupling caps C110/C117,
+    then to Y101 pad 1 / R101 pad 2 (F.Cu). XTAL2 (R101 pad 1 -> Y101 pad 3) is
+    left to the router.
+
+Geometry is derived from the pads' actual positions, so it follows the
+parts if place.py moves them, but clearances to neighbours were only
+checked for the current placement. DRC is the judge.
+"""
+import os
+
+import pcbnew
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+BOARD = os.path.join(HERE, "..", "pico-link-hw.kicad_pcb")
+MM = pcbnew.FromMM
+W = 0.2
+VIA_D, VIA_DRILL = 0.6, 0.3
+
+XIN = "/RP2350B + Memory/XIN"
+XOUT = "/RP2350B + Memory/XOUT"
+# Nets whose locked tracks/vias route.py must keep (it drops all other vias).
+PREROUTE_NETS = ["USB_DP", "USB_DM", XIN, XOUT]
+
+
+def main():
+    board = pcbnew.LoadBoard(BOARD)
+    for t in list(board.GetTracks()):
+        if t.GetNetname() in PREROUTE_NETS:
+            board.Remove(t)
+
+    def pad(ref, num):
+        fp = board.FindFootprintByReference(ref)
+        p = next(p for p in fp.Pads() if p.GetNumber() == num)
+        return p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
+
+    def path(net, layer, pts):
+        code = board.FindNet(net).GetNetCode()
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+            if (x0, y0) == (x1, y1):
+                continue
+            t = pcbnew.PCB_TRACK(board)
+            t.SetStart(pcbnew.VECTOR2I(MM(x0), MM(y0)))
+            t.SetEnd(pcbnew.VECTOR2I(MM(x1), MM(y1)))
+            t.SetWidth(MM(W))
+            t.SetLayer(layer)
+            t.SetNetCode(code)
+            t.SetLocked(True)
+            board.Add(t)
+
+    def via(net, x, y):
+        v = pcbnew.PCB_VIA(board)
+        v.SetPosition(pcbnew.VECTOR2I(MM(x), MM(y)))
+        v.SetWidth(MM(VIA_D))
+        v.SetDrill(MM(VIA_DRILL))
+        v.SetViaType(pcbnew.VIATYPE_THROUGH)
+        v.SetNetCode(board.FindNet(net).GetNetCode())
+        v.SetLocked(True)
+        board.Add(v)
+
+    F, B = pcbnew.F_Cu, pcbnew.B_Cu
+
+    # ---- USB ------------------------------------------------------------
+    a6, a7 = pad("J401", "A6"), pad("J401", "A7")   # row nearer the board
+    b6, b7 = pad("J401", "B6"), pad("J401", "B7")   # row nearer the shell
+    u_dp, u_dm = pad("U101", "67"), pad("U101", "66")
+    assert a6[0] < a7[0] and b7[0] < b6[0] and u_dp[0] < u_dm[0], \
+        "USB pre-route assumes the current J401/U101 orientation"
+    k = 0.25   # short stub that makes the pad-to-pad link 45 degrees
+    dp_v = (b6[0], b6[1] - 4.5)     # J401-end vias (B.Cu pair starts here)
+    dm_v = (b7[0], b7[1] - 3.3)
+    up_v = (u_dp[0], u_dp[1] + 1.1)  # U101-end vias, staggered in the body
+    um_v = (u_dm[0] + 0.5, u_dm[1] + 2.9)  # DM jogs right of the DP via
+
+    path("USB_DM", F, [a7, (b7[0], b7[1] + k), b7, dm_v])
+    path("USB_DM", F, [um_v, (um_v[0], u_dm[1] + 1.1),
+                       (u_dm[0], u_dm[1] + 0.6), u_dm])
+    d = dm_v[1] - um_v[1]
+    path("USB_DM", B, [um_v, (um_v[0] + d, dm_v[1]), dm_v])
+    via("USB_DM", *dm_v)
+    via("USB_DM", *um_v)
+
+    path("USB_DP", B, [a6, (b6[0], b6[1] + k), b6])
+    path("USB_DP", F, [b6, dp_v])
+    path("USB_DP", F, [up_v, u_dp])
+    d = dp_v[1] - up_v[1]
+    path("USB_DP", B, [up_v, (up_v[0] + d, dp_v[1]), dp_v])
+    via("USB_DP", *dp_v)
+    via("USB_DP", *up_v)
+
+    # ---- crystal --------------------------------------------------------
+    xin, xout = pad("U101", "30"), pad("U101", "31")
+    y_xin, r_xout = pad("Y101", "1"), pad("R101", "2")
+    # XIN and XOUT both drop through the 0.8mm gap between decoupling caps
+    # C110/C117 (GND pads at y~131.7) before turning towards their parts.
+    # (the 0.1mm jog right keeps XIN 0.2mm off Y101's GND pad 4, below the
+    # point where XOUT has already turned away from XIN)
+    xr = xin[0] + 0.1
+    path(XIN, F, [xin, (xin[0], 133.4), (xr, 133.5), (xr, y_xin[1] - 1.0),
+                  (xr - 0.6, y_xin[1] - 0.4)])
+    path(XOUT, F, [xout, (xout[0], r_xout[1] - 0.96),
+                   (xout[0] + 0.93, r_xout[1] - 0.03), r_xout])
+
+    pcbnew.SaveBoard(BOARD, board)
+    print("pre-routed USB_DP/USB_DM/XIN/XOUT (locked)")
+    for n in ("USB_DP", "USB_DM"):
+        print(n, round(sum(t.GetLength() / 1e6 for t in board.GetTracks()
+                           if t.GetNetname() == n and t.GetClass() == "PCB_TRACK"), 2), "mm")
+
+
+if __name__ == "__main__":
+    main()

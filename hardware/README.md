@@ -927,7 +927,8 @@ The board is generated, not hand-drawn. From `hardware/`, in this order:
 |---|---|---|
 | 1 | `scripts/place.py` | Outline, 4 M2 mounting holes, design-rule minimums, net classes, every footprint position |
 | 1b | `scripts/sw_keepout.py` | (library, not run directly) Alps SKRTLAE010 no-copper rule areas; called by `route.py` and `zones.py` |
-| 2 | `scripts/route.py` | Freerouting autoroute of every net (Specctra DSN/SES round-trip) |
+| 1c | `scripts/preroute.py` | Locked hand pre-route of USB D+/D- and the crystal (run after `place.py`, before `route.py`; idempotent) |
+| 2 | `scripts/route.py` | Freerouting autoroute of every net except the pre-routed ones (Specctra DSN/SES round-trip) |
 | 3 | `scripts/widen.py` | Widens +3V3/+1V1/VREG_LX/VBUS_RAW to 0.4mm wherever DRC allows |
 | 3b | `scripts/sw_reroute.py` | One-off, idempotent local reroute of SW101/SW102 pad-2 GND and BOOTSEL/RESET around the keepout (only needed on the committed board; a fresh `route.py` run already avoids it; run before `zones.py`) |
 | 4 | `scripts/zones.py` | GND pours on both layers, +3V3 heat spreader and stitching vias at U1 |
@@ -1142,25 +1143,21 @@ scripts):
 
 ### Known gaps / deviations from the ideal rules
 
-1. **No hand pre-route this round.** PR #33 hand-routed USB D+/D- and the
-   crystal as locked tracks before autorouting everything else
-   (`scripts/preroute.py`); this layout skips that step and lets
-   Freerouting route those nets too. They pass DRC (clearance, not
-   impedance-controlled) but are not length-matched or placed with the
-   same care. Not dropped silently -- tracked by `pilink-rqd`, worth
-   adding back once this placement is confirmed good.
-2. **Backlight SW/FB keepout not enforced this round.** PR #33 added a
-   custom DRC rule (`pico-link-hw.kicad_dru`) keeping the backlight boost's
-   switching node (`Net-(D501-A)`) >=1.2mm from its feedback net
-   (`Net-(J501-LED_K)`), relying on the matching hand-preroute to make that
-   achievable. Without a hand-guided path for this pair, Freerouting routed
-   them as close as ~0.23mm (pad-to-track) to ~1.15mm (track-to-track) in
-   different passes of this layout -- still inside the project's own 0.15mm
-   default-clearance DRC minimum (electrically safe), but short of the
-   extra analog-noise margin the prior analysis recommended. The rule file
-   was left out rather than committed-and-violated. Also tracked by
-   `pilink-rqd` alongside item 1 (same hand-preroute pass would cover
-   both): re-add the rule alongside a hand-guided path for this one pair.
+1. **RESOLVED (`pilink-rqd`): hand pre-route restored.** `scripts/preroute.py`
+   (adapted from PR #33) lays locked tracks/vias for USB D+/D- and the
+   crystal before `route.py`; `route.py` and `zones.py` keep them (they
+   keep locked tracks/vias on those nets only). USB D+/D- are now a
+   45-degree B.Cu parallel pair under U101, 2 vias each: 26.4mm / 24.9mm
+   (was 34.8 / 34.6mm autorouted) -- shorter, but the skew grew from
+   0.15mm to ~1.4mm (irrelevant at USB full-speed; not impedance-controlled
+   either way). XIN/XOUT drop through the gap between C110/C117.
+2. **RESOLVED (`pilink-rqd`): backlight SW/FB keepout enforced.**
+   `pico-link-hw.kicad_dru` rule `backlight_sw_vs_fb` requires
+   `Net-(D501-A)` >=1.2mm from `Net-(J501-LED_K)`; the current layout
+   passes it with 0 violations (confirmed live: tightening it to 5mm
+   produces violations). It is not hand-guided -- Freerouting just
+   happens to satisfy it with this placement, so a re-run or a placement
+   change can break it and DRC will say so.
 3. **UPDATE (`pilink-4b6`, 2026-11-16): the required J501 part swap below
    has landed on the schematic/BOM side.** J501 is now the dual-contact
    `FC-05B40P21H20` (LCSC `C23398824`, BXCONN) instead of the bottom-

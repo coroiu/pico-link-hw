@@ -27,6 +27,7 @@ import os
 
 import pcbnew
 
+from preroute import PREROUTE_NETS
 from sw_keepout import add_sw_keepouts
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -96,13 +97,18 @@ def main():
     for z in list(board.Zones()):
         board.Remove(z)
     for t in list(board.GetTracks()):
-        if t.Type() == pcbnew.PCB_VIA_T and t.IsLocked():
+        # keep scripts/preroute.py's locked vias (USB_DP/USB_DM)
+        if (t.Type() == pcbnew.PCB_VIA_T and t.IsLocked()
+                and t.GetNetname() not in PREROUTE_NETS):
             board.Remove(t)
 
     # J401's end GND pads (A1/B12, A12/B1 share a land) sit against the
     # shell stakes and only have room for one thermal spoke; connect solid.
+    # (S1-S4 shell-stake pads too: the router's GND tracks to them leave
+    # one spoke on some runs.)
     for pad in board.FindFootprintByReference("J401").Pads():
-        if pad.GetNetname() == "GND" and pad.GetNumber() in ("A1", "A12", "B1", "B12"):
+        if pad.GetNetname() == "GND" and pad.GetNumber() in (
+                "A1", "A12", "B1", "B12", "S1", "S2", "S3", "S4"):
             pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
 
     # J501 pad 5 (GND, pilink-dya footprint sync): the FC-05B40P21H20's
