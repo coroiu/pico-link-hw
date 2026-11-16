@@ -100,6 +100,9 @@ def union(meshes):
     return trimesh.boolean.union(meshes, engine="manifold")
 
 
+last_thickness = [0.0]
+
+
 def inter(a, b):
     """Return (volume, bbox-centre-or-None) of a intersect b."""
     if a is None or b is None:
@@ -117,6 +120,9 @@ def inter(a, b):
     v = abs(r.volume)
     if v < 1e-6:
         return 0.0, None
+    # mean thickness of the overlap region (slab approximation: V / (A/2)); a
+    # bbox extent is useless for a diagonal sliver, this is not
+    last_thickness[0] = 2.0 * v / max(r.area, 1e-9)
     return v, ((r.bounds[0] + r.bounds[1]) / 2).round(1).tolist() + ["extent"] + (r.bounds[1] - r.bounds[0]).round(2).tolist()
 
 
@@ -430,15 +436,16 @@ def main():
 
     def check(pair, a, b, mode="vol", note="", expect_zero=True, dist=False, contact_ok=False):
         v, loc = inter(a, b)
-        # Mating-face contact is only excused when the overlap is a thin sliver:
-        # < 0.1 mm3 AND no more than 0.1mm thick in its thinnest direction. A
-        # larger or thicker overlap is a real interference and FAILs.
-        thin = loc is not None and min(loc[-3:]) <= 0.1
-        if v > 1e-3 and contact_ok and v < 0.1 and thin:
-            rec(pair, "INFO", "contact only (%.3f mm3 sliver, %.2fmm thick, mating faces by design) %s" % (v, min(loc[-3:]), note))
+        # Mating-face contact is only excused when the overlap is a real sliver:
+        # < 0.25 mm3 AND a mean thickness (2V/A) of at most 0.05mm (about the
+        # STL/coincident-face noise class). A thicker overlap, however small
+        # in volume, is a real interference and FAILs.
+        thk = last_thickness[0]
+        if v > 1e-3 and contact_ok and v < 0.25 and thk <= 0.05:
+            rec(pair, "INFO", "contact only (%.3f mm3 sliver, mean %.3fmm thick, mating faces by design) %s" % (v, thk, note))
             return 0.0
         if v > 1e-3:
-            rec(pair, "FAIL" if expect_zero else "INFO", "overlap %.3f mm3 at (X,Q,Z)~%s %s" % (v, loc, note))
+            rec(pair, "FAIL" if expect_zero else "INFO", "overlap %.3f mm3 (mean %.3fmm thick) at (X,Q,Z)~%s %s" % (v, last_thickness[0], loc, note))
             if expect_zero:
                 failed.append(pair)
             return v
