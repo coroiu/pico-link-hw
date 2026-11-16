@@ -931,7 +931,7 @@ The board is generated, not hand-drawn. From `hardware/`, in this order:
 | 2 | `scripts/route.py` | Freerouting autoroute of every net except the pre-routed ones (Specctra DSN/SES round-trip) |
 | 3 | `scripts/widen.py` | Widens +3V3/+1V1/VREG_LX/VBUS_RAW to 0.4mm wherever DRC allows |
 | 3b | `scripts/sw_reroute.py` | One-off, idempotent local reroute of SW101/SW102 pad-2 GND and BOOTSEL/RESET around the keepout (only needed on the committed board; a fresh `route.py` run already avoids it; run before `zones.py`) |
-| 4 | `scripts/zones.py` | GND pours on both layers, +3V3 heat spreader and stitching vias at U1 |
+| 4 | `scripts/zones.py` | GND pours on both layers, +3V3 heat spreader and stitching vias at U1 (grid points nudged to stay legal), USB stub cleanup |
 | check | `scripts/drc_summary.py -v` | `kicad-cli pcb drc` with schematic parity, summarised |
 | check | `scripts/netlist_check.py` | Pin-for-pin diff of board nets against a fresh schematic netlist |
 
@@ -1342,6 +1342,28 @@ scripts):
    position ships; plus whether the boot can enter the 10x5mm cutout
    tunnel). Full numbers and reasoning: `enclosure/README.md`'s "USB-C
    cable-vs-table clearance (`pilink-8ry`)" section.
+
+10. **`pilink-xzs` (post-#71 script cleanup), 2026-11-16.** `preroute.py`
+    now ends the XIN path on Y101 pad 1's centre (it stopped 0.57mm short
+    and the router finished it); `zones.py` matches the J401 shell pads as
+    `"S1"` only (all four are numbered `S1`, so the old `S2-S4` entries
+    never matched), removes the sub-5um USB stubs the router leaves at
+    U101 pins 66/67, and nudges each blocked +3V3 stitching-via grid point
+    to the nearest legal spot (<=0.7mm) instead of dropping it: **36**
+    vias, up from 13 after the `pilink-rqd` re-route (24 before it). Via
+    thermal sanity check: one 0.3mm-drill via is a ~0.024mm^2 copper
+    barrel through 1.6mm of board, about 175K/W; 36 in parallel are
+    ~5K/W, small next to the SOT-223's ~128K/W, so the vias are not the
+    bottleneck -- the spreader pour area is. Pipeline run end to end
+    (`place` -> `preroute` -> `route` -> `widen` -> `zones`;
+    `sw_reroute.py` skipped, as a fresh `route.py` already avoids the
+    keepout and `sw_reroute` on this routing introduced shorts). One new
+    local fix: U103 pad 4 (GND) is solid-connected in `zones.py` because
+    this routing left it with one thermal spoke (`starved_thermal`).
+    Result: `kicad-cli pcb drc --severity-all --schematic-parity
+    --refill-zones` = **78 violations (0 errors, all warnings), 0
+    unconnected, 0 parity** (same as before), `netlist_check.py` 0
+    mismatches of 334 pins.
 
 ### SW101/SW102 hole-clearance rule (`pilink-ge9`)
 
