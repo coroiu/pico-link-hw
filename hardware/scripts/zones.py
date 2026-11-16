@@ -103,6 +103,13 @@ def main():
         if pad.GetNetname() == "GND" and pad.GetNumber() in ("A1", "A12", "B1", "B12"):
             pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
 
+    # J501 pad 5 (GND, pilink-dya footprint sync): the FC-05B40P21H20's
+    # larger signal pads leave room for only one thermal spoke here too;
+    # same fix as J401 above.
+    for pad in board.FindFootprintByReference("J501").Pads():
+        if pad.GetNetname() == "GND" and pad.GetNumber() == "5":
+            pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
+
     full = (0, 0, BOARD_W, BOARD_H)
     add_zone(board, "GND", pcbnew.F_Cu, full, 0, name="GND_F")
     add_zone(board, "GND", pcbnew.B_Cu, full, 0, name="GND_B")
