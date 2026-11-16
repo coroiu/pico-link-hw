@@ -1213,16 +1213,27 @@ verification entry above:
      antenna-mount geometry that PR is converging on was derived against
      the old position.
 8. **J401's low anchor (59, 45.5) vs. the product-layout proposal's "~15mm
-   up" rear-USB-C intent (section 6c) -- investigated and resolved as an
-   accept, not a re-placement (`pilink-8ry`).** An analytical check of the
+   up" rear-USB-C intent (section 6c) -- investigated, not resolved as a
+   simple accept (`pilink-8ry`).** A zero-thickness-line check of the
    merged `enclosure/back_shell.scad` geometry (board_to_face Y-mapping
-   fix + USB-C boss-pad clamp both already merged) found the mated cable's
-   idealized straight-line exit path clears the back-shell's own base
-   strip and the table with a positive, if thin in one spot (~2.55mm
-   minimum, ~5mm out from the connector face), margin -- no PCB
-   re-placement of J401 is warranted. Residual risk (a real cable's
-   molded boot, unconfirmed since no cable is chosen, could still be
-   thicker than that thin margin) is tracked as a physical fit-check,
-   `pilink-q03`, not a PCB change. Full numbers and reasoning:
+   fix + USB-C boss-pad clamp both already merged) first suggested a
+   comfortable margin, but redoing it with a real mated-cable boot
+   (sourced real example: Anker 515 cable, 6.3mm-thick plug head cover)
+   found the boot contacts the back-shell's own base strip itself --not
+   the table -- only about 3mm out from the connector's mating face for
+   boots at or above that sourced diameter; thinner boots (below ~5.7mm)
+   clear the strip but still hit the table far sooner (~12-16mm out) than
+   the original ~22.8mm claim. This is a real, elevated-probability
+   physical-interference risk at the current geometry, not a confirmed
+   collision (no cable is chosen for this product) and not something
+   this bead's own scope (investigation only) resolves by changing
+   `back_shell.scad`. No PCB re-placement of J401 is warranted by
+   anything found so far -- the issue is the base-strip geometry around a
+   confirmed-good connector position, not the position itself. Carried
+   forward as the decisive check in `pilink-q03` (now also covering
+   whether the boot can enter the 10x5mm USB-C cutout/boss tunnel at
+   all), with a local base-strip relief notch under J401 flagged as the
+   *likely* needed fix once a prototype and a real cable exist, not just
+   a remote possibility. Full numbers and reasoning:
    `enclosure/README.md`'s "USB-C cable-vs-table clearance (`pilink-8ry`)"
    section.

@@ -124,9 +124,9 @@ available here.
 
 **Numbers used** (all read directly from the current `back_shell.scad`,
 not re-derived): `USBC_QFACE = 6.5mm` (J401's position in the shell's own
-"height up the face" convention — already reflects the finding-#1
-`board_to_face()` Y-mapping fix merged in this same bead, +2mm over the
-original, pre-fix figure); connector height above the PCB back surface
+"height up the face" convention — already reflects the `board_to_face()`
+Y-mapping fix merged in `pilink-8hx.1` (PR #52), not in this bead, +2mm
+over the original, pre-fix figure); connector height above the PCB back surface
 `USBC_HEIGHT_ABOVE_PCB = 6.5mm` (so its outer mating face actually
 overhangs 1.5mm *past* the back wall's own outer surface, at local
 `bz = -1.5mm`, not `bz = 0` — the connector height exceeds the bare
@@ -134,73 +134,174 @@ overhangs 1.5mm *past* the back wall's own outer surface, at local
 = 14.5mm`, `BASE_STRIP_T = 2.0mm` (its table-facing thickness/top-surface
 height); shell lean `LEAN_DEG = 15`.
 
+### Step 1: idealized zero-thickness line (first pass, numbers corrected)
+
 Projecting the connector's own mating axis outward (the direction a
 plugged-in cable's body would run, straight-line/worst-case, ignoring any
-droop) through the shell's `rotate([-LEAN_DEG,0,0])` world transform:
+droop, modeled with **zero thickness** — just the axis itself) through the
+shell's `rotate([-LEAN_DEG,0,0])` world transform:
 
 - The connector's outer mating face sits at world `(Y, Z) = (5.89mm,
   -3.13mm)` relative to the file's own table-level datum (Y=0).
 - Clearance above the base strip's top surface (Y=2.0mm) **right at the
   connector face** is **3.89mm**.
 - That clearance *shrinks* as the straight-line path runs outward (down
-  and back, per the 15-degree lean), reaching a **minimum of ~2.55mm**
-  about **5.2mm out from the connector's own mating face** — exactly the
-  point where the path crosses the base strip's own back edge (world
-  Z=-8.12mm, using the strip's `front_edge_z` stand-in reference). Beyond
-  that point the strip no longer exists underneath the path at all, so
-  there's no further interference; the path reaches table level (Y=0)
-  about 22.8mm out from the connector face.
+  and back, per the 15-degree lean), reaching a **vertical minimum of
+  ~2.55mm** about **5.2mm out from the connector's own mating face** —
+  exactly the point where the path crosses the base strip's own back edge
+  (world Z=-8.12mm, using the strip's `front_edge_z` stand-in reference).
+  The *true* clearance a zero-thickness line leaves at that pinch point,
+  measured perpendicular to the cable's own axis (the direction a round
+  cable boot's surface would actually approach that corner from) rather
+  than straight up, is smaller: **2.465mm**, not ~2.5mm/2.55mm (2.552mm is
+  the vertical gap; 2.552mm x cos(15°) = 2.465mm is the perpendicular
+  one — correction from a code-reviewer's NOT APPROVED verdict on this
+  bead's first PR). Beyond the strip's back edge the strip no longer
+  exists underneath the path at all; the zero-thickness line itself
+  reaches table level (Y=0) about 22.8mm out from the connector face.
 - **No point along this idealized, zero-thickness line dips below the
   strip or the table** — a real improvement over the stale number quoted
   in `pilink-8ry`'s own description (~2.4mm *into* collision), which
-  predates this file's finding-#1 (`board_to_face()` Y-mapping, +2mm) and
-  finding-#4 (USB-C boss-pad clamp) fixes already merged here.
+  predates the `board_to_face()` Y-mapping fix (`pilink-8hx.1`, +2mm) and
+  the USB-C boss-pad clamp fix already merged here.
 
-**Residual risk, not fully closed by the above:** the governing minimum
-(~2.55mm) occurs only ~5mm out from the connector's mating face — still
-inside the rigid, molded "cable boot" region of a real USB-C cable, not
-the flexible jacket beyond it. No specific cable is chosen for this
-product, and the USB-C receptacle finding
-(`../.research/findings/2026-11-15-vertical-usb-c-receptacle-selection.md`)
-only covers the *receptacle*'s own dimensions (bare shell 9.0 x 3.2mm) —
-it says nothing about a mating plug's own molded strain-relief boot,
-whose size varies a lot by cable and isn't pinned down by any part
-chosen in this project. Generic USB-C cable boots commonly add a few mm
-of overmold around the bare plug shell for strain relief, which is a
-widely-observed commercial pattern, not a datasheet figure. If a real
-cable's boot extends more than ~2.5mm below the bare connector's own
-centreline at that ~5mm-out point, it would plausibly clip the top of the
-base strip even though this zero-thickness line clears.
+This zero-thickness result is **not, by itself, a basis for any
+conclusion about real cables** — see Step 2.
 
-**This number is a conservative (worst-case) one, not an optimistic
-one**: the base strip's own Z position is keyed off this file's
-documented `front_edge_z` approximation (`BACK_SHELL_DEPTH = 6.6mm`,
-*not* the real front-shell edge, which the file's own `BODY_T` stack-up
-says sits a further `FACE_T + FRONT_CAVITY = 7.5mm` forward). Correcting
-that stand-in — a known, already-flagged simplification, not something
-this bead's own scope allows fixing (`back_shell.scad`'s geometry isn't
-touched here) — would shift the whole base-strip + leg assembly about
-7.5mm further forward, away from the back wall and the connector,
-moving the strip's back edge from Z=-8.12mm to about Z=-0.6mm; the real
-strip, once the front shell's actual base profile exists, likely
-wouldn't even reach back far enough to sit under the connector's cable
-path at all. So real-world clearance should be *at least* as good as the
-numbers above, not worse.
+The base strip's own Z position is keyed off this file's documented
+`front_edge_z` approximation (`BACK_SHELL_DEPTH = 6.6mm`, *not* the real
+front-shell edge, which the file's own `BODY_T` stack-up says sits a
+further `FACE_T + FRONT_CAVITY = 7.5mm` forward **along the local Q
+axis**). Correcting that stand-in — a known, already-flagged
+simplification, not something this bead's own scope allows fixing
+(`back_shell.scad`'s geometry isn't touched here) — would shift the whole
+base-strip + leg assembly forward by `7.5mm x cos(15°) = 7.24mm` in world
+Z (not 7.5mm — the shift is along the *local*, pre-rotation axis, and
+world Z is the rotated projection of it), away from the back wall and the
+connector, moving the strip's back edge from Z=-8.12mm to about
+**Z=-0.88mm** (not -0.6mm as an earlier draft of this section had it;
+correction from the same review). This stand-in-correction argument only
+ever applied to the **strip-crossing** pinch point above — it says
+nothing about table clearance, since the table (world Y=0) is a fixed
+datum the `front_edge_z` stand-in doesn't move. See Step 2 for why that
+distinction now matters.
 
-**Conclusion: accept the current back-shell geometry (option (a) from the
-bead description) — no PCB re-placement of J401 (option (b)) is
-warranted from this analysis.** The governing idealized-line clearance is
-positive throughout, by a comfortable margin everywhere except one
-~5mm-out pinch point, and the file's own known conservative approximation
-means the real, as-built clearance is likely better than computed here.
-This isn't a confident "any cable fits" guarantee, though — the
-~2.55mm pinch-point margin could plausibly be consumed by a chunky
-cable's molded boot, which isn't picked for this project and can't be
-checked without one. Flagged as a physical fit-check for once a back-shell
-prototype and a real cable both exist (a human action, not something to
-resolve further here) — tracked as `pilink-q03` (discovered from
-`pilink-8ry`), not a PCB re-placement bead, since nothing here points to
-J401's placement itself being the problem.
+### Step 2: redone with a real cable boot, not a zero-thickness line
+
+A real mated USB-C cable is not a line — right at the plug, a molded
+"boot"/overmold (strain relief + shielding) adds real thickness around
+the bare connector shell before the flexible cable jacket begins. This is
+the check the bead's own description asked for ("plug dimensions, typical
+cable boot size, actual achievable clearance") and the first version of
+this PR skipped — flagged as the review's blocking finding.
+
+**Sourced boot thickness.** No cable is chosen for this product, and the
+USB Type-C Cable and Connector Specification doesn't fix a boot
+envelope (it's a manufacturer choice, not a compliance dimension), so
+there's no single "correct" number. One real, sourced data point: Anker's
+own FAQ for the Anker 515 USB-C-to-USB-C cable (model A8487) states its
+"USB-C head cover is 6.3mm thick" and 12.15mm wide
+([source](https://service.anker.com/article-description/Anker-515-USB-C-to-USB-C-cable-FAQ)).
+That's used below as the centre of a **5.0-6.5mm conservative range**
+(bracketing the sourced 6.3mm figure), not a survey of the market.
+
+**Model.** The boot is modeled as a rigid cylinder of diameter `D`
+centred on the same idealized mating axis used in Step 1 (same
+zero-droop, straight-line simplification — now just given thickness). At
+a point `s` mm out along that axis, the lowest point on the cylinder's
+surface sits `D/2 x cos(15°)` below the axis itself (the perpendicular
+offset of a circle's lowest point on a line tilted 15° from vertical,
+derived directly, not assumed — see the git history of this file's
+companion analysis for the derivation if it needs rechecking).
+
+**Result — and the governing obstacle changes, not just the distance:**
+
+| Boot diameter `D` | Governing obstacle | Contact point |
+|---|---|---|
+| 5.0mm | table (strip is already behind it) | ~13.4mm out |
+| 5.5mm | table | ~12.5mm out |
+| ~5.7mm | **crossover** — see below | ~4-8mm out |
+| 6.0mm | **base strip itself** | ~3.8mm out |
+| 6.3mm (sourced, Anker 515) | **base strip itself** | ~3.3mm out |
+| 6.5mm | **base strip itself** | ~2.9mm out |
+
+For boots thinner than about 5.7mm diameter, the boot's underside dips
+below the strip's top height (Y=2.0mm) only *after* it has already
+passed the strip's back edge in Z — so it clears the strip (consistent
+with Step 1's zero-thickness pinch point) and the open table beyond is
+what it eventually touches, at roughly 12.5-16mm out depending on exact
+diameter — much sooner than the zero-thickness line's 22.8mm, but still
+past the strip.
+
+For boots at or above about 5.7mm diameter — which includes the one
+sourced real product above (6.3mm) — the boot's underside drops below
+the strip's own top surface **while it is still over the strip**, not
+past it: the governing collision is with the **raised base strip itself**,
+only about **3-4mm out from the connector's own mating face**. This is a
+materially worse result than either this PR's original "~22.8mm,
+comfortable margin" claim or the "~10mm out" ballpark the review used to
+flag the finding — both of those numbers are table-contact distances;
+neither accounts for the boot hitting the strip itself first, which this
+corrected model shows happens for boots at or above the sourced real
+diameter.
+
+The Step 1 "front_edge_z stand-in is conservative, so real clearance is
+probably better" argument does **not** rescue this: it only shifts the
+*strip's* position (potentially out of the way, forward, away from the
+connector) once the real front-shell edge exists — it doesn't change
+where the boot's underside drops below Y=2.0mm relative to the
+connector, so a thinner boot might still clear a shifted strip, but a
+thick one crossing the strip at only ~3mm out is not obviously rescued by
+a strip that may end up ~7mm further forward; that interaction isn't
+modeled here and would need the real front-shell geometry to check.
+
+**Boot vs. the cutout/boss itself (review finding #2).** Separately from
+table/strip clearance, `back_shell.scad:229-230`'s `USBC_CUTOUT_W/H =
+10.0 x 5.0mm` tunnel runs from the boss's outer face (`bz=-2.0`,
+`USBC_BOSS_RISE`) to past the receptacle's own mating face (`bz=-1.5`) —
+a 0.5mm-deep recess the plug has to clear to fully seat. A boot wider
+than 10mm or thicker than 5mm can't pass through that tunnel at all. This
+file's own comment at `back_shell.scad:223-228` already flags this as
+open. Reasoning, not a confirmed resolution: USB-C plugs expose several
+millimetres of bare, un-overmolded metal shell beyond the mating contacts
+before the boot/overmold begins (standard mechanical convention for
+depth-of-insertion and compliance-test-fixture engagement, not a specific
+datasheet figure found for this bead) — almost certainly more than this
+tunnel's 0.5mm depth, so the overmold most likely never has to enter the
+tunnel at all; it would rest against the boss's outer face once the bare
+shell bottoms out in the receptacle. This is plausible, not verified, and
+is added to `pilink-q03`'s scope below rather than asserted as settled.
+
+**Conclusion: do not treat this as resolved/"comfortable margin."** The
+original "~22.8mm out, comfortable margin" claim does not hold for any
+realistic cable — once the boot has real thickness, the contact point
+moves to somewhere between ~3mm and ~16mm out depending on boot diameter,
+and for boots at or above the one sourced real diameter checked here
+(6.3mm), the governing obstacle is the **base strip itself**, not the
+table, at only ~3mm out. This is a real, elevated-probability physical
+interference for many real cables at the current geometry — not a
+confirmed collision (no cable is chosen, and boot shapes/lengths vary
+enough that a thin-boot cable could still clear), but no longer a case
+that supports "accept as comfortable margin" either.
+
+This bead's own scope is investigation, not a geometry fix, and nothing
+in this analysis — zero-thickness or real-boot alike — points to J401's
+*placement* (option (b), a PCB re-route) as the problem; the issue is the
+back-shell base-strip geometry built around a confirmed-good connector
+position, which is option (a)'s territory. `pilink-q03` (discovered from
+`pilink-8ry`) is updated to carry this forward as the decisive check: once
+a back-shell prototype and a real cable both exist (both a physical
+action only a human can take), verify (1) whether the mated cable's boot
+actually foul the strip or the table at J401's current position, now
+checking the strip explicitly, not just the table, and (2) whether the
+boot can physically enter the 10x5mm cutout/boss tunnel per the reasoning
+above. Given how little margin this analysis finds for any boot at or
+above the sourced real diameter, a small local relief/notch cut into the
+base strip under J401 (pilink-q03's own stated fallback, bounded, not a
+full redesign) looks like the *likely* needed fix, not just a remote
+possibility — but that's `pilink-q03`'s call once real parts exist, not
+resolved here, and `back_shell.scad` itself is intentionally not touched
+by this docs-only bead.
 
 ## `antenna_mount.scad` (pilink-8hx.4)
 
