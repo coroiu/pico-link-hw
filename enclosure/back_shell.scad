@@ -321,22 +321,26 @@ module u201_relief_pocket() {
 // The antenna part (Kinghelm KH-FPC2.4G-1.13IPEX-240, LCSC C4943394) has an
 // INFERRED ~240mm pigtail (part-number suffix, unconfirmed) against a
 // ~18-30mm run from U201's back-side U.FL to the top-wall mount, so ~210mm
-// of coax must be stowed. A shorter part was NOT swapped in: the -100
-// variants on LCSC (C709378 etc.) show no element size, gain or cable
-// length on their listing, and the research finding's AIWF026 (100mm) sits
-// 0.02dB over the cert-safe gain ceiling -- see enclosure/README.md. The
+// of coax must be stowed. A shorter part was NOT swapped in: the Kinghelm
+// -100 variants on LCSC have unverified cable length / gain / size, and the
+// research finding's AIWF026 (100mm) sits 0.02dB over the cert-safe gain
+// ceiling -- see enclosure/README.md for the per-part facts. The
 // pigtail can't be trimmed (needs crimp tooling), so it is wound here.
 //
 // The board's B.Cu is nearly empty left of U201 (only J401 at board
 // (59,37), the 0402/0603 parts at x~87-89 beside the module, H4 at
-// (59,4)); the 3.0mm cavity behind the PCB there is free. A single-layer
-// flat spiral is wound on a printed post: coax Ø1.13, min bend radius
-// 5mm (TE UMCC 5mm / Data Alliance 4.5mm), so post Ø10 -> first turn
-// centreline R 5.57mm. ~4.6 turns give 210mm+ (spiral outer centreline
-// R ~10.1mm); three lugs at R 12 hold it in. Centre: board (73,18) =
+// (59,4)); the 3.0mm cavity behind the PCB there is free. A flat spiral is
+// wound on a printed post: coax Ø1.13, min bend radius 5mm (TE UMCC 5mm /
+// Data Alliance 4.5mm), so post Ø10 -> first turn centreline R 5.57mm.
+// Both cable ends are fixed (U.FL plug, antenna), so the inner end has to
+// cross back over the turns: the stack is 2 cables = 2.26mm (cable on the
+// wall bz 2.0..4.26), under the 2.6mm post/lug height and the 5.0mm PCB
+// surface. Capacity: 4 turns = 182mm gross, ~160mm after the
+// crossover/entry/exit; a 5th turn (245.8mm gross, outer centreline R
+// 10.1) is tight and not counted on, so ~50mm of the 210mm excess stays a
+// loose >=5mm-radius loop on the route. Three lugs at R 12 hold it in. Centre: board (73,18) =
 // face (75,34): board x 61..85 (4.7mm short of the relief's left edge,
 // 91.7 -> face X; ~15mm from J401's nearest possible edge, ~20mm from H4).
-// Cable lies on the back wall (bz 2.0..3.13), under the 5.0 PCB surface.
 // UNVERIFIED: J401's real body extent (not read off the board outline);
 // whether the plug-to-relief-top-wall bend (cable centre bz <= ~2.9, see
 // pilink-phg comment) works with the real mated plug. Needs a real module.
