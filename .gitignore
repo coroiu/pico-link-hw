@@ -15,3 +15,4 @@ hardware/.drc_tmp/
 .mcp-backups/
 __pycache__/
 *.lck
+.fitwork/

@@ -693,20 +693,27 @@ volumes and approximate minimum distances (trimesh/manifold). It exits
 non-zero if any pair overlaps.
 
 ```bash
-enclosure/scripts/check_fit.sh                 # full run (~1 min)
+enclosure/scripts/check_fit.sh                 # full run (~5 min via docker)
 enclosure/scripts/check_fit.sh --json out.json # also dump results
 ```
 
 It runs on the host when `openscad` and python (`pcbnew`, `trimesh`,
 `manifold3d`, `scipy`, `rtree`) are all available, otherwise inside the
-`preview/` docker image under a separate compose project (pip-installs
-`manifold3d scipy rtree` on first use; needs network). STLs are written to
+`preview/` docker image under a separate compose project. In the docker
+route the first run builds that ~3GB image (several minutes, needs network);
+`manifold3d scipy rtree` are pip-installed once into
+`~/.cache/pilink-fitcheck-pydeps` (override with `$FITCHECK_PYDEPS`) and
+reused, so later runs are offline. A full docker run takes about 5 minutes
+(mostly the OpenSCAD renders and mesh booleans), not 1. The `scadcheck_default`
+network compose creates is removed on exit. STLs are written to
 `$FITCHECK_WORK` (default: a temp dir), never into the repo.
 
 This is a **CAD-level check, not the printed fit check** (`pilink-8hx.5`
 stays open). Component heights are datasheet-class assumptions listed in
 `check_fit.py` (`HEIGHTS`; J101 pin height, encoder lead length, M2 head and
-the display stack are flagged assumed); the antenna mount has no real
+the display stack are flagged assumed; the encoder lead length is the Alps
+drawing's 3.5mm terminal length less the 1.6mm board, J101's pin tail is the
+standard 3.0mm); the antenna mount has no real
 placement in the `.scad`, so the script places it on the top wall's inner
 surface centred in the cavity depth. Distances are sampling-based (they can
 overestimate by about the sample spacing); overlaps are exact booleans, and
