@@ -537,18 +537,16 @@ or is marked as this file's own assumption.
   version (PR #48), which had the element physically colliding with
   SW101's pinhole channel. The resulting cable run to U201's U.FL connector
   (face-local X-center ~16mm) is ~48mm, well within the part's ~240mm
-  (inferred) pigtail. Board-to-face coordinate mapping (board centered
-  left-right, bottom-flush in the face) is the same unconfirmed convention
-  hardware/README.md's own placement table already flags as pending
-  `pilink-8hx.1`/`.2` confirmation — carried here unchanged rather than
-  inventing a different one.
+  (inferred) pigtail. Board-to-face coordinate mapping is settled
+  (`face_x = board_x + 2`, `Qface = 52 - board_y`), shared with the front
+  and back shells.
 - **Display/ground clearance guidance is NOT met — real RF trade-off, not
   pending:** a second review round found the governing number here is the
   face-Y distance (not a Z gap, as an earlier revision wrongly framed it),
   and it *is* derivable from this file's own constants: the element sits
   roughly **4mm from the board's top edge and roughly 9mm from the display
-  panel's frame** (both estimates, same unconfirmed board-to-face mapping
-  as the X-axis numbers), against general adhesive-FPC-antenna practice
+  panel's frame** (both estimates; the board-to-face mapping itself is
+  settled), against general adhesive-FPC-antenna practice
   cited in the research finding (not a figure from any datasheet — the
   32UE's own datasheet carries no such keepout, and no antenna datasheet
   in this repo states one either) of keeping metal/ground clear within
