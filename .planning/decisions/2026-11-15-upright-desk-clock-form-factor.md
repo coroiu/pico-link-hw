@@ -197,3 +197,93 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
     redrawn to match (shifted ~4 mm further from the face, with every
     other diagram element left at its original position).
 - **`AGENTS.md`** hardware summary gains a form-factor line pointing here.
+
+## Verification: rear USB-C / antenna / FPC clearance check (`pilink-5g8`)
+
+After the real placed/routed board landed (`pilink-7el.12`, PR #45,
+`hardware/pico-link-hw.kicad_pcb`), checked whether J401 (USB-C), the
+ESP32's U.FL antenna connector and J501/display-FPC fold zone actually
+crowd each other, and whether J401 clears the planned rear legs. Method:
+read the real footprint `(at ...)` coordinates and courtyard/body extents
+directly out of the `.kicad_pcb` file (not the PR #45 handoff note's
+numbers, though they turned out to match once the board's own origin
+offset is accounted for), plus one `kicad-cli pcb drc --severity-all
+--exit-code-violations` run. Board-local coordinates below are absolute
+file coordinates minus the board origin: `Edge.Cuts` is a rectangle from
+(100,100) to (218,150) absolute, i.e. a **118 x 50 mm** board (matches
+the ADR's figure above) with board-local (0,0) at its top-left and
+board-local Y increasing downward (toward J401/the legs).
+
+- **J401 (USB-C):** `at 159 145.5` absolute on `B.Cu`, rot 0 → board-local
+  **(59, 45.5)**. X=59 is exactly the board's horizontal centerline
+  (118/2); Y=45.5 is 4.5 mm up from the bottom edge. Matches the PR #45
+  handoff note's figures exactly (that note was already stating
+  board-local coordinates). Footprint body is ~9.0 x 3.2 mm, courtyard
+  ~9.0 x 5.3 mm (per the footprint's own `descr`), so J401 occupies
+  roughly board-local X 54.5-63.5, Y 42.9-48.1 (courtyard out to ~47-48.2).
+- **U201 (ESP32-WROOM-32UE) / antenna connector:** `at 114 112.5`
+  absolute on `F.Cu`, rot 0 → board-local **(14, 12.5)** — upper-left, as
+  the ADR's placement rule calls for. Walked the module footprint's 39
+  pads directly: pins 1-14 run along local X=-8.75 from Y=-8.41 to
+  Y=+8.1, pins 15-24 wrap the **Y=+9.35** short edge, pins 25-38 run back
+  along X=+8.75. The **Y=-9.6 to -9.85 short edge has no pads at all** —
+  that's the module's antenna end (on-module U.FL receptacle), with the
+  Reference silkscreen also placed off that same edge (`at 0 -10.5`) —
+  the courtyard's own slight asymmetry (Y -9.85..+10.35) actually extends
+  slightly *further* on the opposite (pin) side, so it's weak corroborating
+  evidence on its own; the no-pads edge plus the silkscreen placement are
+  the real basis for this read. In board coordinates **that module edge**
+  sits at board-local **Y ≈ 2.65-2.9, X ≈ 5-23** (centered X=14) — i.e. the
+  edge the U.FL receptacle is somewhere along, only ~2.7-2.9 mm in from the
+  board's own top edge, on the left side (exactly which corner of that edge
+  the receptacle sits at wasn't confirmed from a rendered datasheet drawing
+  — relevant to `pilink-8hx.4`). That means the U.FL pigtail's run from the
+  module to the antenna element in the top wall is short and stays in the
+  board's upper-left corner; it never approaches J401
+  (board-local Y 42.9-48.1, 40+ mm away) or J501 (below). **No crowding.**
+- **J501 (display FPC ZIF):** `at 159.4 119 -90` absolute on `F.Cu` →
+  board-local **(59.4, 19)**, rotated 90°. Un-rotated courtyard half-extents
+  from the footprint's own `descr` (X ±12.70, Y -3.60..+3.30) swap under
+  the 90° rotation, giving a board-local footprint/fold-zone envelope of
+  roughly X 56.1-63.0, **Y 6.3-31.7**. That sits inside the panel-shadow
+  keepout rectangle drawn on `Cmts.User` (board-local X 28-87, Y 5-47),
+  as expected for a connector that lives behind the panel. Against J401
+  (board-local Y 42.9-48.1): **~11 mm of Y clearance** even before
+  accounting for the two connectors being on opposite copper layers
+  (F.Cu vs B.Cu) — J401's through-hole legs only go through the board
+  thickness, they don't extend forward into J501's territory. **No
+  crowding**, and as the bead anticipated, the two connectors being on
+  opposite faces means this is a board-edge/cutout-space question for the
+  enclosure, not a direct-collision one.
+- **`kicad-cli pcb drc --severity-all`** on the current board: 86
+  violations, all `hole_clearance` (8), `silk_edge_clearance` (2),
+  `silk_over_copper` (44) and `silk_overlap` (32) — pre-existing
+  silkscreen/hole issues elsewhere on the board (e.g. SW101's BOOTSEL
+  pad/NPTH spacing), none involving J401, J501 or U201's footprints or
+  courtyards. The one hit that even mentions these refs is a silkscreen
+  field clearance on U501 whose net happens to be named
+  `Net-(J501-LED_K)` — a net-name string match, not a J501 placement
+  issue. DRC does not surface any clearance problem between these three
+  features.
+- **Rear legs vs. J401:** the ADR's legs are at **approximately ±40 mm
+  from board center** (board-local X ≈ 19 and 99, since J401/board center
+  is X=59). J401's own footprint (board-local X 54.5-63.5) sits nowhere
+  near either of those X positions, so there's no planar (X/Y) conflict
+  between J401 and where the legs are expected to land. **This is as far
+  as this bead can check.** No physical leg geometry exists anywhere in
+  this repo yet — `pilink-8hx.1` (back shell + rear legs), which actually
+  places leg bosses/mounting features in 3D, hasn't run. The ±40 mm
+  figure is a planning number from this ADR's own rationale section, not
+  a modeled dimension to check against. What `pilink-8hx.1` still needs
+  to verify once real leg geometry exists: the **3D** clearance between
+  the USB-C plug's insertion envelope (receptacle + mated plug, extending
+  backward out of the rear wall between the legs) and each leg's actual
+  width/angle near the base — a 2D X-position check on the bare PCB
+  can't rule out a leg interfering with cable/plug clearance once the
+  legs have real taper and foot width.
+
+**Conclusion:** no real interference found between J401, the antenna/U.FL
+route, and J501/the FPC fold zone on the actual placed-and-routed board.
+The one check this bead cannot close out is the USB-C-vs-legs fit in 3D,
+because the legs don't exist as board/enclosure geometry yet — that's
+`pilink-8hx.1`'s job once it runs, not a defect in the current PCB layout.
