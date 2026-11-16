@@ -357,6 +357,11 @@ BTN_A = [102, 33]; // bottom of diamond
 BUTTON_CAP_DIA = 8.0;
 BUTTON_BORE_CLEARANCE = 0.4; // mm diametral, own choice
 BUTTON_BORE_DIA = BUTTON_CAP_DIA + BUTTON_BORE_CLEARANCE;
+// Entry chamfer on the OUTER face (Z=0) side of each bore (pilink-ci0):
+// 45-degree lead-in, BORE_CHAMFER mm wide/deep, so the bore mouth is
+// BUTTON_BORE_DIA + 2*BORE_CHAMFER = 9.2mm at Z=0, tapering to the straight
+// 8.4mm bore by Z=BORE_CHAMFER. Eases cap insertion; cosmetic edge break.
+BORE_CHAMFER = 0.4; // mm
 
 BUTTON_POSITIONS = [
     [board_to_x(BTN_Y[0]), board_to_y(BTN_Y[1])],
@@ -493,8 +498,16 @@ module encoder_cutouts() {
 
 module button_cutouts() {
     for (p = BUTTON_POSITIONS)
-        translate([p[0], p[1], -0.5])
-            cylinder(h = FACE_T + 1, d = BUTTON_BORE_DIA);
+        translate([p[0], p[1], 0]) {
+            translate([0, 0, -0.5])
+                cylinder(h = FACE_T + 1, d = BUTTON_BORE_DIA);
+            // outer-face entry chamfer (pilink-ci0): 45-degree cone,
+            // extended 0.5mm below Z=0 (same slope) for a clean cut
+            translate([0, 0, -0.5])
+                cylinder(h = BORE_CHAMFER + 0.5,
+                         d1 = BUTTON_BORE_DIA + 2 * BORE_CHAMFER + 1,
+                         d2 = BUTTON_BORE_DIA);
+        }
 }
 
 module pinhole_cutouts() {

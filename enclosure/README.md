@@ -155,12 +155,21 @@ knob/shaft treatment, which `pilink-8hx.3`'s acceptance criteria also
 names -- filed as a separate follow-up bead (`pilink-0ty`) rather than
 addressed here; `pilink-8hx.3` stays open (not closed on this PR
 alone) until `pilink-0ty` also lands, and `pilink-8hx.5` (fit
-verification) now depends on `pilink-0ty` too. A straight-cut
-(non-chamfered) bore in the already-merged `front_shell.scad` is also
-flagged as a discrepancy against the original bead text's "chamfered
-bores" phrasing -- filed as its own follow-up (`pilink-ci0`) per code
-review rather than fixed here (out of this file's scope, different
-file's established geometry).
+verification) now depends on `pilink-0ty` too. The bores' missing
+entry chamfer (original bead text's "chamfered bores") was filed as
+`pilink-ci0` and is now added in `front_shell.scad` (0.4mm x 45-degree
+on the outer face only; see the `pilink-ci0` update below).
+
+**Update (`pilink-ci0`): bore entry chamfer, fit math unchanged.**
+`front_shell.scad`'s `button_cutouts()` now adds a 0.4mm x 45-degree
+chamfer on the *outer* face (Z=0..0.4) of each bore: mouth Ø9.2mm,
+straight Ø8.4mm bore from Z=0.4 on. The flange (Ø9.0, Z >= FACE_T = 2.0)
+and `panel_ledge()` (Z >= FACE_T) both sit on the inner side, and the
+display pocket is cut from the inner face (Z >= 1.2), so none overlap the
+chamfer in Z; bore Ø8.4, flange Ø9.0 and the 0.3mm worst-case
+flange-to-ledge margin at X are unchanged. Adjacent chamfer mouths
+(diagonal pitch 11.31mm) stay 11.31 - 9.2 = 2.11mm apart. Not rendered
+(OpenSCAD not installed).
 
 **Update (`pilink-3ym`): flange-vs-ledge math re-checked, unchanged.**
 The `panel_ledge()` clearance at the X button depends only on X button
