@@ -47,6 +47,35 @@ NUDGE_STEPS = 7              # via nudge search radius, in 0.1mm steps
 VIA_KEEPOUT = 0.35           # via edge to any foreign copper / pad / hole
 
 
+# pilink-a4u: no GND pour along the board's top edge under the U.FL antenna
+# element (enclosure top wall; face X 57.75..105.55 = board X 55.25..103.05,
+# face X = board X + 2.5; the element sits ~2mm above the board's top edge).
+# Pour-only rule area on both layers, +1mm X margin each side. Depth 3.0mm:
+# U201 GND pad 38 (top at y 2.74) and C201 pad 2 stay on pour that remains.
+# Tracks are NOT excluded (GPIO25, ESP32_HCI_TXD, +3V3 run at y 1.1..2.6 under
+# U201's pigtail side and would need a full re-route); see README.
+ANT_KO = (54.25, 0.0, 104.05, 3.0)
+
+
+def add_antenna_keepout(board):
+    x0, y0, x1, y1 = ANT_KO
+    for layer, tag in ((pcbnew.F_Cu, "F"), (pcbnew.B_Cu, "B")):
+        z = pcbnew.ZONE(board)
+        z.SetLayer(layer)
+        z.SetIsRuleArea(True)
+        z.SetZoneName("KO_ANT_" + tag)
+        z.SetDoNotAllowTracks(False)
+        z.SetDoNotAllowVias(False)
+        z.SetDoNotAllowZoneFills(True)
+        z.SetDoNotAllowPads(False)
+        z.SetDoNotAllowFootprints(False)
+        o = z.Outline()
+        o.NewOutline()
+        for x, y in ((x0, y0), (x1, y0), (x1, y1), (x0, y1)):
+            o.Append(pt(x, y))
+        board.Add(z)
+
+
 def pt(x, y):
     return pcbnew.VECTOR2I(MM(ORIGIN[0] + x), MM(ORIGIN[1] + y))
 
@@ -142,6 +171,7 @@ def main():
         if pad.GetNetname() == "GND" and pad.GetNumber() == "2":
             pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
 
+    add_antenna_keepout(board)
     add_sw_keepouts(board)   # Alps SKRTLAE010 no-copper areas (pilink-ge9)
     full = (0, 0, BOARD_W, BOARD_H)
     add_zone(board, "GND", pcbnew.F_Cu, full, 0, name="GND_F")
