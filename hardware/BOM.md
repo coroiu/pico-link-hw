@@ -53,18 +53,7 @@ guarantee than this BOM's first draft claimed.
    `.planning/decisions/2026-11-13-esp32-bt-coprocessor-not-rm2.md`. Do
    not substitute RM2 or hand-place it; order U201 as a normal JLCPCB SMT
    line item.
-2. **L101 (VREG inductor) is now a normal JLCPCB catalog part** (`pilink-2wq`):
-   the original Coilcraft LPS4018-332 was not stocked by JLCPCB, so L101 was
-   swapped to Cenker `CKCS4018-3.3uH/M` (`C354572`, Extended, 2,180 units
-   live 2026-11-16; Isat 2.45A, Irms 1.23A, DCR 70mOhm, shielded) -- the
-   same CKCS4018 family/footprint as L501. **Not verified:** the RP2350
-   datasheet's explicit VREG inductor requirements (DCR/Isat/recommended
-   part) could not be text-extracted in the agent environment -- a human
-   should confirm 3.3uH/70mOhm/2.45A against the datasheet's VREG section
-   before fab. The PCB footprint was swapped in place (same position and
-   nets; pads 1.7x3.7mm at +/-1.35mm vs the old 0.87x2.79mm at
-   +/-1.765mm, same 4.4mm overall length); one GND track segment was
-   rerouted around the larger pad and zones refilled.
+2. **L101 (VREG inductor): DMBJ `CXP0420-3R3M-AG` (`C7461339`, Extended, 2,417 units live 2026-11-16)** (`pilink-2wq`). The original Coilcraft LPS4018-3.3uH is not stocked by JLCPCB. RP2350 datasheet section 6.3.8.2 requires 3.3uH +/-20%, DCR <= 250mOhm, Isat >= 1.5A, fully shielded, polarity-marked. The DMBJ part (3.3uH, DCR 87mOhm, Isat 4A, Irms 3A, integrated molded = fully shielded, 4.4x4.2mm) meets the electrical and shielding requirements but **has NO polarity mark -- a deviation accepted by the user**; orientation of L101 is therefore arbitrary. If core-supply noise shows up on the prototype, rework = rotate L101 180 degrees. The fully compliant alternative is Abracon `AOTA-B201610S3R3-101-T` (`C42411119`, 2.0x1.6mm, DCR 115mOhm, Isat 2.4A), but JLCPCB stock is ~1 unit (2026-11-16); use it (via JLCPCB global sourcing/consignment) if stock returns. An earlier try with Cenker CKCS4018-3.3uH (`C354572`) was rejected: resin-shielded only, no polarity mark. The project-local footprint `Inductor_SMD_Custom:L_DMBJ_CXP0420` uses a typical 0420-class land pattern derived from the 4.4x4.2mm outline -- **the datasheet dimension table/land pattern was not machine-readable here; verify pad size/spacing against it before fab.**
 
    (**U103 was also flagged here in an earlier draft of this BOM and is
    NOT a catalog gap — see its row below.** Three rounds of disputed
@@ -149,7 +138,7 @@ guarantee than this BOM's first draft claimed.
 | C101, C102 | 2 | 15pF, C0G/NPO, 50V | 0402 | C1548 | 0402CG150J500NT | Extended† | 307,300 |
 | R101, R102, R103 | 3 | 1k | 0402 | C11702 | 0402WGF1001TCE | Extended† | 18,224,200 |
 | SW101, SW102 | 2 | Side-actuated tactile switch (`pilink-7el.10`, swapped from PTS645) | SMD, right-angle, 4.5x3.4x3.3mm | C110293 | SKRTLAE010 | Extended | 42,775 |
-| L101 | 1 | 3.3uH, Isat 2.45A, DCR 70mOhm (RP2350B internal VREG inductor) | `Inductor_SMD:L_Cenker_CKCS4018`, 4.0x4.0x1.8mm | C354572 | CKCS4018-3.3uH/M | Extended | 2,180 |
+| L101 | 1 | 3.3uH, DCR 87mOhm, Isat 4A (RP2350B internal VREG inductor; no polarity mark, see flag 2) | `Inductor_SMD_Custom:L_DMBJ_CXP0420`, 4.4x4.2mm | C7461339 | CXP0420-3R3M-AG | Extended | 2,417 |
 | C103, C104, C105, C118 | 4 | 4.7uF, X5R, 6.3V | 0402 | C380302 | TCC0402X5R475M6R3AT | Extended† | 1,333,700 |
 | R104 | 1 | 33R | 0402 | C25105 | 0402WGF330JTCE | Extended† | 78,400 |
 | C106-C117 | 12 | 100nF, X7R, 16V | 0402 | C880604 | TCC0402X7R104M160AT | Extended† | 4,086,850 |
@@ -233,7 +222,7 @@ reference designator, re-verified on master at commit `5fef711`,
 usb_c 6 (J401, F401, R401-R404 — `pilink-1sj`'s R403/R404 CC-sense taps,
 commit `5fef711`, are now on master) — **68 real components on current
 master**. Of those, 67 are ordinary JLCPCB SMT line items (U103 included —
-it's a normal catalog part, not a gap, see flag 2) and L101 (now C354572) is likewise a normal catalog part, so there are no catalog gaps. The display panel itself is a 69th physical part that
+it's a normal catalog part, not a gap, see flag 2) and L101 (now C7461339) is likewise a normal catalog part, so there are no catalog gaps. The display panel itself is a 69th physical part that
 was never a schematic symbol (it connects via J501, which *is* counted
 above) and is sourced outside LCSC/JLCPCB entirely (flag 4).
 

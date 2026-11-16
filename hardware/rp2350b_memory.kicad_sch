@@ -4298,7 +4298,7 @@
     (property "Value" "3.3uH" (at 62.23 110.49 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "Inductor_SMD:L_Cenker_CKCS4018" (at 59.69 107.95 0)
+    (property "Footprint" "Inductor_SMD_Custom:L_DMBJ_CXP0420" (at 59.69 107.95 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (at 59.69 107.95 0)
