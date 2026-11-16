@@ -55,14 +55,14 @@ POWER_NETS = ["+5V", "Net-(D501-A)"]
 
 ORIGIN = (100.0, 100.0)
 # NOTE: comments below that quote x:[28,87] y:[5,47], 59.4, (59,37), 118 etc. describe the
-# pre-pilink-4qc geometry; the constants/tables are authoritative.
+# pre-pilink-4qc geometry (history only); the constants/tables are authoritative.
+# Face-mapping Q = 53 - board_y lives in enclosure/common.scad.
 BOARD_W, BOARD_H = 122.5, 50.0  # pilink-4qc: 118 -> 122.5 (X-flange worst case + >=1mm SW306/knob courtyard to edge)
 HOLE_D = 2.2  # M2 clearance, NPTH
-# Back-shell boss mounting holes. Not at the board's bare corners: the
-# ESP32 (upper-left) and encoder (lower-left) courtyards already claim the
-# whole left edge, so holes are placed in the genuinely free pockets --
-# top-right and bottom-right of the button zone, the bottom-left strip
-# below the encoder, and the gap between the top-edge switches and J501.
+# Back-shell boss mounting holes. Not at the board's bare corners; placed in
+# the genuinely free pockets (the pre-pilink-2yw rationale about ESP32/encoder
+# courtyards claiming the left edge is stale: U201 is now on B.Cu at the top
+# right). The HOLES list below is authoritative.
 # pilink-4qc: right holes follow the wider board (112 -> 116.5, same 6mm edge
 # margin). H4: the panel top edge is now y=4 (was 5), so (59,2.5)'s 4.0mm
 # screw head (reaches y=4.5) would overlap the 3.3mm-tall panel stack; there
@@ -99,8 +99,8 @@ def pt(x, y):
 
 
 # --- RP2350B and its ring of decoupling -----------------------------------
-# Cluster sits under the display panel shadow (see PANEL above, x:[28,87]
-# y:[5,47]): every part in this ring is a QFN/0402/SOIC/USON/crystal, all
+# Cluster sits under the display panel shadow (see PANEL above; pre-4qc
+# x:[28,87] y:[5,47], now x:[34.12,93.12] y:[4,46]): every part in this ring is a QFN/0402/SOIC/USON/crystal, all
 # comfortably <=2.5mm tall, so it's allowed under the glass per the
 # panel-shadow rule. Shifted left of J501's column (x:[56,63]) to leave it
 # clear.
