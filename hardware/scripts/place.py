@@ -137,94 +137,123 @@ P = {
     # between the rear legs (board-centre x=59, legs at +/-40mm -> x=19/99).
     # Flipped to B.Cu in main() (pcbnew FOOTPRINT.Flip, not expressible as
     # a plain (x,y,rot) tuple).
-    "J401": (59.0, 45.5, 0),
-    # F401/R401-404 moved off J401's own crowded pad forest (CC1/CC2/
-    # USB_DP/USB_DM/+5V all cross within a couple mm of the connector) into
-    # the clear pocket right of the backlight cluster -- Freerouting
-    # repeatedly left F401's own VBUS_RAW stub unrouted when these sat
-    # directly above J401; here there is room for a clean path.
-    # Shifted +9mm in Y vs the original pilink-7el.12 placement (pilink-2yw):
-    # the A/B/X/Y diamond below moved down by the same 9mm to make room for
-    # U201's relocation, and this pocket sits directly above the diamond's
-    # own left/bottom buttons, so it moved with it to stay clear.
-    "F401": (84.0, 45.0, 0),
-    "R401": (84.0, 41.0, 0),
-    "R402": (84.0, 39.0, 0),
-    "R403": (88.0, 41.0, 0),
-    "R404": (88.0, 39.0, 0),
+    # pilink-hdl (user decision, 2026-11-16): raised from y=45.5 to y=37.
+    # The proposal (6c) wants the plug exiting ~15mm up the back; with the
+    # shell's face mapping Qface = 52 - board_y (back_shell.scad) the old
+    # anchor was Qface 6.5, and pilink-8ry (PR #55) found a real 5-6.5mm
+    # cable boot would hit the table ~10-13mm behind the case from there.
+    # y=37 gives Qface 15 exactly. Real clearance probe (every footprint's
+    # bounding box, margin 1mm around J401's 9.05x5.35mm courtyard): nothing
+    # within 1mm at y=37 on either layer; the only neighbour that closes in
+    # higher up is J501 (courtyard bottom edge y=31.53) -- J401's courtyard
+    # top edge is y=34.32 here, 2.8mm clear, left as margin for the FPC
+    # fold rather than pushing to y=35 (0.8mm clear, Qface 17).
+    # x stays 59 (between the rear legs); that is inside the panel shadow
+    # either way, so J401's front-side THT leg protrusion flag is NOT
+    # resolved by moving it up (only moving it past x=87 would).
+    "J401": (59.0, 37.0, 0),
+    # F401/R401-404 (USB-C ESD/CC pocket), right of the backlight cluster.
+    # pilink-hdl: restored to their pre-pilink-2yw coordinates (undoing the
+    # +9mm-in-Y rigid-group shift pilink-2yw applied to keep clear of
+    # U201's old front-side pocket above the diamond) now that U201 has
+    # left the front side of the board entirely (see U201 below) -- nothing
+    # forces this pocket to stay shifted any more.
+    "F401": (84.0, 36.0, 0),
+    "R401": (84.0, 32.0, 0),
+    "R402": (84.0, 30.0, 0),
+    "R403": (88.0, 32.0, 0),
+    "R404": (88.0, 30.0, 0),
     # --- 3V3 LDO + bulk caps -----------------------------------------------
-    # pilink-2yw: relocated from the free pocket below the button diamond
-    # (90-106,42-47.5) into the column U201 vacated at the top-left (see
-    # U201 below) -- the diamond's own old pocket is now needed for U201
-    # itself (nothing else here was free/big enough; see the README PCB
-    # layout section for the full free-space accounting). Anchors keep the
-    # same internal geometry as the original cluster (U1 as the reference
-    # point, C1/C2/C3 at their original offsets from it), just translated
-    # as a rigid group to (14,10). Sits above the recentred encoder (SW303
-    # below), comfortably clear of its courtyard (>=1.3mm gap).
+    # pilink-2yw relocated this cluster from the free pocket below the
+    # button diamond (90-106,42-47.5) into the column U201 used to occupy
+    # at the top-left, to make room for U201's (then front-side) move.
+    # pilink-hdl: left here rather than moved back -- U201 is now on B.Cu
+    # (see below) and no longer needs any front-side column at all, but
+    # this spot is still clear of the recentred encoder (SW303, >=1.3mm
+    # gap, unchanged) and moving it again would just be more front-side
+    # churn for no placement benefit. Anchors keep the same internal
+    # geometry as the original cluster (U1 as the reference point, C1/C2/
+    # C3 at their original offsets from it).
     "C1": (4.0, 10.0, 0),
     "U1": (14.0, 10.0, 0),
     "C2": (14.0, 15.5, 0),
     "C3": (20.0, 10.0, 0),
-    # --- ESP32: top-right, above the A/B/X/Y diamond ------------------------
-    # pilink-2yw: relocated off the knob column (Andreas, 2026-11-16 --
-    # seeing the knob sit low in the preview, decided to move U201 rather
-    # than widen the board or leave the knob off-centre). Originally
-    # upper-left (14,12.5) with U.FL toward the top edge; the encoder below
-    # it could then only centre around y=31 (lower third), not y=25 (true
-    # board-vertical-centre), because both had to share the ~26mm-wide left
-    # column.
+    # --- ESP32: relocated to the BACK side (B.Cu) (pilink-hdl) --------------
+    # pilink-2yw (2026-11-16) moved U201 from upper-left (14,12.5) to a
+    # front-side pocket above the A/B/X/Y diamond at (99,11.6), to free the
+    # knob's column so SW303 could re-centre on true board y=25 -- but that
+    # forced the diamond itself 9mm off board-centre (y=34, not y=25) as a
+    # side effect. Andreas rejected that compromise (pilink-hdl): he wants
+    # BOTH the knob AND the diamond centred on y=25 simultaneously.
     #
-    # Real free-space check (not assumed -- measured every footprint's own
-    # F.CrtYd bounding box from the board, see the README PCB-layout table):
-    # U201's courtyard is ~19.6 x 20.3mm (local x:[-9.78,9.78]
-    # y:[-9.88,10.38]). Column (a), x<28 (left of the display-panel shadow),
-    # is the only place U201 fits *without* moving anything else, but that's
-    # exactly the column the knob needs to itself -- the bead's premise.
-    # Column (b), x>87 (right of the panel shadow), is 31mm wide and 50mm
-    # tall, which is plenty of *area*, but the A/B/X/Y diamond's real
-    # courtyard (not the bead's approximate 94-110/17-33 box -- the actual
-    # SW305-308 F.CrtYd union is x:[88.93,115.07] y:[13.58,36.43]) sits
-    # across the middle of it, leaving only ~13.6mm clear above and ~13.6mm
-    # clear below. Both the bead's suggested first candidates -- directly
-    # above the diamond, and to its right -- were checked geometrically and
-    # ruled out: 13.6mm of clear height is less than U201's ~19.6-20.3mm
-    # minimum footprint dimension in *either* orientation, and the gap to
-    # the board's right edge past SW306 is only ~2.9mm. There is no 90-deg
-    # rotation or margin trim that closes a 6mm shortfall.
-    # Fix applied (more disruptive than a pure U201 move, flagged as such):
-    # the whole A/B/X/Y diamond group (SW305-308, rigid, same internal
-    # +/-8mm geometry) shifted DOWN 9mm, from centre (102,25) to (102,34).
-    # That opens ~22.6mm clear above it -- enough for U201 unrotated, with
-    # a top-edge margin (~1.75mm, nudged from an initial 1.15mm once DRC
-    # flagged U201's silkscreen reference field clipping the board edge --
-    # the ref text sits 10.5mm beyond the footprint's own anchor, outside
-    # its courtyard) and a diamond-clearance margin (~0.6mm) left over. The
-    # diamond's own pull-up resistors (R305-308) and the
-    # F401/R401-404 USB pocket moved with it (see their own entries) so
-    # nothing is left stranded; the LDO cluster that used to sit in the
-    # diamond's old lower pocket moved into U201's old column instead (see
-    # above). SW101/SW102, J501, J401 and all 4 mounting holes are
-    # untouched -- confirmed clear of every new anchor below.
+    # A read-only feasibility scan (pilink-hdl's own investigation) found no
+    # front-side-only arrangement works: centring the diamond at (102,25)
+    # leaves only ~13.1mm clear above/below it to the board edge, short of
+    # U201's real courtyard (measured off this board: 19.55 x 20.25mm, local
+    # x:[-9.78,9.78] y:[-9.88,10.38]) by about 6-7mm in every front-side
+    # column tried. The only arrangement that lets both the knob and the
+    # diamond sit on y=25 at once is moving U201 off the front side
+    # entirely, onto B.Cu.
     #
-    # Antenna orientation unchanged (rot=0, U.FL end still toward y=0): the
-    # original "RF-ideal: highest point, away from the table, above ground
-    # plane" reasoning (ADR) still applies at this new spot -- U201's real
-    # F.CrtYd is 1.70mm from the board's top edge (measured, not the
-    # earlier "~1mm" guess), just in the right-hand column instead of the
-    # left. What that reasoning did NOT anticipate is being
-    # directly above the diamond rather than directly above the encoder;
-    # whether the U.FL->antenna-mount cable run is still short/clean from
-    # here is pilink-8hx.4's own geometry to re-check now that U201 moved,
-    # not re-derived here.
+    # Checked before committing to this (not assumed):
+    # - Real back-side obstructions: only J401 (B.Cu, x:[54.47,63.53]
+    #   y:[42.82,48.18]) and the through-hole LEAD positions of SW303 (the
+    #   encoder's 7 THT pins span x:[8.5,23] y:[19.4,30.6] -- much smaller
+    #   than its 17.55x14.25mm F.CrtYd) and J101 (THT, at (20,46)) poke
+    #   through to the back. Every other populated front-side footprint in
+    #   this project (SW101/SW102, SW305-308, J501, the ESP32 decoupling
+    #   network, all resistors/caps) is pure SMD (pad attribute SMD, 0mm
+    #   drill, confirmed by reading every pad on the board, not assumed from
+    #   part type) -- nothing else protrudes to the back. The whole
+    #   top-right quadrant (x>87, y<25ish), where U201 used to sit on the
+    #   front per pilink-2yw, is therefore completely free on B.Cu: no THT
+    #   protrusion, and H2 (112,6) clears U201's B.Cu courtyard at this same
+    #   anchor by >=3.2mm (same geometry pilink-2yw already DRC-verified
+    #   clean on the front -- flipping the layer doesn't change the XY
+    #   footprint or the H2/edge clearances it already passed).
+    # - Module height vs. the back-shell's own flat cavity (the real check
+    #   this bead asked for, same class as J401's own boss precedent, PR
+    #   #52): ESP32-WROOM-32UE's real datasheet-confirmed envelope (external-
+    #   antenna variant, both the 32D/U and 32E/UE datasheets agree,
+    #   .research/findings/2026-11-14-esp32-wroom-32ue-swap-eval.md point 3)
+    #   is 18.0 x 19.2 x 3.2mm -- the footprint's own F.Fab outline here
+    #   (18 x 19.2mm) matches that exactly, confirming 3.2mm is the real
+    #   mounted height above the PCB surface, not a guess. enclosure/
+    #   back_shell.scad's REAR_CLEARANCE (the flat cavity depth behind the
+    #   PCB before the back wall) is 3.0mm. 3.2mm > 3.0mm by only 0.2mm --
+    #   U201 overhangs the bare cavity by 0.2mm, the same class of problem
+    #   J401 had (which needed a 2.0mm local boss for its own 1.5mm
+    #   overhang), smaller for the module body alone. But 0.2mm understates
+    #   it: the mated U.FL plug (Hirose: max 2.5mm above the module PCB,
+    #   so roughly 3.3mm above the host PCB, module PCB ~0.8mm inferred) and
+    #   the Ø1.13mm pigtail also face the back shell and must exit/bend in
+    #   the same 3.0mm cavity -- real local relief, not a 0.2mm boss (see
+    #   README Known gap 8). This is a real, non-zero finding -- U201 needs
+    #   its own local relief on B.Cu at this spot -- flagged as a follow-up
+    #   for back_shell.scad (see the discovered-from bead filed alongside
+    #   this placement), not fixed in this PCB-only bead.
+    #
+    # Anchor kept at pilink-2yw's own (99,11.6) -- same XY, now on B.Cu
+    # (FOOTPRINT.Flip in main(), via BACK_SIDE below) instead of F.Cu. Since
+    # the courtyard/edge/H2 geometry at this XY was already DRC-verified
+    # clean on the front, and a B.Cu footprint occupying the same XY as a
+    # front-side SMD part (the recentred diamond, see below) is electrically
+    # and physically fine -- opposite sides of a double-sided board, no
+    # courtyard-overlap DRC rule spans layers -- reusing it needs no further
+    # geometric re-derivation, only the layer change. Antenna orientation
+    # (rot=0) unchanged; whether the U.FL->antenna-mount run is still
+    # sensible from the BACK of the board (not just a different front-side
+    # column) is pilink-8hx.4's own geometry to re-check, not re-derived
+    # here -- flagged as a follow-up, same as pilink-2yw flagged its own
+    # front-side move.
     "U201": (99.0, 11.6, 0),
-    # Decoupling/strap passives moved with U201, same relative offsets from
-    # its anchor as the original placement (just translated into column b;
-    # no decoupling network was re-routed internally, only moved as a rigid
-    # group). R202 relocated to U201's other side (toward the mounting hole
-    # H2/board edge, not toward the display-panel shadow) -- the panel-edge
-    # side only has ~2.2mm of clearance in the new spot, too tight for 5
-    # stacked 0402s; H2's side has ~9mm clear instead.
+    # Decoupling/strap passives moved to B.Cu with U201 (pilink-hdl) --
+    # same XY pilink-2yw already placed them at (kept, not re-derived: the
+    # panel-shadow clearance concern that drove R202's old "2.2mm is too
+    # tight" placement decision was a FRONT-side height rule and no longer
+    # applies to any of these now that they're on B.Cu), just following
+    # U201 to the back side so EN/strap/decoupling traces to its pads stay
+    # direct (no via) rather than crossing to the front.
     "C201": (87.2, 4.1, 0),
     "C202": (87.2, 7.1, 0),
     "R201": (87.3, 10.1, 0),
@@ -286,6 +315,10 @@ P = {
     # the old placement (board y=31), which was 9mm below face-centre
     # under the bottom-aligned convention or 6mm under the centred one --
     # there was never a single "~12mm-ish" figure.
+    #
+    # pilink-hdl: unchanged -- the knob was already exactly on board y=25
+    # as of pilink-2yw; this bead's own job was restoring the DIAMOND to
+    # y=25 too (see below) without re-opening the knob's own placement.
     "SW303": (8.5, 22.5, 0),
     "R304": (34.0, 30.0, 0),   # encoder A pull-up (GPIO22)
     "R303": (34.0, 32.0, 0),   # encoder B pull-up (GPIO23)
@@ -296,30 +329,27 @@ P = {
     # physical-position mapping is a layout choice, not schematic-
     # constrained (firmware maps GPIO24-27 to logical buttons separately,
     # see pilink-otf); documented here, not inferred.
-    # pilink-2yw: the whole group shifted DOWN 9mm as a rigid block, centre
-    # (102,25) -> (102,34), to open enough clear height above it for U201
-    # (see U201's own comment above for the full free-space accounting --
-    # this was the only change found that let U201 leave the knob's column
-    # without widening the board or touching the panel-shadow/J501/J401/
-    # mounting-hole zones the bead listed as fixed). This is a real,
-    # visible shift of the physical button cluster -- flagged in the PR/
-    # bead for pilink-8hx.2 (front shell) and pilink-8hx.4 (antenna mount)
-    # to re-check their own geometry against it, not just U201's move.
-    "SW308": (102.0, 26.0, 0),  # Y (top)
-    "SW307": (94.0, 34.0, 0),   # X (left)
-    "SW306": (110.0, 34.0, 0),  # B (right)
-    "SW305": (102.0, 42.0, 0),  # A (bottom)
-    # Pull-ups moved off their old spot (90,6-10.8), now inside U201's new
-    # footprint, to the only other clear sliver nearby: right of U201,
-    # between it and the board's right edge (U201's right courtyard edge
-    # is x=108.78; these sit past it with >=1mm clearance each side).
-    # Longer GPIO stubs to the diamond than before -- not routing-critical
-    # (pull-ups, not a high-speed net) and left for Freerouting like every
-    # other net in this layout.
-    "R308": (115.5, 5.0, 0),
-    "R307": (115.5, 7.0, 0),
-    "R306": (115.5, 9.0, 0),
-    "R305": (115.5, 11.0, 0),
+    # pilink-2yw shifted the whole group DOWN 9mm as a rigid block, centre
+    # (102,25) -> (102,34), to open enough clear height above it for U201's
+    # (then front-side) relocation. pilink-hdl restores centre (102,25)
+    # EXACTLY -- true board-vertical-centre, same target as the knob above
+    # -- now that U201 has moved to B.Cu (see U201's own comment above) and
+    # no longer needs any front-side room above or beside this diamond at
+    # all. Both the knob and the diamond now sit on board y=25
+    # simultaneously, which is what this bead was asked to achieve.
+    "SW308": (102.0, 17.0, 0),  # Y (top)
+    "SW307": (94.0, 25.0, 0),   # X (left)
+    "SW306": (110.0, 25.0, 0),  # B (right)
+    "SW305": (102.0, 33.0, 0),  # A (bottom)
+    # Pull-ups: pilink-hdl restores these to their pre-pilink-2yw spot
+    # (90, 6.0-10.8) -- the sliver right of U201's OLD front-side footprint
+    # that pilink-2yw had to vacate them from is irrelevant now that U201
+    # isn't on the front there at all; this original spot is clear again
+    # (nothing else claims x=90, y=6-10.8 on F.Cu).
+    "R308": (90.0, 6.0, 0),
+    "R307": (90.0, 7.6, 0),
+    "R306": (90.0, 9.2, 0),
+    "R305": (90.0, 10.8, 0),
     # --- SWD debug header (pilink-2ar), free pocket below the encoder ----
     # Rotated 180 so the pin-1-anchored courtyard extends UP from the
     # anchor instead of down -- lets it clear both the board's bottom edge
@@ -331,8 +361,12 @@ FACE = {"chip": (CX, CY), "l101": (CX + 6.5, CY - 10.6)}
 
 # Footprints that must end up on the back side (B.Cu): vertical-mount J401
 # mates perpendicular to the PCB and exits the rear wall, so it is a
-# back-side part (pilink-7el.11 / pilink-0do).
-BACK_SIDE = {"J401"}
+# back-side part (pilink-7el.11 / pilink-0do). pilink-hdl adds U201 (moved
+# to B.Cu so both the knob and the A/B/X/Y diamond can sit on board y=25 at
+# once, see U201's own placement comment above) and its decoupling/strap
+# network (C201/C202/R201/C203/R202), moved with it so their traces to
+# U201's pads stay direct rather than crossing layers.
+BACK_SIDE = {"J401", "U201", "C201", "C202", "R201", "C203", "R202"}
 
 
 def auto_orient(fp, target):
@@ -430,6 +464,19 @@ def main():
     for ref, (x, y, rot) in P.items():
         fp = board.FindFootprintByReference(ref)
         fp.SetPosition(pt(x, y))
+        if ref in BACK_SIDE and fp.GetLayer() == pcbnew.B_Cu:
+            # Already flipped on an earlier run: only the position is
+            # re-applied. Re-running SetOrientationDegrees(rot) on a
+            # B.Cu footprint rotates it 180 deg relative to what Flip()
+            # produced (found when U201's antenna end silently turned
+            # round on a second run, pilink-hdl) -- keep it idempotent.
+            # NOTE: this means the `rot` column of BACK_SIDE parts is only
+            # honoured on the FIRST (F.Cu -> B.Cu) run; editing it later is
+            # a no-op. To change a back-side part's orientation, flip it
+            # back to F.Cu in the board first. The board stores U201 at
+            # 180 (what Flip(LEFT_RIGHT) gives a rot-0 part), not 0.
+            print(f"{ref}: already on B.Cu, position only (rot column skipped)")
+            continue
         if isinstance(rot, str):
             fx, fy = FACE[rot]
             auto_orient(fp, pt(fx, fy))
