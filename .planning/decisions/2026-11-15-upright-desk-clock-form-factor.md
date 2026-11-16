@@ -227,20 +227,25 @@ board-local Y increasing downward (toward J401/the legs).
   pads directly: pins 1-14 run along local X=-8.75 from Y=-8.41 to
   Y=+8.1, pins 15-24 wrap the **Y=+9.35** short edge, pins 25-38 run back
   along X=+8.75. The **Y=-9.6 to -9.85 short edge has no pads at all** —
-  that's the module's antenna end (on-module U.FL receptacle), consistent
-  with the courtyard's own slight asymmetry (Y -9.85..+10.35) and with
-  the Reference silkscreen being placed off that same edge (`at 0 -10.5`).
-  In board coordinates that antenna end sits at board-local **Y ≈
-  2.65-2.9, X ≈ 5-23** (centered X=14) — i.e. only ~2.7-2.9 mm in from the
-  board's own top edge, on the left side. That means the U.FL pigtail's
-  run from the module to the antenna element in the top wall is short and
-  stays in the board's upper-left corner; it never approaches J401
+  that's the module's antenna end (on-module U.FL receptacle), with the
+  Reference silkscreen also placed off that same edge (`at 0 -10.5`) —
+  the courtyard's own slight asymmetry (Y -9.85..+10.35) actually extends
+  slightly *further* on the opposite (pin) side, so it's weak corroborating
+  evidence on its own; the no-pads edge plus the silkscreen placement are
+  the real basis for this read. In board coordinates **that module edge**
+  sits at board-local **Y ≈ 2.65-2.9, X ≈ 5-23** (centered X=14) — i.e. the
+  edge the U.FL receptacle is somewhere along, only ~2.7-2.9 mm in from the
+  board's own top edge, on the left side (exactly which corner of that edge
+  the receptacle sits at wasn't confirmed from a rendered datasheet drawing
+  — relevant to `pilink-8hx.4`). That means the U.FL pigtail's run from the
+  module to the antenna element in the top wall is short and stays in the
+  board's upper-left corner; it never approaches J401
   (board-local Y 42.9-48.1, 40+ mm away) or J501 (below). **No crowding.**
 - **J501 (display FPC ZIF):** `at 159.4 119 -90` absolute on `F.Cu` →
   board-local **(59.4, 19)**, rotated 90°. Un-rotated courtyard half-extents
   from the footprint's own `descr` (X ±12.70, Y -3.60..+3.30) swap under
   the 90° rotation, giving a board-local footprint/fold-zone envelope of
-  roughly X 55.8-62.7, **Y 6.3-31.7**. That sits inside the panel-shadow
+  roughly X 56.1-63.0, **Y 6.3-31.7**. That sits inside the panel-shadow
   keepout rectangle drawn on `Cmts.User` (board-local X 28-87, Y 5-47),
   as expected for a connector that lives behind the panel. Against J401
   (board-local Y 42.9-48.1): **~11 mm of Y clearance** even before
