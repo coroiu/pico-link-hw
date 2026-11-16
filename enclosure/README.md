@@ -240,10 +240,10 @@ edge, so the U.FL end and the cable's bend/exit are inside it: face X
 91.7..110.3, Q 30.5..52.0 (18.6 x 21.5mm). Pad: face X 90.2..111.8, Q
 29.0..53.5. The courtyard-based range from the bead (x 89.22..108.78)
 would clip the H2 mounting boss (left edge face X 110.5), so the module
-body is used instead. The 0.2mm left to the 7mm H2 boss was below FDM
-tolerance, so H2's boss is trimmed to 6.0mm OD (`BOSS_OD_H2`, 1.25mm wall
-around the 3.5mm insert): 0.7mm to the pocket, 1.0mm to the module body.
-Unverified: print strength of the thinner wall. The pad overlaps the
+body is used instead. H2 keeps the standard 7.0mm boss (`pilink-i72`; `pilink-3ym` had trimmed
+it to 6.0mm): the pocket edge (face X 110.3) is 0.2mm short of the boss's
+left edge (110.5), so they never overlap, and the pocket only cuts the
+back wall below the boss (bz 1.2..2.0), not the boss itself. The pad overlaps the
 right leg boss base (x=101, Q=40) -- a plain union, leg geometry unchanged.
 **Assumed, not verified:** U.FL receptacle at module centre X, ~3mm in
 from the antenna-end edge (board (99, 5.0)); it is not in the footprint.
