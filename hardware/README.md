@@ -958,9 +958,10 @@ The board is generated, not hand-drawn. From `hardware/`, in this order:
 | Step | Script | What it does |
 |---|---|---|
 | 1 | `scripts/place.py` | Outline, 4 M2 mounting holes, design-rule minimums, net classes, every footprint position |
+| 1b | `scripts/antenna_reroute.py` | (library) antenna-strip track/via keepout for `route.py`, and `check_strip()` which `zones.py` runs: exits non-zero if any track/via is under the antenna element other than the documented +3V3 B.Cu run (`pilink-kiw`; it replaced the old position-matching GPIO25/HCI_TXD reroute that silently no-oped after a re-route) |
 | 1b | `scripts/sw_keepout.py` | (library, not run directly) Alps SKRTLAE010 no-copper rule areas; called by `route.py` and `zones.py` |
 | 1c | `scripts/preroute.py` | Locked hand pre-route of USB D+/D- and the crystal (run after `place.py`, before `route.py`; idempotent) |
-| 2 | `scripts/route.py` | Freerouting autoroute of every net except the pre-routed ones (Specctra DSN/SES round-trip) |
+| 2 | `scripts/route.py` | Freerouting autoroute of every net except the pre-routed ones (Specctra DSN/SES round-trip); exports the SW101/102 no-copper areas and the antenna strip (board x 54..106, y 0..3) as track/via keepouts |
 | 3 | `scripts/widen.py` | Widens +3V3/+1V1/VREG_LX/VBUS_RAW to 0.4mm wherever DRC allows |
 | 4 | `scripts/zones.py` | GND pours on both layers, +3V3 heat spreader and stitching vias at U1 (grid points nudged to stay legal), USB stub cleanup |
 | check | `scripts/drc_summary.py -v` | `kicad-cli pcb drc` with schematic parity, summarised |
@@ -1349,10 +1350,18 @@ scripts):
    59.25..105.05 = board x 56.75..102.55 (face X = board X + 2.5; land
    58.25..106.05 less 1.0mm assembly clearance each end) and sits ~1.0mm
    above the board's top edge (Q 54 vs board edge Q 53). GPIO25 and
-   ESP32_HCI_TXD were moved by `scripts/antenna_reroute.py` (called from
-   `zones.py`, idempotent) off the B.Cu top-edge runs onto F.Cu lanes at
+   ESP32_HCI_TXD were moved off the B.Cu top-edge runs onto F.Cu lanes at
    y=3.29 and y=3.78; only the +3V3 B.Cu run (y~2.4, x 86..109) stays in
-   the strip. Measured with pcbnew (in-plane distance from the element
+   the strip. **`pilink-kiw`:** that move is now committed board state, not
+   a script step; `route.py` exports the strip as a Freerouting track/via
+   keepout and `zones.py` fails loudly (`antenna_reroute.check_strip`) if
+   copper is under the element (x 56.75..102.55, y<2.95) other than +3V3
+   B.Cu. A full re-route with the keepout (place -> preroute -> route ->
+   widen -> zones, Docker Freerouting) left the strip empty (+3V3 even
+   moved out to y 4.46) but produced 82 violations / 3 errors
+   (`copper_edge_clearance`: RESET_NODE diagonal 0.17mm from the top edge
+   at x~52, outside the strip), so the committed board was kept
+   (78/0/0/0, netlist 334/0). Measured with pcbnew (in-plane distance from the element
    line at 1.0mm above the edge; was, on master): nearest GND pour ~3.1mm
    (was 1.7mm), nearest copper of any net ~3.1mm (was ~1.9mm, the GPIO25
    via), nearest pad ~3.7mm (SW102 pad 1; was the same). Pour depth is
