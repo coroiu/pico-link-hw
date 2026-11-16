@@ -44,7 +44,7 @@ $fn = 48;
 // pilink-6lz: board size, wall, running clearance, FACE_W/FACE_H, the
 // board<->face mapping (board_to_x/board_to_q) and every board-local part
 // position (panel, knob, diamond, pinholes, mounting holes) now live in ONE
-// place, shared with the back shell, antenna mount, plunger and knob.
+// place, shared with the back shell and antenna mount.
 include <common.scad>
 
 /* ============================== Face / body ============================== */
@@ -79,7 +79,7 @@ FRONT_SHELL_DEPTH = FACE_T + GAP_FACE_TO_PCB; // 7.5 mm
 // pilink-lmg: 3.0mm, matching back_shell.scad's CORNER_R, so the outer rim
 // no longer steps at the Z=7.5 butt joint (was 6.0 here vs 3.0 there).
 // Picked 3.0 over 6.0 because the back shell's cavity corner radius derives
-// from CORNER_R and its cavity must clear the PCB's square 118x50 corners
+// from CORNER_R and its cavity must clear the PCB's square 122.5x50 corners
 // (pilink-cix), and a smaller radius only ADDS material at the four outer
 // corners / frees cavity corner volume (inner radius 6-2=4 -> 3-2=1), so
 // no face feature (display window, encoder bore, button bores, SW101/102

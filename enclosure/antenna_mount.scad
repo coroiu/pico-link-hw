@@ -362,7 +362,7 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE_WIDTH;  // 7.
 //   MOUNT_X_MIN = 54.5 + 1.5/2 + 3.0 = 58.25mm  (pilink-6lz; was 57.75)
 //   MOUNT_X_MAX = 58.25 + 47.8   = 106.05mm
 // Right-side margin to the assumed inner wall (FACE_W - WALL_THICKNESS =
-// 120mm) is then 120 - 105.55 = 14.45mm -- comfortably clear, no further
+// 125.5mm) is then 125.5 - 106.05 = 19.45mm -- comfortably clear, no further
 // tuning needed on that side.
 //
 // Cable-run consequence (pilink-3ym REWRITE -- the pre-pilink-hdl text here
@@ -381,7 +381,7 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE_WIDTH;  // 7.
 // (0.3) already take 0.7 of it under the land, so a Ø1.13 coax does NOT fit
 // across the PCB plane anywhere along the board edge. Resolved with a local
 // notch in the top wall, not by moving the PCB: common.scad
-// PIGTAIL_NOTCH_X0..X1 (face X 107..111, just right of this mount's land at
+// PIGTAIL_NOTCH_X0..X1 (face X 107..114, just right of this mount's land at
 // X <= 106.05 and left of H3's boss) cut 1.0mm deep into the front and back
 // shells' top walls (Q 54 -> 55, wall left 1.0mm) over Z 6.0..10.6 (the PCB
 // plane +/- 1.5), giving a 2.0mm-high crossing (the pre-pilink-6lz gap).
@@ -396,7 +396,7 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE_WIDTH;  // 7.
 // unresolved, pilink-bl2), so up to ~210mm of excess has to be stowed (coiled/looped) inside the enclosure.
 // pilink-phg: it is wound on a printed spool in the back shell's cavity
 // (back_shell.scad pigtail_spool(), board (73,18)), not in this mount. Clearances checked:
-//   - SW101/SW102 pinholes (face X 44.5/54.5, Q ~50.3) vs the cable at X ~95-111:
+//   - SW101/SW102 pinholes (face X 44.5/54.5, Q ~50.3) vs the cable at X ~95-114:
 //     >40mm apart.
 //   - Restored A/B/X/Y diamond (courtyard board y 13.58-36.43, front side)
 //     vs the cable at board y <= 5 on the back: 8.6mm in Y and on the
@@ -503,7 +503,7 @@ CLEARANCE_TO_PANEL_FRAME_ESTIMATE = PANEL_Y_MIN_FACE_LOCAL - ANTENNA_ELEMENT_FAC
 // the mount's X position for them; that call belongs to pilink-58z once
 // Andreas decides.
 echo(str("[pilink-8hx.4] Face-Y clearance (pilink-3ym: merged-shell board-to-face ",
-         "mapping Qface=52-by): element at ",
+         "mapping Qface=53-by): element at ",
          "face-y~", ANTENNA_ELEMENT_FACE_Y_ESTIMATE, "mm, board top edge at ",
          "face-y=", BOARD_TO_FACE_Y_OFFSET, "mm (~",
          CLEARANCE_TO_BOARD_TOP_EDGE_ESTIMATE, "mm clearance), panel frame top ",

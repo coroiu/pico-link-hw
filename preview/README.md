@@ -36,7 +36,7 @@ few seconds -- no restart needed.
   antenna mount) to STL via `openscad` (in parallel), converts them with
   `trimesh` into one coloured GLB per part plus `assembly.glb` -- every part
   in its assembled position, with the PCB placed using the .scad files' own
-  face mapping (`X = board_x + 2`, `Q = 52 - board_y`, PCB front surface
+  face mapping (`X = board_x + 2.5`, `Q = 53 - board_y`, from `enclosure/common.scad`; PCB front surface
   7.5mm behind the outer face) and the 15 degree lean -- and a
   `parts.json` manifest the page's part picker is built from. Each GLB is
   meshopt-compressed like the PCB one. It also finds the root

@@ -2,8 +2,8 @@
 // Pico Link enclosure -- shared board/face geometry (pilink-6lz)
 //
 // ONE definition of the board-to-face mapping, included by
-// front_shell.scad, back_shell.scad, antenna_mount.scad,
-// button_plunger.scad and knob.scad, and read (as plain `NAME = expr;`
+// front_shell.scad, back_shell.scad and antenna_mount.scad
+// (button_plunger.scad and knob.scad are board-independent and do not), and read (as plain `NAME = expr;`
 // lines) by enclosure/scripts/check_fit.py and
 // preview/scripts/export_enclosure.py. It contains no geometry, so it is
 // not rendered on its own (check_fit.py skips it).
@@ -94,7 +94,7 @@ PCB_MOUNT_HOLES_BOARD = [[10, 44], [116.5, 6], [116.5, 44], [29, 2.5]];
    (face X, Q, Z from the outer face), just right of the antenna mount's land
    (which ends at face X 106.05) and clear of H3's boss (Q <= 50.5). */
 PIGTAIL_NOTCH_X0 = 107.0;    // face X
-PIGTAIL_NOTCH_X1 = 111.0;    // face X
+PIGTAIL_NOTCH_X1 = 114.0;    // face X
 PIGTAIL_NOTCH_DEPTH = 1.0;   // mm into the top wall (Q 54 -> 55), 1.0mm of wall left
 PIGTAIL_NOTCH_Z0 = 6.0;      // face-frame Z: PCB slab is Z 7.5..9.1, +/- 1.5mm
 PIGTAIL_NOTCH_Z1 = 10.6;

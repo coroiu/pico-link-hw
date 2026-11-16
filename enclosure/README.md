@@ -45,8 +45,8 @@ line-based regex.
   diamond centre (108.25, 25) -> (110.75, 28) are on the horizontal centreline.
   `check_fit.py` asserts all of this.
 - **Pigtail notch:** the board-edge-to-top-wall gap is now 1.0mm, less than the
-  antenna mount's lip + element (0.7mm) plus the Ø1.13 coax, so a 4 x 1.0mm
-  notch (face X 107..111, Z 6.0..10.6, wall left 1.0mm) is cut into the top wall
+  antenna mount's lip + element (0.7mm) plus the Ø1.13 coax, so a 7 x 1.0mm
+  notch (face X 107..114, Z 6.0..10.6, wall left 1.0mm) is cut into the top wall
   of both shells just right of the mount (`PIGTAIL_NOTCH_*`). `check_fit.py`
   sweeps a Ø1.13 probe through it.
 - **Other changes:** the H4 boss is 7.5mm OD (H4 moved to (29, 2.5), which put a
@@ -259,7 +259,7 @@ J401 from (59, 45.5) to (59, 37). `back_shell.scad` now carries both.
 Not rendered (no OpenSCAD); arithmetic checked in Python.
 
 **J401.** `J401_FACE = board_to_face(59, 37)` = face (61, 15), plug
-centreline Qface 15.0 (was 6.5). Boss pad: `usbc_boss_pad_q0/q1` = 9.0 /
+centreline Qface 15.0 (was 6.5; Qface 16.0 since `pilink-6lz`). Boss pad: `usbc_boss_pad_q0/q1` = 9.0 /
 21.0 (the `USBC_BOSS_RISE*tan(15)` = 0.54mm clamp is now inactive); cutout
 Q 12.5..17.5. Lateral X is unchanged, so the leg clearance echoes (~31.5mm
 each side) hold. The four PCB mounting holes did not move (re-read from
@@ -545,6 +545,8 @@ contact first, the strip only if the placeholder strip position ships,
 and the cutout-tunnel entry above.
 
 ### USB-C cable-vs-table clearance, recomputed for Qface 15 (`pilink-3ym`)
+
+> `pilink-6lz`: the Q = 53 - by mapping moves J401 to Qface 16 (x 63.75); the table-contact figures below get slightly better (6.3mm boot: 46.5mm along the axis, from `back_shell.scad`'s echo, was 42.7). The strip is still not an obstacle.
 
 The `pilink-8ry` figures above are for the old Qface 6.5 and are kept as
 history. Same method and boot range (5.0-6.5mm, Anker 515 6.3mm as the
