@@ -43,7 +43,7 @@ or is marked as this file's own assumption.
   must not be unioned into either shell.
 - **Position:** face-local X 57.75-105.55mm, clear of both SW101 (X=44mm)
   and SW102 (X=54mm) top-edge pinholes by construction (3mm margin past
-  each pinhole's own ~1.5mm channel radius). A left-of-SW101 placement
+  each pinhole's own ~1.5mm channel diameter). A left-of-SW101 placement
   doesn't fit (only 38.25mm of clear width there, less than the 45.8mm
   element) — fixed per a code-reviewer's NOT APPROVED verdict on the first
   version (PR #48), which had the element physically colliding with
@@ -60,9 +60,12 @@ or is marked as this file's own assumption.
   and it *is* derivable from this file's own constants: the element sits
   roughly **4mm from the board's top edge and roughly 9mm from the display
   panel's frame** (both estimates, same unconfirmed board-to-face mapping
-  as the X-axis numbers), against the antenna datasheet's own guidance of
-  keeping metal/ground clear within roughly the element's own length
-  (~46mm). With only ~11mm of face above the panel in total, **no position
+  as the X-axis numbers), against general adhesive-FPC-antenna practice
+  cited in the research finding (not a figure from any datasheet — the
+  32UE's own datasheet carries no such keepout, and no antenna datasheet
+  in this repo states one either) of keeping metal/ground clear within
+  roughly the element's own length (~46mm). With only ~11mm of face above
+  the panel in total, **no position
   in the top wall can meet that guidance** — this is a real RF-performance
   risk (reduced range/link reliability), not a modeling gap. It's tracked
   as its own product decision in `pilink-58z` (P1, discovered from this

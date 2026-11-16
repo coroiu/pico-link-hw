@@ -40,6 +40,23 @@
 // fixes all of those -- see the comments at each fix below and
 // `.planning` bead `pilink-58z` for the RF-clearance trade-off this file
 // now surfaces instead of hiding.
+//
+// A third NOT APPROVED round (47e528d) found the strain-relief clip, as
+// built after round 2, couldn't actually hold the cable: its snap-in slot
+// (1.43mm) was wider than the 1.13mm coax it was meant to grip; its wall
+// thickness was silently tied to LIP_WIDTH and had been thinned to 0.5mm
+// along with it; it floated 0.7mm off the wall surface with no real
+// support; and its slot opened sideways (-X) while the channel's own
+// groove opens upward (+Z), a kink in the cable's path. This revision
+// gives the slot its own under-the-coax width, gives the clip its own
+// independent wall-thickness constant, adds support legs down to the
+// wall surface, and reorients the slot to open the same way as the
+// groove -- see strain_relief_clip() and the legs added just after its
+// call site below. That round also found this file's own README wording
+// overstated the ~46mm clearance figure's source as "the antenna
+// datasheet's own guidance" -- fixed in README.md to match what this
+// file already said (general adhesive-FPC-antenna practice, not a
+// datasheet figure).
 
 // ---------------------------------------------------------------------------
 // Antenna part -- Kinghelm KH-FPC2.4G-1.13IPEX-240, LCSC C4943394. Selected
@@ -184,7 +201,24 @@ STRAIN_RELIEF_CLIP_ID = 1.6;  // mm, snug over the 1.13mm coax
 // orientation fix, see strain_relief_clip() below) for a printed C-clip to
 // grip a cable this thin (Ø1.13mm), just not generously so.
 STRAIN_RELIEF_CLIP_HEIGHT = 1.0; // mm
-STRAIN_RELIEF_CLIP_SLOT_WIDTH = ANTENNA_CABLE_DIAMETER + 0.3; // mm, narrow snap-in slot -- wide enough for the 1.13mm coax to press through, not the full half-ring opening the first version cut (which left a U, not a C -- see PR review item 8)
+// *** FIX for PR #48 review round 3 (blocking, "clip can't actually hold
+// the cable") ***
+// This was ANTENNA_CABLE_DIAMETER + 0.3 = 1.43mm -- WIDER than the 1.13mm
+// coax, so the cable dropped straight through with no snap at all
+// (contradicts the "press through / snap over and hold" comments below).
+// A snap-fit slot has to be narrower than the thing it grips so the
+// printed plastic has to flex open to let the cable in and spring back
+// after; sized here a little under the coax diameter rather than a little
+// over it.
+STRAIN_RELIEF_CLIP_SLOT_WIDTH = 0.95; // mm, narrow snap-in slot, deliberately UNDER the 1.13mm coax diameter so the ring has to flex open to admit the cable and then grip it, not the full half-ring opening the first version cut (which left a U, not a C -- see PR review item 8)
+// *** FIX for PR #48 review round 3 (blocking, "wall thickness silently
+// cut via LIP_WIDTH coupling") ***
+// The clip ring's own wall used to be computed as `clip_id + 2*lip_width`,
+// so cutting LIP_WIDTH (mount lip, a completely different part of the
+// model) from 0.8 to 0.5mm in the previous round silently thinned the
+// clip's wall too, down to 0.5mm -- about one 0.4mm-nozzle extrusion
+// width. Given its own constant here instead, independent of LIP_WIDTH.
+STRAIN_RELIEF_CLIP_WALL = 0.8; // mm, clip ring's own radial wall thickness -- independent of LIP_WIDTH (different part of the model), kept at a minimum of 0.8mm so it actually has grip strength when printed
 
 // Land (adhesive mounting area) footprint, element + clearance on all sides.
 MOUNT_LAND_LENGTH = ANTENNA_ELEMENT_LENGTH + 2 * ASSEMBLY_CLEARANCE; // 47.8mm
@@ -212,17 +246,28 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE;  // 8.5mm
 //   total Y-span:                      9.0 + 1.0 + 1.0 = 11.0mm
 // That is down from ~19mm to ~11mm, but still about 1mm (~10%) OVER the
 // ~10mm estimated wall-cavity budget -- NOT fully resolved. The land+lip
-// side alone (9.0mm) already consumes nearly the whole budget, since the
-// land's own width is driven by the physical element (6.5mm) plus a
-// modest assembly margin, not by a tunable default. Squeezing the channel
-// stub and clip any further would start compromising their function (a
-// clip ring thinner than ~1mm along the cable axis is unlikely to grip a
-// cable reliably when printed). Stated plainly rather than silently
-// forced to fit: this mount's depth is very tight against the estimated
-// 10mm cavity and may need pilink-8hx.1/pilink-8hx.2's actual 3D wall
-// geometry to either confirm a bit more than 10mm is really available, or
-// to route the strain-relief clip off this straight-line axis entirely
-// (e.g. letting the cable turn a corner into the cavity below rather than
+// side alone (9.0mm) already consumes nearly the whole budget.
+// *** FIX for PR #48 review round 3 (non-blocking nit): the previous
+// wording here claimed the land's width was "not by a tunable default",
+// which overstated things -- only the physical element (6.5mm) and
+// LIP_WIDTH are fixed; ASSEMBLY_CLEARANCE (1.0mm per side here) IS this
+// file's own tunable choice. Tightening it to 0.5mm on this width axis
+// alone (keeping it at 1.0mm on the length axis, where it isn't the
+// binding constraint) would land the stack at exactly the 10.0mm budget.
+// Not taken in this round: that's a third independent margin to cut in
+// the same PR (after LIP_WIDTH and the clip height/wall), and stacking
+// more cuts on top of each other without pilink-8hx.1/.2's real cavity
+// geometry to check the result against risks over-correcting. So there
+// IS a small amount of slack left on this axis -- just not spent here.
+// Squeezing the channel stub and clip any further would start
+// compromising their function (a clip ring thinner than ~1mm along the
+// cable axis, or a wall thinner than ~0.8mm, is unlikely to grip a cable
+// reliably when printed). Stated plainly rather than silently forced to
+// fit: this mount's depth is very tight against the estimated 10mm cavity
+// and may need pilink-8hx.1/pilink-8hx.2's actual 3D wall geometry to
+// either confirm a bit more than 10mm is really available, or to route
+// the strain-relief clip off this straight-line axis entirely (e.g.
+// letting the cable turn a corner into the cavity below rather than
 // continuing straight back) once that geometry exists to design against.
 
 // ---------------------------------------------------------------------------
@@ -358,7 +403,8 @@ CLEARANCE_TO_PANEL_FRAME_ESTIMATE = PANEL_Y_MIN_FACE_LOCAL - ANTENNA_ELEMENT_FAC
 // is not a marginal shortfall and not something a different X position in
 // this same top wall can fix: EVERY top-wall position puts the element
 // within single-digit mm of the board's top-edge copper and the panel
-// frame, roughly 5-10x closer than the ~46mm guidance asks for. That is a
+// frame, roughly 5-11x closer (46/9 ~= 5.1x to the panel frame, 46/4 ~=
+// 11.5x to the board edge) than the ~46mm guidance asks for. That is a
 // real RF-performance trade-off (reduced range/link reliability risk), not
 // a modeling gap to leave open in an echo() addressed to a mechanical
 // fit-check bead. It is now tracked as its own product decision in
@@ -491,7 +537,6 @@ module antenna_mount(
 
   color("SlateGray") channel();
 
-  channel_boss_height = channel_depth + 1.0; // mirrors channel()'s own boss_height, see note there
   // Height of the channel's groove axis, mirroring channel()'s own
   // groove_z (boss_height - channel_depth + channel_width/2, and
   // boss_height - channel_depth is always 1.0 by construction above) --
@@ -523,8 +568,25 @@ module antenna_mount(
   // channel's own direction, not Z). Fixed by building the ring with its
   // bore along Y instead, so the cable passes straight through it in the
   // same direction it travels through the channel.
+  //
+  // *** FIX for PR #48 review round 3 (blocking, "slot opens the wrong
+  // way") ***
+  // The slot used to be cut along pre-rotation -X, which rotate([90,0,0])
+  // (rotation about the X axis) leaves unchanged -- so after the Y-bore
+  // fix above, the slot still opened sideways (-X) while the channel's
+  // own groove opens upward (+Z, see channel()'s "open at the boss's top
+  // face"). A cable can't travel from the groove into the clip without a
+  // 90-degree kink if the two don't open the same way. rotate([90,0,0])
+  // maps a pre-rotation point (x,y,z) to (x,-z,y), so a slot that opens
+  // along pre-rotation +Y lands on post-rotation +Z. Cut that way below
+  // instead, so the slot opens the same direction as the groove.
   module strain_relief_clip() {
-    outer_d = clip_id + 2 * lip_width;
+    // *** FIX for PR #48 review round 3 (blocking, "wall thickness
+    // silently cut via LIP_WIDTH coupling") ***
+    // Was `clip_id + 2 * lip_width`, coupling this ring's wall to the
+    // mount lip's width. Uses its own STRAIN_RELIEF_CLIP_WALL constant
+    // now (see the constant's own comment above for why).
+    outer_d = clip_id + 2 * STRAIN_RELIEF_CLIP_WALL;
     // Built with the bore along Z first (easiest to reason about radii
     // and the slot cut), then rotated 90 degrees about X so the bore ends
     // up along Y. rotate([90,0,0]) maps a Z-axis bore to a Y-axis bore;
@@ -537,10 +599,13 @@ module antenna_mount(
           cylinder(h = clip_height, d = outer_d, $fn = 32);
           translate([0, 0, -0.1])
             cylinder(h = clip_height + 0.2, d = clip_id, $fn = 32);
-          // Narrow snap-in slot from the outer edge through to the bore,
-          // on one side only, running the full length of the clip.
-          translate([-outer_d / 2 - 0.1, -STRAIN_RELIEF_CLIP_SLOT_WIDTH / 2, -0.1])
-            cube([outer_d / 2 + 0.2, STRAIN_RELIEF_CLIP_SLOT_WIDTH, clip_height + 0.2]);
+          // Narrow snap-in slot from the bore out through the outer edge,
+          // on one side only, running the full length of the clip. Cut
+          // along pre-rotation +Y (not +/-X) so it opens along +Z after
+          // the rotate([90,0,0]) above -- see the fix note at this
+          // module's top.
+          translate([-STRAIN_RELIEF_CLIP_SLOT_WIDTH / 2, -0.1, -0.1])
+            cube([STRAIN_RELIEF_CLIP_SLOT_WIDTH, outer_d / 2 + 0.2, clip_height + 0.2]);
         }
   }
 
@@ -550,6 +615,44 @@ module antenna_mount(
   // stacked on top of the boss -- see channel_groove_z above.
   translate([channel_exit_x, -channel_length - clip_height / 2, channel_groove_z])
     color("DimGray") strain_relief_clip();
+
+  // *** FIX for PR #48 review round 3 (blocking, "clip floats off the
+  // wall") ***
+  // After the round-2 re-centring on the groove axis, the ring (outer
+  // radius = (clip_id + 2*STRAIN_RELIEF_CLIP_WALL)/2 = 1.6mm, centered at
+  // z = channel_groove_z = 2.0mm) spans z = 0.4 to 3.6 -- 0.4mm clear of
+  // the wall surface at z=0, with its only attachment a face shared with
+  // the channel boss's own end. Not structurally sound on its own.
+  //
+  // Adds two legs from the wall surface (z=0) up into the ring's own
+  // solid wall material, one on each side of the bore -- NOT a single
+  // block spanning the full width, which would plug part of the cable's
+  // own through-bore (clip_id-diameter hole) where it dips below
+  // channel_groove_z. Each leg sits at |x_local| in
+  // [clip_id/2, clip_id/2 + STRAIN_RELIEF_CLIP_WALL], i.e. exactly the
+  // ring's own annulus width, outside both the bore (radius clip_id/2)
+  // and the snap-in slot (|x_local| < STRAIN_RELIEF_CLIP_SLOT_WIDTH/2,
+  // well inside the bore radius) -- so it only ever adds material where
+  // the ring is already solid, reaching a bit past the ring's own center
+  // height (see leg_z below) for real volumetric overlap, not just a
+  // touching edge.
+  clip_bore_r = clip_id / 2;                             // 0.8mm
+  clip_outer_r = clip_id / 2 + STRAIN_RELIEF_CLIP_WALL;  // 1.6mm, = outer_d/2 above
+  leg_width = clip_outer_r - clip_bore_r;                // 0.8mm
+  leg_y = -channel_length - clip_height;                 // matches the ring's own Y-span
+  // Up to slightly past the ring's own center height (channel_groove_z),
+  // not stopping exactly at it: at the leg's inner edge (x_local =
+  // clip_bore_r, right at the bore boundary) the ring's solid annulus
+  // only starts a bit past the center height on that boundary line, so
+  // stopping the leg exactly at channel_groove_z would touch the ring
+  // there along a knife-edge instead of a real overlapping volume. The
+  // margin below gives real overlap depth even at that worst-case edge.
+  leg_z = channel_groove_z + 0.5;
+
+  translate([channel_exit_x + clip_bore_r, leg_y, 0])
+    color("DimGray") cube([leg_width, clip_height, leg_z]);
+  translate([channel_exit_x - clip_outer_r, leg_y, 0])
+    color("DimGray") cube([leg_width, clip_height, leg_z]);
 }
 
 // Self-contained preview assembly: places antenna_mount() at
