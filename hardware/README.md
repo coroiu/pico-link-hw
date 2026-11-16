@@ -53,6 +53,33 @@ part's own 4.7uF-ceramic stability requirement, so neither cap needed to
 change. See `power.kicad_sch`'s own U1 note for the full resolved margin
 math.
 
+**U1 thermal check and bring-up flags (pilink-mxx).** Neither is a
+regression from the AMS1117 (same SOT-223 exposure); both were left open
+by `pilink-ddq` and are recorded here so they are not assumed fine:
+
+- *Thermal (layout time).* AP2114H-3.3TRG1's datasheet gives roughly
+  128°C/W junction-to-ambient for the bare SOT-223 and a ~160°C thermal
+  shutdown. Dissipation is (VIN - 3.3V) x I. Sustained worst case, 5.25V
+  VIN at 0.65A: 1.27W, a 162°C rise on the bare package -- over shutdown
+  even from a cool start. Realistic case, 5.0V at ~0.2A average (RP2350B,
+  display, ESP32 averaging ~80mA): ~0.34W, a ~44°C rise, comfortable. The
+  0.65A figure is the ESP32 TX-burst *peak* (ms-scale), not a sustained
+  load, so the real exposure sits between those two. To survive the
+  sustained worst case at 40°C ambient the layout would need
+  junction-to-ambient below ~95°C/W (~106°C/W at 25°C), i.e. about a
+  quarter below the bare package. The PCB provides a +3V3 heat-spreader
+  pour around U1's VOUT tab on both layers (`zones.py`, ~270mm^2 filled)
+  stitched with 36 vias, but no datasheet-backed number for the resulting
+  junction-to-ambient exists, so this stays a **bench measurement**:
+  record case temperature of U1 on the first board under the worst
+  sustained load available before trusting the margin.
+- *Bring-up (bench).* AP2114H-3.3's datasheet limits short-circuit current
+  to ~50mA (foldback) and says input must be applied before a
+  current-source load is connected. Verify on the first board that +3V3
+  starts cleanly into the full rail and its bulk capacitance (C2 22uF
+  plus the per-pin decouplers), with no latch-up in a slow or stalled
+  ramp; scope the +3V3 rise at power-up and after an F401 PTC trip/reset.
+
 Unlike the rest of this skeleton, this sheet **was** validated with the real
 tools: `kicad-cli sch erc --severity-all --exit-code-violations` reports 0
 violations on both `power.kicad_sch` and the root `pico-link-hw.kicad_sch`,
