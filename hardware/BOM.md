@@ -37,6 +37,14 @@ guarantee than this BOM's first draft claimed.
 
 ## Assembly-method flags (read this before ordering)
 
+0. **JLCPCB BOM/position exports MUST use `--exclude-dnp`.** J101 is DNP
+   (`pilink-cto`), but `kicad-cli` only drops DNP parts when told to, so
+   JLCPCB would otherwise place it. Verified against `--help` for this
+   KiCad install: `kicad-cli sch export bom --exclude-dnp ...` and
+   `kicad-cli pcb export pos --exclude-dnp ...` (both flags exist).
+   Check that J101 is absent from both generated files before upload.
+   See `hardware/README.md` fab-output notes.
+
 1. **RM2 vs ESP32-WROOM-32UE — this design does NOT use RM2.** The
    Bluetooth coprocessor is Espressif's **ESP32-WROOM-32UE-N4** (U201,
    LCSC `C701344`), a JLCPCB-catalog SMT module confirmed assemblable by
@@ -150,7 +158,7 @@ guarantee than this BOM's first draft claimed.
 | U103 | 1 | APS6404L-3SQR-ZR (8MB QSPI PSRAM) | USON-8L | C3040877 | APS6404L-3SQR-ZR | Extended (confirmed via JLCPCB's own API + partdetail page — see flag 2 note) | 1,268 |
 | C121 | 1 | 2.2uF, X5R, 50V | 0603 | C7432769 | HGC0603R5225K500NTHJ | Extended† | 417,960 |
 | R105 | 1 | 100k | 0402 | C25530 | 0402WGJ0104TCE | Extended† | 9,817,600 |
-| J101 | 1 | **DNP (pilink-cto: do not assemble; footprint/pads only)** SWD debug header, 3-pin, 2.54mm pitch (`pilink-2ar` — SWCLK/GND/SWDIO; pitch corrected in PR #43 review — 1.27mm doesn't match any cable Raspberry Pi's Debug Probe actually ships with) | THT vertical, 1x3P | C32713269 | Hanxia HX PZ2.54-1x3P ZZ | Extended | 60,450 (checked live via `jlcpcb-search` MCP 2026-11-16, same session as the PR #43 review fix — not re-checked against the rest of this BOM's 2026-11-15 13:12 snapshot) |
+| J101 | 1 | **DNP (pilink-cto: do not assemble; footprint/pads only)** SWD debug header, 3-pin, 2.54mm pitch (`pilink-2ar` — SWCLK/GND/SWDIO; pitch corrected in PR #43 review — 1.27mm doesn't match any cable Raspberry Pi's Debug Probe actually ships with) | THT vertical, 1x3P | C32713269 | Hanxia HX PZ2.54-1x3P ZZ | Extended | 59,160 (single snapshot: `jlcpcb-search` MCP, 2026-11-16; earlier 60,450 / 59,380 figures superseded; not re-checked against the rest of this BOM's 2026-11-15 13:12 snapshot) |
 
 ## ESP32 BT coprocessor (`esp32_bt.kicad_sch`, refs 200-299)
 
@@ -256,7 +264,7 @@ Re-checked live via `jlcpcb-search` MCP, 2026-11-16.
 
 **Update (`pilink-cto`):** `J101` is now **DNP** (schematic `dnp`, PCB
 footprint `dnp` attribute; pads kept). The Hanxia `PZ2.54-1x3P ZZ` (LCSC
-`C32713269`, 59,380 in stock 2026-11-16) really is 2.5mm plastic + 6mm
+`C32713269`, 59,160 in stock 2026-11-16) really is 2.5mm plastic + 6mm
 mating pin + 3mm solder tail (LCSC spec table), so 8.5mm above the PCB
 face -- 3mm taller than the 5.5mm front cavity, i.e. the pins would pierce
 the 2mm face plate. A short/low-profile 2.54mm header can't work either

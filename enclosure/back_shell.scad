@@ -113,11 +113,12 @@ CORNER_R = 3.0;  // style choice (AES: "deliberate but not aggressive
 PCB_MOUNT_HOLES_FACE  = [ for (p = PCB_MOUNT_HOLES_BOARD) board_to_face(p[0], p[1]) ];
 // -> [[12.5,43], [119,47], [119,9], [31.5,50.5]] in (Pface, Qface).
 //
-// H4 (board-local (29,2.5), -> face (31.5,50.5)): at pilink-8ag the hole sat
-// at (59,2.5) so its screw HEAD (driven in from the FRONT, through the PCB)
+// H4 (current position comes from PCB_MOUNT_HOLES_BOARD in common.scad,
+// board (29,2.5)): at pilink-8ag the hole sat at (59,2.5) so its screw HEAD (driven in from the FRONT, through the PCB)
 // stayed clear of the display panel envelope; pilink-4qc moved the panel to
 // y 4..46 and H4 to x 29 (left of the panel, which starts at x 34.12), head
-// radius 2.0 -> reaches x 31, 3.1mm clear.
+// radius 2.0 -> reaches x 31, 3.1mm clear. Do not hard-code face
+// coordinates here; derive them via board_to_face().
 
 // Heat-set insert sizing: no bead/finding pins an exact insert down for
 // this project, so this is this file's own reasonable-default choice,
