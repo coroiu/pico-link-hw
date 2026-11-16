@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Pico Link HW preview</title>
 <script>
-  // pcb.glb is meshopt-compressed (see scripts/export.sh); model-viewer has
+  // pcb.glb and the enclosure GLBs are meshopt-compressed (see scripts/export.sh); model-viewer has
   // no default decoder location, so point it at the vendored copy. Must be
   // set before model-viewer.min.js loads.
   self.ModelViewerElement = self.ModelViewerElement || {};
@@ -56,6 +56,42 @@
     font-size: 1rem;
     margin: 0 0 8px;
   }
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .card-head h2 { margin: 0; }
+  .card-head select {
+    font: inherit;
+    font-size: 0.85rem;
+    max-width: 60%;
+    padding: 4px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--fg);
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .legend span::before {
+    content: "";
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 4px;
+    border-radius: 2px;
+    vertical-align: -1px;
+    background: var(--swatch);
+  }
   model-viewer {
     width: 100%;
     height: 360px;
@@ -104,9 +140,16 @@
   </div>
 
   <div class="card">
-    <h2>Enclosure (3D)</h2>
-    <model-viewer id="enclosure-model" src="/models/enclosure.glb" camera-controls auto-rotate
-      shadow-intensity="1" exposure="1" alt="Enclosure 3D model"></model-viewer>
+    <div class="card-head">
+      <h2>Enclosure (3D)</h2>
+      <select id="enclosure-part" aria-label="Enclosure part">
+        <option value="">loading parts...</option>
+      </select>
+    </div>
+    <model-viewer id="enclosure-model" camera-controls auto-rotate
+      camera-orbit="25deg 75deg auto" shadow-intensity="1" exposure="1"
+      alt="Enclosure 3D model"></model-viewer>
+    <div id="enclosure-legend" class="legend"></div>
   </div>
 
   <div class="card render">
@@ -133,6 +176,59 @@
   // from the last known export time.
   let lastExport = null;
 
+  // Enclosure: export_enclosure.py writes one GLB per part plus assembly.glb
+  // and a parts.json manifest; the picker is rebuilt from it on each export
+  // (keeping the current selection if that part still exists).
+  const partSelect = document.getElementById('enclosure-part');
+  const encViewer = document.getElementById('enclosure-model');
+  const legend = document.getElementById('enclosure-legend');
+  let encEntries = [];
+
+  function showEnclosure() {
+    const entry = encEntries.find(e => e.key === partSelect.value);
+    if (!entry) return;
+    bust(encViewer, 'src', '/models/enclosure/' + entry.file, lastExport || '');
+    const shown = entry.key === 'assembly'
+      ? encEntries.filter(e => e.color)
+      : encEntries.filter(e => e.key === entry.key);
+    legend.innerHTML = '';
+    for (const e of shown) {
+      const span = document.createElement('span');
+      span.style.setProperty('--swatch', e.color);
+      span.textContent = e.label;
+      legend.appendChild(span);
+    }
+    if (entry.key === 'assembly' && entry.pcb) {
+      const span = document.createElement('span');
+      span.style.setProperty('--swatch', '#2f6b3a');
+      span.textContent = 'PCB';
+      legend.appendChild(span);
+    }
+  }
+
+  async function loadEnclosureParts(ts) {
+    try {
+      const res = await fetch('/models/enclosure/parts.json?t=' + encodeURIComponent(ts), { cache: 'no-store' });
+      if (!res.ok) throw new Error('status ' + res.status);
+      const m = await res.json();
+      encEntries = (m.assembly ? [m.assembly] : []).concat(m.parts || []);
+      const keep = partSelect.value;
+      partSelect.innerHTML = '';
+      for (const e of encEntries) {
+        const opt = document.createElement('option');
+        opt.value = e.key;
+        opt.textContent = e.label;
+        partSelect.appendChild(opt);
+      }
+      if (encEntries.some(e => e.key === keep)) partSelect.value = keep;
+      showEnclosure();
+    } catch (err) {
+      partSelect.innerHTML = '<option value="">no enclosure export yet</option>';
+    }
+  }
+
+  partSelect.addEventListener('change', showEnclosure);
+
   function bust(el, attr, baseUrl, ts) {
     el.setAttribute(attr, baseUrl + '?t=' + encodeURIComponent(ts));
   }
@@ -145,7 +241,7 @@
       if (data.last_export && data.last_export !== lastExport) {
         lastExport = data.last_export;
         bust(document.getElementById('pcb-model'), 'src', '/models/pcb.glb', lastExport);
-        bust(document.getElementById('enclosure-model'), 'src', '/models/enclosure.glb', lastExport);
+        loadEnclosureParts(lastExport);
         bust(document.getElementById('pcb-render-front'), 'src', '/renders/pcb-front.svg', lastExport);
         bust(document.getElementById('pcb-render-back'), 'src', '/renders/pcb-back.svg', lastExport);
         bust(document.getElementById('schematic-pdf'), 'src', '/renders/schematic.pdf', lastExport);
