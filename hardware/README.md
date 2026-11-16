@@ -977,14 +977,17 @@ not re-derived here.
 | Rule (ADR / proposal 6c) | Applied as |
 |---|---|
 | Outline ~118 x 50mm, parallel to the ~122 x 56mm face | `BOARD_W, BOARD_H = 118.0, 50.0` |
-| Knob (SW303) centre in the lower third of the left zone, ~19mm up the face | Shaft/knob centre at **(16, 31)** -- the footprint's own anchor is pad A, not the shaft (confirmed from the footprint's F.Fab shaft circle, centred at local (7.5, 2.5)), so the placed anchor is (8.5, 28.5) |
-| ESP32 (U201) upper-left, U.FL toward the top edge | Anchor **(14, 12.5)**. Confirmed from the stock `ESP32-WROOM-32UE` footprint's own F.Fab outline (not assumed): the antenna end is the short edge beyond pins 1/38 (local y=-9.6), opposite the single pad row 15-24 (local y=+9.35); rotation 0 puts that end toward y=0, the board's top edge |
+| Knob (SW303) centred near the board's true vertical middle (`pilink-2yw`, 2026-11-16 -- supersedes the original "lower third, ~19mm up the face" rule below, which was only a consequence of sharing a column with U201, not a deliberate target) | Shaft/knob centre at **(16, 25)** -- exactly board-vertical-centre (50/2), no compromise needed once U201 left this column. Footprint anchor is pad A, not the shaft (local offset (7.5, 2.5) from anchor), so the placed anchor is **(8.5, 22.5)**. Re the README's own board-to-face mapping caveat below, with the two conventions kept straight (a code-review correction to this cell, `pilink-2yw`, 2026-11-16 -- the arithmetic below previously had them swapped): under the README's stated (unverified) **bottom-aligned** default (board's bottom edge flush with the face's bottom edge), the face's own vertical centre (28mm up the ~56mm face) falls at **board y=22**, so this placement (board y=25) sits **3mm below** the face's centre under that convention -- not exactly centred on it. If instead the face is **centred on the board** (6mm of slack split evenly top/bottom), the face's visual centre reads as **board y=25**, exactly matching this placement -- "exactly centred" is only true under that second convention. Which of the two is real is still open, per the caveat below, for `pilink-8hx.1`/`.2` to confirm against the actual boss geometry. Either reading is a real improvement over the old placement (board y=31), which was **9mm** below face-centre under the bottom-aligned convention or **6mm** under the centred one -- there was never a single "~12mm-ish" figure |
+| ~~Knob centre in the lower third of the left zone, ~19mm up the face~~ (superseded above) | ~~Shaft/knob centre at (16, 31), anchor (8.5, 28.5)~~ -- was only this low because U201 shared the column (see below); not a target worth preserving |
+| ESP32 (U201) relocated off the knob's column, to a pocket above the A/B/X/Y diamond (`pilink-2yw`, 2026-11-16 -- supersedes "upper-left, above the encoder" below). U.FL still toward the top edge | Anchor **(99, 11.6)**, rot 0 (unchanged orientation). Real free-space check (not assumed -- every neighbour's F.CrtYd bounding box was read directly off the board): U201's own courtyard is ~19.6 x 20.3mm. The only zone that fits it *without* moving anything else is the knob's own column (x<28) -- the bead's whole premise -- so something else had to move. The bead's two suggested first candidates (directly above the diamond; to its right) were checked geometrically and ruled out: the diamond's real courtyard (SW305-308's F.CrtYd union, x:[88.93,115.07] y:[13.58,36.43] -- noticeably bigger than the bead's approximate 94-110/17-33 box) leaves only ~13.6mm clear above or below it, short of U201's ~19.6-20.3mm minimum footprint dimension in *either* orientation by about 6mm; the gap past SW306 to the board's right edge is only ~2.9mm. Fix applied: shifted the whole A/B/X/Y diamond group down 9mm (see its own row below) to open enough room above it. U201's decoupling/strap passives (C201/C202/R201/C203/R202) moved with it as a rigid group, and the 3V3 LDO cluster (U1/C1/C2/C3) moved into the column U201 vacated (anchor **(14, 10)**, same internal geometry, above the re-centred encoder with >=1.3mm clearance) since nothing else nearby was both free and big enough. Re the antenna rationale: U201 is still ~1.1-1.75mm from the top edge, so "RF-ideal: highest point, above ground plane" still holds in the new column -- what it does *not* preserve is being directly above the *encoder*; it's now above the *diamond* instead, which `pilink-8hx.4` (antenna mount, mid fix-round) needs to re-check against its own U.FL-to-antenna-mount geometry, not assumed equivalent |
+| ~~ESP32 (U201) upper-left, U.FL toward the top edge~~ (superseded above) | ~~Anchor (14, 12.5)~~ -- confirmed from the stock `ESP32-WROOM-32UE` footprint's own F.Fab outline: the antenna end is the short edge beyond pins 1/38 (local y=-9.6), opposite the single pad row 15-24 (local y=+9.35); rotation 0 puts that end toward y=0 |
 | Display panel shadow 59 x 42mm centred on the face window; only parts <=2.5mm tall under it | Treated as **x:[28,87] y:[5,47]** on the board (`PANEL` in `place.py`; this is the one number this project previously stated two different ways -- `place.py`'s own comment said x:[27,86], an off-by-one against the real geometry, while this README table and the real J501/RP2350B placement math were always x:[28,87] -- fixed so `place.py`'s comment and `PANEL` constant now agree with this table). Drawn on the board itself as a 59x42mm rectangle on **User.Comments** (`place.py`'s `main()`), so there is one queryable source for where the window sits, not just this prose. The RP2350B cluster (U101, its decoupling ring, flash/PSRAM, crystal) and the backlight boost (C501/L501/D501/U501/C502/R501) sit under it -- all comfortably under 2.5mm. The encoder, buttons, J501's own 2mm body (compliant) and ESP32 (not compliant, 3mm+) sit outside it in XY. **J401's through-hole legs are an exception worth flagging**: J401 itself is back-side (B.Cu), but its anchor (59, 45.5) falls inside the panel's own x/y shadow, so any through-hole pin it has protrudes on the *front* side inside the panel area -- needs trimming to <=2.5mm (or confirming it has no through-hole pins at all) before assembly; flagged for `pilink-8hx.1`/enclosure, not resolved here |
 | J501 under the panel, long axis vertical, ~24mm in from the panel's right edge to its insertion face (refined figure from `pilink-0o2`'s merged finding, superseding the ADR summary's "~26mm"), ~7.2mm up from the panel's vertical centreline | Rotated 270 deg (puts the 40-pin row along board Y and the pad-row/insertion side toward +X, facing the panel's right edge). Anchor **(59.4, 19)** -- the anchor's actual measured offset from the panel's centreline (y=26) is **7.0mm**, not 7.2mm; right at the edge of `pilink-0o2`'s own +/-0.2mm tolerance band around its 7.2mm figure, not a mismatch, but stating the real built number rather than the finding's number as if it were hit exactly |
-| A/B/X/Y diamond on the right, caps Ø8mm at +/-8mm centres, clear of the FPC bend strip | Centre **(102, 25)**: Y top (102,17), X left (94,25), B right (110,25), A bottom (102,33). SW305-308 <-> physical position is a layout choice (not schematic-constrained; firmware maps GPIO24-27 separately, `pilink-otf`), documented, not inferred |
-| J401 vertical receptacle on the back side, low, centred between the rear legs (+/-40mm) | Anchor **(59, 45.5)**, flipped to B.Cu (`FOOTPRINT.Flip`). Board centre is x=59, so legs at x=19/99 |
+| A/B/X/Y diamond on the right, caps Ø8mm at +/-8mm centres, clear of the FPC bend strip | **Moved (`pilink-2yw`, 2026-11-16):** centre **(102, 34)**, shifted down 9mm from the original (102, 25) as a rigid group -- the only change found that opened enough clear height above the diamond for U201 to relocate there (see U201's row above for the full reasoning) without widening the board or touching the panel-shadow/J501/J401/mounting-hole zones. Y top (102,26), X left (94,34), B right (110,34), A bottom (102,42). SW305-308 <-> physical position is still a layout choice (not schematic-constrained; firmware maps GPIO24-27 separately, `pilink-otf`), documented, not inferred. This is a real, visible shift of the physical button cluster -- flagged for `pilink-8hx.2` (front shell) and `pilink-8hx.4` (antenna mount) to re-check their own geometry against it. The diamond's own pull-up resistors (R305-308) moved too, off their old spot (now inside U201's footprint) to a sliver past U201's right edge, anchors **(115.5, 5/7/9/11)** -- a longer GPIO stub than before, not routing-critical (pull-ups, not high-speed) |
+| J401 vertical receptacle on the back side, low, centred between the rear legs (+/-40mm) | Anchor **(59, 45.5)**, flipped to B.Cu (`FOOTPRINT.Flip`). Board centre is x=59, so legs at x=19/99. Unaffected by `pilink-2yw` |
+| F401/R401-404 (USB-C ESD/CC pocket), right of the backlight cluster | **Moved (`pilink-2yw`):** shifted down 9mm with the diamond (same rigid-group delta) to stay out of U201's new footprint -- F401 **(84, 45)**, R401 **(84, 41)**, R402 **(84, 39)**, R403 **(88, 41)**, R404 **(88, 39)** |
 | SW101/SW102 side-actuated, top edge, above the panel centre, clear of ESP32 and the button zone | SW101 **(42, 2.7)**, SW102 **(52, 2.7)** -- in the 5mm strip above the panel (y<5), laterally over the RP2350B/flash cluster |
-| Mounting holes for back-shell bosses | 4 holes: **(10,44), (112,6), (112,44), (59,4)** -- not at the bare board corners, since the ESP32 and encoder courtyards already claim the whole left edge; placed in the genuinely free pockets instead. **H4 (59,4) is worth a clearance flag:** its centre sits only 1mm above the panel-shadow's own top edge (y=5); an M2 screw head of a typical ~3.8mm diameter (1.9mm radius) would reach y=5.9, i.e. about **0.9mm under the panel's top edge** -- not itself a DRC-visible problem (the hole is on the board, the panel line is a drawing on User.Comments), but worth the enclosure bead checking it doesn't foul the display window or its bezel |
+| Mounting holes for back-shell bosses | 4 holes: **(10,44), (112,6), (112,44), (59,4)** -- not at the bare board corners; placed in the genuinely free pockets instead. *(Historical rationale, kept for history rather than deleted: this was originally "since the ESP32 and encoder courtyards already claim the whole left edge," which was true before `pilink-2yw` moved U201 out to a pocket above the A/B/X/Y diamond and put the 3V3 LDO cluster in its old column -- the left edge is no longer claimed by ESP32+encoder courtyards specifically, though the holes themselves weren't re-derived and still land in free pockets.)* **H4 (59,4) is worth a clearance flag:** its centre sits only 1mm above the panel-shadow's own top edge (y=5); an M2 screw head of a typical ~3.8mm diameter (1.9mm radius) would reach y=5.9, i.e. about **0.9mm under the panel's top edge** -- not itself a DRC-visible problem (the hole is on the board, the panel line is a drawing on User.Comments), but worth the enclosure bead checking it doesn't foul the display window or its bezel |
 | ~3mm clearance behind the board for the encoder's leads | Enclosure-side (Z-axis) concern, not a PCB XY placement; carried forward as a note for `pilink-8hx.1`/`.2`, not re-verified here |
 
 U201's own full reasoning, and every other component's, is in
@@ -992,6 +995,18 @@ U201's own full reasoning, and every other component's, is in
 the "why", not just the numbers.
 
 ### Verification (2026-11-16, KiCad 10.0.8)
+
+**Note (`pilink-2yw`, later the same day):** the "0 schematic-parity
+issues" figure below is now stale -- it predates `pilink-4b6`'s J501
+footprint swap (same day, PR #47), which changed the schematic's footprint
+reference for J501 but never re-synced the board (no "Update PCB from
+Schematic" / `sync_schematic_to_board` run since). Confirmed by running
+`drc_summary.py -v` against the unmodified `master` board before touching
+anything: it already reports 20 schematic-parity issues (2
+`footprint_symbol_mismatch` + 18 `net_conflict`, all on J501), independent
+of this bead's placement changes. See the `pilink-2yw` verification entry
+below for current numbers; this entry is kept for history, not as a
+current statement.
 
 - `kicad-cli pcb drc --severity-all --schematic-parity`: **86 violations (8
   errors), 0 unconnected items, 0 schematic-parity issues, 78 warnings**.
@@ -1016,6 +1031,59 @@ the "why", not just the numbers.
 - No 3D render / GUI visual pass was done this round (no display in this
   agent environment) -- a human visual/placement sign-off in the KiCad GUI
   is still needed before fab, on top of the numbers above.
+
+### Verification (2026-11-16, `pilink-2yw` re-placement, KiCad 10.0.8)
+
+Full re-run after relocating U201/the diamond/the LDO cluster and
+re-centring SW303 (see the placement table above). Compared directly
+against the unmodified `master` board (checked out to a scratch copy and
+run through the same scripts), not against the stale numbers in the
+verification entry above:
+
+- `kicad-cli pcb drc --severity-all --schematic-parity`: **91 violations (8
+  errors), 0 unconnected items, 20 schematic-parity issues, 83 warnings**
+  -- vs `master`'s real current baseline of **86 violations (8 errors), 0
+  unconnected, 20 schematic-parity issues, 78 warnings** (not the stale
+  "0 schematic-parity" figure in the entry above). Delta: **+5 warnings,
+  zero new errors, zero new unconnected items, zero new schematic-parity
+  issues.**
+  - The 8 errors are the same pre-existing SW101/SW102 `hole_clearance`
+    defect noted above, unrelated to this bead.
+  - The 20 schematic-parity issues are the same pre-existing J501
+    footprint desync noted above (confirmed identical on `master` before
+    any of this bead's changes) -- not caused by, or fixed by, this bead.
+  - The +5 warnings are all `silk_over_copper`: SW308's silkscreen
+    reference field (it points toward -Y, i.e. toward U201, for the
+    diamond's top button) now sits close enough to U201's relocated pads
+    to clip them on F.Cu. Same warning *category* already present 44
+    times on `master` (silkscreen reference labels overlapping nearby
+    copper; the `silk_overlap` warnings are a separate category, 32 more
+    on `master`, not part of this 44 figure) and already flagged project-wide as needing a GUI
+    silkscreen-declutter pass before fab -- not a new class of problem,
+    just 5 more instances of the existing one, worth the GUI pass fixing
+    (e.g. moving SW308's reference field to the opposite side) alongside
+    the rest.
+  - Two intermediate issues were caught and fixed before this result,
+    not left in: Freerouting initially left 2 nets with a sub-mm air gap
+    (`unconnected_items`) after `widen.py` -- resolved by nudging U201's
+    anchor 0.6mm for silkscreen clearance (below) and re-running the full
+    pipeline; and `zones.py`'s `+3V3` heat-spreader zone (hardcoded around
+    U1's *old* position) showed up as `isolated_copper` after U1 moved --
+    fixed by re-centring `SPREADER` in `zones.py` on U1's new anchor.
+- `scripts/netlist_check.py`: **334 schematic pins compared, 18
+  mismatches** -- identical set, same 18 J501 pins, confirmed against the
+  unmodified `master` board before any changes here. **Zero netlist
+  regressions**; the mismatches are the same pre-existing J501 desync as
+  above, not a consequence of this bead's placement/route changes. The
+  same 24 single-pad spare-GPIO nets as before, unmarried.
+- Final board: **1021 track segments, 89 vias** (vs `master`'s 995/96) --
+  more segments from the longer stubs to the relocated diamond pull-ups
+  and USB pocket; fewer vias isn't significant (route-to-route variance
+  between Freerouting runs, not a placement effect).
+- No 3D render / GUI visual pass was done this round either, same caveat
+  as above -- this specifically needs a human look given how much
+  silkscreen-dense real estate (U201, the diamond, its pull-ups) just
+  moved.
 
 ### Known gaps / deviations from the ideal rules
 
@@ -1128,3 +1196,19 @@ the "why", not just the numbers.
    area and need trimming to <=2.5mm (or confirming the part has no
    through-hole pins at all) before assembly. Both noted in the placement
    table above; see `pilink-8hx.1`.
+7. **`pilink-2yw`'s U201/knob/diamond re-placement cascades into three
+   in-flight enclosure beads, none fixed here (placement-only scope):**
+   - `pilink-8hx.1` (back shell, PR #52): about PCB mounting bosses/legs
+     and the rear USB-C opening, not U201/knob/diamond XY -- likely **not**
+     affected, but worth a quick re-check since this bead didn't move any
+     mounting hole.
+   - `pilink-8hx.2` (front shell, PR #50, already NOT APPROVED partly over
+     a stale knob-Y figure and a false "lower third" claim): **will** need
+     another fix round once this lands -- the knob is no longer in the
+     lower third, and the A/B/X/Y diamond's window position moved down
+     9mm too.
+   - `pilink-8hx.4` (antenna mount, PR #48, mid fix-round for a SW101
+     pinhole collision): **will** need another look -- U201's U.FL end is
+     now above the button diamond instead of above the encoder; whatever
+     antenna-mount geometry that PR is converging on was derived against
+     the old position.
