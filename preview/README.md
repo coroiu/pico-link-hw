@@ -51,10 +51,12 @@ few seconds -- no restart needed.
 
 ## Seed/placeholder files
 
-`hardware/` and `enclosure/` only contain placeholder design files today
-(`placeholder.kicad_pcb`, `cube.scad`) -- the real PCB and enclosure land via
-separate epics. The pipeline picks up whatever matching file it finds, so no
-changes are needed here once real design files replace the placeholders.
+`hardware/placeholder.kicad_pcb` was deleted when the real, placed and
+routed PCB landed (`pilink-7el.12`); the pipeline now picks up
+`hardware/pico-link-hw.kicad_pcb` instead. `enclosure/` still only contains
+a placeholder design file (`cube.scad`) -- the real enclosure lands via a
+separate epic (`pilink-8hx`). The pipeline picks up whatever matching file
+it finds, so no changes are needed here once that lands either.
 
 ## Known cosmetic issue
 
