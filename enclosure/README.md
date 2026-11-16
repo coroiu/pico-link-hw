@@ -41,19 +41,29 @@ or is marked as this file's own assumption.
   own the real top-wall geometry this feature gets instantiated onto; the
   file's own `demo_assembly()` stand-in slab is for local preview only and
   must not be unioned into either shell.
-- **Position:** hugs the body's left inner wall (face-local X 3-50.8mm) so
-  the cable run up to U201's U.FL connector (face-local X-center ~16mm)
-  stays short, per the ADR's "ESP32 upper-left ... directly below" rule.
-  Board-to-face coordinate mapping (board centered left-right, bottom-flush
-  in the face) is the same unconfirmed convention hardware/README.md's own
-  placement table already flags as pending `pilink-8hx.1`/`.2` confirmation
-  — carried here unchanged rather than inventing a different one.
-- **Open conflict, not resolved here:** the mount's X-range (3-50.8mm)
-  overlaps `pilink-8hx.2`'s SW101 top-edge pinhole at face-local X~44mm
-  (board-local X=42, from hardware/README.md's placement table). A
-  45.8mm-long element started near the left wall reaches into the low-40s
-  regardless of exact margins; moving it clear of both pinholes (past
-  face-local X~54mm) would cost a 60mm+ lateral cable run back to U201,
-  defeating the ADR's short-run rationale. Flagged in the `.scad` file's
-  own comments for reconciliation between the two beads — see the PR for
-  this change.
+- **Position:** face-local X 57.75-105.55mm, clear of both SW101 (X=44mm)
+  and SW102 (X=54mm) top-edge pinholes by construction (3mm margin past
+  each pinhole's own ~1.5mm channel radius). A left-of-SW101 placement
+  doesn't fit (only 39mm of clear width there, less than the 45.8mm
+  element) — fixed per a code-reviewer's NOT APPROVED verdict on the first
+  version (PR #48), which had the element physically colliding with
+  SW101's pinhole channel. The resulting cable run to U201's U.FL connector
+  (face-local X-center ~16mm) is ~48mm, well within the part's ~240mm
+  (inferred) pigtail. Board-to-face coordinate mapping (board centered
+  left-right, bottom-flush in the face) is the same unconfirmed convention
+  hardware/README.md's own placement table already flags as pending
+  `pilink-8hx.1`/`.2` confirmation — carried here unchanged rather than
+  inventing a different one.
+- **Display-panel clearance, checked but not fully resolved:** the new
+  position still overlaps the display-panel shadow's face-local X range
+  (30-89mm) by 31.25mm — unavoidable, since the panel shadow alone spans
+  59mm of the 122mm-wide face and the only clear span past it (X>89mm) is
+  ~31mm, less than the element. The panel and the antenna mount sit in
+  different structural layers (face vs. top wall), so this is an RF-keepout
+  concern, not a second pinhole-style collision — but the actual Z
+  (perpendicular-to-face) clearance between the top wall and the panel
+  frame/PCB below it can't be checked yet, since no real 3D wall geometry
+  exists in this repo (`pilink-8hx.1`/`.2` haven't landed). Flagged
+  explicitly in the `.scad` file's comments and its `echo()` output for
+  `pilink-8hx.1`/`.2`/`pilink-8hx.5` to actually check once that geometry
+  exists.
