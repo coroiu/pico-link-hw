@@ -104,6 +104,13 @@ on the module board itself, not a good fit for a late add-on).
   pigtail needs crimp tooling this project doesn't have reason to
   assume is available by default). Confirm the actual cable length
   before ordering.
+  **Update (`pilink-bl2`, 2026-11-16):** Kinghelm's own one-page
+  datasheet (`datasheet.lcsc.com`, linked from LCSC `C4943394`) was read:
+  its performance table says "CABLE RF-1.13-L=240 MM" and "Dimensions
+  45.8 mm x 6.5 mm", but its drawing dimensions the cable as
+  "100+-2MM". The datasheet contradicts itself, so 240mm is now
+  table/part-number-supported rather than merely inferred, and still not
+  confirmed; measure a received unit.
 - **Gain:** ~2 dBi peak, confirmed directly on LCSC's own product page
   in this pass — clearly **within** Espressif's 2.33dBi
   certification-safe ceiling (above), with real margin rather than a

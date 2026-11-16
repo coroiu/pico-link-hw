@@ -163,14 +163,20 @@ BOARD_TO_FACE_Y_OFFSET = FACE_H - BOARD_TOP_EDGE_Q;
 // is behind the PCB, in the back shell's 3.0mm cavity with its own relief
 // pocket (back_shell.scad u201_relief_pocket()). Antenna-end edge = module
 // body y 2.0 (F.Fab, measured off hardware/pico-link-hw.kicad_pcb).
-// The U.FL receptacle position itself is NOT in the footprint and is NOT
-// verified: assumed centred on the module in X (x=99) and ~3mm in from
-// that edge (board y=5.0) -- same assumption as back_shell.scad's
-// U201_UFL_BOARD_ASSUMED. Check the Espressif datasheet drawing.
-U201_UFL_BOARD_X = 99.0;   // ASSUMED
-U201_UFL_BOARD_Y = 5.0;    // ASSUMED
-U201_ANTENNA_FACE_X_CENTER = U201_UFL_BOARD_X + BOARD_TO_FACE_X_OFFSET; // 101.0mm
-U201_UFL_Q = board_to_q(U201_UFL_BOARD_Y);                              // Qface 47.0
+// The U.FL receptacle position is not in the KiCad footprint. VERIFIED
+// (pilink-bl2) from Espressif's ESP32-WROOM-32E/32UE datasheet v2.1,
+// Figure 11 (32UE top view): receptacle centre 3.07mm in from the
+// antenna-end edge and 3.27mm in from the long edge on the pin 25-38 side
+// -- i.e. in the corner beside the antenna notch, NOT centred in X (the
+// old assumption was x=99, 5.73mm off). On the B.Cu module (pad 38 at
+// board x 90.25, antenna end at y 2.0): X = 90.0 + 3.27 = 93.27,
+// Y = 2.0 + 3.07 = 5.07. Receptacle body 2.6 x 2.6mm, 1.25+-0.15mm tall
+// (Figure 12). Mated plug cable-exit direction is NOT fixed by the
+// receptacle (round socket); it is chosen at assembly.
+U201_UFL_BOARD_X = 93.27;  // verified, datasheet Fig. 11
+U201_UFL_BOARD_Y = 5.07;   // verified, datasheet Fig. 11
+U201_ANTENNA_FACE_X_CENTER = U201_UFL_BOARD_X + BOARD_TO_FACE_X_OFFSET; // 95.27mm
+U201_UFL_Q = board_to_q(U201_UFL_BOARD_Y);                              // Qface ~46.9
 
 // SW101/SW102 (BOOTSEL/RESET) top-edge pinhole X positions, board-local,
 // from hardware/README.md's placement table: "SW101 (42, 2.7), SW102
@@ -337,29 +343,30 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE;  // 8.5mm
 //
 // Cable-run consequence (pilink-3ym REWRITE -- the pre-pilink-hdl text here
 // described a ~48mm run from a front-side U201 at face X 16; that is stale).
-// U201's U.FL is now on the BACK of the board, assumed at face (101, Q 47)
-// (see U201_UFL_* above). The element's right end is the near end, so the
-// pigtail exit is moved to 6mm in from the RIGHT end of the land:
+// U201's U.FL is now on the BACK of the board, at face (95.27, Q ~46.9)
+// (verified, see U201_UFL_* above). The pigtail exit stays 6mm in from the
+// RIGHT end of the land (pilink-bl2 did not move it; the verified U.FL is
+// 4.3mm further left than first assumed, which only lengthens the run):
 //   exit face X = MOUNT_X_MIN + (MOUNT_LAND_LENGTH - 6) = 99.55mm
-//   lateral run to the U.FL = |101.0 - 99.55| = 1.45mm
+//   lateral run to the U.FL = |95.27 - 99.55| = 4.28mm
 // Route (assembled, not modelled): plug -> along the back cavity toward the
 // board's top edge (Q 47 -> 52, 5mm, inside back_shell.scad's U201 relief)
 // -> over the board's top edge through the 2mm TOP_SLACK gap (Q 52 -> 54,
 // 2mm) -> into the top-wall mount. Front-to-back travel from the cavity
 // (bz ~2) to the mount's cable exit is bounded by the top-wall cavity
 // depth (~10mm, see the mount-depth note above). Estimated pigtail needed:
-//   5 + 2 + 10 + 1.45 ~= 18.5mm, call it ~30mm with bend radii/slack.
+//   5 + 2 + 10 + 4.28 ~= 21mm, call it ~30mm with bend radii/slack.
 // The part's pigtail is ~240mm (inferred from the part number), so ~210mm
 // of excess has to be stowed (coiled/looped) inside the enclosure.
 // pilink-phg: it is wound on a printed spool in the back shell's cavity
 // (back_shell.scad pigtail_spool(), board (73,18)), not in this mount. Clearances checked:
-//   - SW101/SW102 pinholes (face X 44/54, Q ~49.3) vs the cable at X ~100:
+//   - SW101/SW102 pinholes (face X 44/54, Q ~49.3) vs the cable at X ~95-100:
 //     >45mm apart.
 //   - Restored A/B/X/Y diamond (courtyard board y 13.58-36.43, front side)
 //     vs the cable at board y <= 5 on the back: 8.6mm in Y and on the
 //     opposite board face.
 //   - H2 mounting boss (face (114,46), boss r 3.5 -> X >= 110.5) vs a
-//     cable at X 99.55-101: ~9.5mm.
+//     cable at X 95.3-99.55: ~11mm.
 echo(str("[pilink-3ym] Pigtail exit face X ", MOUNT_X_MIN + MOUNT_LAND_LENGTH - CABLE_CHANNEL_EXIT_X_INSET,
          "mm vs assumed back-side U.FL face X ", U201_ANTENNA_FACE_X_CENTER, "mm."));
 PINHOLE_EDGE_CLEARANCE_X = SW102_X_FACE_LOCAL + PINHOLE_DIAMETER / 2 + PINHOLE_X_CLEARANCE;

@@ -288,11 +288,13 @@ U201_RELIEF_BOARD_Y = [0.0, U201_BODY_Y[1] + U201_RELIEF_MARGIN];               
 u201_p0 = board_to_face(U201_RELIEF_BOARD_X[0], U201_RELIEF_BOARD_Y[1]);  // lower-left  (Pface, Qface)
 u201_p1 = board_to_face(U201_RELIEF_BOARD_X[1], U201_RELIEF_BOARD_Y[0]);  // upper-right
 U201_PAD_WALL = 1.5;           // own choice: pad overhangs the pocket by this much each side
-// Assumed U.FL receptacle position (NOT in the footprint, NOT verified --
-// check the Espressif datasheet drawing): centred on the module in X, ~3mm
-// in from the antenna-end edge (board y = 2.0). The pocket is deliberately
-// sized to the whole antenna end so this assumption does not drive the cut.
-U201_UFL_BOARD_ASSUMED = [99.0, U201_BODY_Y[0] + 3.0];
+// U.FL receptacle position (NOT in the footprint). VERIFIED in pilink-bl2
+// from Espressif's ESP32-WROOM-32E/32UE datasheet v2.1 Figure 11: centre
+// 3.07mm in from the antenna-end edge (board y 2.0) and 3.27mm in from the
+// long edge on the pin 25-38 side (board x 90.0 on this B.Cu module), i.e.
+// the corner beside the antenna notch, not module-centre X. The pocket is
+// still sized to the whole antenna end, so it does not depend on this.
+U201_UFL_BOARD_ASSUMED = [U201_BODY_X[0] + 3.27, U201_BODY_Y[0] + 3.07];  // [93.27, 5.07]
 U201_UFL_FACE = board_to_face(U201_UFL_BOARD_ASSUMED[0], U201_UFL_BOARD_ASSUMED[1]);
 
 module u201_relief_pad() {
@@ -319,7 +321,8 @@ module u201_relief_pocket() {
 // U.FL pigtail slack spool (pilink-phg)
 // ---------------------------------------------------------------------
 // The antenna part (Kinghelm KH-FPC2.4G-1.13IPEX-240, LCSC C4943394) has an
-// INFERRED ~240mm pigtail (part-number suffix, unconfirmed) against a
+// ~240mm pigtail (part number + datasheet table; the datasheet drawing says
+// 100+-2mm, pilink-bl2 -- unresolved, spool sized for the 240 worst case) against a
 // ~18-30mm run from U201's back-side U.FL to the top-wall mount, so ~210mm
 // of coax must be stowed. A shorter part was NOT swapped in: the Kinghelm
 // -100 variants on LCSC have unverified cable length / gain / size, and the
