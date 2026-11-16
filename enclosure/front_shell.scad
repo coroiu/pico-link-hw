@@ -77,7 +77,17 @@ FRONT_SHELL_DEPTH = FACE_T + GAP_FACE_TO_PCB; // 7.5 mm
 // direction.md) only says "deliberate but not aggressive corner
 // radii", no number given. Pick something modest; easy to retune in
 // a later styling pass.
-CORNER_RADIUS = 6.0;
+//
+// pilink-lmg: 3.0mm, matching back_shell.scad's CORNER_R, so the outer rim
+// no longer steps at the Z=7.5 butt joint (was 6.0 here vs 3.0 there).
+// Picked 3.0 over 6.0 because the back shell's cavity corner radius derives
+// from CORNER_R and its cavity must clear the PCB's square 118x50 corners
+// (pilink-cix), and a smaller radius only ADDS material at the four outer
+// corners / frees cavity corner volume (inner radius 6-2=4 -> 3-2=1), so
+// no face feature (display window, encoder bore, button bores, SW101/102
+// pinholes, mounting bosses) loses any clearance. check_fit.py reads this
+// value for its rim-mismatch check.
+CORNER_RADIUS = 3.0;
 
 /* ========================= Real board coordinates =========================
    Source: hardware/README.md, "PCB layout (pilink-7el.12, upright
