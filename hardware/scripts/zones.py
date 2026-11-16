@@ -55,9 +55,10 @@ VIA_KEEPOUT = 0.35           # via edge to any foreign copper / pad / hole
 # Pour-only rule area on both layers, ~2.75mm X margin each side (the end
 # margin keeps the pour corners ~2.5mm+ from the element). Depth 3.0mm:
 # U201 GND pad 38 (top at y 2.74) and C201 pad 2 stay on pour that remains.
-# GPIO25 / ESP32_HCI_TXD are moved to F.Cu lanes just below the strip by
-# antenna_reroute.py (applied below); only the +3V3 B.Cu run at y~2.4 (x 86..
-# 109, under U201's own antenna end) stays in the strip. See README.
+# route.py exports the strip to Freerouting as a track/via keepout and
+# main() runs antenna_reroute.check_strip(), which fails if any track/via is
+# left under the element; only the +3V3 B.Cu run at y~2.4 (x 86..109, under
+# U201's own antenna end) is allowed. See README.
 ANT_KO = (54.0, 0.0, 106.0, 3.0)
 
 

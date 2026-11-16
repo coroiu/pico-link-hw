@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hand pre-route of USB D+/D- and the crystal (pilink-rqd).
+"""Hand pre-route of USB D+/D-, the crystal, backlight and SW101/SW102 (pilink-rqd, pilink-a8i).
 
 Usage (from hardware/):  python3 scripts/preroute.py
 
@@ -39,7 +39,13 @@ XOUT = "/RP2350B + Memory/XOUT"
 # Nets whose locked tracks/vias route.py must keep (it drops all other vias).
 LED_K = "Net-(J501-LED_K)"
 LED_A = "Net-(D501-K)"  # backlight anode rail J501 pin 40 -> D501 pad 1
-PREROUTE_NETS = ["USB_DP", "USB_DM", XIN, XOUT, LED_K, LED_A]
+BOOT_NET = "/RP2350B + Memory/BOOTSEL_NODE"
+RESET_NET = "/RP2350B + Memory/RESET_NODE"
+# GND is listed only for the SW101/SW102 pad-2 escape vias (below); route.py
+# keeps locked GND wiring, preroute.py clears all GND tracks/vias before
+# re-adding them, so no stale GND copper survives.
+PREROUTE_NETS = ["USB_DP", "USB_DM", XIN, XOUT, LED_K, LED_A,
+                 BOOT_NET, RESET_NET, "GND"]
 
 
 def main():
@@ -141,6 +147,34 @@ def main():
     # ... and U501 pin 5 -> D501 pad 1 (short F.Cu link, same shape as before)
     ku = [(76.14, 41.0), (76.45, 41.0), (77.07, 40.38), (77.07, 38.42), (76.65, 38.0)]
     path(LED_A, F, [(x + ox, y + oy) for x, y in ku])
+
+    # ---- SW101 / SW102 BOOTSEL / RESET (pilink-a8i) ------------------------
+    # The Alps SKRTLAE010 no-copper area (sw_keepout.py) boxes in pad 2 (GND)
+    # and both pad-1 lands on F.Cu, so Freerouting cannot reach them and
+    # leaves them unconnected. Same shape the retired sw_reroute.py used:
+    #  * GND pad 2: stub up to a via above the switch (B.Cu GND pour).
+    #  * pad-1 lands: a via beside each, tied by a B.Cu bar at pad level,
+    #    a B.Cu trunk down to a via next to the pull-up's pad 2, then a short
+    #    F.Cu stub to that pad.
+    for sw_ref, r_ref, net in (("SW101", "R102", BOOT_NET),
+                               ("SW102", "R103", RESET_NET)):
+        sw = board.FindFootprintByReference(sw_ref)
+        assert sw.GetOrientationDegrees() == 0 and sw.GetLayer() == F, \
+            "SW pre-route assumes SW101/SW102 unrotated on F.Cu"
+        cx, cy = sw.GetPosition().x / 1e6, sw.GetPosition().y / 1e6
+        rx, ry = pad(r_ref, "2")
+        g_via = (cx, cy - 2.05)
+        v_l, v_r = (cx - 2.2, cy - 1.2), (cx + 2.2, cy - 1.2)
+        v_low = (cx, ry - 1.1)
+        path("GND", F, [(cx, cy - 0.9), g_via])
+        via("GND", *g_via)
+        for v, px in ((v_l, cx - 1.225), (v_r, cx + 1.225)):
+            path(net, F, [(px, v[1]), v])
+            via(net, *v)
+        path(net, B, [v_l, (cx, v_l[1]), v_r])
+        path(net, B, [(cx, v_l[1]), v_low])
+        via(net, *v_low)
+        path(net, F, [v_low, (rx, ry)])
 
     pcbnew.SaveBoard(BOARD, board)
     print("pre-routed USB_DP/USB_DM/XIN/XOUT (locked)")
