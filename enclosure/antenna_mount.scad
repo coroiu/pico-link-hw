@@ -208,7 +208,11 @@ PANEL_X_MAX_FACE_LOCAL = PANEL_X_MAX_BOARD_LOCAL + BOARD_TO_FACE_X_OFFSET; // 89
 // reviewer knows exactly which numbers are mine to argue with).
 // ---------------------------------------------------------------------------
 
-ASSEMBLY_CLEARANCE = 1.0;     // mm, margin added around the element footprint so an installer can place the adhesive antenna by eye, not a datasheet figure
+ASSEMBLY_CLEARANCE = 1.0;     // mm, margin added around the element footprint on the LENGTH axis (X) so an installer can place the adhesive antenna by eye, not a datasheet figure
+// pilink-0yp: the WIDTH axis (Y, the depth-constrained one) gets a tighter
+// 0.5mm per side. That is the cut the "Mount depth" note below had already
+// identified as the one that lands the stack inside the cavity budget.
+ASSEMBLY_CLEARANCE_WIDTH = 0.5; // mm per side on the width (Y) axis
 WALL_THICKNESS = 2.0;         // mm, nominal FDM shell wall -- pilink-8hx.1 may land on a different value; parameterized so it's a one-line change here
 PINHOLE_X_CLEARANCE = 3.0;    // mm, this file's own minimum-margin choice from a pinhole's edge to the mount's land edge (same figure the first version used for the left-wall margin, kept consistent rather than tuned differently just because the position moved)
 // *** FIX for PR #48 review item (mount depth vs. available wall depth) ***
@@ -254,7 +258,7 @@ STRAIN_RELIEF_CLIP_WALL = 0.8; // mm, clip ring's own radial wall thickness -- i
 
 // Land (adhesive mounting area) footprint, element + clearance on all sides.
 MOUNT_LAND_LENGTH = ANTENNA_ELEMENT_LENGTH + 2 * ASSEMBLY_CLEARANCE; // 47.8mm
-MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE;  // 8.5mm
+MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE_WIDTH;  // 7.5mm (pilink-0yp, was 8.5)
 
 // *** FIX for PR #48 review item (mount depth vs. available wall depth,
 // blocking) ***
@@ -276,8 +280,18 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE;  // 8.5mm
 //   channel stub (-Y, open edge):      1.0mm (new default, was 8.0mm)
 //   strain-relief clip (-Y, beyond the channel): STRAIN_RELIEF_CLIP_HEIGHT = 1.0mm (new default, was 2.0mm)
 //   total Y-span:                      9.0 + 1.0 + 1.0 = 11.0mm
-// That is down from ~19mm to ~11mm, but still about 1mm (~10%) OVER the
-// ~10mm estimated wall-cavity budget -- NOT fully resolved. The land+lip
+// pilink-0yp (2026-11-16): check_fit.py measured the real window as 10.1mm
+// (front inner face Z2.0 .. back inner wall Z12.1) against that 11.0mm span.
+// Resolved by tightening ASSEMBLY_CLEARANCE on the width axis only (0.5mm per
+// side, ASSEMBLY_CLEARANCE_WIDTH): land 7.5 + lip 0.5 = 8.0mm, so
+//   total Y-span: 8.0 + 1.0 + 1.0 = 10.0mm <= 10.1mm (0.05mm free per side
+//   when centred). The 6.5mm element still gets 0.5mm per side of by-eye
+//   placement margin. The stub and clip were NOT shortened (they are at their
+//   functional minimum, see below). Everything below this paragraph is the
+//   pre-fix history (the 11.0mm figures are the old numbers).
+//
+// That was down from ~19mm to ~11mm, but still about 1mm (~10%) OVER the
+// ~10mm estimated wall-cavity budget -- NOT fully resolved (until pilink-0yp). The land+lip
 // side alone (9.0mm) already consumes nearly the whole budget.
 // *** FIX for PR #48 review round 3 (non-blocking nit): the previous
 // wording here claimed the land's width was "not by a tunable default",
@@ -725,9 +739,9 @@ module demo_assembly() {
 
   translate([MOUNT_X_MIN, slab_depth - MOUNT_LAND_WIDTH - 2, slab_thickness]) {
     antenna_mount();
-    translate([ASSEMBLY_CLEARANCE, ASSEMBLY_CLEARANCE, 0])
+    translate([ASSEMBLY_CLEARANCE, ASSEMBLY_CLEARANCE_WIDTH, 0])
       antenna_element_reference();
-    translate([ASSEMBLY_CLEARANCE, ASSEMBLY_CLEARANCE, 0])
+    translate([ASSEMBLY_CLEARANCE, ASSEMBLY_CLEARANCE_WIDTH, 0])
       antenna_keepout_reference();
   }
 
