@@ -21,7 +21,7 @@
 			(at 0 25.4 0)
 			(effects (font (size 1.27 1.27)) hide)
 		)
-		(property "Description" "8MB QSPI PSRAM, USON-8L (3x2mm) -- same CS/SCLK/SIO0-3/VCC/GND pin map as a standard SOIC-8 QSPI flash (verified against Pimoroni Pico Plus 2 published schematic), but NOT the same physical footprint: AP Memory's -ZR suffix is USON-8L, not SOIC-8 (confirmed via LCSC distributor listing C3040877). Footprint is KiCad's stock closest-match by body size (3x2mm); AP Memory's own mechanical drawing/pad geometry was not independently re-verified -- flag for PCB-layout-stage review."
+		(property "Description" "8MB QSPI PSRAM, USON-8L (3x2mm) -- same CS/SCLK/SIO0-3/VCC/GND pin map as a standard SOIC-8 QSPI flash (verified against Pimoroni Pico Plus 2 published schematic), but NOT the same physical footprint: AP Memory's -ZR suffix is USON-8L, not SOIC-8 (confirmed via LCSC distributor listing C3040877). Footprint is KiCad's stock closest-match by body size (3x2mm); AP Memory's own mechanical drawing/pad geometry was not independently re-verified -- flag for PCB-layout-stage review. Pin 9/\"EP\" (pilink-2ar) was added to map the footprint's real copper exposed/thermal pad (Package_SON:Winbond_USON-8-1EP's pad \"9\", F.Cu+F.Mask, pad_prop_heatsink) and is tied to GND on the schematic -- grounding an exposed thermal/die-attach pad is the common, conventional-safe default for this package class, though similar parts' datasheets vary between calling for GND and leaving it floating/NC (e.g. Winbond's own USON-8-1EP flash family guidance is GND-or-floating, not a hard requirement to ground it), and GND is preferred absent contrary guidance; no distributor/datasheet source reachable from this agent environment (AP Memory's own PDF is not text-extractable here; Mouser-hosted mirrors of the APS6404L family datasheet timed out on fetch) gave a contradicting spec either way for this exact -3SQR-ZR part -- flag for human re-verification against AP Memory's real mechanical drawing before fab, same caveat class as the footprint-match gap above. The footprint's OTHER unlabeled centre pad (paste-only, F.Paste layer only, no F.Cu) is intentionally left with no net: it carries no copper at all, so it cannot be part of any net in KiCad and is not a defect -- it is a stencil-aperture pad purely for solder-paste deposition, same convention used elsewhere in this footprint family."
 			(at 0 27.94 0)
 			(effects (font (size 1.27 1.27)) hide)
 		)
@@ -183,6 +183,24 @@
 					)
 				)
 			)
+			(pin power_in line
+				(at 10.16 0 180)
+				(length 2.54)
+				(name "EP"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "9"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
 		)
 	)
 
@@ -230,7 +248,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "40-position 0.5mm-pitch bottom-contact ZIF FPC connector for the Crystalfontz CFAF240320A0-024SN display, 4-wire SPI pinout (pilink-7el.5). Pin table sourced directly from Crystalfontz's own datasheet (Rev 1v2, 2021-03-26), section 6, SPI-mode column. LCSC candidate connector part AFC01-S40FCA-00 (LCSC C262674, Jushuo), confirmed 0.5mm pitch / 40-position / bottom-contact / flip-top-lock from its own LCSC spec table -- matches the panel's own 40 Position, 0.50mm Pitch ZIF connector spec. No stock KiCad symbol exists for this exact part; hand-authored here, pin layout is a simple single-column schematic convenience (not a physical pinout diagram) -- see this project's Footprint caveat for the matching hand-authored footprint's own verification gap."
+		(property "Description" "40-position 0.5mm-pitch bottom-contact ZIF FPC connector for the Crystalfontz CFAF240320A0-024SN display, 4-wire SPI pinout (pilink-7el.5). Pin table sourced directly from Crystalfontz's own datasheet (Rev 1v2, 2021-03-26), section 6, SPI-mode column. LCSC candidate connector part AFC01-S40FCA-00 (LCSC C262674, Jushuo), confirmed 0.5mm pitch / 40-position / bottom-contact / flip-top-lock from its own LCSC spec table -- matches the panel's own 40 Position, 0.50mm Pitch ZIF connector spec. No stock KiCad symbol exists for this exact part; hand-authored here, pin layout is a simple single-column schematic convenience (not a physical pinout diagram) -- see this project's Footprint caveat for the matching hand-authored footprint's own verification gap. MP1/MP2 (pilink-2ar) are the footprint's two side mounting/reinforcement pads, added here as two extra passive pins (not part of the 40-position signal pinout) and tied to GND on the schematic -- standard practice for a connector's unused mechanical tab (safer grounded than floating, reduces ESD/EMI risk), though Jushuo's own AFC01-S40FCA-00 datasheet PDF could not be read as text in this agent environment (LCSC's datasheet link resolves to an HTML viewer, not an extractable PDF, same gap already flagged for this part's footprint dimensions) to confirm whether these tabs carry a frame-ground function in the real part. Flag for human reverification against the real datasheet before fab, same caveat class as the footprint dimension gap below."
 			(at 0 0 0)
 			(effects
 				(font
@@ -982,6 +1000,42 @@
 					)
 				)
 			)
+			(pin passive line
+				(at 7.62 49.53 180)
+				(length 2.54)
+				(name "MP1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "MP1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 7.62 46.99 180)
+				(length 2.54)
+				(name "MP2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "MP2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
 		)
 	)
 
@@ -1296,6 +1350,410 @@
 					)
 				)
 				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+	)
+
+	(symbol "RotaryEncoder_Switch_EC11E_MP"
+		(pin_names
+			(offset 0.254) hide)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "SW"
+			(at 0 6.604 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "RotaryEncoder_Switch_EC11E_MP"
+			(at 0 -6.604 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at -3.81 4.064 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 6.604 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Project-local copy of stock Device:RotaryEncoder_Switch (pilink-2ar) -- same A/B/C/S1/S2 pins and graphics, plus one added pin \"MP\" for the footprint's two mounting/shield pads (RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm's two thru-hole pads both named \"MP\", which both bind to a single same-numbered schematic pin -- standard KiCad multi-pad-per-pin convention). A copy rather than an in-place edit of the stock symbol, to avoid the 'symbol modified in library' ERC/library-sync state this project has previously flagged and reverted (see rp2350b_memory.kicad_sch's W25Q128JVS note). MP is tied to GND on SW303: Alps' EC11E18244AU datasheet (datasheet.lcsc.com/datasheet/pdf/00ace576d31da40a390056171db2037f.pdf) was not readable as extractable text in this agent environment (same no-pdftotext/poppler-utils gap already flagged for this part elsewhere in this project), so this follows general mounting-tab practice (grounding an otherwise-floating metal tab/shield is the standard, safer default for ESD/EMI) rather than a datasheet-confirmed pin-9-style thermal/ground spec -- flag for human re-verification against the real datasheet before fab."
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "rotary switch encoder switch push button"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "RotaryEncoder*Switch*"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "RotaryEncoder_Switch_EC11E_MP_0_1"
+			(rectangle
+				(start -5.08 5.08)
+				(end 5.08 -5.08)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+			(circle
+				(center -3.81 0)
+				(radius 0.254)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type outline)
+				)
+			)
+			(circle
+				(center -0.381 0)
+				(radius 1.905)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(arc
+				(start -0.381 2.667)
+				(mid -3.0988 -0.0635)
+				(end -0.381 -2.794)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -0.635 -1.778) (xy -0.635 1.778)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -0.381 -1.778) (xy -0.381 1.778)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -0.127 1.778) (xy -0.127 -1.778)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 3.81 0) (xy 3.429 0)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 3.81 1.016) (xy 3.81 -1.016)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -5.08 -2.54) (xy -3.81 -2.54) (xy -3.81 -2.032)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -5.08 2.54) (xy -3.81 2.54) (xy -3.81 2.032)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 0.254 -3.048) (xy -0.508 -2.794) (xy 0.127 -2.413)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 0.254 2.921) (xy -0.508 2.667) (xy 0.127 2.286)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 5.08 -2.54) (xy 4.318 -2.54) (xy 4.318 -1.016)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 5.08 2.54) (xy 4.318 2.54) (xy 4.318 1.016)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -5.08 0) (xy -3.81 0) (xy -3.81 -1.016) (xy -3.302 -2.032)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -4.318 0) (xy -3.81 0) (xy -3.81 1.016) (xy -3.302 2.032)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(circle
+				(center 4.318 -1.016)
+				(radius 0.127)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(circle
+				(center 4.318 1.016)
+				(radius 0.127)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "RotaryEncoder_Switch_EC11E_MP_1_1"
+			(pin passive line
+				(at -7.62 2.54 0)
+				(length 2.54)
+				(name "A"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "A"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -7.62 -2.54 0)
+				(length 2.54)
+				(name "B"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "B"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -7.62 0 0)
+				(length 2.54)
+				(name "C"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "C"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 7.62 2.54 180)
+				(length 2.54)
+				(name "S1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "S1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 7.62 -2.54 180)
+				(length 2.54)
+				(name "S2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "S2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -7.62 90)
+				(length 2.54)
+				(name "MP"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "MP"
 					(effects
 						(font
 							(size 1.27 1.27)

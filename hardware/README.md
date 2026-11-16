@@ -268,6 +268,86 @@ ImageMagick/Ghostscript -- was available in this environment to produce a
 bitmap screenshot; the PDF's own text/geometry stream was inspected
 instead).
 
+**Update (`pilink-2ar`):** fixed the four single-pad-net items flagged
+above as out of `pilink-kt4`'s scope:
+
+- **SWD/SWCLK** now reach a real 3-pin, 2.54mm-pitch debug header, `J101`
+  on `rp2350b_memory.kicad_sch` (stock `Connector_Generic:Conn_01x03` +
+  `Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical`): pin 1
+  SWCLK, pin 2 GND, pin 3 SWDIO. Pitch corrected in PR #43 review (was
+  1.27mm, LCSC `C22438100`): Raspberry Pi's Debug Probe docs
+  (`raspberrypi/documentation` repo) list its three bundled cables as
+  JST-SH-to-JST-SH, and JST-SH-to-0.1in (2.54mm) header in both male and
+  female, with the latter explicitly recommended ("solder a male
+  connector to the SWCLK, GND, and SWDIO header pins") for boards without
+  an onboard JST-SH connector, same as this one -- none of those cables
+  fit a 1.27mm header directly. 2.54mm was chosen over an onboard JST-SH
+  connector or a 1.27mm-plus-adapter note as the simplest fix needing no
+  extra part and no adapter, with nothing else on the board forcing
+  1.27mm pitch. Same SWCLK/GND/SWDIO order as the Debug Probe's own
+  SC/GND/SD pins, so the bundled cable plugs in directly. No
+  VTref/target-power-sense pin: this board is always target-powered over
+  USB-C regardless of the probe. See the schematic's own `J101` text note
+  for the full rationale (kept out of the symbol's `Description` field so
+  the embedded `Conn_01x03` cache stays byte-identical to the real stock
+  library symbol -- editing a stock symbol's own properties is exactly
+  the "modified in library" trap this project's `W25Q128JVS` note already
+  documents).
+- **U103 (PSRAM) pin 9/"EP"** -- the footprint's real copper
+  exposed/thermal pad (`Winbond_USON-8-1EP`'s pad `"9"`, not the
+  project's hand-authored part number) -- added to the project-local
+  `APS6404L-3SQR-ZR` symbol and tied to GND, the standard default for an
+  exposed thermal/die-attach pad on this package class. AP Memory's own
+  datasheet PDF wasn't text-extractable in this agent environment (no
+  poppler-utils) and Mouser-hosted mirrors of the APS6404L family
+  datasheet timed out on fetch, so this isn't datasheet-confirmed for
+  this exact `-3SQR-ZR` part -- flagged for human re-verification before
+  fab, same caveat class as the existing footprint-match flag on this
+  part. The footprint's *other* unlabeled centre pad is paste-only
+  (`F.Paste` layer only, no `F.Cu`) and was deliberately left with no
+  net: it carries no copper at all, so it cannot be part of any KiCad net
+  -- not a defect.
+- **J501 (display FPC) MP1/MP2** -- the connector's two side
+  mounting/reinforcement pads -- added as two new passive pins on the
+  project-local `CFAF240320A0_FPC40` symbol and tied to GND, standard
+  practice for an otherwise-floating mechanical tab (grounded is safer
+  than floating for ESD/EMI). Jushuo's `AFC01-S40FCA-00` datasheet PDF
+  resolves to an HTML viewer on LCSC, not an extractable PDF, in this
+  agent environment -- same already-documented gap as this part's
+  footprint-dimension caveat -- so this is the standard-practice default,
+  not a datasheet-confirmed spec; flagged for human re-verification.
+- **SW303 (rotary encoder) mounting/shield pads** -- the footprint's two
+  thru-hole pads both named `"MP"` (one schematic pin binds both, KiCad's
+  standard multi-pad-per-pin behavior) -- added to a new project-local
+  symbol, `pico_link_custom:RotaryEncoder_Switch_EC11E_MP`, copied from
+  the stock `Device:RotaryEncoder_Switch` graphics/pins plus the one new
+  `MP` pin, rather than editing the stock symbol in place (same
+  "modified in library" reasoning as J101 above). Tied to GND by routing
+  into `SW303`'s existing `C`-pin GND wire rather than a new standalone
+  `#PWR` symbol: a new standalone power symbol wired in immediately next
+  to `SW303` made this build of `kicad-cli` (10.0.8) misreport the
+  *unrelated* `S1`/`S2` pins on the same part as `pin_not_connected` --
+  reusing an already-connected point avoided it. Alps' `EC11E18244AU`
+  datasheet has the same no-pdftotext extraction gap as above, so this
+  is standard mounting-tab practice, not a datasheet-confirmed spec.
+
+Re-running `kicad-cli sch erc --severity-all --exit-code-violations` on
+the root sheet after this fix reports **0 errors / 24 warnings** (down
+from 26) -- exactly the `SWD`/`SWCLK` `isolated_pin_label` warnings
+dropping out, with every other label unchanged; the PSRAM/J501/SW303 pad
+fixes were never themselves flagged by ERC (power/mechanical pads with no
+schematic pin at all don't appear in ERC's checks), so they hold the
+warning count steady rather than reducing it further. Verified with the
+`kicad` MCP server's `get_schematic_pin_locations`/`get_net_connections`
+tools against the raw `.kicad_sch` pin math while building this fix (a
+symbol's pin position is in *library* space, +Y up; placing it in a
+schematic, +Y down, flips the pin's Y sign -- but not a symbol *field's*
+position, which doesn't flip). Not independently re-run: `kicad-cli pcb
+drc` (no PCB layout exists yet -- `pilink-7el.12`, which this bead
+blocks, hasn't started) and anything needing the KiCad GUI (silkscreen/
+footprint visual sanity, the still-open footprint-dimension caveats
+above).
+
 ### Display subsystem (pilink-7el.5)
 
 `display.kicad_sch` now has J501 (the display's 40-pin FPC connector), U501
