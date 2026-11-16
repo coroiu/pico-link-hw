@@ -926,8 +926,10 @@ The board is generated, not hand-drawn. From `hardware/`, in this order:
 | Step | Script | What it does |
 |---|---|---|
 | 1 | `scripts/place.py` | Outline, 4 M2 mounting holes, design-rule minimums, net classes, every footprint position |
+| 1b | `scripts/sw_keepout.py` | (library, not run directly) Alps SKRTLAE010 no-copper rule areas; called by `route.py` and `zones.py` |
 | 2 | `scripts/route.py` | Freerouting autoroute of every net (Specctra DSN/SES round-trip) |
 | 3 | `scripts/widen.py` | Widens +3V3/+1V1/VREG_LX/VBUS_RAW to 0.4mm wherever DRC allows |
+| 3b | `scripts/sw_reroute.py` | One-off, idempotent local reroute of SW101/SW102 pad-2 GND and BOOTSEL/RESET around the keepout (only needed on the committed board; a fresh `route.py` run already avoids it; run before `zones.py`) |
 | 4 | `scripts/zones.py` | GND pours on both layers, +3V3 heat spreader and stitching vias at U1 |
 | check | `scripts/drc_summary.py -v` | `kicad-cli pcb drc` with schematic parity, summarised |
 | check | `scripts/netlist_check.py` | Pin-for-pin diff of board nets against a fresh schematic netlist |
@@ -1343,3 +1345,41 @@ scripts):
    position ships; plus whether the boot can enter the 10x5mm cutout
    tunnel). Full numbers and reasoning: `enclosure/README.md`'s "USB-C
    cable-vs-table clearance (`pilink-8ry`)" section.
+
+### SW101/SW102 hole-clearance rule (`pilink-ge9`)
+
+The 8 `hole_clearance` errors on the Alps SKRTLAE010 are the part's real
+geometry, not a footprint bug: KiCad's stock footprint and JLCPCB/EasyEDA's
+own C110293 footprint have the same pad/peg coordinates. KiCad's rounded
+pads give 0.0993mm (pin 1) / 0.15mm (MP tabs) to the 0.9mm NPTH pegs;
+EasyEDA's square pad-1 corners make the real gap about 0.075mm. No override
+footprint is warranted. `pico-link-hw.kicad_dru` relaxes `hole_clearance` to
+0.09mm only for pad-to-pad pairs inside the same SW101/SW102 footprint
+(`A.Type=='Pad' && B.Type=='Pad'`, same footprint), so pours, tracks and
+vias still get the full 0.2mm (zones refilled; they pull back to 0.2mm).
+
+Risk, stated plainly: JLCPCB's NPTH position tolerance is about +/-0.075mm,
+about equal to the real ~0.075mm gap, so a drill can clip the edge of pad 1.
+JLCPCB's published "NPTH to Track 0.2mm" covers tracks, not SMD pads. What
+mitigates it: the hole is a mechanical locating peg, pad 1 is a 0.75x1.8mm
+switch tab (a clipped corner leaves the bulk of the solder area), and
+JLCPCB's own library footprint ships with this geometry. Confirm in the
+JLCPCB DFM check at order time. No STEP model exists on EasyEDA for this
+part (only an embedded outline), so 3D is unchanged.
+
+Alps' no-copper area under the switch body: taken from the Alps SKRT
+catalog land-pattern drawing ("Prohibited area of copper tracks"): 2.0mm
+wide centred on pad 2, 1.2mm tall, lower edge flush with the MP pads' outer
+edge, i.e. footprint-local x -1.0..+1.0, y +0.3..+1.5. `scripts/sw_keepout.py`
+adds it as an F.Cu rule area (no tracks, vias or pours) per switch; `zones.py`
+and `route.py` both call it so it survives pipeline re-runs and Freerouting
+sees it. B.Cu is not covered (far side of the board; the drawing's note is on
+the mounting layer). The pad-2 GND and pad-1 BOOTSEL/RESET routing that ran
+through it was replaced locally by `scripts/sw_reroute.py` (nothing else
+re-routed): GND leaves pad 2 through a via above its top edge to the B.Cu pour;
+the two pad-1 lands are tied by a B.Cu bar via a via beside each, with a B.Cu
+trunk to a via at the pull-up resistor. Pad 1's two lands are therefore
+joined on B.Cu, not F.Cu.
+
+After: 78 violations (0 errors, all warnings), 0 unconnected, 0 parity
+(master: 86 / 8 errors).

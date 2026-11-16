@@ -27,6 +27,8 @@ import os
 
 import pcbnew
 
+from sw_keepout import add_sw_keepouts
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 BOARD = os.path.join(HERE, "..", "pico-link-hw.kicad_pcb")
 
@@ -110,6 +112,7 @@ def main():
         if pad.GetNetname() == "GND" and pad.GetNumber() == "5":
             pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
 
+    add_sw_keepouts(board)   # Alps SKRTLAE010 no-copper areas (pilink-ge9)
     full = (0, 0, BOARD_W, BOARD_H)
     add_zone(board, "GND", pcbnew.F_Cu, full, 0, name="GND_F")
     add_zone(board, "GND", pcbnew.B_Cu, full, 0, name="GND_B")
