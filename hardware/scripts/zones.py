@@ -133,7 +133,7 @@ def main():
     for z in list(board.Zones()):
         board.Remove(z)
     for t in list(board.GetTracks()):
-        # keep scripts/preroute.py's locked vias (USB_DP/USB_DM)
+        # keep scripts/preroute.py's locked vias (every PREROUTE_NETS net)
         if (t.Type() == pcbnew.PCB_VIA_T and t.IsLocked()
                 and t.GetNetname() not in PREROUTE_NETS):
             board.Remove(t)
