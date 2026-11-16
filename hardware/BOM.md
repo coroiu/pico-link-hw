@@ -199,6 +199,23 @@ contradicts real-world JLCPCB categorization for most of them. Confirm
 Basic-vs-Extended for these rows directly on JLCPCB's site before
 ordering; it changes the assembly-fee total but not sourcing feasibility.
 
+## Hand-fitted parts (not on a schematic, not PCBA-assembled)
+
+These have no reference designator and are not in the `.kicad_sch` counts
+below. LCSC sells the part, but it is a cable-and-connector antenna with no
+SMD pads, so JLCPCB's pick-and-place line cannot place it: order it from
+LCSC separately and mate it by hand to U201's U.FL receptacle. This is the
+part the enclosure design assumes (`enclosure/antenna_mount.scad`,
+`enclosure/back_shell.scad`).
+
+| Ref | Qty | Value / Part | Package | LCSC | Mfr P/N | Basic/Ext† | Stock |
+|---|---|---|---|---|---|---|---|
+| — | 1 | 2.4GHz adhesive FPC antenna with Ø1.13mm coax pigtail and IPEX/U.FL-class (IPEX gen. 1) plug, ~2dBi (under the 2.33dBi cert-safe ceiling), 45.8x6.5mm element, 3M adhesive backing. **Hand-fitted, not PCBA-assembled.** Cable length: ~240mm by part number and the datasheet's table ("L=240 MM"), but the same datasheet's drawing says 100+-2mm — measure on receipt (`pilink-bl2`) | Hand-fit, mates to U201's U.FL | C4943394 | Kinghelm KH-FPC2.4G-1.13IPEX-240 | n/a — not a JLCPCB-catalog (PCBA) part | ~86 units at the 2026-11-15 research snapshot (`.research/findings/2026-11-15-ufl-antenna-selection.md`); LCSC's live counter is client-side, so recheck on LCSC before ordering |
+
+Fallback (not on the build): MyAntenna AIWF026, LCSC `C49242188`, 100mm
+pigtail, but its 2.4GHz in-band peak gain (2.35dBi) is 0.02dB over
+Espressif's 2.33dBi ceiling — see the research finding above.
+
 ## Totals
 
 Counted directly from the six `.kicad_sch` files (every non-`#PWR`/`#FLG`
