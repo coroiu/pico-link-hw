@@ -112,10 +112,14 @@ documented mitigation if a real print shows this doesn't hold up.
 `BUTTON_CAP_DIA`) inside the existing Ø8.4mm bore -- 0.2mm/side
 clearance, within the bead's own suggested 0.15-0.2mm/side FDM
 clearance range. Retention is a flange *ring* wider than the bore
-(Ø9.4mm = `BORE_DIA` + 1.0mm, 0.5mm radial overlap each side), which
-cannot pass back through the bore in either direction -- it stops the
-cap both popping out the front and falling through into the cavity.
-Cap must be dropped in from inside the shell cavity before the two
+(Ø9.0mm = `BORE_DIA` + 0.6mm, 0.3mm radial overlap each side), which
+cannot pass out through the bore. It only stops *outward* travel;
+inward travel is stopped by the switch, and before the back shell is
+fitted nothing stops the cap falling into the cavity. Ledge clearance
+at the X button is 0.5mm nominal / 0.3mm worst case (incl. the 0.2mm
+radial bore play); diagonal gap to the next flange is ~2.3mm nominal.
+The 0.4mm stem is now just a short boss inside a deeper ring -- flagged
+for the test print: check whether it is needed at all. Cap must be dropped in from inside the shell cavity before the two
 shells are joined (an assembly-order note, not modeled).
 
 **Review fixes (PR #56, round 2):** the first version used a Ø11mm
@@ -124,8 +128,8 @@ solid flange. That both intruded ~0.5mm into `front_shell.scad`'s
 there, board x 94 vs. the ledge's edge at board x 89) and left only
 0.31mm between adjacent flanges on the diamond's 11.31mm diagonal
 pitch -- less than the caps' own 0.4mm of bore play, so adjacent
-flanges could touch/bind. `FLANGE_DIA` is now `BORE_DIA` + 1.0mm
-(9.4mm), clearing both. The flange is also now a 1.2mm-thick ring with
+flanges could touch/bind. `FLANGE_DIA` is now `BORE_DIA` + 0.6mm
+(9.0mm as of round 3), clearing both. The flange is also now a 1.2mm-thick ring with
 a Ø4.5mm relief pocket over the actuator, instead of a 0.2mm
 single-layer disc: off-axis (beside the actuator, over the switch's
 own housing) there's more real clearance than directly over the

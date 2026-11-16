@@ -65,10 +65,10 @@
 // Retention: a flange/shoulder (now a ring, with a relief pocket over
 // the actuator -- see FLANGE_DIA/RELIEF_DIA below) wider than the
 // Ø8.4mm bore, sitting on the inner-face side, physically cannot pass
-// back out through the bore in either direction -- it is what stops
-// the cap both from popping out the front (switch's own dome pushing
-// back) and from being pushed/falling all the way through into the
-// cavity. The cap must be dropped into the shell cavity from behind
+// out through the bore. It only stops OUTWARD travel (the switch's
+// own spring pushing the cap out the front). INWARD travel is stopped
+// by the switch itself; before the back shell/PCB is fitted nothing
+// stops the cap falling back into the cavity. The cap must be dropped into the shell cavity from behind
 // (inside) before the two shells are joined, since the flange is wider
 // than the bore it sits behind -- an assembly-order note, not modeled
 // here.
@@ -198,13 +198,15 @@ CAP_CHAMFER = 0.3;
 //     nominal gap between adjacent flanges -- less than the caps'
 //     own BORE_DIA-CAP_DIA = 0.4mm of bore play, so adjacent flanges
 //     could touch/bind if both caps shifted toward each other.
-// FLANGE_DIA = BORE_DIA + 1.0mm (0.5mm radial overlap past the bore
-// edge each side -- still a solid positive stop under the ~2.6N
-// switch load) resolves both: radius 4.7mm leaves 0.3mm clearance to
-// the ledge, and a 1.91mm nominal gap to the next flange over
-// (comfortably more than the 0.4mm worst-case bore-play closing
-// distance, even doubled for both caps moving toward each other).
-FLANGE_DIA = BORE_DIA + 1.0; // 9.4mm, radius 4.7mm -- see review-fix note above
+// ROUND 3 FIX: FLANGE_DIA = BORE_DIA + 0.6mm (Ø9.0mm, radius 4.5mm;
+// 0.3mm radial overlap past the bore edge each side, still a positive
+// stop under the ~2.6N switch load). Ledge clearance at the X button
+// (5.0mm edge distance): 0.5mm nominal; 0.3mm worst case once the
+// cap's 0.2mm radial bore play is included (cap shifted toward the
+// ledge). Diagonal gap to the next flange: 11.31 - 9.0 = ~2.3mm
+// nominal, ~1.9mm worst case with both caps shifted toward each other
+// (0.2mm each) -- far above zero. Retention holds: Ø9.0 > Ø8.4 bore.
+FLANGE_DIA = BORE_DIA + 0.6; // 9.0mm, radius 4.5mm
 
 // Thickness: a real structural ring now (not the old fragile 0.2mm
 // single-layer disc cantilevered off the stem -- also a review
@@ -345,7 +347,11 @@ button_plungers_x4();
       real printed sample test-fitted against a real
       PTS645SK50SMTR92LFS part and a real front_shell.scad print
       (pilink-8hx.5/.6).
-   2. STEM_LEN (0.4mm) is still sub-millimetre, drawing on the
+   2. STEM_LEN (0.4mm) is now only a short boss inside a deeper
+      ring (the 1.2mm flange ring surrounds the relief pocket). FLAG
+      FOR THE TEST PRINT: check whether the stem is needed at all, or
+      whether the cap/ring can press the actuator directly.
+      STEM_LEN (0.4mm) is still sub-millimetre, drawing on the
       intentionally tight 0.5mm on-axis depth budget
       (INNER_FACE_TO_ACTUATOR_GAP) that the enclosure's own 5.5mm
       face-to-PCB gap was sized against (5.5mm gap - 5.0mm switch
