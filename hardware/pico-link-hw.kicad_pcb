@@ -878,76 +878,6 @@
 			)
 		)
 	)
-	(footprint ""
-		(layer "F.Cu")
-		(uuid "108dbc69-947e-4a54-9fd7-68cc077e5e68")
-		(at 212 144)
-		(property "Reference" "H3"
-			(at 0 0 0)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "a39fce81-0665-4151-9d8a-5a4b340f3761")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "MountingHole_M2"
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "4395ca0e-dc74-475c-8d44-08333d191126")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "cdae3060-a568-4edb-bb8d-886be8dcc27f")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "982ab226-cf35-4791-a66d-61ea1014046b")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(attr board_only exclude_from_pos_files exclude_from_bom)
-		(duplicate_pad_numbers_are_jumpers no)
-		(fp_circle
-			(center 0 0)
-			(end 1.7 0)
-			(stroke
-				(width 0.05)
-				(type default)
-			)
-			(fill no)
-			(layer "F.CrtYd")
-			(uuid "20ae8661-a587-4a8b-8a7e-119d7ea98306")
-		)
-		(pad "" np_thru_hole circle
-			(at 0 0)
-			(size 2.2 2.2)
-			(drill 2.2)
-			(layers "*.Cu" "*.Mask")
-			(uuid "70fa512a-11b8-46f0-8dbb-e60cdafe8042")
-		)
-		(embedded_fonts no)
-	)
 	(footprint "Capacitor_SMD:C_0402_1005Metric"
 		(layer "F.Cu")
 		(uuid "1128d02f-a78e-4f6e-8a9b-16c1ef936371")
@@ -2632,6 +2562,76 @@
 				(xyz 0 0 0)
 			)
 		)
+	)
+	(footprint ""
+		(layer "F.Cu")
+		(uuid "2a74503e-5e03-4655-a1bb-48c838d04a52")
+		(at 159 104)
+		(property "Reference" "H4"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "7d2f0956-06f5-4320-af6e-5666f78193b5")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "MountingHole_M2"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "b44ad0ef-012b-428d-8102-04cca4a9dc2f")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "4dd4d368-4ef4-4f1a-bb8c-662dee5b824c")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "3448e9eb-e7a9-4b9d-8dac-c43623353a45")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(attr board_only exclude_from_pos_files exclude_from_bom)
+		(duplicate_pad_numbers_are_jumpers no)
+		(fp_circle
+			(center 0 0)
+			(end 1.7 0)
+			(stroke
+				(width 0.05)
+				(type default)
+			)
+			(fill no)
+			(layer "F.CrtYd")
+			(uuid "ef5f25e4-11a9-4f42-a148-e566274fc75a")
+		)
+		(pad "" np_thru_hole circle
+			(at 0 0)
+			(size 2.2 2.2)
+			(drill 2.2)
+			(layers "*.Cu" "*.Mask")
+			(uuid "7d658c8b-e312-49d6-a022-b5a9ff3bdbd6")
+		)
+		(embedded_fonts no)
 	)
 	(footprint "Capacitor_SMD:C_0805_2012Metric"
 		(layer "F.Cu")
@@ -4979,76 +4979,6 @@
 			)
 		)
 	)
-	(footprint ""
-		(layer "F.Cu")
-		(uuid "5a18c6be-cac8-474c-b98b-1e6be095bebc")
-		(at 110 144)
-		(property "Reference" "H1"
-			(at 0 0 0)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "b767bdbc-0bd6-45e2-8637-e95c122952de")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "MountingHole_M2"
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "d0d9fb8a-c6b6-49c4-98d7-2998bfb2a8d3")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "6ced87d5-d34b-4acb-9bf4-0a3e82a5b2c8")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "35b2487e-ff5a-446e-8fa0-50e9882a06cb")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(attr board_only exclude_from_pos_files exclude_from_bom)
-		(duplicate_pad_numbers_are_jumpers no)
-		(fp_circle
-			(center 0 0)
-			(end 1.7 0)
-			(stroke
-				(width 0.05)
-				(type default)
-			)
-			(fill no)
-			(layer "F.CrtYd")
-			(uuid "bdafcb6c-3af6-4abe-983b-7d3316e1c244")
-		)
-		(pad "" np_thru_hole circle
-			(at 0 0)
-			(size 2.2 2.2)
-			(drill 2.2)
-			(layers "*.Cu" "*.Mask")
-			(uuid "0cd4da12-15b6-48d3-b65b-a9548418e1ea")
-		)
-		(embedded_fonts no)
-	)
 	(footprint "Button_Switch_SMD:SW_SPST_PTS645"
 		(layer "F.Cu")
 		(uuid "63258eb3-b546-4c2a-8357-23b3f56d51dc")
@@ -6687,6 +6617,76 @@
 			)
 		)
 	)
+	(footprint ""
+		(layer "F.Cu")
+		(uuid "773261cc-1161-40be-8883-9b37acb53d5c")
+		(at 110 144)
+		(property "Reference" "H1"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "4c356c16-bdeb-4461-a70d-336d4143be8e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "MountingHole_M2"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "2de1d05b-e403-436e-8420-eb9da86ac19b")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "81d233c4-5337-4256-8ac2-ef72691f6c42")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "6cbfaa40-1fcd-4e9e-97ce-7aa3879b7ee8")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(attr board_only exclude_from_pos_files exclude_from_bom)
+		(duplicate_pad_numbers_are_jumpers no)
+		(fp_circle
+			(center 0 0)
+			(end 1.7 0)
+			(stroke
+				(width 0.05)
+				(type default)
+			)
+			(fill no)
+			(layer "F.CrtYd")
+			(uuid "6b606505-0abd-41f3-aeb1-43cb70db03d1")
+		)
+		(pad "" np_thru_hole circle
+			(at 0 0)
+			(size 2.2 2.2)
+			(drill 2.2)
+			(layers "*.Cu" "*.Mask")
+			(uuid "aa8e3cd1-d90a-448b-a28b-96d5d3307344")
+		)
+		(embedded_fonts no)
+	)
 	(footprint "Inductor_SMD:L_Coilcraft_LPS4018"
 		(layer "F.Cu")
 		(uuid "787a41dd-3dad-4739-ad6e-7da28af67c2c")
@@ -7582,76 +7582,6 @@
 				(xyz 0 0 0)
 			)
 		)
-	)
-	(footprint ""
-		(layer "F.Cu")
-		(uuid "80b8f923-ecb6-406b-98f6-bf141dbd62d8")
-		(at 212 106)
-		(property "Reference" "H2"
-			(at 0 0 0)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "f35335e7-07a5-4fed-8f33-8491177b2421")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "MountingHole_M2"
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "97a63611-7286-4fb4-8919-fe52ac48a439")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "562566fa-5e80-4484-85a0-d568076c8c49")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "9c169f5a-90d0-477e-9ab4-f3d3255523f6")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(attr board_only exclude_from_pos_files exclude_from_bom)
-		(duplicate_pad_numbers_are_jumpers no)
-		(fp_circle
-			(center 0 0)
-			(end 1.7 0)
-			(stroke
-				(width 0.05)
-				(type default)
-			)
-			(fill no)
-			(layer "F.CrtYd")
-			(uuid "91073eac-9d6c-4551-acaa-6f4746362a74")
-		)
-		(pad "" np_thru_hole circle
-			(at 0 0)
-			(size 2.2 2.2)
-			(drill 2.2)
-			(layers "*.Cu" "*.Mask")
-			(uuid "e344e000-874d-471e-9f30-3d99ffa880c1")
-		)
-		(embedded_fonts no)
 	)
 	(footprint "RF_Module:ESP32-WROOM-32UE"
 		(layer "F.Cu")
@@ -9273,6 +9203,76 @@
 			)
 		)
 	)
+	(footprint ""
+		(layer "F.Cu")
+		(uuid "8d69bb74-b4ee-4785-b645-51948203176d")
+		(at 212 144)
+		(property "Reference" "H3"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "b5f75523-4dba-4c57-a731-e5dcb159cbcc")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "MountingHole_M2"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "1dcc72da-d218-49a0-92a3-46a19a172866")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "c7bb73f6-fb18-4d42-ad7b-457856d2026e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "368bda84-4626-441a-aa28-13ef2c29e653")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(attr board_only exclude_from_pos_files exclude_from_bom)
+		(duplicate_pad_numbers_are_jumpers no)
+		(fp_circle
+			(center 0 0)
+			(end 1.7 0)
+			(stroke
+				(width 0.05)
+				(type default)
+			)
+			(fill no)
+			(layer "F.CrtYd")
+			(uuid "f2868411-74f4-43e3-87e4-b87463a42e7a")
+		)
+		(pad "" np_thru_hole circle
+			(at 0 0)
+			(size 2.2 2.2)
+			(drill 2.2)
+			(layers "*.Cu" "*.Mask")
+			(uuid "eaff6038-b689-4480-b464-1b747b84dc67")
+		)
+		(embedded_fonts no)
+	)
 	(footprint "Resistor_SMD:R_0402_1005Metric"
 		(layer "F.Cu")
 		(uuid "8daf95ff-060e-42e5-bb79-da80b0329ca1")
@@ -10618,76 +10618,6 @@
 			)
 		)
 	)
-	(footprint ""
-		(layer "F.Cu")
-		(uuid "a5b51767-c46c-40c0-9610-40e947e984af")
-		(at 159 104)
-		(property "Reference" "H4"
-			(at 0 0 0)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "27c838d7-6a8f-405c-a568-06f58b89a97f")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "MountingHole_M2"
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "1e28cd26-9c3c-4741-be2b-ab241785a9d6")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "b98536c5-1133-468c-a5c7-e2bbd95bd5e0")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "3d9e9b8f-280e-467c-b7a7-a68351bd7c58")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(attr board_only exclude_from_pos_files exclude_from_bom)
-		(duplicate_pad_numbers_are_jumpers no)
-		(fp_circle
-			(center 0 0)
-			(end 1.7 0)
-			(stroke
-				(width 0.05)
-				(type default)
-			)
-			(fill no)
-			(layer "F.CrtYd")
-			(uuid "7791a60d-a544-42b3-b12a-04522bb9e56d")
-		)
-		(pad "" np_thru_hole circle
-			(at 0 0)
-			(size 2.2 2.2)
-			(drill 2.2)
-			(layers "*.Cu" "*.Mask")
-			(uuid "c101d839-2c5f-4d58-817d-7a879512ed27")
-		)
-		(embedded_fonts no)
-	)
 	(footprint "Capacitor_SMD:C_0402_1005Metric"
 		(layer "F.Cu")
 		(uuid "a7a14566-698b-403a-a793-adc623f57719")
@@ -11869,6 +11799,76 @@
 				(xyz 0 0 0)
 			)
 		)
+	)
+	(footprint ""
+		(layer "F.Cu")
+		(uuid "c00a092d-8c92-4d5c-a11d-deba041ccb61")
+		(at 212 106)
+		(property "Reference" "H2"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "d2b48d95-2ba0-43ac-b3cf-e898e49773f9")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "MountingHole_M2"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "fb41ecd2-b97f-4098-816a-c9d6ebb5c659")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "cfcb940f-e2b6-4283-8e80-9fe9b72fd2a1")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "cb1139bd-b5ce-439c-886f-4799bbf67b30")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(attr board_only exclude_from_pos_files exclude_from_bom)
+		(duplicate_pad_numbers_are_jumpers no)
+		(fp_circle
+			(center 0 0)
+			(end 1.7 0)
+			(stroke
+				(width 0.05)
+				(type default)
+			)
+			(fill no)
+			(layer "F.CrtYd")
+			(uuid "19d33340-a7d9-466b-b127-5bbdc91de5cb")
+		)
+		(pad "" np_thru_hole circle
+			(at 0 0)
+			(size 2.2 2.2)
+			(drill 2.2)
+			(layers "*.Cu" "*.Mask")
+			(uuid "21695c94-189d-4dc0-a4e7-4c36244bb6a3")
+		)
+		(embedded_fonts no)
 	)
 	(footprint "Capacitor_SMD:C_0402_1005Metric"
 		(layer "F.Cu")
@@ -17405,6 +17405,17 @@
 		(embedded_fonts no)
 	)
 	(gr_rect
+		(start 128 105)
+		(end 187 147)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(fill no)
+		(layer "Cmts.User")
+		(uuid "92196ea8-ebdf-4012-8947-1a3846ec8263")
+	)
+	(gr_rect
 		(start 100 100)
 		(end 218 150)
 		(stroke
@@ -17413,7 +17424,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "8cdad854-df87-42d7-83f6-523d26182747")
+		(uuid "b41dca2d-c518-4f7f-86a2-f820689566ce")
 	)
 	(segment
 		(start 144.7 117.4159)

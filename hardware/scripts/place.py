@@ -63,6 +63,18 @@ HOLE_D = 2.2  # M2 clearance, NPTH
 # below the encoder, and the gap between the top-edge switches and J501.
 HOLES = [(10, 44), (112, 6), (112, 44), (59, 4)]
 
+# Display panel shadow, per the ADR/proposal 6c panel-shadow rule: 59x42mm,
+# centred on the face window. Derived from J501's own anchor math below (not
+# the other way round): J501's insertion face sits 24mm in from the panel's
+# RIGHT edge, and its anchor x=59.4 puts that face at x=63 (anchor + half the
+# footprint's 7.25mm-wide courtyard), so the panel's right edge is x=87 and
+# (width 59mm) its left edge is x=28 -- i.e. x:[28,87], NOT x:[27,86] (an
+# earlier draft of this comment had the off-by-one that README.md's own
+# table never had; this constant is now the single source either way).
+# y:[5,47] (height 42mm) centred on y=26, matching J501's own target
+# centreline.
+PANEL = {"x": (28.0, 87.0), "y": (5.0, 47.0)}
+
 MM = pcbnew.FromMM
 
 
@@ -71,9 +83,9 @@ def pt(x, y):
 
 
 # --- RP2350B and its ring of decoupling -----------------------------------
-# Cluster sits under the display panel shadow (panel x:[27,86] y:[5,47] --
-# see PANEL below): every part in this ring is a QFN/0402/SOIC/USON/crystal,
-# all comfortably <=2.5mm tall, so it's allowed under the glass per the
+# Cluster sits under the display panel shadow (see PANEL above, x:[28,87]
+# y:[5,47]): every part in this ring is a QFN/0402/SOIC/USON/crystal, all
+# comfortably <=2.5mm tall, so it's allowed under the glass per the
 # panel-shadow rule. Shifted left of J501's column (x:[56,63]) to leave it
 # clear.
 CX, CY = 44.0, 24.0
@@ -159,8 +171,14 @@ P = {
     # the panel's right edge the FPC folds in from. Anchor x=59.4 puts the
     # insertion-face edge (courtyard max x = anchor+3.625) at x=63, 24mm in
     # from the panel's right edge at x=87 (pilink-0o2's concrete rule).
-    # Anchor y=19 puts J501's centre 7mm up (ADR)/7.2mm up (pilink-0o2's
-    # refined figure) from the panel's own vertical centreline (y=26).
+    # Anchor y=19 puts J501's centre 7.0mm up from the panel's own vertical
+    # centreline (y=26, from PANEL above) -- matching the ADR's "~7mm"
+    # summary figure exactly; pilink-0o2's own refined measurement was
+    # 7.2mm, so this placement is 0.2mm off that figure, right at the edge
+    # of (not inside) the finding's own +/-0.2mm tolerance band. Not
+    # re-tuned here: the difference is sub-pad-pitch and doesn't change any
+    # DRC/netlist result, but say the real built number rather than quoting
+    # the finding's number as if it were hit exactly.
     "J501": (59.4, 19.0, 270),
     "C501": (70.0, 37.0, 0),
     # L501 shifted 1.5mm further from U501 than a naive mirror of the old
@@ -254,6 +272,24 @@ def main():
     rect.SetWidth(MM(0.1))
     board.Add(rect)
 
+    # -- panel-shadow rectangle (documentation graphic, not a keepout rule) -
+    # Drawn on User.Comments so it's a single authoritative, queryable
+    # record of where the 59x42mm display-panel window sits on THIS board,
+    # instead of only living in README/place.py prose that can drift out of
+    # sync with each other (as the x:[27,86] vs x:[28,87] mismatch this
+    # fixed did). Remove any earlier copy first so re-running this script
+    # never duplicates it.
+    for d in list(board.GetDrawings()):
+        if d.GetLayer() == pcbnew.Cmts_User:
+            board.Remove(d)
+    panel = pcbnew.PCB_SHAPE(board)
+    panel.SetShape(pcbnew.SHAPE_T_RECT)
+    panel.SetStart(pt(PANEL["x"][0], PANEL["y"][0]))
+    panel.SetEnd(pt(PANEL["x"][1], PANEL["y"][1]))
+    panel.SetLayer(pcbnew.Cmts_User)
+    panel.SetWidth(MM(0.1))
+    board.Add(panel)
+
     for i, (x, y) in enumerate(HOLES, 1):
         fp = pcbnew.FOOTPRINT(board)
         fp.SetReference(f"H{i}")
@@ -311,7 +347,8 @@ def main():
     with open(PROJECT, "w") as fh:
         json.dump(pro, fh, indent=2)
         fh.write("\n")
-    print(f"placed {len(P)} footprints, {len(HOLES)} holes, outline {BOARD_W}x{BOARD_H}mm")
+    print(f"placed {len(P)} footprints, {len(HOLES)} holes, outline {BOARD_W}x{BOARD_H}mm, "
+          f"panel shadow x:{PANEL['x']} y:{PANEL['y']} on User.Comments")
 
 
 if __name__ == "__main__":

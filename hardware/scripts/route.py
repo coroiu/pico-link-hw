@@ -4,8 +4,9 @@
 Usage (from hardware/):
     python3 scripts/route.py [--passes N] [--jar PATH]
 
-Specctra round-trip: strip existing tracks/vias/zones (except preroute.py's
-locked segments) -> export DSN ->
+Specctra round-trip: strip existing tracks/vias/zones (except any manually
+locked segments, e.g. a future hand-preroute pass -- no such script exists
+in this project yet) -> export DSN ->
 Freerouting (headless) -> import SES -> save. Run scripts/widen.py and
 scripts/zones.py next.
 
@@ -44,8 +45,9 @@ def main():
         sys.exit(f"freerouting jar not found: {args.jar}")
 
     board = pcbnew.LoadBoard(BOARD)
-    # Keep preroute.py's locked segments (exported as fixed wiring); drop
-    # everything else, including zones.py's locked stitching vias.
+    # Keep any manually locked segments (exported as fixed wiring) from a
+    # future hand-preroute pass; drop everything else, including zones.py's
+    # locked stitching vias.
     for t in list(board.GetTracks()):
         if t.Type() == pcbnew.PCB_VIA_T or not t.IsLocked():
             board.Remove(t)
