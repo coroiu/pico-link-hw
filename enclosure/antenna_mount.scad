@@ -25,9 +25,21 @@
 // checked the display-panel/ground-plane clearance it claimed to derive,
 // and had three geometry bugs (lip closed on the wrong side, the cable
 // channel modeled as a solid bar instead of an actual cutout, and the
-// strain-relief clip coming out U-shaped instead of C-shaped). This
-// revision re-derives the position from scratch (see "Mount position"
-// below) and fixes all of those.
+// strain-relief clip coming out U-shaped instead of C-shaped). That
+// revision (9eac09f) re-derived the position (see "Mount position" below)
+// and fixed those three bugs, but a second NOT APPROVED round found: the
+// display/ground clearance discussion was framed on the wrong axis (a
+// non-existent "Z gap" instead of the real face-Y distance) and wrongly
+// called "not derivable" when it is derivable and fails the guidance; the
+// land/lip/channel/clip stack was modeled ~19mm deep against a ~10mm
+// available wall cavity; the strain-relief clip's bore ran wall-normal
+// instead of along the cable's actual path; the cable-channel-width
+// comment claimed margin for the IPEX plug body that doesn't mate here at
+// all (it mates at U201, far from this stub); and a stated clearance
+// figure had an arithmetic slip (39mm instead of 38.25mm). This revision
+// fixes all of those -- see the comments at each fix below and
+// `.planning` bead `pilink-58z` for the RF-clearance trade-off this file
+// now surfaces instead of hiding.
 
 // ---------------------------------------------------------------------------
 // Antenna part -- Kinghelm KH-FPC2.4G-1.13IPEX-240, LCSC C4943394. Selected
@@ -150,19 +162,68 @@ PANEL_X_MAX_FACE_LOCAL = PANEL_X_MAX_BOARD_LOCAL + BOARD_TO_FACE_X_OFFSET; // 89
 ASSEMBLY_CLEARANCE = 1.0;     // mm, margin added around the element footprint so an installer can place the adhesive antenna by eye, not a datasheet figure
 WALL_THICKNESS = 2.0;         // mm, nominal FDM shell wall -- pilink-8hx.1 may land on a different value; parameterized so it's a one-line change here
 PINHOLE_X_CLEARANCE = 3.0;    // mm, this file's own minimum-margin choice from a pinhole's edge to the mount's land edge (same figure the first version used for the left-wall margin, kept consistent rather than tuned differently just because the position moved)
-LIP_WIDTH = 0.8;              // mm, width of the raised locating lip around the land
+// *** FIX for PR #48 review item (mount depth vs. available wall depth) ***
+// LIP_WIDTH is reduced from 0.8 to 0.5mm here as part of that fix -- see
+// the "Mount depth" note below the land-footprint constants for the full
+// depth accounting.
+LIP_WIDTH = 0.5;              // mm, width of the raised locating lip around the land
 LIP_HEIGHT = 0.4;             // mm, height of the raised locating lip
-CABLE_CHANNEL_WIDTH = 2.0;    // mm, clear of ANTENNA_CABLE_DIAMETER (1.13mm) with margin for the IPEX plug body
+// *** FIX for PR #48 review item (groove width vs. IPEX plug body) ***
+// This channel/groove only carries the bare Ø1.13mm coax between the
+// antenna land and the cavity -- the IPEX/U.FL-class male plug is on the
+// OTHER end of the pigtail, where it mates at U201 (see
+// `strain_relief_clip()`'s own comment and the finding), nowhere near this
+// stub. So "margin for the plug body" was simply wrong; corrected below.
+CABLE_CHANNEL_WIDTH = 2.0;    // mm, clear of ANTENNA_CABLE_DIAMETER (1.13mm) with margin for the bare coax only (no plug passes through this stub)
 CABLE_CHANNEL_DEPTH = 1.5;    // mm, depth of the groove cut into the channel boss (see channel() below)
 CHANNEL_BOSS_MARGIN = 1.0;    // mm, solid shoulder left on each side of the groove so there is material to actually cut the groove into
 CABLE_CHANNEL_EXIT_X_INSET = 6.0; // mm, UNSOURCED ASSUMPTION: neither the research finding nor the LCSC listing says where this part's actual pigtail leaves the element (flagged in both places). This file picks an exit point inset from the land's edge nearest U201 (see "Mount position" below for why that edge is nearest), on the assumption that the shortest practical cable run to U201's U.FL connector is the right default absent a real drawing -- not a confirmed exit point on the physical part.
 STRAIN_RELIEF_CLIP_ID = 1.6;  // mm, snug over the 1.13mm coax
-STRAIN_RELIEF_CLIP_HEIGHT = 2.0; // mm
+// Reduced from 2.0 to 1.0mm as part of the mount-depth fix below -- still
+// enough ring thickness along the cable's own axis (after the bore-
+// orientation fix, see strain_relief_clip() below) for a printed C-clip to
+// grip a cable this thin (Ø1.13mm), just not generously so.
+STRAIN_RELIEF_CLIP_HEIGHT = 1.0; // mm
 STRAIN_RELIEF_CLIP_SLOT_WIDTH = ANTENNA_CABLE_DIAMETER + 0.3; // mm, narrow snap-in slot -- wide enough for the 1.13mm coax to press through, not the full half-ring opening the first version cut (which left a U, not a C -- see PR review item 8)
 
 // Land (adhesive mounting area) footprint, element + clearance on all sides.
 MOUNT_LAND_LENGTH = ANTENNA_ELEMENT_LENGTH + 2 * ASSEMBLY_CLEARANCE; // 47.8mm
 MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE;  // 8.5mm
+
+// *** FIX for PR #48 review item (mount depth vs. available wall depth,
+// blocking) ***
+// The review measured this mount's own Y-footprint (land + lip on the
+// closed +Y edge, plus the channel stub + clip on the open -Y/cable-exit
+// edge) at about 19mm, against a top-wall inner cavity depth of only about
+// 10mm (ADR: body ~14mm thick, minus ~2mm front/back walls each). That
+// axis (this file's local Y) maps to the body's front-to-back depth, not
+// to the wall's own thickness, so it is a real fit problem independent of
+// the RF-clearance question above, and it doesn't resolve itself just by
+// repositioning the mount in X.
+//
+// With LIP_WIDTH and STRAIN_RELIEF_CLIP_HEIGHT reduced above and a much
+// shorter default channel_length (see antenna_mount()'s signature below,
+// 1.0mm instead of 8.0mm -- it was always documented as a placeholder
+// stub, "real length depends on pilink-8hx.1's cavity geometry", not a
+// committed dimension):
+//   land + lip (+Y, closed edge):      MOUNT_LAND_WIDTH + LIP_WIDTH = 8.5 + 0.5 = 9.0mm
+//   channel stub (-Y, open edge):      1.0mm (new default, was 8.0mm)
+//   strain-relief clip (-Y, beyond the channel): STRAIN_RELIEF_CLIP_HEIGHT = 1.0mm (new default, was 2.0mm)
+//   total Y-span:                      9.0 + 1.0 + 1.0 = 11.0mm
+// That is down from ~19mm to ~11mm, but still about 1mm (~10%) OVER the
+// ~10mm estimated wall-cavity budget -- NOT fully resolved. The land+lip
+// side alone (9.0mm) already consumes nearly the whole budget, since the
+// land's own width is driven by the physical element (6.5mm) plus a
+// modest assembly margin, not by a tunable default. Squeezing the channel
+// stub and clip any further would start compromising their function (a
+// clip ring thinner than ~1mm along the cable axis is unlikely to grip a
+// cable reliably when printed). Stated plainly rather than silently
+// forced to fit: this mount's depth is very tight against the estimated
+// 10mm cavity and may need pilink-8hx.1/pilink-8hx.2's actual 3D wall
+// geometry to either confirm a bit more than 10mm is really available, or
+// to route the strain-relief clip off this straight-line axis entirely
+// (e.g. letting the cable turn a corner into the cavity below rather than
+// continuing straight back) once that geometry exists to design against.
 
 // ---------------------------------------------------------------------------
 // Mount position in the top wall's own local X (= face-local X, left-right,
@@ -172,9 +233,11 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE;  // 8.5mm
 // The first version hugged the left inner wall (face-local X 3-50.8mm,
 // covering element X 4-49.8mm) to keep the cable run to U201 short. That
 // put the element squarely across SW101's pinhole at face-local X=44 --
-// SW101_X_FACE_LOCAL above. The review's own measurements (top wall inner
-// depth ~10mm: body ~14mm thick minus front/back walls; land+lip depth
-// 9.3mm; PTS645-class actuator sits a few mm in front of the PCB plane)
+// SW101_X_FACE_LOCAL above. The review's own measurements at the time (top
+// wall inner depth ~10mm: body ~14mm thick minus front/back walls;
+// land+lip depth 9.3mm with the lip width this file used then -- since
+// reduced to 9.0mm as part of the separate mount-depth fix below;
+// PTS645-class actuator sits a few mm in front of the PCB plane)
 // show this is a real 3D collision -- the pinhole's paperclip travels
 // through the same shallow top-wall cavity the antenna land sits in, not
 // just an X-coordinate overlap on paper. That fails this bead's own
@@ -187,8 +250,12 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE;  // 8.5mm
 //
 // Fix: move the mount clear of BOTH pinholes, to the right of SW102 (the
 // rightward option -- staying left of SW101 only leaves face-local X
-// 3-42mm = 39mm, less than the 45.8mm element, so it doesn't fit; checked
-// directly here, not assumed). Minimum clearance from SW102's pinhole edge
+// 2-40.25mm = 38.25mm (inner wall at WALL_THICKNESS=2 to SW101's pinhole
+// edge at SW101_X_FACE_LOCAL - PINHOLE_DIAMETER/2 - PINHOLE_X_CLEARANCE =
+// 44 - 0.75 - 3 = 40.25), less than the 45.8mm element, so it doesn't fit;
+// checked directly here, not assumed -- a review round corrected this
+// from a slightly-off "3-42mm = 39mm" to the figure above; the conclusion
+// (it doesn't fit) is unchanged either way). Minimum clearance from SW102's pinhole edge
 // (SW102_X_FACE_LOCAL +/- half PINHOLE_DIAMETER) to the land is
 // PINHOLE_X_CLEARANCE, same margin figure the old left-wall placement used:
 //   MOUNT_X_MIN = 54.0 + 1.5/2 + 3.0 = 57.75mm
@@ -246,18 +313,7 @@ echo(str("[pilink-8hx.4] Mount X ", MOUNT_X_MIN, "-", MOUNT_X_MAX,
 // top-wall pinholes do. The guidance this bead is actually weighing is the
 // research finding's RF-performance keepout ("keep the flexible element
 // clear of metal/ground plane ... within roughly its own element length"),
-// not a literal collision risk. The real question is the Z (perpendicular
-// -to-face) gap between the top wall's inner surface and the panel
-// frame/PCB below it at this X position -- and that number is NOT
-// derivable from any document in this repo today: pilink-8hx.1/pilink-8hx.2
-// haven't landed real 3D wall/standoff geometry yet, so there is no actual
-// top-wall-to-PCB distance to check against the ~46mm keepout guidance.
-// Stated honestly rather than invented: this file picks the placement that
-// resolves the one real, checkable 3D collision (the pinholes) and
-// surfaces the panel-shadow X-overlap number above instead of silently
-// dropping it; the Z-clearance question is carried forward, unresolved,
-// for pilink-8hx.1/pilink-8hx.2/pilink-8hx.5 to actually check once real
-// wall geometry exists to measure.
+// not a literal collision risk.
 PANEL_OVERLAP_X_MIN = max(MOUNT_X_MIN, PANEL_X_MIN_FACE_LOCAL);
 PANEL_OVERLAP_X_MAX = min(MOUNT_X_MAX, PANEL_X_MAX_FACE_LOCAL);
 PANEL_OVERLAP_X = PANEL_OVERLAP_X_MAX > PANEL_OVERLAP_X_MIN ? PANEL_OVERLAP_X_MAX - PANEL_OVERLAP_X_MIN : 0;
@@ -265,10 +321,64 @@ PANEL_OVERLAP_X = PANEL_OVERLAP_X_MAX > PANEL_OVERLAP_X_MIN ? PANEL_OVERLAP_X_MA
 echo(str("[pilink-8hx.4] Display-panel shadow X ", PANEL_X_MIN_FACE_LOCAL, "-",
          PANEL_X_MAX_FACE_LOCAL, "mm vs mount X ", MOUNT_X_MIN, "-", MOUNT_X_MAX,
          "mm: ", PANEL_OVERLAP_X,
-         "mm of X-overlap, unavoidable given the fixed panel/pinhole footprint. ",
-         "Z (perpendicular-to-face) clearance to the panel frame/PCB ground plane ",
-         "is NOT yet checkable -- no real top-wall 3D geometry exists in this repo ",
-         "yet (pilink-8hx.1/.2). Flagged, not resolved here."));
+         "mm of X-overlap, unavoidable given the fixed panel/pinhole footprint."));
+
+// *** FIX for PR #48 review round 2 (critical, blocking): the governing
+// number here is NOT a Z (perpendicular-to-face) gap -- a prior revision
+// of this file wrongly framed it that way and called it "not derivable
+// until pilink-8hx.1/.2 land". Both parts were wrong. The antenna sits in
+// the top wall, ABOVE the board's top edge and the display panel's top
+// edge, in the FACE PLANE (face-Y, the same axis FACE_H/BOARD_H already
+// use) -- not in front of or behind them in Z. And that face-Y distance
+// *is* derivable to first order from constants already in this file, using
+// the same unconfirmed board-to-face mapping the X-axis numbers above
+// already rely on (so it carries the same caveat, not a new one).
+//
+// Display-panel shadow Y start, board-local, from hardware/README.md:971
+// ("Treated as x:[28,87] y:[5,47] on the board") -- only the X range was
+// captured above; this is its Y start, needed for the face-Y estimate.
+PANEL_Y_MIN_BOARD_LOCAL = 5.0; // mm, hardware/README.md:971
+PANEL_Y_MIN_FACE_LOCAL = PANEL_Y_MIN_BOARD_LOCAL + BOARD_TO_FACE_Y_OFFSET; // 11.0mm, ESTIMATE (unconfirmed mapping)
+
+// The element itself sits on the top wall's INNER surface, i.e.
+// WALL_THICKNESS below the face's own top edge (face-y=0) -- an estimate,
+// not a confirmed figure, same caveat as everything else derived from the
+// unconfirmed board-to-face mapping.
+ANTENNA_ELEMENT_FACE_Y_ESTIMATE = WALL_THICKNESS; // ~2.0mm, ESTIMATE
+
+// Board's own top edge (where SW101/SW102's copper and the board outline
+// itself sit) is at face-y = BOARD_TO_FACE_Y_OFFSET = 6.0mm.
+CLEARANCE_TO_BOARD_TOP_EDGE_ESTIMATE = BOARD_TO_FACE_Y_OFFSET - ANTENNA_ELEMENT_FACE_Y_ESTIMATE; // ~4.0mm
+// Panel frame's top edge is at face-y = PANEL_Y_MIN_FACE_LOCAL = 11.0mm.
+CLEARANCE_TO_PANEL_FRAME_ESTIMATE = PANEL_Y_MIN_FACE_LOCAL - ANTENNA_ELEMENT_FACE_Y_ESTIMATE; // ~9.0mm
+
+// The guidance (ANTENNA_KEEPOUT_FROM_METAL, ~46mm -- roughly the element's
+// own length) is measured against a face that is only FACE_H=56mm tall in
+// total, with only ~11mm of that above the panel's own top edge. So this
+// is not a marginal shortfall and not something a different X position in
+// this same top wall can fix: EVERY top-wall position puts the element
+// within single-digit mm of the board's top-edge copper and the panel
+// frame, roughly 5-10x closer than the ~46mm guidance asks for. That is a
+// real RF-performance trade-off (reduced range/link reliability risk), not
+// a modeling gap to leave open in an echo() addressed to a mechanical
+// fit-check bead. It is now tracked as its own product decision in
+// `pilink-58z` (P1, discovered-from this bead) -- see that bead for the
+// options (accept + empirical range test, flip the element's radiating
+// end, move to the rear wall, trim PCB copper near the top edge, or grow
+// the enclosure). This file does not re-litigate those options or change
+// the mount's X position for them; that call belongs to pilink-58z once
+// Andreas decides.
+echo(str("[pilink-8hx.4] Face-Y clearance ESTIMATE (unconfirmed board-to-face ",
+         "mapping, same caveat as the X-axis numbers above): element at ",
+         "face-y~", ANTENNA_ELEMENT_FACE_Y_ESTIMATE, "mm, board top edge at ",
+         "face-y=", BOARD_TO_FACE_Y_OFFSET, "mm (~",
+         CLEARANCE_TO_BOARD_TOP_EDGE_ESTIMATE, "mm clearance), panel frame top ",
+         "at face-y=", PANEL_Y_MIN_FACE_LOCAL, "mm (~",
+         CLEARANCE_TO_PANEL_FRAME_ESTIMATE, "mm clearance) -- vs the ",
+         ANTENNA_KEEPOUT_FROM_METAL, "mm guidance. NOT MET at this or any ",
+         "top-wall X position (face is only ", FACE_H, "mm tall, ~11mm of ",
+         "it above the panel). Real RF trade-off, tracked in pilink-58z -- ",
+         "not resolved here, not left pending."));
 
 module antenna_element_reference() {
   // Non-manifold preview of the antenna element itself, for visual
@@ -306,7 +416,7 @@ module antenna_mount(
   lip_height = LIP_HEIGHT,
   channel_width = CABLE_CHANNEL_WIDTH,
   channel_depth = CABLE_CHANNEL_DEPTH,
-  channel_length = 8.0, // mm, short stub -- real length depends on pilink-8hx.1's cavity geometry
+  channel_length = 1.0, // mm, short stub -- reduced from 8.0mm as part of the mount-depth fix (see MOUNT_LAND_WIDTH's "Mount depth" note above); real length still depends on pilink-8hx.1's cavity geometry and is expected to be overridden once that exists
   channel_exit_x = CABLE_CHANNEL_EXIT_X_INSET,
   clip_id = STRAIN_RELIEF_CLIP_ID,
   clip_height = STRAIN_RELIEF_CLIP_HEIGHT
@@ -364,7 +474,9 @@ module antenna_mount(
         cube([boss_width, channel_length, boss_height]);
 
       // Groove: rounded cross-section (hull of two cylinders) sized for
-      // the 1.13mm coax plus its IPEX plug body, cut down channel_depth
+      // the bare 1.13mm coax only -- the IPEX/U.FL-class plug is on the
+      // pigtail's OTHER end, mating at U201, not here (see
+      // CABLE_CHANNEL_WIDTH's own comment above) -- cut down channel_depth
       // from the boss's top face.
       hull() {
         translate([channel_exit_x, 0.01, groove_z])
@@ -380,9 +492,15 @@ module antenna_mount(
   color("SlateGray") channel();
 
   channel_boss_height = channel_depth + 1.0; // mirrors channel()'s own boss_height, see note there
+  // Height of the channel's groove axis, mirroring channel()'s own
+  // groove_z (boss_height - channel_depth + channel_width/2, and
+  // boss_height - channel_depth is always 1.0 by construction above) --
+  // used below to line the clip's bore up with the groove's own height so
+  // the cable continues at the same level, not stepped.
+  channel_groove_z = 1.0 + channel_width / 2;
 
-  // Strain-relief clip: a C-shaped boss at the channel's far end so the
-  // coax doesn't transmit pull-force to the U.FL plug on U201.
+  // Strain-relief clip: a C-shaped boss just past the channel's far end so
+  // the coax doesn't transmit pull-force to the U.FL plug on U201.
   //
   // *** FIX for PR #48 review item 8 (minor, fixed as low-cost) ***
   // The first version's cutout cube spanned a full half-plane across the
@@ -391,22 +509,47 @@ module antenna_mount(
   // cable. This version cuts only a narrow slot (STRAIN_RELIEF_CLIP_SLOT_WIDTH,
   // sized off the coax diameter with a small press-fit margin) so the ring
   // stays mostly closed and can actually snap over and hold the coax.
+  //
+  // *** FIX for PR #48 review round 2 (clip bore orientation) ***
+  // The previous revision's ring had its bore along Z (wall-normal) --
+  // rotate([0,0,90]) at the call site only spins the ring about its own
+  // (still-Z) axis, it doesn't change which axis the hole runs along. A
+  // Z-axis bore only grips the coax if the cable turns 90 degrees toward
+  // the wall right at this point, which isn't the cable's real path: the
+  // coax runs straight along -Y through the channel groove and keeps
+  // going in -Y from here toward the cavity (see antenna_mount()'s own
+  // doc comment -- this file hands off a straight stub, it doesn't know
+  // the real 3D path beyond it either, but "straight along -Y" is the
+  // channel's own direction, not Z). Fixed by building the ring with its
+  // bore along Y instead, so the cable passes straight through it in the
+  // same direction it travels through the channel.
   module strain_relief_clip() {
     outer_d = clip_id + 2 * lip_width;
-    difference() {
-      cylinder(h = clip_height, d = outer_d, $fn = 32);
-      translate([0, 0, -0.1])
-        cylinder(h = clip_height + 0.2, d = clip_id, $fn = 32);
-      // Narrow snap-in slot from the outer edge through to the bore, on
-      // one side only.
-      translate([-outer_d / 2 - 0.1, -STRAIN_RELIEF_CLIP_SLOT_WIDTH / 2, -0.1])
-        cube([outer_d / 2 + 0.2, STRAIN_RELIEF_CLIP_SLOT_WIDTH, clip_height + 0.2]);
-    }
+    // Built with the bore along Z first (easiest to reason about radii
+    // and the slot cut), then rotated 90 degrees about X so the bore ends
+    // up along Y. rotate([90,0,0]) maps a Z-axis bore to a Y-axis bore;
+    // the slot's "full height along Z" (pre-rotation) becomes "full
+    // length along Y" (post-rotation), which is what a snap-in slot
+    // running the clip's whole length should do.
+    rotate([90, 0, 0])
+      translate([0, 0, -clip_height / 2])
+        difference() {
+          cylinder(h = clip_height, d = outer_d, $fn = 32);
+          translate([0, 0, -0.1])
+            cylinder(h = clip_height + 0.2, d = clip_id, $fn = 32);
+          // Narrow snap-in slot from the outer edge through to the bore,
+          // on one side only, running the full length of the clip.
+          translate([-outer_d / 2 - 0.1, -STRAIN_RELIEF_CLIP_SLOT_WIDTH / 2, -0.1])
+            cube([outer_d / 2 + 0.2, STRAIN_RELIEF_CLIP_SLOT_WIDTH, clip_height + 0.2]);
+        }
   }
 
-  translate([channel_exit_x, -channel_length, channel_boss_height])
-    rotate([0, 0, 90])
-      color("DimGray") strain_relief_clip();
+  // Positioned right at the channel's far (-Y) end, extending clip_height
+  // further in -Y (so it doesn't overlap the channel boss), with its bore
+  // centered at the groove's own height (channel_groove_z) rather than
+  // stacked on top of the boss -- see channel_groove_z above.
+  translate([channel_exit_x, -channel_length - clip_height / 2, channel_groove_z])
+    color("DimGray") strain_relief_clip();
 }
 
 // Self-contained preview assembly: places antenna_mount() at

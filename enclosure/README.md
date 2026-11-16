@@ -44,7 +44,7 @@ or is marked as this file's own assumption.
 - **Position:** face-local X 57.75-105.55mm, clear of both SW101 (X=44mm)
   and SW102 (X=54mm) top-edge pinholes by construction (3mm margin past
   each pinhole's own ~1.5mm channel radius). A left-of-SW101 placement
-  doesn't fit (only 39mm of clear width there, less than the 45.8mm
+  doesn't fit (only 38.25mm of clear width there, less than the 45.8mm
   element) — fixed per a code-reviewer's NOT APPROVED verdict on the first
   version (PR #48), which had the element physically colliding with
   SW101's pinhole channel. The resulting cable run to U201's U.FL connector
@@ -54,16 +54,34 @@ or is marked as this file's own assumption.
   hardware/README.md's own placement table already flags as pending
   `pilink-8hx.1`/`.2` confirmation — carried here unchanged rather than
   inventing a different one.
-- **Display-panel clearance, checked but not fully resolved:** the new
-  position still overlaps the display-panel shadow's face-local X range
-  (30-89mm) by 31.25mm — unavoidable, since the panel shadow alone spans
-  59mm of the 122mm-wide face and the only clear span past it (X>89mm) is
-  ~31mm, less than the element. The panel and the antenna mount sit in
-  different structural layers (face vs. top wall), so this is an RF-keepout
-  concern, not a second pinhole-style collision — but the actual Z
-  (perpendicular-to-face) clearance between the top wall and the panel
-  frame/PCB below it can't be checked yet, since no real 3D wall geometry
-  exists in this repo (`pilink-8hx.1`/`.2` haven't landed). Flagged
-  explicitly in the `.scad` file's comments and its `echo()` output for
-  `pilink-8hx.1`/`.2`/`pilink-8hx.5` to actually check once that geometry
-  exists.
+- **Display/ground clearance guidance is NOT met — real RF trade-off, not
+  pending:** a second review round found the governing number here is the
+  face-Y distance (not a Z gap, as an earlier revision wrongly framed it),
+  and it *is* derivable from this file's own constants: the element sits
+  roughly **4mm from the board's top edge and roughly 9mm from the display
+  panel's frame** (both estimates, same unconfirmed board-to-face mapping
+  as the X-axis numbers), against the antenna datasheet's own guidance of
+  keeping metal/ground clear within roughly the element's own length
+  (~46mm). With only ~11mm of face above the panel in total, **no position
+  in the top wall can meet that guidance** — this is a real RF-performance
+  risk (reduced range/link reliability), not a modeling gap. It's tracked
+  as its own product decision in `pilink-58z` (P1, discovered from this
+  bead); see that bead for the options (accept + empirical range test,
+  flip the element's radiating end, move to the rear wall, trim PCB copper
+  near the top edge, or grow the enclosure) rather than re-litigated here.
+  The mount's X position is unchanged by this — that's `pilink-58z`'s call.
+  Separately, the mount's own X range still overlaps the display-panel
+  shadow's face-local X range (30-89mm) by 31.25mm, unavoidably, for the
+  same reason the left-of-SW101 placement didn't fit.
+- **Mount depth vs. available wall-cavity depth — tight, not fully
+  resolved:** the same review found the land/lip/channel/clip stack-up
+  modeled at ~19mm deep against a top-wall inner cavity of only ~10mm
+  (front-to-back, per the back-shell ADR numbers). Shortening the lip width,
+  the default cable-channel stub length, and the strain-relief clip's own
+  thickness brings this down to **~11mm — still ~1mm (~10%) over the
+  ~10mm budget**, because the land+lip alone (~9mm) already consumes
+  nearly the whole depth before any room is left for the channel/clip. Not
+  silently forced to fit: flagged plainly as a tight, not-fully-resolved
+  constraint for `pilink-8hx.1`/`.2` to re-check once real 3D wall geometry
+  exists, possibly by routing the strain-relief clip off this straight-line
+  axis instead.
