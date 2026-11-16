@@ -21,6 +21,12 @@
 // every opening's X/Y position and the window's size -- that is this
 // bead's actual scope per its acceptance criteria.
 //
+// REVISION pilink-3ym (2026-11-16): U201 moved to B.Cu and the A/B/X/Y
+// diamond was restored to centre (102,25) by pilink-hdl (PR #60). The four
+// button bores below are back on (102,17)/(94,25)/(110,25)/(102,33); the
+// knob (SW303, y=25) was never affected. Header notes below that mention
+// the pilink-2yw diamond shift are history only.
+//
 // REVISION (code-review NOT APPROVED on 8da37dc, fixed here): (1) the
 // display glass now actually registers at Z=RECESS_DEPTH (1.2mm) below
 // the outer face -- see display_cutouts()/panel pocket below -- instead
@@ -320,37 +326,30 @@ KNOB_PROUD_MM = 17.0; // informational only
    with a Y coordinate. */
 
 // Diamond positions, board-local [board_x, board_y].
-// Source: hardware/README.md placement table, updated by pilink-2yw
-// (merged 2026-11-16): "Moved: centre (102, 34), shifted down 9mm from
-// the original (102, 25) as a rigid group ... Y top (102,26), X left
-// (94,34), B right (110,34), A bottom (102,42)" -- opened clear height
-// above the diamond for U201 (ESP32) to relocate there off the knob's
-// column. SUPERSEDES the old centre (102,25) / Y (102,17) / X (94,25) /
-// B (110,25) / A (102,33) figures -- every one of the 4 positions below
-// is the old board-y value +9.
-BTN_Y = [102, 26]; // top of diamond
-BTN_X = [94, 34];  // left of diamond
-BTN_B = [110, 34]; // right of diamond
-BTN_A = [102, 42]; // bottom of diamond
+// Source: hardware/README.md placement table, RESTORED by pilink-hdl
+// (PR #60, 2026-11-16): centre (102, 25) -- exactly board-vertical-centre,
+// same y as the knob -- Y top (102,17), X left (94,25), B right (110,25),
+// A bottom (102,33); verified against hardware/pico-link-hw.kicad_pcb
+// (SW308 (102,17), SW307 (94,25), SW306 (110,25), SW305 (102,33)).
+// pilink-3ym: this SUPERSEDES the pilink-2yw-era centre (102,34) / Y
+// (102,26) / X (94,34) / B (110,34) / A (102,42) this file carried from
+// PR #50 -- every y below is the old value -9. The 8mm pitch and the
+// X-button x=94 are unchanged.
+BTN_Y = [102, 17]; // top of diamond
+BTN_X = [94, 25];  // left of diamond
+BTN_B = [110, 25]; // right of diamond
+BTN_A = [102, 33]; // bottom of diamond
 
-// U201 (ESP32-WROOM-32UE) proximity check -- the "also check" item: with
-// U201 now at board (99, 11.6), directly ABOVE this new diamond centre
-// (102,34), do the two collide? Checked against the real F.CrtYd boxes
-// hardware/scripts/place.py cites (not re-measured, not assumed): U201's
-// courtyard is x:[89.22,108.78] y:[1.72,21.98] (anchor (99,11.6):
-// X +/-9.78 symmetric, Y asymmetric -9.88/+10.38, not the symmetric
-// ~10.1 this comment previously implied -- the numbers above are the
-// real range either way); the diamond's own courtyard, place.py's pre-shift
-// figure x:[88.93,115.07] y:[13.58,36.43] shifted +9 in Y to match this
-// move, is y:[22.58,45.43] (X unchanged). Gap between U201's bottom
-// (21.98) and the diamond's new top (22.58) is ~0.6mm -- adjacent, not
-// overlapping (matches place.py's own "~0.6mm diamond-clearance margin
-// left over" note). That's a PCB-copper-layer (component courtyard)
-// clearance, hardware's own concern, not this file's: this shell's
-// button bores only cut the 2mm face plate (Z 0..FACE_T), 5.5mm in
-// front of the PCB plane where U201 and the switches physically sit
-// (Z=FRONT_SHELL_DEPTH=7.5) -- there is no Z-axis overlap between this
-// file's geometry and U201 regardless of the PCB-side margin above.
+// U201 (ESP32-WROOM-32UE) is on the BACK of the board (B.Cu) since
+// pilink-hdl -- no longer in a front-side pocket above the diamond, so
+// there is nothing to check against on the front any more (the old
+// "~0.6mm gap above the shifted diamond" note is obsolete). The diamond's
+// F.CrtYd (place.py: x:[88.93,115.07] y:[13.58,36.43]) is unchanged from
+// the pre-pilink-2yw layout; U201's B.Cu courtyard (y:[1.75,21.95]) overlaps
+// it in XY by design -- opposite board faces, no clash. This file's
+// button bores only cut the 2.0mm face plate regardless (Z 0..FACE_T).
+// J501 (display FPC connector, F.Cu) courtyard bottom y=31.53 and the
+// raised J401 courtyard (B.Cu) y:[34.32,39.68] are not modelled here.
 
 // Cap size / bore clearance.
 // Source: bead description + hardware/README.md: "4 A/B/X/Y plunger
@@ -398,8 +397,8 @@ PINHOLE_Z = FRONT_SHELL_DEPTH - 1.0;
    misled about where the antenna actually ended up.
    UPDATED: the original marker (board-local X 5-23, centered 14) cited
    the ADR's pilink-5g8 verification note about U201's U.FL-connector
-   edge -- that is still where the ESP32's U.FL pad is, but
-   pilink-8hx.4's own fix rounds moved the REAL antenna element/mount
+   edge -- stale (U201 is now on the BACK of the board at x~99,
+   pilink-hdl, and its U.FL faces the back shell); pilink-8hx.4's own fix rounds moved the REAL antenna element/mount
    well away from there, to face-local X 57.75-105.55mm (per
    enclosure/README.md's antenna_mount.scad section / the file itself),
    clear of SW101/SW102's pinhole channels. Marker moved to roughly
@@ -552,6 +551,11 @@ front_shell();
       per the aesthetic ADR) are not modeled here -- left for
       reconciliation with pilink-8hx.1's own mating geometry once both
       exist.
+   8. pilink-3ym: diamond restored to board centre (102,25) -- bores at
+      (102,17)/(94,25)/(110,25)/(102,33); item 7's (102,34) figures are
+      superseded. Knob and SW101/SW102 pinholes unchanged. U201 is back-
+      side now (B.Cu), so the front-side proximity note is obsolete.
+      Not rendered or fit-checked (OpenSCAD not installed).
    7. pilink-2yw (ESP32 relocation + knob/diamond re-placement, merged
       2026-11-16) coordinate updates applied in this revision: knob
       moved to board (16,25) (was (16,31)); A/B/X/Y diamond shifted
