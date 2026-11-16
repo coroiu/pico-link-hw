@@ -462,24 +462,25 @@ or is marked as this file's own assumption.
   covering the encoder part of `pilink-8hx.3`'s acceptance criteria. Not
   rendered or fit-checked (OpenSCAD isn't installed here); arithmetic was
   checked in Python.
-- **Geometry (knob-local, z=0 = underside):** Ø18mm x 18.0mm tall (ADR's
+- **Geometry (knob-local, z=0 = underside):** Ø18mm x 17.5mm tall (ADR's
   ~18mm cap); underside sits 1.0mm above the outer face (> 0.5mm push travel
   + 0.3mm tolerance); a Ø8.5 x 4.0mm counterbore clears the ~4mm-proud
-  bushing and the face's Ø8.5 shaft hole; blind D-bore from z=4 to 16.5
-  engages 12mm of the 17mm-proud shaft (tip 0.5mm short of the bore end,
-  1.5mm top wall); 0.10mm radial FDM clearance on the D-bore (friction fit).
+  bushing and the face's Ø8.5 shaft hole; round bore z=4..6 (non-flat shaft
+  section) then a blind D-bore z=6..16 matching the 10mm flat; the shaft tip
+  bottoms in the bore (no tip clearance, so the knob can't creep down under
+  ~6N presses); 12mm engagement, 1.5mm top wall; 0.10mm radial FDM clearance on the D-bore (friction fit).
   Grip: 30 knurl grooves (Ø1.2, 0.5mm deep) on the rim, 1.2mm top fillet, and
   a shallow Ø11 x 0.8mm thumb dish so the ~6N press does not slip off.
-  Print flipped (top on the bed), no supports.
+  Print upright (dish up), no supports.
 - **Sources:** shaft/bushing heights from the encoder research finding
   (24.5 - 7.5 = 17mm; 11.5 - 7.5 = 4mm); Ø18 from the ADR/proposal 6c; face
   hole from `front_shell.scad`. Only `knob.scad` is new; `front_shell.scad`
   is unchanged. The Ø8.5 face hole is fully covered by the Ø18 skirt (4.75mm
   overlap per side), so no face change is needed.
-- **UNCONFIRMED, must be checked against Alps Drawing No. 2 or calipers:**
-  D-flat across-flats **4.5mm** and flat length **15mm** from the tip
-  (typical EC11 figures; the catalogue PDF could not be read in the
-  authoring environment), and the 7mm bushing OD. Only `SHAFT_FLAT_ACROSS`,
-  `SHAFT_FLAT_LEN`, `BUSHING_DIA` change if wrong.
-- **Open:** the knob is tall (18mm) because the shaft is 17mm proud; trimming
+- **Shaft dims** are from Alps' EC11E catalogue Drawing No. 2 (EC11E18244AU):
+  Ø6, D-flat across-flats 4.5 (+0/-0.1), flat 10mm long from the tip, 24.5mm
+  overall. **Unconfirmed:** bushing OD 7mm (not on the drawing). The 0.10mm
+  radial clearance plus shaft tolerance may run loose; check on the test
+  print.
+- **Open:** the knob is tall (17.5mm) because the shaft is 17mm proud; trimming
   the shaft would allow a shorter knob but is a product call, not made here.
