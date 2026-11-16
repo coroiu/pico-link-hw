@@ -130,8 +130,9 @@ fitted nothing stops the cap falling into the cavity. Ledge clearance
 at the X button is 0.5mm nominal / 0.3mm worst case (incl. the 0.2mm
 radial bore play); diagonal gap to the next flange is ~2.3mm nominal.
 The 0.4mm stem is now just a short boss inside a deeper ring -- flagged
-for the test print: check whether it is needed at all. Cap must be dropped in from inside the shell cavity before the two
-shells are joined (an assembly-order note, not modeled).
+for the test print: check whether it is needed at all. Cap must be dropped
+in from inside the shell cavity before the two shells are joined (an
+assembly-order note, not modeled).
 
 **Review fixes (PR #56, round 2):** the first version used a Ø11mm
 solid flange. That both intruded ~0.5mm into `front_shell.scad`'s
@@ -549,10 +550,12 @@ or is marked as this file's own assumption.
 - **Geometry (knob-local, z=0 = underside):** Ø18mm x 17.5mm tall (ADR's
   ~18mm cap); underside sits 1.0mm above the outer face (> 0.5mm push travel
   + 0.3mm tolerance); a Ø8.5 x 4.0mm counterbore clears the ~4mm-proud
-  bushing and the face's Ø8.5 shaft hole; round bore z=4..6 (non-flat shaft
-  section) then a blind D-bore z=6..16 matching the 10mm flat; the shaft tip
+  bushing and the face's Ø8.5 shaft hole; round bore z=4..6.3 (non-flat shaft
+  section) then a blind D-bore z=6.3..16 matching the 10mm flat; the shaft tip
   bottoms in the bore (no tip clearance, so the knob can't creep down under
-  ~6N presses); 12mm engagement, 1.5mm top wall; 0.10mm radial FDM clearance on the D-bore (friction fit).
+  ~6N presses); 12mm engagement, 1.5mm top wall; 0.10mm radial FDM
+  clearance on the D-bore (friction fit). The D-bore starts 0.3mm above the
+  nominal flat start (z=6.3, `D_FLAT_MARGIN`) in case the real flat is short.
   Grip: 30 knurl grooves (Ø1.2, 0.5mm deep) on the rim, 1.2mm top fillet, and
   a shallow Ø11 x 0.8mm thumb dish so the ~6N press does not slip off.
   Print upright (dish up), no supports.

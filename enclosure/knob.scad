@@ -69,11 +69,13 @@ CB_DEPTH = (BUSHING_PROUD - KNOB_GAP) + PUSH_TRAVEL + 0.5; // 4.0
 SHAFT_TIP_Z = SHAFT_PROUD - KNOB_GAP;       // 16.0 in knob coords
 BORE_TOP_Z  = SHAFT_TIP_Z + TIP_CLEAR;      // 16.0
 KNOB_H      = BORE_TOP_Z + TOP_WALL;        // 17.5
-D_FROM_Z    = SHAFT_TIP_Z - SHAFT_FLAT_LEN; // 6.0: D profile above, round below
+D_FLAT_MARGIN = 0.3;                        // mm, in case the real flat is shorter than 10mm
+D_FROM_Z    = SHAFT_TIP_Z - SHAFT_FLAT_LEN + D_FLAT_MARGIN; // 6.3: D profile above, round below
 D_BORE_FROM = CB_DEPTH;                     // bore shared with counterbore top
 ENGAGE_LEN  = SHAFT_TIP_Z - CB_DEPTH;       // 12.0 mm of shaft in the D-bore
-// The flat is only 10mm long, so z=4..6 is the round (non-flat) shaft
-// section and gets a round bore; the D profile is used for z=6..16.
+// The flat is only 10mm long, so z=4..6.3 is the round (non-flat) shaft
+// section and gets a round bore; the D profile is used for z=6.3..16
+// (D_FLAT_MARGIN keeps a slightly short real flat from hitting the D-bore start).
 
 /* ------------------------------ Grip features ------------------------------ */
 RIB_COUNT   = 30;    // knurl grooves around the rim
@@ -132,5 +134,10 @@ knob();
 %translate([0, 0, -KNOB_GAP])
     union() {
         cylinder(d = BUSHING_DIA, h = BUSHING_PROUD);
-        linear_extrude(height = SHAFT_PROUD) d_profile(SHAFT_DIA, SHAFT_FLAT_ACROSS, 0);
+        {
+            // round shaft below the flat, D-flat only over its real length
+            cylinder(d = SHAFT_DIA, h = SHAFT_PROUD - SHAFT_FLAT_LEN);
+            translate([0, 0, SHAFT_PROUD - SHAFT_FLAT_LEN])
+                linear_extrude(height = SHAFT_FLAT_LEN) d_profile(SHAFT_DIA, SHAFT_FLAT_ACROSS, 0);
+        }
     }

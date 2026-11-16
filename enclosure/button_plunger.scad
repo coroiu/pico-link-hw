@@ -175,8 +175,9 @@ CAP_HEAD_LEN = FACE_T;
 CAP_CHAMFER = 0.3;
 
 // Retention flange/shoulder: wider than the bore so it cannot pass
-// back through in either direction -- the "simple retention feature"
-// this bead's description asks for.
+// out through it -- the "simple retention feature" this bead's
+// description asks for. It only stops OUTWARD travel; inward travel is
+// stopped by the switch.
 //
 // REVIEW FIX (PR #56, NOT APPROVED round 1): the original FLANGE_DIA
 // (11.0mm) was too wide on two independent counts, both checked
@@ -300,7 +301,7 @@ module button_plunger() {
         cylinder(h = CAP_CHAMFER, d1 = CAP_DIA - 2 * CAP_CHAMFER, d2 = CAP_DIA);
 
         // Retention flange: right behind the head, wider than the
-        // bore -- cannot pass back through it either direction. Now a
+        // bore -- cannot pass out through it (outward travel only). Now a
         // RING, not a solid disc: the relief pocket (RELIEF_DIA) is
         // removed from its centre so the stem can pass straight
         // through it to reach the actuator, and so the ring's own
@@ -350,8 +351,8 @@ button_plungers_x4();
    2. STEM_LEN (0.4mm) is now only a short boss inside a deeper
       ring (the 1.2mm flange ring surrounds the relief pocket). FLAG
       FOR THE TEST PRINT: check whether the stem is needed at all, or
-      whether the cap/ring can press the actuator directly.
-      STEM_LEN (0.4mm) is still sub-millimetre, drawing on the
+      whether the cap/ring can press the actuator directly. STEM_LEN
+      is sub-millimetre, drawing on the
       intentionally tight 0.5mm on-axis depth budget
       (INNER_FACE_TO_ACTUATOR_GAP) that the enclosure's own 5.5mm
       face-to-PCB gap was sized against (5.5mm gap - 5.0mm switch
