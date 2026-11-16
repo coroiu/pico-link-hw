@@ -36,7 +36,7 @@ BOARD = os.path.join(HERE, "..", "pico-link-hw.kicad_pcb")
 
 MM = pcbnew.FromMM
 ORIGIN = (100.0, 100.0)      # keep in sync with place.py
-BOARD_W, BOARD_H = 120.5, 50.0
+BOARD_W, BOARD_H = 122.5, 50.0
 # U1 heat spreader, board-relative mm (x0, y0, x1, y1) -- around U1 (14,10)
 # and its bulk caps C1/C2/C3 (pilink-2yw relocation; was (92.5,37.0,107.5,
 # 47.5) around the old U1 anchor (100,42), same relative box).
@@ -134,6 +134,12 @@ def main():
     # same solid-connect fix as the J401/J501 pads above.
     for pad in board.FindFootprintByReference("U103").Pads():
         if pad.GetNetname() == "GND" and pad.GetNumber() == "4":
+            pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
+
+    # C202 pad 2 (GND, B.Cu, pilink-4qc): the router's GND stub to it leaves a
+    # single thermal spoke after the re-placement; same solid-connect fix.
+    for pad in board.FindFootprintByReference("C202").Pads():
+        if pad.GetNetname() == "GND" and pad.GetNumber() == "2":
             pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
 
     add_sw_keepouts(board)   # Alps SKRTLAE010 no-copper areas (pilink-ge9)
