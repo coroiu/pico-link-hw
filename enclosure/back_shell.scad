@@ -148,21 +148,17 @@ CORNER_R = 3.0;  // style choice (AES: "deliberate but not aggressive
 // face, per the bead description)
 // =====================================================================
 // Positions: hardware/README.md, "Mounting holes for back-shell bosses"
-// row -- 4 M2 holes at board-local (10,44), (112,6), (112,44), (59,4).
-PCB_MOUNT_HOLES_BOARD = [[10,44], [112,6], [112,44], [59,4]];
+// row -- 4 M2 holes at board-local (10,44), (112,6), (112,44), (59,2.5).
+PCB_MOUNT_HOLES_BOARD = [[10,44], [112,6], [112,44], [59,2.5]];
 PCB_MOUNT_HOLES_FACE  = [ for (p = PCB_MOUNT_HOLES_BOARD) board_to_face(p[0], p[1]) ];
 // -> [[12,8], [114,46], [114,8], [61,48]] in (Pface, Qface) -- updated
 // per the board_to_face() mapping fix above (each +2 in Qface vs. the
 // pre-fix values).
 //
-// H4 (board-local (59,4), -> face (61,48)) known gap: hardware/README.md
-// flags this hole's screw HEAD (driven in from the FRONT, through the
-// PCB, per pcb_mount_insert_pockets()'s own comment below) as coming
-// within ~0.9mm of the display panel's top edge / bezel on the FRONT
-// side. That's front_shell.scad's (pilink-8hx.2) geometry to check, not
-// this file's -- this file only models the BACK-side boss/insert the
-// screw lands in, not the front-side bezel it passes under. Left as a
-// known gap here, not resolved in this PR.
+// H4 (board-local (59,2.5), -> face (61,49.5)): pilink-8ag moved this hole
+// from (59,4) to (59,2.5) so its screw HEAD (driven in from the FRONT,
+// through the PCB) no longer overlaps the display panel envelope (board
+// y>=5): head radius 2.0 -> reaches y=4.5, 0.5mm clear.
 
 // Heat-set insert sizing: no bead/finding pins an exact insert down for
 // this project, so this is this file's own reasonable-default choice,
