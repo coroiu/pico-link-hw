@@ -7,7 +7,7 @@
 # (scad -> stl), trimesh (stl -> glb, since OpenSCAD has no native glTF
 # export), inotify-tools (file watcher) and curl (to vendor model-viewer at
 # build time so the page works without internet access on the LAN).
-FROM kicad/kicad:8.0
+FROM kicad/kicad:10.0
 
 USER root
 
