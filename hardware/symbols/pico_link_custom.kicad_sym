@@ -221,7 +221,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "AFC01-S40FCA-00"
+		(property "Value" "FC-05B40P21H20"
 			(at -5.08 -53.34 0)
 			(effects
 				(font
@@ -230,7 +230,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_FPC:AFC01-S40FCA-00"
+		(property "Footprint" "Connector_FPC:FC-05B40P21H20"
 			(at 0 0 0)
 			(effects
 				(font
@@ -248,7 +248,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "40-position 0.5mm-pitch bottom-contact ZIF FPC connector for the Crystalfontz CFAF240320A0-024SN display, 4-wire SPI pinout (pilink-7el.5). Pin table sourced directly from Crystalfontz's own datasheet (Rev 1v2, 2021-03-26), section 6, SPI-mode column. LCSC candidate connector part AFC01-S40FCA-00 (LCSC C262674, Jushuo), confirmed 0.5mm pitch / 40-position / bottom-contact / flip-top-lock from its own LCSC spec table -- matches the panel's own 40 Position, 0.50mm Pitch ZIF connector spec. No stock KiCad symbol exists for this exact part; hand-authored here, pin layout is a simple single-column schematic convenience (not a physical pinout diagram) -- see this project's Footprint caveat for the matching hand-authored footprint's own verification gap. MP1/MP2 (pilink-2ar) are the footprint's two side mounting/reinforcement pads, added here as two extra passive pins (not part of the 40-position signal pinout) and tied to GND on the schematic -- standard practice for a connector's unused mechanical tab (safer grounded than floating, reduces ESD/EMI risk), though Jushuo's own AFC01-S40FCA-00 datasheet PDF could not be read as text in this agent environment (LCSC's datasheet link resolves to an HTML viewer, not an extractable PDF, same gap already flagged for this part's footprint dimensions) to confirm whether these tabs carry a frame-ground function in the real part. Flag for human reverification against the real datasheet before fab, same caveat class as the footprint dimension gap below."
+		(property "Description" "40-position 0.5mm-pitch dual-contact (top-and-bottom entry, 'no polarity') Flip-Top ZIF FPC connector for the Crystalfontz CFAF240320A0-024SN display, 4-wire SPI pinout (pilink-7el.5). Pin table sourced directly from Crystalfontz's own datasheet (Rev 1v2, 2021-03-26), section 6, SPI-mode column. REQUIRED PRE-FAB SWAP (pilink-4b6): the original bottom-contact-only AFC01-S40FCA-00 (LCSC C262674, Jushuo) does not correctly mate the display FPC's J-fold geometry (pilink-7el.12) under this project's back-face contact-side working assumption (.research/findings/2026-11-15-display-fpc-contact-side.md) -- swapped to the dual-contact FC-05B40P21H20 (LCSC C23398824, BXCONN; confirmed 2,635 units live LCSC stock at swap time), which mates either contact orientation and removes the dependency on resolving that question at all, with no change to the proven J-fold geometry. No stock KiCad symbol exists for this exact part; hand-authored here (reusing the prior part's generic 'CFAF240320A0_FPC40' symbol, pin layout unchanged -- a simple single-column schematic convenience, not a physical pinout diagram). PIN-1 -- RESOLVED (pilink-4b6 fix round): independently confirmed via the EasyEDA/JLCPCB assembly-library footprint data for both parts (easyeda.com/api/products/<LCSC>/components, which answers a plain curl GET with no WAF block, unlike the easyeda.com website itself) that the two parts number pin 1 from OPPOSITE physical ends: C23398824's own JLC footprint has pad 1 (and its silkscreen dot) at its RIGHT end; C262674's has pad 1 at its LEFT end, both in the same canonical orientation -- agreeing with the BXCONN drawing's own NO.1 marker. This symbol's pin numbers are mirror-renumbered (pin k -> 41-k) to match the corrected footprint (Connector_FPC:FC-05B40P21H20, pad 1 now at its right/+X end). Since ZIF contacts are straight-through, each PHYSICAL pad position keeps the SAME net/signal it had before the renumbering -- only the pin/pad NUMBER labels changed in lockstep, verified by an exported-netlist diff showing J501's physical pin-to-net mapping is unchanged. CABLE-ENTRY-SIDE CAVEAT (still open, separate from pin-1): whether the two parts' FPC cables insert from the same side relative to the pad row could not be confirmed from the EasyEDA footprint data, LCSC product photos, or JLC parametric fields -- flagged for a human with physical samples before fab. See the matching hand-authored footprint's own descr for the same findings plus its dimension-correction notes (mounting-pad size/offset, signal-pad length). MP1/MP2 (pilink-2ar) are the footprint's two side mounting/reinforcement pads, added here as two extra passive pins (not part of the 40-position signal pinout) and tied to GND on the schematic -- unchanged from the prior part's own unresolved verification gap on whether these tabs carry a frame-ground function in the real part. Flag for human reverification against real datasheets before fab."
 			(at 0 0 0)
 			(effects
 				(font
@@ -290,7 +290,7 @@
 						)
 					)
 				)
-				(number "1"
+				(number "40"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -308,7 +308,7 @@
 						)
 					)
 				)
-				(number "2"
+				(number "39"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -326,7 +326,7 @@
 						)
 					)
 				)
-				(number "3"
+				(number "38"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -344,7 +344,7 @@
 						)
 					)
 				)
-				(number "4"
+				(number "37"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -362,7 +362,7 @@
 						)
 					)
 				)
-				(number "5"
+				(number "36"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -380,7 +380,7 @@
 						)
 					)
 				)
-				(number "6"
+				(number "35"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -398,7 +398,7 @@
 						)
 					)
 				)
-				(number "7"
+				(number "34"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -416,7 +416,7 @@
 						)
 					)
 				)
-				(number "8"
+				(number "33"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -434,7 +434,7 @@
 						)
 					)
 				)
-				(number "9"
+				(number "32"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -452,7 +452,7 @@
 						)
 					)
 				)
-				(number "10"
+				(number "31"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -470,7 +470,7 @@
 						)
 					)
 				)
-				(number "11"
+				(number "30"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -488,7 +488,7 @@
 						)
 					)
 				)
-				(number "12"
+				(number "29"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -506,7 +506,7 @@
 						)
 					)
 				)
-				(number "13"
+				(number "28"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -524,7 +524,7 @@
 						)
 					)
 				)
-				(number "14"
+				(number "27"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -542,7 +542,7 @@
 						)
 					)
 				)
-				(number "15"
+				(number "26"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -560,7 +560,7 @@
 						)
 					)
 				)
-				(number "16"
+				(number "25"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -578,7 +578,7 @@
 						)
 					)
 				)
-				(number "17"
+				(number "24"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -596,7 +596,7 @@
 						)
 					)
 				)
-				(number "18"
+				(number "23"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -614,7 +614,7 @@
 						)
 					)
 				)
-				(number "19"
+				(number "22"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -632,7 +632,7 @@
 						)
 					)
 				)
-				(number "20"
+				(number "21"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -650,7 +650,7 @@
 						)
 					)
 				)
-				(number "21"
+				(number "20"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -668,7 +668,7 @@
 						)
 					)
 				)
-				(number "22"
+				(number "19"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -686,7 +686,7 @@
 						)
 					)
 				)
-				(number "23"
+				(number "18"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -704,7 +704,7 @@
 						)
 					)
 				)
-				(number "24"
+				(number "17"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -722,7 +722,7 @@
 						)
 					)
 				)
-				(number "25"
+				(number "16"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -740,7 +740,7 @@
 						)
 					)
 				)
-				(number "26"
+				(number "15"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -758,7 +758,7 @@
 						)
 					)
 				)
-				(number "27"
+				(number "14"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -776,7 +776,7 @@
 						)
 					)
 				)
-				(number "28"
+				(number "13"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -794,7 +794,7 @@
 						)
 					)
 				)
-				(number "29"
+				(number "12"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -812,7 +812,7 @@
 						)
 					)
 				)
-				(number "30"
+				(number "11"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -830,7 +830,7 @@
 						)
 					)
 				)
-				(number "31"
+				(number "10"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -848,7 +848,7 @@
 						)
 					)
 				)
-				(number "32"
+				(number "9"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -866,7 +866,7 @@
 						)
 					)
 				)
-				(number "33"
+				(number "8"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -884,7 +884,7 @@
 						)
 					)
 				)
-				(number "34"
+				(number "7"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -902,7 +902,7 @@
 						)
 					)
 				)
-				(number "35"
+				(number "6"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -920,7 +920,7 @@
 						)
 					)
 				)
-				(number "36"
+				(number "5"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -938,7 +938,7 @@
 						)
 					)
 				)
-				(number "37"
+				(number "4"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -956,7 +956,7 @@
 						)
 					)
 				)
-				(number "38"
+				(number "3"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -974,7 +974,7 @@
 						)
 					)
 				)
-				(number "39"
+				(number "2"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -992,7 +992,7 @@
 						)
 					)
 				)
-				(number "40"
+				(number "1"
 					(effects
 						(font
 							(size 1.27 1.27)
