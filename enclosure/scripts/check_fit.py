@@ -101,6 +101,7 @@ def union(meshes):
 
 
 last_thickness = [0.0]
+SLIVER_DEPTH_TOL = 0.02  # mm
 
 
 def inter(a, b):
@@ -120,9 +121,14 @@ def inter(a, b):
     v = abs(r.volume)
     if v < 1e-6:
         return 0.0, None
-    # mean thickness of the overlap region (slab approximation: V / (A/2)); a
-    # bbox extent is useless for a diagonal sliver, this is not
-    last_thickness[0] = 2.0 * v / max(r.area, 1e-9)
+    # penetration depth = smallest extent of the overlap's oriented bounding
+    # box: ~the slab thickness for a flat sliver, ~the max depth for a wedge or
+    # crescent (a mean thickness hides those; the 0.29mm PCB-corner overlap
+    # had a 0.052mm mean)
+    try:
+        last_thickness[0] = float(r.bounding_box_oriented.primitive.extents.min())
+    except Exception:
+        last_thickness[0] = float(np.min(r.bounds[1] - r.bounds[0]))
     return v, ((r.bounds[0] + r.bounds[1]) / 2).round(1).tolist() + ["extent"] + (r.bounds[1] - r.bounds[0]).round(2).tolist()
 
 
@@ -437,15 +443,16 @@ def main():
     def check(pair, a, b, mode="vol", note="", expect_zero=True, dist=False, contact_ok=False):
         v, loc = inter(a, b)
         # Mating-face contact is only excused when the overlap is a real sliver:
-        # < 0.25 mm3 AND a mean thickness (2V/A) of at most 0.05mm (about the
-        # STL/coincident-face noise class). A thicker overlap, however small
-        # in volume, is a real interference and FAILs.
+        # < 0.25 mm3 AND a penetration depth (min oriented-bbox extent) of at
+        # most 0.02mm (STL/coincident-face noise class; real leg slivers
+        # measure ~0.005mm). Anything deeper, however small in volume, is a
+        # real interference and FAILs.
         thk = last_thickness[0]
-        if v > 1e-3 and contact_ok and v < 0.25 and thk <= 0.05:
-            rec(pair, "INFO", "contact only (%.3f mm3 sliver, mean %.3fmm thick, mating faces by design) %s" % (v, thk, note))
+        if v > 1e-3 and contact_ok and v < 0.25 and thk <= SLIVER_DEPTH_TOL:
+            rec(pair, "INFO", "contact only (%.3f mm3 sliver, depth %.3fmm, mating faces by design) %s" % (v, thk, note))
             return 0.0
         if v > 1e-3:
-            rec(pair, "FAIL" if expect_zero else "INFO", "overlap %.3f mm3 (mean %.3fmm thick) at (X,Q,Z)~%s %s" % (v, last_thickness[0], loc, note))
+            rec(pair, "FAIL" if expect_zero else "INFO", "overlap %.3f mm3 (depth %.3fmm) at (X,Q,Z)~%s %s" % (v, last_thickness[0], loc, note))
             if expect_zero:
                 failed.append(pair)
             return v

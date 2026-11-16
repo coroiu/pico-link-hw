@@ -32,7 +32,9 @@ cleanup() { docker network rm scadcheck_default >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 cd "$ROOT/preview"
 # Not `exec`, so the trap above runs and the network is cleaned up.
+# Run as the host user so the pip cache / work dir are not root-owned.
 docker compose -p scadcheck run --rm --entrypoint bash \
+  --user "$(id -u):$(id -g)" -e HOME=/tmp \
   -v "$ROOT/enclosure:/work/enclosure:ro" \
   -v "$ROOT/hardware:/work/hardware:ro" \
   -v "$PYDEPS:/pydeps" \
@@ -41,7 +43,7 @@ docker compose -p scadcheck run --rm --entrypoint bash \
 set -e
 export PYTHONPATH=/pydeps${PYTHONPATH:+:$PYTHONPATH}
 python3 -c "import manifold3d, scipy, rtree" 2>/dev/null || \
-  pip install --break-system-packages -q --target /pydeps manifold3d scipy rtree 2>&1 | grep -v WARNING || true
+  pip install --break-system-packages -q --no-cache-dir --target /pydeps manifold3d scipy rtree 2>&1 | grep -v WARNING || true
 cd /work
 python3 enclosure/scripts/check_fit.py --enclosure enclosure --pcb hardware/pico-link-hw.kicad_pcb --work "$([ -d /fitwork ] && echo /fitwork || mktemp -d)" "$@"
 ' bash "$@"
