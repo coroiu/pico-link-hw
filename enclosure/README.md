@@ -275,7 +275,7 @@ the "U201 back-side relief", "J401 boss" and "leg boss" descriptions below
    still needed.
 2. **J401 mating face is recessed 2.5mm** behind the outer face (was
    protruding 0.5 inside its boss), so the opening is widened from 10 x 5 to
-   13.2 x 7.4mm (R1.5 corners): USB-IF Type-C rev 1.2 allows a 12.35 x 6.5mm
+   13.2 x 7.4mm (R1.0 corners): USB-IF Type-C rev 1.2 allows a 12.35 x 6.5mm
    overmould with 6.65mm of plug past it, so a max-spec plug seats with ~0.4mm
    FDM clearance per side (wall around it: >30mm to the nearest boss, spool
    lug 7mm above). The 6.3mm Anker boot fits.
