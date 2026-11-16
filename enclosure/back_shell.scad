@@ -174,11 +174,11 @@ PCB_MOUNT_HOLES_FACE  = [ for (p = PCB_MOUNT_HOLES_BOARD) board_to_face(p[0], p[
 INSERT_OD   = 3.5;
 INSERT_LEN  = 4.0;
 BOSS_OD     = 7.0;   // insert OD + ~1.75mm wall each side
-// pilink-3ym: H2 (index 1, board (112,6)) sits 0.5mm from U201's body edge
-// (face X 110 vs a 7mm boss's 110.5 edge) -- too tight for an FDM pocket
-// wall. Its boss is trimmed to 6.0mm OD (1.25mm wall around the 3.5mm
-// insert) so the left edge is at face X 111.0, 0.7mm from the pocket.
-BOSS_OD_H2  = 6.0;
+// pilink-i72: H2 (index 1, board (112,6)) uses the same 7.0mm boss as the
+// others. pilink-3ym briefly trimmed it to 6.0mm to clear U201's relief,
+// but the relief pocket's edge is at face X 110.3 vs the 7mm boss's left
+// edge at 110.5 (0.2mm apart, no overlap), and the pocket only cuts the
+// back wall, so the trim was not needed.
 
 // =====================================================================
 // Rear USB-C opening (J401, vertical-mount receptacle on the PCB back)
@@ -276,12 +276,12 @@ U201_PAD_RISE         = U201_RELIEF_DEPTH;  // raised pad outside restores the
 // Footprint of the pocket in board-local coordinates: the module body
 // (F.Fab, NOT the F.CrtYd, which at x:[89.25,108.75] would clip the H2
 // mounting boss -- 7mm boss left edge at face x 110.5, courtyard edge
-// 110.75; the boss is trimmed to 6mm OD, see BOSS_OD_H2) plus a small margin, and out to the
+// 110.75; pocket edge below stays clear of it) plus a small margin, and out to the
 // board's top edge (board y = 0) so the U.FL end and the cable's bend /
 // exit toward the top wall are inside the relief.
 U201_BODY_X = [90.0, 108.0];   // board-local, measured off hardware/pico-link-hw.kicad_pcb
 U201_BODY_Y = [2.0, 21.2];
-U201_RELIEF_MARGIN = 0.3;      // own choice; 0.7mm to the (trimmed, BOSS_OD_H2) H2 boss
+U201_RELIEF_MARGIN = 0.3;      // own choice; 0.2mm short of the H2 boss's left edge (face X 110.5)
 U201_RELIEF_BOARD_X = [U201_BODY_X[0] - U201_RELIEF_MARGIN, U201_BODY_X[1] + U201_RELIEF_MARGIN]; // [89.7, 108.3]
 U201_RELIEF_BOARD_Y = [0.0, U201_BODY_Y[1] + U201_RELIEF_MARGIN];                                  // [0, 21.5]
 // board_to_face() flips Y, so the board's y=0 edge is the HIGH Qface end.
@@ -320,7 +320,7 @@ echo(str("U201 relief: floor bz=", U201_RELIEF_FLOOR_BZ, " (", U201_RELIEF_DEPTH
          "mm above host PCB (module ", U201_MODULE_H, ", plug top ", UFL_PLUG_TOP_H, ")"));
 echo(str("U201 relief pocket face X ", u201_p0[0], "..", u201_p1[0],
          " Q ", u201_p0[1], "..", u201_p1[1], "; H2 boss left edge at face X ",
-         board_to_face(112, 6)[0] - BOSS_OD_H2/2));
+         board_to_face(112, 6)[0] - BOSS_OD/2));
 
 // =====================================================================
 // Rear legs / A-frame mounting bosses
@@ -559,7 +559,7 @@ module pcb_mount_boss_solids() {
     for (i = [0 : len(PCB_MOUNT_HOLES_FACE) - 1])
         translate([PCB_MOUNT_HOLES_FACE[i][0], PCB_MOUNT_HOLES_FACE[i][1], BACK_WALL_T])
             boss_solid(height = REAR_CLEARANCE,
-                       boss_d = (i == 1) ? BOSS_OD_H2 : BOSS_OD);
+                       boss_d = BOSS_OD);
             // Boss spans bz = BACK_WALL_T .. BACK_WALL_T+REAR_CLEARANCE
             // (= 5.0mm = exactly the PCB's back surface, see the
             // BACK_SHELL_DEPTH stack-up above).
