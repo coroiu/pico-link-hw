@@ -221,8 +221,8 @@ ledge's y span 2..50). Only a stale `(94,34)` comment in
 
 Covers the back half of the enclosure: PCB-mounting bosses (heat-set
 inserts), the 7mm (was 3mm, `pilink-9i4`) clearance cavity behind the PCB for the encoder's
-through-hole leads, the rear USB-C cutout (with a local raised boss, since
-the chosen connector is taller than the bare back cavity), a horizontal
+through-hole leads, the rear USB-C cutout (no boss since `pilink-9i4`: the 7mm cavity
+holds the connector), a horizontal
 base strip with feet pockets, and the fixed two-leg A-frame that screws to
 this shell. The front shell (face, display window, button/knob openings)
 is `pilink-8hx.2`'s separate file; the antenna mount is `pilink-8hx.4`'s.
@@ -275,8 +275,10 @@ the "U201 back-side relief", "J401 boss" and "leg boss" descriptions below
    still needed.
 2. **J401 mating face is recessed 2.5mm** behind the outer face (was
    protruding 0.5 inside its boss), so the opening is widened from 10 x 5 to
-   12 x 6mm for the plug overmould. Whether a real cable boot enters it is
-   still open (`pilink-q03`).
+   13.2 x 7.4mm (R1.5 corners): USB-IF Type-C rev 1.2 allows a 12.35 x 6.5mm
+   overmould with 6.65mm of plug past it, so a max-spec plug seats with ~0.4mm
+   FDM clearance per side (wall around it: >30mm to the nearest boss, spool
+   lug 7mm above). The 6.3mm Anker boot fits.
 3. **Leg mounts.** The original attachment scheme is kept (tilted boss with a
    heat-set insert in its tip; leg screwed on from the foot through a hidden
    channel). The boss is extended back along its axis by 8mm and clipped at the
@@ -298,7 +300,7 @@ strip back edge is now at Z -4.26 (stand-in front edge moved with the deeper
 shell); a 6.3mm boot clears the strip top by ~10mm there. The concern stays
 retired. Leg clearance is unchanged (31.5mm).
 
-Checks: `check_fit.sh` 57 OK / 0 FAIL / 0 WARN; every part renders
+Checks: `check_fit.sh` 55 OK / 0 FAIL / 0 WARN; every part renders
 watertight; `preview/scripts/export_enclosure.py` still exports the
 assembly with the PCB placed.
 

@@ -206,9 +206,12 @@ USBC_BOSS_RISE = 0.0;
 // this project -- flagged as an open item, not resolved here. The figure
 // below is this file's own reasonable allowance, not a cited spec.
 // pilink-9i4: the receptacle's mating face is now recessed (see
-// USBC_MATING_BZ) so the opening is widened 12 x 6 for the plug's overmould.
-USBC_CUTOUT_W   = 12.0;
-USBC_CUTOUT_H   = 6.0;
+// USBC_MATING_BZ), so a full-size plug has to pass the opening to seat. USB-IF
+// Type-C spec (rev 1.2) max overmould is 12.35 x 6.5mm with 6.65mm of plug past
+// it; opening = overmould + ~0.85mm FDM clearance, corners radiused.
+USBC_CUTOUT_W   = 13.2;
+USBC_CUTOUT_H   = 7.4;
+USBC_CUTOUT_R   = 1.5;
 USBC_MATING_BZ  = BACK_WALL_T + REAR_CLEARANCE - USBC_HEIGHT_ABOVE_PCB; // 2.5: mating face depth below the outer face
 USBC_BOSS_PAD_W = 18.0;  // raised-boss footprint around the cutout
 USBC_BOSS_PAD_H = 12.0;  // (generous, own choice -- not a cited figure)
@@ -567,8 +570,8 @@ module usbc_cutout() {
     translate([USBC_PFACE - USBC_CUTOUT_W/2,
                USBC_QFACE - USBC_CUTOUT_H/2,
                -USBC_BOSS_RISE - 0.5])
-        cube([USBC_CUTOUT_W, USBC_CUTOUT_H,
-              USBC_BOSS_RISE + BACK_SHELL_DEPTH + 1.0]);
+        linear_extrude(height = USBC_BOSS_RISE + BACK_SHELL_DEPTH + 1.0)
+            rounded_rect(USBC_CUTOUT_W, USBC_CUTOUT_H, USBC_CUTOUT_R);
 }
 
 // pilink-9i4 (rev 2): the leg-mount boss keeps the original scheme (heat-set
