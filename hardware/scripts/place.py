@@ -137,7 +137,21 @@ P = {
     # between the rear legs (board-centre x=59, legs at +/-40mm -> x=19/99).
     # Flipped to B.Cu in main() (pcbnew FOOTPRINT.Flip, not expressible as
     # a plain (x,y,rot) tuple).
-    "J401": (59.0, 45.5, 0),
+    # pilink-hdl (user decision, 2026-11-16): raised from y=45.5 to y=37.
+    # The proposal (6c) wants the plug exiting ~15mm up the back; with the
+    # shell's face mapping Qface = 52 - board_y (back_shell.scad) the old
+    # anchor was Qface 6.5, and pilink-8ry (PR #55) found a real 5-6.5mm
+    # cable boot would hit the table ~10-13mm behind the case from there.
+    # y=37 gives Qface 15 exactly. Real clearance probe (every footprint's
+    # bounding box, margin 1mm around J401's 9.05x5.35mm courtyard): nothing
+    # within 1mm at y=37 on either layer; the only neighbour that closes in
+    # higher up is J501 (courtyard bottom edge y=31.53) -- J401's courtyard
+    # top edge is y=34.32 here, 2.8mm clear, left as margin for the FPC
+    # fold rather than pushing to y=35 (0.8mm clear, Qface 17).
+    # x stays 59 (between the rear legs); that is inside the panel shadow
+    # either way, so J401's front-side THT leg protrusion flag is NOT
+    # resolved by moving it up (only moving it past x=87 would).
+    "J401": (59.0, 37.0, 0),
     # F401/R401-404 (USB-C ESD/CC pocket), right of the backlight cluster.
     # pilink-hdl: restored to their pre-pilink-2yw coordinates (undoing the
     # +9mm-in-Y rigid-group shift pilink-2yw applied to keep clear of
@@ -446,6 +460,13 @@ def main():
     for ref, (x, y, rot) in P.items():
         fp = board.FindFootprintByReference(ref)
         fp.SetPosition(pt(x, y))
+        if ref in BACK_SIDE and fp.GetLayer() == pcbnew.B_Cu:
+            # Already flipped on an earlier run: only the position is
+            # re-applied. Re-running SetOrientationDegrees(rot) on a
+            # B.Cu footprint rotates it 180 deg relative to what Flip()
+            # produced (found when U201's antenna end silently turned
+            # round on a second run, pilink-hdl) -- keep it idempotent.
+            continue
         if isinstance(rot, str):
             fx, fy = FACE[rot]
             auto_orient(fp, pt(fx, fy))

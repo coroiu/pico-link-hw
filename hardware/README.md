@@ -986,7 +986,7 @@ not re-derived here.
 | J501 under the panel, long axis vertical, ~24mm in from the panel's right edge to its insertion face (refined figure from `pilink-0o2`'s merged finding, superseding the ADR summary's "~26mm"), ~7.2mm up from the panel's vertical centreline | Rotated 270 deg (puts the 40-pin row along board Y and the pad-row/insertion side toward +X, facing the panel's right edge). Anchor **(59.4, 19)** -- the anchor's actual measured offset from the panel's centreline (y=26) is **7.0mm**, not 7.2mm; right at the edge of `pilink-0o2`'s own +/-0.2mm tolerance band around its 7.2mm figure, not a mismatch, but stating the real built number rather than the finding's number as if it were hit exactly |
 | A/B/X/Y diamond on the right, caps Ø8mm at +/-8mm centres, clear of the FPC bend strip | **Restored (`pilink-hdl`, 2026-11-16):** centre **(102, 25)** -- exactly board-vertical-centre, same target as the knob above, now that U201 has moved to B.Cu (see U201's row above) and no longer needs any front-side room above or beside this diamond. Y top (102,17), X left (94,25), B right (110,25), A bottom (102,33). SW305-308 <-> physical position is still a layout choice (not schematic-constrained; firmware maps GPIO24-27 separately, `pilink-otf`), documented, not inferred. The diamond's own pull-up resistors (R305-308) restored too, to their pre-`pilink-2yw` spot, anchors **(90, 6.0/7.6/9.2/10.8)** -- the sliver U201's old front-side footprint used to occupy there is free again. Both the knob and the diamond now sit on board y=25 at once, which is what this bead was asked to achieve -- flagged for `pilink-8hx.2` (front shell) and `pilink-8hx.4` (antenna mount) to re-check their own geometry against this restored position, same as `pilink-2yw`'s own move had to be flagged when it shifted the diamond away from here |
 | ~~A/B/X/Y diamond shifted down 9mm to centre (102, 34) to clear U201's front-side pocket (`pilink-2yw`)~~ (superseded above by `pilink-hdl`'s restore) | ~~Y top (102,26), X left (94,34), B right (110,34), A bottom (102,42); pull-ups at (115.5, 5/7/9/11)~~ -- real, visible side effect Andreas rejected once he saw it; see the U201 row above |
-| J401 vertical receptacle on the back side, low, centred between the rear legs (+/-40mm) | Anchor **(59, 45.5)**, flipped to B.Cu (`FOOTPRINT.Flip`). Board centre is x=59, so legs at x=19/99. Unaffected by `pilink-2yw` or `pilink-hdl` |
+| J401 vertical receptacle on the back side, centred between the rear legs (+/-40mm), plug exiting ~15mm up the back (proposal 6c) | **Raised (`pilink-hdl`, user decision 2026-11-16):** anchor **(59, 37)**, B.Cu (flipped via `FOOTPRINT.Flip`), was (59, 45.5). With `back_shell.scad`'s face mapping Qface = 52 - board_y, the plug centreline goes from Qface 6.5 to **15.0** -- the proposal's ~15mm. Board centre is x=59, so legs stay at x=19/99. Real clearance probe (every footprint's bounding box, 1mm margin around J401's 9.05x5.35mm courtyard, x:[54.47,63.53] y:[34.32,39.68] at the new anchor): nothing within 1mm on either layer; the nearest neighbour is J501 (courtyard bottom y=31.53), 2.8mm above J401's courtyard -- deliberately not pushed higher (y=35 would give Qface 17 but only 0.8mm to J501, and the FPC fold/bend lives there). U201's B.Cu footprint (x>=89) and all 4 mounting holes are nowhere near. **Not resolved by the move: the front-side THT-leg flag** (see the panel-shadow row above and Known gap 6) -- x=59, y=37 is still inside the panel shadow x:[28,87] y:[5,47]; only moving J401 past x=87 or below y=47 would take its legs out from under the glass, and neither fits the "centred between the legs" intent. USB D+/D- got *better*: 34.8/34.6mm track (2 vias each, 0.2mm skew) vs 48.9/38.0mm (3/2 vias, 10.9mm skew) before the move |
 | F401/R401-404 (USB-C ESD/CC pocket), right of the backlight cluster | **Restored (`pilink-hdl`):** back to the pre-`pilink-2yw` coordinates (undoing the +9mm-in-Y rigid-group shift, now that U201 no longer occupies any front-side pocket near here) -- F401 **(84, 36)**, R401 **(84, 32)**, R402 **(84, 30)**, R403 **(88, 32)**, R404 **(88, 30)** |
 | SW101/SW102 side-actuated, top edge, above the panel centre, clear of ESP32 and the button zone | SW101 **(42, 2.7)**, SW102 **(52, 2.7)** -- in the 5mm strip above the panel (y<5), laterally over the RP2350B/flash cluster |
 | Mounting holes for back-shell bosses | 4 holes: **(10,44), (112,6), (112,44), (59,4)** -- not at the bare board corners; placed in the genuinely free pockets instead. *(Historical rationale, kept for history rather than deleted: this was originally "since the ESP32 and encoder courtyards already claim the whole left edge," which was true before `pilink-2yw` moved U201 out to a pocket above the A/B/X/Y diamond and put the 3V3 LDO cluster in its old column -- the left edge is no longer claimed by ESP32+encoder courtyards specifically, though the holes themselves weren't re-derived and still land in free pockets.)* **H4 (59,4) is worth a clearance flag:** its centre sits only 1mm above the panel-shadow's own top edge (y=5); an M2 screw head of a typical ~3.8mm diameter (1.9mm radius) would reach y=5.9, i.e. about **0.9mm under the panel's top edge** -- not itself a DRC-visible problem (the hole is on the board, the panel line is a drawing on User.Comments), but worth the enclosure bead checking it doesn't foul the display window or its bezel |
@@ -1123,7 +1123,8 @@ scripts):
   mismatches** -- identical to the unmodified `master` board (also 0,
   confirmed separately). **Zero netlist regressions.** Same 24 single-pad
   spare-GPIO nets as before, unmarried.
-- Final board: **1136 track segments, 120 vias** (vs `master`'s 1021/111)
+- **Addendum, same PR (user decision, 2026-11-16): J401 raised (59, 45.5) -> (59, 37)** (see its row in the placement table) and the pipeline re-run from the committed board. Result: **86 violations (8 pre-existing errors), 0 unconnected, 0 schematic-parity, 78 warnings** (identical to the U201-only numbers) and `netlist_check.py` 0 mismatches of 334 pins. Final board: **1062 track segments, 116 vias**. A first re-run exposed a `place.py` idempotency bug (re-applying `SetOrientationDegrees(0)` to an already-flipped B.Cu part turned U201 round 180 deg, which made its thermal-via pad clip SW308: clearance + shorting_items + solder_mask_bridge errors) -- fixed so already-back-side parts only get their position re-applied; the numbers above are from the fixed script.
+- Final board (U201-only run, before the J401 addendum): **1136 track segments, 120 vias** (vs `master`'s 1021/111)
   -- more of both: every one of U201's real signal nets now needs at least
   one via to cross from B.Cu (U201) to F.Cu (the RP2350B cluster, J501,
   etc.), where before U201 and everything it talks to were both on F.Cu.
@@ -1241,7 +1242,8 @@ scripts):
    the four back-shell mounting holes, sits only 1mm above the panel
    shadow's own top edge -- a typical M2 screw head would reach about
    0.9mm under that line, worth the enclosure bead checking against the
-   real window/bezel. **J401**'s anchor (59, 45.5) falls inside the
+   real window/bezel. **J401**'s anchor (now (59, 37) after `pilink-hdl`, was (59, 45.5);
+   still inside the shadow either way) falls inside the
    panel's own x/y shadow even though the connector itself is back-side
    (B.Cu); its through-hole legs (confirmed non-zero drill on this
    footprint, not just assumed) protrude on the *front* side inside that
@@ -1284,7 +1286,13 @@ scripts):
    `board_to_face()`) before this placement is enclosure-fit-confirmed.
 9. **J401's low anchor (59, 45.5) vs. the product-layout proposal's "~15mm
    up" rear-USB-C intent (section 6c) -- investigated, not resolved as a
-   simple accept (`pilink-8ry`).** A zero-thickness-line check of the
+   simple accept (`pilink-8ry`).** **UPDATE (`pilink-hdl`, 2026-11-16): J401
+   was raised to (59, 37), plug centreline Qface 15.0 (was 6.5), by user
+   decision -- every table-clearance number in the rest of this item (and in
+   `enclosure/README.md`'s `pilink-8ry` section) was computed for the old
+   Qface 6.5 and must be RECOMPUTED for the new height; they are kept below
+   as history, not as current figures. `back_shell.scad`'s USB-C boss/cutout
+   (`J401_FACE`) still points at the old position until `pilink-3ym` lands.** A zero-thickness-line check of the
    merged `enclosure/back_shell.scad` geometry (board_to_face Y-mapping
    fix + USB-C boss-pad clamp both already merged) first suggested a
    comfortable margin, but redoing it with a real mated-cable boot
