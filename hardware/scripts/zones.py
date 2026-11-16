@@ -29,6 +29,7 @@ import os
 import pcbnew
 
 from preroute import PREROUTE_NETS
+from antenna_reroute import apply as reroute_antenna_tracks
 from sw_keepout import add_sw_keepouts
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -45,6 +46,38 @@ VIA_PITCH = 1.5
 VIA_D, VIA_DRILL = 0.6, 0.3
 NUDGE_STEPS = 7              # via nudge search radius, in 0.1mm steps
 VIA_KEEPOUT = 0.35           # via edge to any foreign copper / pad / hole
+
+
+# pilink-a4u: no GND pour along the board's top edge under the U.FL antenna
+# element. Element = face X 59.25..105.05 = board X 56.75..102.55 (face X =
+# board X + 2.5; land 58.25..106.05 less 1.0mm assembly clearance each end),
+# sitting ~1.0mm above the board's top edge (Q 54 vs board edge Q 53).
+# Pour-only rule area on both layers, ~2.75mm X margin each side (the end
+# margin keeps the pour corners ~2.5mm+ from the element). Depth 3.0mm:
+# U201 GND pad 38 (top at y 2.74) and C201 pad 2 stay on pour that remains.
+# GPIO25 / ESP32_HCI_TXD are moved to F.Cu lanes just below the strip by
+# antenna_reroute.py (applied below); only the +3V3 B.Cu run at y~2.4 (x 86..
+# 109, under U201's own antenna end) stays in the strip. See README.
+ANT_KO = (54.0, 0.0, 106.0, 3.0)
+
+
+def add_antenna_keepout(board):
+    x0, y0, x1, y1 = ANT_KO
+    for layer, tag in ((pcbnew.F_Cu, "F"), (pcbnew.B_Cu, "B")):
+        z = pcbnew.ZONE(board)
+        z.SetLayer(layer)
+        z.SetIsRuleArea(True)
+        z.SetZoneName("KO_ANT_" + tag)
+        z.SetDoNotAllowTracks(False)
+        z.SetDoNotAllowVias(False)
+        z.SetDoNotAllowZoneFills(True)
+        z.SetDoNotAllowPads(False)
+        z.SetDoNotAllowFootprints(False)
+        o = z.Outline()
+        o.NewOutline()
+        for x, y in ((x0, y0), (x1, y0), (x1, y1), (x0, y1)):
+            o.Append(pt(x, y))
+        board.Add(z)
 
 
 def pt(x, y):
@@ -142,6 +175,8 @@ def main():
         if pad.GetNetname() == "GND" and pad.GetNumber() == "2":
             pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
 
+    print("antenna reroute applied:", reroute_antenna_tracks(board))
+    add_antenna_keepout(board)
     add_sw_keepouts(board)   # Alps SKRTLAE010 no-copper areas (pilink-ge9)
     full = (0, 0, BOARD_W, BOARD_H)
     add_zone(board, "GND", pcbnew.F_Cu, full, 0, name="GND_F")
