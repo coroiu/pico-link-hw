@@ -676,3 +676,35 @@ Changes in `antenna_mount.scad` (not rendered, arithmetic in Python):
   top wall's inner surface (Q 54). A 4.5-5mm radius does not fit in that
   2mm gap; the turn has to be made earlier, inside the U201 relief (3.8mm
   deep) or the cable stowed with a gentler route. Tracked in `pilink-phg`.
+
+## CAD-level fit check (`pilink-7tm`)
+
+`enclosure/scripts/check_fit.sh` renders every `enclosure/*.scad` headlessly,
+builds a PCB envelope (118 x 50 x 1.6 board slab read from
+`hardware/pico-link-hw.kicad_pcb`, plus one box per footprint from its
+courtyard x an assumed height, with composite models for the encoder, tact
+switches, U201, J401, J101, mounting screws and the display stack), places
+everything in the shells' shared face frame (`X = board_x + 2`,
+`Q = 52 - board_y`, `Z = 0` at the outer face), and reports interference
+volumes and approximate minimum distances (trimesh/manifold). It exits
+non-zero if any pair overlaps.
+
+```bash
+enclosure/scripts/check_fit.sh                 # full run (~1 min)
+enclosure/scripts/check_fit.sh --json out.json # also dump results
+```
+
+It runs on the host when `openscad` and python (`pcbnew`, `trimesh`,
+`manifold3d`, `scipy`, `rtree`) are all available, otherwise inside the
+`preview/` docker image under a separate compose project (pip-installs
+`manifold3d scipy rtree` on first use; needs network). STLs are written to
+`$FITCHECK_WORK` (default: a temp dir), never into the repo.
+
+This is a **CAD-level check, not the printed fit check** (`pilink-8hx.5`
+stays open). Component heights are datasheet-class assumptions listed in
+`check_fit.py` (`HEIGHTS`; J101 pin height, encoder lead length, M2 head and
+the display stack are flagged assumed); the antenna mount has no real
+placement in the `.scad`, so the script places it on the top wall's inner
+surface centred in the cavity depth. Distances are sampling-based (they can
+overestimate by about the sample spacing); overlaps are exact booleans, and
+slivers thinner than 20 um count as touching.
