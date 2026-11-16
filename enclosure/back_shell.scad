@@ -174,15 +174,25 @@ PCB_MOUNT_HOLES_FACE  = [ for (p = PCB_MOUNT_HOLES_BOARD) board_to_face(p[0], p[
 INSERT_OD   = 3.5;
 INSERT_LEN  = 4.0;
 BOSS_OD     = 7.0;   // insert OD + ~1.75mm wall each side
+// pilink-3ym: H2 (index 1, board (112,6)) sits 0.5mm from U201's body edge
+// (face X 110 vs a 7mm boss's 110.5 edge) -- too tight for an FDM pocket
+// wall. Its boss is trimmed to 6.0mm OD (1.25mm wall around the 3.5mm
+// insert) so the left edge is at face X 111.0, 0.7mm from the pocket.
+BOSS_OD_H2  = 6.0;
 
 // =====================================================================
 // Rear USB-C opening (J401, vertical-mount receptacle on the PCB back)
 // =====================================================================
-// Position: hardware/README.md PCB table + the pilink-5g8 ADR
-// verification section -- board-local (59, 45.5), B.Cu, rot 0.
-J401_FACE = board_to_face(59, 45.5);  // -> (61, 6.5) in (Pface, Qface) --
-                                        // updated per the board_to_face()
-                                        // mapping fix above (+2 in Qface)
+// Position: hardware/README.md PCB table -- board-local (59, 37), B.Cu,
+// rot 0. pilink-3ym (2026-11-16): UPDATED for pilink-hdl's J401 raise
+// (user decision) from (59, 45.5) to (59, 37); verified against
+// hardware/pico-link-hw.kicad_pcb (J401 `at 159 137`, B.Cu, rot 0, with
+// the board's own +100/+100 page offset). Plug centreline Qface is now
+// 52 - 37 = 15.0 (was 6.5) -- the product-layout proposal's own "~15mm
+// up the back" intent (section 6c). The old (59, 45.5) -> face (61, 6.5)
+// position is history; every pilink-8ry table/strip number computed for
+// it is recomputed in enclosure/README.md.
+J401_FACE = board_to_face(59, 37);    // -> (61, 15) in (Pface, Qface)
 USBC_PFACE = J401_FACE[0];
 USBC_QFACE = J401_FACE[1];
 
@@ -200,7 +210,7 @@ USBC_HEIGHT_ABOVE_PCB = 6.5;  // component height above the PCB back
 
 // Footprint orientation, VERIFIED against hardware/pico-link-hw.kicad_pcb
 // (PR #52 review minor item): J401's footprint instance is
-// `(at 159 145.5)` with no rotation field -- KiCad omits the angle when
+// `(at 159 145.5)` at the time (now `(at 159 137)`, pilink-hdl/3ym) with no rotation field -- KiCad omits the angle when
 // it's 0, so this is rot 0, matching this file's own J401_FACE comment
 // above ("rot 0") and hardware/README.md's placement table, not a
 // 270 deg rotation. The footprint's own pad geometry (A1..A12 signal pads span
@@ -230,6 +240,87 @@ USBC_CUTOUT_W   = 10.0;
 USBC_CUTOUT_H   = 5.0;
 USBC_BOSS_PAD_W = 18.0;  // raised-boss footprint around the cutout
 USBC_BOSS_PAD_H = 12.0;  // (generous, own choice -- not a cited figure)
+
+// =====================================================================
+// U201 (ESP32-WROOM-32UE) back-side relief (pilink-3ym)
+// =====================================================================
+// pilink-hdl (PR #60) moved U201 to B.Cu at board-local (99, 11.6), so
+// the module body, its mated U.FL plug and the Ø1.13mm pigtail now sit in
+// the 3.0mm REAR_CLEARANCE cavity. NOT a 0.2mm boss -- the module body
+// alone overhangs by 0.2mm, but the governing envelope is the mated U.FL
+// plug plus the cable bend (PR #60 review correction). Same class of fix
+// as J401's boss: a pocket cut into the inside of the back wall PLUS a
+// raised pad on its outside so the wall is not thinned.
+//
+// Sources: module 18.0 x 19.2 x 3.2mm (hardware/README.md U201 row,
+// datasheet-confirmed for the external-antenna variants; F.Fab outline
+// measured off the board: x:[90,108] y:[2.0,21.2]); mated U.FL-LP-066 plug
+// max 2.5mm above the receptacle mounting surface (Hirose, quoted in
+// hardware/README.md Known gap 8); module PCB top ~0.8mm above the host
+// PCB (INFERRED as 3.2mm minus an assumed ~2.4mm shield can -- NOT
+// verified, MEASURE a real module before trusting the 3.3mm figure).
+U201_BOARD            = [99.0, 11.6];  // anchor, B.Cu (stored rot 180 = L/R mirror)
+U201_MODULE_H         = 3.2;           // above the host PCB back surface
+U201_MODULE_PCB_TOP_H = 0.8;           // INFERRED, see above
+UFL_PLUG_ABOVE_RECEPTACLE = 2.5;       // Hirose max, mated LP-066 plug
+UFL_PLUG_TOP_H        = U201_MODULE_PCB_TOP_H + UFL_PLUG_ABOVE_RECEPTACLE; // 3.3mm
+U201_RELIEF_CLEAR     = 0.5;           // own choice: margin over the taller of
+                                        // module body / plug top / cable bend
+U201_ENVELOPE_H       = max(U201_MODULE_H, UFL_PLUG_TOP_H) + U201_RELIEF_CLEAR; // 3.8mm
+// Pocket floor in bz: PCB back surface is at bz = BACK_WALL_T + REAR_CLEARANCE.
+U201_RELIEF_FLOOR_BZ  = BACK_WALL_T + REAR_CLEARANCE - U201_ENVELOPE_H;       // 1.2mm
+U201_RELIEF_DEPTH     = BACK_WALL_T - U201_RELIEF_FLOOR_BZ;  // 0.8mm into the wall
+U201_PAD_RISE         = U201_RELIEF_DEPTH;  // raised pad outside restores the
+                                             // full 2.0mm wall under the pocket.
+
+// Footprint of the pocket in board-local coordinates: the module body
+// (F.Fab, NOT the F.CrtYd, which at x:[89.25,108.75] would clip the H2
+// mounting boss -- 7mm boss left edge at face x 110.5, courtyard edge
+// 110.75; the boss is trimmed to 6mm OD, see BOSS_OD_H2) plus a small margin, and out to the
+// board's top edge (board y = 0) so the U.FL end and the cable's bend /
+// exit toward the top wall are inside the relief.
+U201_BODY_X = [90.0, 108.0];   // board-local, measured off hardware/pico-link-hw.kicad_pcb
+U201_BODY_Y = [2.0, 21.2];
+U201_RELIEF_MARGIN = 0.3;      // own choice; 0.7mm to the (trimmed, BOSS_OD_H2) H2 boss
+U201_RELIEF_BOARD_X = [U201_BODY_X[0] - U201_RELIEF_MARGIN, U201_BODY_X[1] + U201_RELIEF_MARGIN]; // [89.7, 108.3]
+U201_RELIEF_BOARD_Y = [0.0, U201_BODY_Y[1] + U201_RELIEF_MARGIN];                                  // [0, 21.5]
+// board_to_face() flips Y, so the board's y=0 edge is the HIGH Qface end.
+u201_p0 = board_to_face(U201_RELIEF_BOARD_X[0], U201_RELIEF_BOARD_Y[1]);  // lower-left  (Pface, Qface)
+u201_p1 = board_to_face(U201_RELIEF_BOARD_X[1], U201_RELIEF_BOARD_Y[0]);  // upper-right
+U201_PAD_WALL = 1.5;           // own choice: pad overhangs the pocket by this much each side
+// Assumed U.FL receptacle position (NOT in the footprint, NOT verified --
+// check the Espressif datasheet drawing): centred on the module in X, ~3mm
+// in from the antenna-end edge (board y = 2.0). The pocket is deliberately
+// sized to the whole antenna end so this assumption does not drive the cut.
+U201_UFL_BOARD_ASSUMED = [99.0, U201_BODY_Y[0] + 3.0];
+U201_UFL_FACE = board_to_face(U201_UFL_BOARD_ASSUMED[0], U201_UFL_BOARD_ASSUMED[1]);
+
+module u201_relief_pad() {
+    // Solid pad on the OUTSIDE of the back wall (bz < 0), same idea as
+    // usbc_local_boss_pad(). Its Qface top (53.5) stays below the shell's
+    // inner top wall (54); it overlaps the right leg boss base (x = 101,
+    // Q = 40) -- that is a plain union (the boss simply sits 0.8mm proud
+    // of the pad's surface); leg_mount_tip_* are unchanged.
+    translate([u201_p0[0] - U201_PAD_WALL, u201_p0[1] - U201_PAD_WALL, -U201_PAD_RISE])
+        cube([u201_p1[0] - u201_p0[0] + 2*U201_PAD_WALL,
+              min(u201_p1[1] + U201_PAD_WALL, FACE_H - WALL_T - 0.5) - (u201_p0[1] - U201_PAD_WALL),
+              U201_PAD_RISE + BACK_WALL_T]);
+}
+
+module u201_relief_pocket() {
+    // Cut from the cavity floor (bz = U201_RELIEF_FLOOR_BZ) up through the
+    // open cavity. Does not reach the PCB (that is at bz = 5.0).
+    translate([u201_p0[0], u201_p0[1], U201_RELIEF_FLOOR_BZ])
+        cube([u201_p1[0] - u201_p0[0], u201_p1[1] - u201_p0[1],
+              REAR_CLEARANCE + BACK_WALL_T - U201_RELIEF_FLOOR_BZ]);
+}
+
+echo(str("U201 relief: floor bz=", U201_RELIEF_FLOOR_BZ, " (", U201_RELIEF_DEPTH,
+         "mm into wall), pad rise ", U201_PAD_RISE, ", envelope ", U201_ENVELOPE_H,
+         "mm above host PCB (module ", U201_MODULE_H, ", plug top ", UFL_PLUG_TOP_H, ")"));
+echo(str("U201 relief pocket face X ", u201_p0[0], "..", u201_p1[0],
+         " Q ", u201_p0[1], "..", u201_p1[1], "; H2 boss left edge at face X ",
+         board_to_face(112, 6)[0] - BOSS_OD_H2/2));
 
 // =====================================================================
 // Rear legs / A-frame mounting bosses
@@ -465,9 +556,10 @@ module back_shell_shell() {
 }
 
 module pcb_mount_boss_solids() {
-    for (p = PCB_MOUNT_HOLES_FACE)
-        translate([p[0], p[1], BACK_WALL_T])
-            boss_solid(height = REAR_CLEARANCE);
+    for (i = [0 : len(PCB_MOUNT_HOLES_FACE) - 1])
+        translate([PCB_MOUNT_HOLES_FACE[i][0], PCB_MOUNT_HOLES_FACE[i][1], BACK_WALL_T])
+            boss_solid(height = REAR_CLEARANCE,
+                       boss_d = (i == 1) ? BOSS_OD_H2 : BOSS_OD);
             // Boss spans bz = BACK_WALL_T .. BACK_WALL_T+REAR_CLEARANCE
             // (= 5.0mm = exactly the PCB's back surface, see the
             // BACK_SHELL_DEPTH stack-up above).
@@ -496,7 +588,10 @@ module pcb_mount_insert_pockets() {
 // USBC_QFACE - USBC_BOSS_PAD_H/2, which the mapping fix above already
 // moves to a safe 0.5mm but not safe ENOUGH once the rotation's own
 // small additional dip is accounted for) makes this hold for any future
-// retuning of these constants, not just the current numbers. Does NOT
+// retuning of these constants, not just the current numbers. (pilink-3ym:
+// with J401 raised to Qface 15 the pad's natural bottom edge is
+// 15 - 12/2 = 9.0mm, far above the 0.54mm clamp, so the clamp is now
+// inactive -- q0 = 9.0, q1 = 21.0. The clamp stays for retuning safety.) Does NOT
 // address the mated-plug/cable-vs-table clearance question raised in
 // the same review finding -- that's tracked separately in pilink-8ry.
 usbc_boss_pad_q_min = USBC_BOSS_RISE * tan(LEAN_DEG);
@@ -554,10 +649,12 @@ module back_shell_local() {
         union() {
             back_shell_shell();
             usbc_local_boss_pad();
+            u201_relief_pad();
             pcb_mount_boss_solids();
             leg_mount_boss_solids();
         }
         usbc_cutout();
+        u201_relief_pocket();
         pcb_mount_insert_pockets();
         leg_mount_insert_pockets();
     }
@@ -743,6 +840,16 @@ echo(str("USB-C port lateral centre (Pface): ", USBC_PFACE,
          " -- legs at Pface ", LEG_PFACE_LEFT, " / ", LEG_PFACE_RIGHT));
 echo(str("USB-C-to-leg clearance, left: ", clearance_left, " mm"));
 echo(str("USB-C-to-leg clearance, right: ", clearance_right, " mm"));
+// pilink-3ym: USB-C cable-vs-table numbers at the raised J401 (Qface 15),
+// same method as enclosure/README.md's pilink-8ry section (boot = 2D offset
+// of the mating axis by D/2, axis 15 deg below horizontal heading -bz,
+// mating face at bz = -1.5). Mating-face world position:
+usbc_face_y = USBC_QFACE*cos(LEAN_DEG) + (-1.5)*sin(LEAN_DEG);   // 14.10mm
+usbc_face_z = -USBC_QFACE*sin(LEAN_DEG) + (-1.5)*cos(LEAN_DEG);  // -5.33mm
+// along-axis distance to table contact for a boot of diameter D:
+function usbc_table_s(D) = (usbc_face_y - (D/2)*cos(LEAN_DEG)) / sin(LEAN_DEG);
+echo(str("USB-C mating face world (Y,Z): (", usbc_face_y, ", ", usbc_face_z,
+         "); 6.3mm boot reaches the table ", usbc_table_s(6.3), "mm along the axis (was 11.0mm at Qface 6.5)"));
 // Both come out to ~31.5mm in this model (40mm leg offset minus the
 // connector's own 4.5mm shell half-width minus the leg's own 4mm strut
 // half-width) -- the legs run at a constant lateral (Pface) position

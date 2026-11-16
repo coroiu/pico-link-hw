@@ -75,6 +75,17 @@ shell fastener bosses aren't modeled yet, pending `pilink-8hx.1`'s own
 mating geometry. All of this needs a human with OpenSCAD — ideally
 once `pilink-8hx.1` (back shell) also exists — per `pilink-8hx.5`.
 
+**Update (`pilink-3ym`, 2026-11-16): re-checked against `pilink-hdl`
+(PR #60).** U201 moved to the back of the board and the A/B/X/Y diamond
+was restored to centre (102, 25), so `front_shell.scad`'s four button
+bores are back at board (102,17) / (94,25) / (110,25) / (102,33) (the
+pilink-2yw-era (102,34) figures in the paragraphs above are history). Knob
+(16,25) and the SW101/SW102 pinholes (42,2.7)/(52,2.7) are unchanged;
+coordinates cross-checked against `hardware/pico-link-hw.kicad_pcb`.
+U201 is no longer on the front, so the old "U201 vs diamond" proximity
+note is obsolete. J501's FPC fold (courtyard bottom y=31.53) is not
+modelled in this file. Not rendered (no OpenSCAD).
+
 ## A/B/X/Y button plunger/cap (`button_plunger.scad`, pilink-8hx.3)
 
 The part that sits IN the four Ø8.4mm button bores `front_shell.scad`
@@ -151,6 +162,15 @@ bores" phrasing -- filed as its own follow-up (`pilink-ci0`) per code
 review rather than fixed here (out of this file's scope, different
 file's established geometry).
 
+**Update (`pilink-3ym`): flange-vs-ledge math re-checked, unchanged.**
+The `panel_ledge()` clearance at the X button depends only on X button
+x=94 (ledge edge at board x=89 -> 5.0mm, flange radius 4.5mm, 0.5mm
+nominal / 0.3mm worst case) and the 8mm diamond pitch (11.31mm diagonal,
+~2.3mm flange-to-flange). Both are identical for the restored diamond
+(x unchanged, pitch unchanged, and board y 17..33 still lies inside the
+ledge's y span 2..50). Only a stale `(94,34)` comment in
+`button_plunger.scad` was updated.
+
 ## Back shell + rear legs (`back_shell.scad`, pilink-8hx.1)
 
 Covers the back half of the enclosure: PCB-mounting bosses (heat-set
@@ -185,6 +205,40 @@ include `echo()` statements with the clearance numbers this bead's own
 NOTE asked for (whether the rear USB-C port and its mating plug clear the
 two rear legs), computed analytically rather than rendered; see the
 file's own comments for the numbers and reasoning.
+
+### U201 back-side relief and J401 raise (`pilink-3ym`)
+
+`pilink-hdl` (PR #60) put U201 on B.Cu at board (99, 11.6) and raised
+J401 from (59, 45.5) to (59, 37). `back_shell.scad` now carries both.
+Not rendered (no OpenSCAD); arithmetic checked in Python.
+
+**J401.** `J401_FACE = board_to_face(59, 37)` = face (61, 15), plug
+centreline Qface 15.0 (was 6.5). Boss pad: `usbc_boss_pad_q0/q1` = 9.0 /
+21.0 (the `USBC_BOSS_RISE*tan(15)` = 0.54mm clamp is now inactive); cutout
+Q 12.5..17.5. Lateral X is unchanged, so the leg clearance echoes (~31.5mm
+each side) hold. The four PCB mounting holes did not move (re-read from
+the board: (10,44), (112,6), (112,44), (59,4)).
+
+**U201 relief (not a 0.2mm boss).** Envelope above the host PCB back
+surface: module 3.2mm; mated U.FL-LP-066 plug 0.8 (module PCB top,
+INFERRED, measure it) + 2.5 (Hirose max) = 3.3mm; plus 0.5mm own margin =
+3.8mm, versus `REAR_CLEARANCE` 3.0mm. Pocket floor at bz = 5.0 - 3.8 =
+1.2mm, i.e. 0.8mm cut into the 2.0mm back wall, with a 0.8mm raised pad on
+the outside (J401-boss style) so the wall stays 2.0mm. Pocket footprint:
+module body (F.Fab x 90..108, y 2.0..21.2, +0.3mm) out to the board's top
+edge, so the U.FL end and the cable's bend/exit are inside it: face X
+91.7..110.3, Q 30.5..52.0 (18.6 x 21.5mm). Pad: face X 90.2..111.8, Q
+29.0..53.5. The courtyard-based range from the bead (x 89.22..108.78)
+would clip the H2 mounting boss (left edge face X 110.5), so the module
+body is used instead. The 0.2mm left to the 7mm H2 boss was below FDM
+tolerance, so H2's boss is trimmed to 6.0mm OD (`BOSS_OD_H2`, 1.25mm wall
+around the 3.5mm insert): 0.7mm to the pocket, 1.0mm to the module body.
+Unverified: print strength of the thinner wall. The pad overlaps the
+right leg boss base (x=101, Q=40) -- a plain union, leg geometry unchanged.
+**Assumed, not verified:** U.FL receptacle at module centre X, ~3mm in
+from the antenna-end edge (board (99, 5.0)); it is not in the footprint.
+The pocket does not depend on it. The plug's cable-exit direction and the
+coax minimum bend radius are also unverified.
 
 ### USB-C cable-vs-table clearance (`pilink-8ry`)
 
@@ -383,6 +437,36 @@ physical check: with a printed prototype and a real cable, check table
 contact first, the strip only if the placeholder strip position ships,
 and the cutout-tunnel entry above.
 
+### USB-C cable-vs-table clearance, recomputed for Qface 15 (`pilink-3ym`)
+
+The `pilink-8ry` figures above are for the old Qface 6.5 and are kept as
+history. Same method and boot range (5.0-6.5mm, Anker 515 6.3mm as the
+sourced point; boot = 2D offset of the mating axis by D/2, axis 15 deg below
+horizontal heading -bz, mating face at bz = -1.5, `horiz` = along x cos15 -
+r x sin15 as before). Mating face world (Y, Z) = (14.10, -5.33) (was
+(5.89, -3.13)); clearance over the strip top at the face 12.10mm (was 3.89).
+
+| Boot D | Table contact, along axis (horiz.) | Was (Qface 6.5) |
+|---|---|---|
+| 5.0mm | ~45.2mm (~43.0) | ~13.4 (~12.3) |
+| 5.5mm | ~44.2mm (~42.0) | ~12.5 (~11.4) |
+| 6.0mm | ~43.3mm (~41.0) | ~11.6 (~10.4) |
+| 6.3mm (Anker 515) | ~42.7mm (~40.4) | ~11.0 (~9.8) |
+| 6.5mm | ~42.4mm (~40.1) | ~10.6 (~9.4) |
+
+Zero-thickness line reaches the table ~54.5mm along (was 22.8). The
+placeholder strip (back edge Z = -8.125, 2.89mm along the axis, rechecked) is now
+cleared by 10.97mm perpendicular (was 2.465), so a boot would have to be
+~21.9mm thick to touch it; the strip is no longer an obstacle at either
+position. Option (a) lift needed for a rigid end `L`: negative (no lift
+needed) for L up to 30mm at every D in the range (e.g. 6.3mm boot, L=30:
+-3.3mm). **Result: table contact now needs a rigid moulded end longer than
+~40mm along the axis, which no real USB-C overmold approaches, so the
+table/strip concern is effectively retired by the J401 raise.** The
+cutout-tunnel entry question (boot vs. the 10 x 5mm cutout) is unchanged
+and stays in `pilink-q03`. `pilink-q03`'s description was updated with
+this result.
+
 ## `antenna_mount.scad` (pilink-8hx.4)
 
 Internal mount for the adhesive U.FL 2.4GHz antenna, for the top wall of
@@ -484,3 +568,38 @@ or is marked as this file's own assumption.
   print.
 - **Open:** the knob is tall (17.5mm) because the shaft is 17mm proud; trimming
   the shaft would allow a shorter knob but is a product call, not made here.
+
+### Re-derived for a back-side U201 (`pilink-3ym`, supersedes `pilink-adt` / PR #54)
+
+U201's U.FL is now on the BACK of the board, so the earlier "cable run to
+U201 at face X ~16" and any "U201 under the mount" wording above are stale.
+Changes in `antenna_mount.scad` (not rendered, arithmetic in Python):
+
+- **Pigtail exit** moved from 6mm in from the land's left end to 6mm in
+  from its right end: face X 99.55, 1.45mm from the assumed U.FL (face X
+  101, Qface 47, see the back-shell section for that assumption).
+- **Route and length:** plug -> along the back cavity toward the board's
+  top edge (5mm, inside the U201 relief) -> over the edge through the 2mm
+  top-slack gap (2mm) -> into the mount (<= ~10mm of front-to-back travel,
+  the top-wall cavity depth) + 1.45mm lateral = ~18.5mm, ~30mm with bend
+  slack. The ~240mm pigtail (inferred) leaves ~210mm to stow; where is not
+  designed yet (new bead).
+- **Clearances:** SW101/SW102 pinholes (X 44/54) >45mm from the cable;
+  restored diamond (courtyard y 13.58..36.43, front side) 8.6mm in Y and on
+  the opposite board face; H2 boss >=9.5mm.
+- **`pilink-58z` RF numbers:** the element and mount X span did not move,
+  but this file's Y mapping assumed the board bottom-flush (top edge 6mm
+  below the face top); the shells use Qface = 52 - by (4mm). Corrected,
+  the element is **~2mm (was ~4) from the board top edge and ~7mm (was ~9)
+  from the display panel frame**, against the same ~46mm guidance. The
+  PCB change itself does not alter them; the correction is the new part.
+  U201's metal shield is now behind the board, not beside the diamond; its
+  RF effect is unquantified.
+- **Coax bend radius (sourced, review follow-up):** no Hirose figure found;
+  a TE UMCC datasheet for U.FL-compatible 1.13mm assemblies gives 5mm
+  minimum single bend, and Data Alliance's table lists 4.5mm. The pigtail
+  turns from running up the back cavity (Q) to heading forward (bz) at the
+  top wall, with only ~2mm of Qface between the board edge (Q 52) and the
+  top wall's inner surface (Q 54). A 4.5-5mm radius does not fit in that
+  2mm gap; the turn has to be made earlier, inside the U201 relief (3.8mm
+  deep) or the cable stowed with a gentler route. Tracked in `pilink-phg`.

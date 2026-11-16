@@ -58,6 +58,23 @@
 // file already said (general adhesive-FPC-antenna practice, not a
 // datasheet figure).
 
+// pilink-3ym (2026-11-16) REVISION -- supersedes pilink-adt / closed PR #54.
+// pilink-hdl (PR #60) moved U201 to the BACK of the board (B.Cu) and
+// restored the A/B/X/Y diamond to centre (102,25). Consequences handled
+// here: (1) U201 is no longer on the front, so it is not "under the mount";
+// its U.FL faces the back shell and the pigtail runs behind the PCB, over
+// the board's top edge, into this mount (route + length derived below);
+// (2) the pigtail exit moved from the land's left end to its right end,
+// nearest the back-side U.FL (face X ~101); (3) the stale diamond
+// coordinates are gone (this file never used the diamond; the old
+// pilink-2yw (102,34) figures only survive in history notes); (4) the
+// board-to-face Y mapping now matches the shells' Qface = 52 - by (the old
+// 6mm bottom-flush assumption was wrong by 2mm, which made the RF
+// clearance numbers 2mm too generous). The antenna ELEMENT/mount X span
+// (57.75-105.55) did not move, so pilink-58z's numbers only change through
+// that mapping correction (4->2mm to the board top edge, 9->7mm to the
+// panel frame), not through the PCB change. Still NOT rendered.
+
 // ---------------------------------------------------------------------------
 // Antenna part -- Kinghelm KH-FPC2.4G-1.13IPEX-240, LCSC C4943394. Selected
 // (over the AIWF026 alternate) in
@@ -126,25 +143,39 @@ BOARD_H = 50.0;  // mm, hardware/README.md
 FACE_W  = 122.0; // mm, .planning/decisions/2026-11-15-upright-desk-clock-form-factor.md ("Face about 122 W x 56 H mm")
 FACE_H  = 56.0;  // mm, same ADR
 
-BOARD_TO_FACE_X_OFFSET = (FACE_W - BOARD_W) / 2; // = 2.0mm, ASSUMPTION, see note above
-BOARD_TO_FACE_Y_OFFSET = FACE_H - BOARD_H;       // = 6.0mm, ASSUMPTION, see note above
+BOARD_TO_FACE_X_OFFSET = (FACE_W - BOARD_W) / 2; // = 2.0mm
 
-// U201 (ESP32-WROOM-32UE) antenna-connector-end edge, board-local, from
-// .planning/decisions/2026-11-15-upright-desk-clock-form-factor.md's
-// "Verification: rear USB-C / antenna / FPC clearance check (pilink-5g8)":
-// "that module edge sits at board-local Y ~= 2.65-2.9, X ~= 5-23
-// (centered X=14)". The connector's exact position along that edge wasn't
-// confirmed from a rendered datasheet drawing there either -- same caveat
-// carried forward here.
-U201_ANTENNA_X_MIN = 5.0;
-U201_ANTENNA_X_MAX = 23.0;
-U201_ANTENNA_X_CENTER = 14.0;
-U201_ANTENNA_Y_MIN = 2.65;
-U201_ANTENNA_Y_MAX = 2.9;
+// pilink-3ym: the Y mapping is no longer the unconfirmed "bottom-flush,
+// 6mm above" assumption this file inherited from hardware/README.md. Both
+// shells (back_shell.scad board_to_face(), front_shell.scad board_to_y())
+// settled on Qface = 52 - board_y (2mm wall + 2mm TOP_SLACK above the
+// board), so the board's top edge (board y=0) is at Qface 52, i.e. 4mm
+// below the face's top outer edge (Q 56), NOT 6mm. The top wall's INNER
+// surface (where this mount sits) is at Qface 54. Y distances below use
+// this mapping; the old 6mm figure overstated every clearance by 2mm.
+WALL_THICKNESS_FACE = 2.0;                                // = back/front shell WALL_T/WALL
+BOARD_TOP_EDGE_Q = FACE_H - WALL_THICKNESS_FACE - 2.0;    // = 52, board y=0 (TOP_SLACK 2.0)
+function board_to_q(by) = BOARD_TOP_EDGE_Q - by;
+// Kept (derived, = 4.0mm) so the older "face-Y below the face top" wording
+// still reads: distance from the face's top outer edge down to the board's top edge.
+BOARD_TO_FACE_Y_OFFSET = FACE_H - BOARD_TOP_EDGE_Q;
 
-// Face-local X center of U201's U.FL connector, used below to check the
-// resulting cable run length.
-U201_ANTENNA_FACE_X_CENTER = U201_ANTENNA_X_CENTER + BOARD_TO_FACE_X_OFFSET; // 16.0mm
+// U201 (ESP32-WROOM-32UE) -- pilink-3ym REWRITE. U201 is on the BACK of
+// the board (B.Cu, pilink-hdl / PR #60) at board (99, 11.6); the old
+// "antenna edge X ~= 5-23, centred 14" figure (ADR pilink-5g8, a front-side
+// upper-left U201) and the pilink-2yw "above the diamond" figure are both
+// stale. U201 is therefore NOT under the mount on the front any more: it
+// is behind the PCB, in the back shell's 3.0mm cavity with its own relief
+// pocket (back_shell.scad u201_relief_pocket()). Antenna-end edge = module
+// body y 2.0 (F.Fab, measured off hardware/pico-link-hw.kicad_pcb).
+// The U.FL receptacle position itself is NOT in the footprint and is NOT
+// verified: assumed centred on the module in X (x=99) and ~3mm in from
+// that edge (board y=5.0) -- same assumption as back_shell.scad's
+// U201_UFL_BOARD_ASSUMED. Check the Espressif datasheet drawing.
+U201_UFL_BOARD_X = 99.0;   // ASSUMED
+U201_UFL_BOARD_Y = 5.0;    // ASSUMED
+U201_ANTENNA_FACE_X_CENTER = U201_UFL_BOARD_X + BOARD_TO_FACE_X_OFFSET; // 101.0mm
+U201_UFL_Q = board_to_q(U201_UFL_BOARD_Y);                              // Qface 47.0
 
 // SW101/SW102 (BOOTSEL/RESET) top-edge pinhole X positions, board-local,
 // from hardware/README.md's placement table: "SW101 (42, 2.7), SW102
@@ -194,7 +225,7 @@ LIP_HEIGHT = 0.4;             // mm, height of the raised locating lip
 CABLE_CHANNEL_WIDTH = 2.0;    // mm, clear of ANTENNA_CABLE_DIAMETER (1.13mm) with margin for the bare coax only (no plug passes through this stub)
 CABLE_CHANNEL_DEPTH = 1.5;    // mm, depth of the groove cut into the channel boss (see channel() below)
 CHANNEL_BOSS_MARGIN = 1.0;    // mm, solid shoulder left on each side of the groove so there is material to actually cut the groove into
-CABLE_CHANNEL_EXIT_X_INSET = 6.0; // mm, UNSOURCED ASSUMPTION: neither the research finding nor the LCSC listing says where this part's actual pigtail leaves the element (flagged in both places). This file picks an exit point inset from the land's edge nearest U201 (see "Mount position" below for why that edge is nearest), on the assumption that the shortest practical cable run to U201's U.FL connector is the right default absent a real drawing -- not a confirmed exit point on the physical part.
+CABLE_CHANNEL_EXIT_X_INSET = 6.0; // mm, now measured from the land's RIGHT (+X) end -- pilink-3ym: U201's U.FL (x~101) is near that end, no longer near the old left end. UNSOURCED ASSUMPTION: neither the research finding nor the LCSC listing says where this part's actual pigtail leaves the element (flagged in both places). This file picks an exit point inset from the land's edge nearest U201 (see "Mount position" below for why that edge is nearest), on the assumption that the shortest practical cable run to U201's U.FL connector is the right default absent a real drawing -- not a confirmed exit point on the physical part.
 STRAIN_RELIEF_CLIP_ID = 1.6;  // mm, snug over the 1.13mm coax
 // Reduced from 2.0 to 1.0mm as part of the mount-depth fix below -- still
 // enough ring thickness along the cable's own axis (after the bore-
@@ -309,15 +340,33 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE;  // 8.5mm
 // 120mm) is then 120 - 105.55 = 14.45mm -- comfortably clear, no further
 // tuning needed on that side.
 //
-// Cable-run consequence (not a blocker -- see PR review item 2 and the
-// task that produced this fix): the new exit point (see
-// CABLE_CHANNEL_EXIT_X_INSET above) sits at face-local X = 57.75 + 6.0 =
-// 63.75mm, roughly 47.75mm in X alone from U201's connector-center at
-// face-local X=16.0mm. The part's pigtail is ~240mm (inferred from the
-// part number, per the research finding), so a ~50mm run leaves well over
-// 150mm of slack to coil inside the enclosure cavity during assembly --
-// not a real constraint here, unlike the old (false) assumption that
-// hugging the left wall was load-bearing for cable length.
+// Cable-run consequence (pilink-3ym REWRITE -- the pre-pilink-hdl text here
+// described a ~48mm run from a front-side U201 at face X 16; that is stale).
+// U201's U.FL is now on the BACK of the board, assumed at face (101, Q 47)
+// (see U201_UFL_* above). The element's right end is the near end, so the
+// pigtail exit is moved to 6mm in from the RIGHT end of the land:
+//   exit face X = MOUNT_X_MIN + (MOUNT_LAND_LENGTH - 6) = 99.55mm
+//   lateral run to the U.FL = |101.0 - 99.55| = 1.45mm
+// Route (assembled, not modelled): plug -> along the back cavity toward the
+// board's top edge (Q 47 -> 52, 5mm, inside back_shell.scad's U201 relief)
+// -> over the board's top edge through the 2mm TOP_SLACK gap (Q 52 -> 54,
+// 2mm) -> into the top-wall mount. Front-to-back travel from the cavity
+// (bz ~2) to the mount's cable exit is bounded by the top-wall cavity
+// depth (~10mm, see the mount-depth note above). Estimated pigtail needed:
+//   5 + 2 + 10 + 1.45 ~= 18.5mm, call it ~30mm with bend radii/slack.
+// The part's pigtail is ~240mm (inferred from the part number), so ~210mm
+// of excess has to be stowed (coiled/looped) inside the enclosure -- more
+// than before in relative terms, because the run is now short. Where it
+// goes is NOT designed here (follow-up bead). Clearances checked:
+//   - SW101/SW102 pinholes (face X 44/54, Q ~49.3) vs the cable at X ~100:
+//     >45mm apart.
+//   - Restored A/B/X/Y diamond (courtyard board y 13.58-36.43, front side)
+//     vs the cable at board y <= 5 on the back: 8.6mm in Y and on the
+//     opposite board face.
+//   - H2 mounting boss (face (114,46), boss r 3.5 -> X >= 110.5) vs a
+//     cable at X 99.55-101: ~9.5mm.
+echo(str("[pilink-3ym] Pigtail exit face X ", MOUNT_X_MIN + MOUNT_LAND_LENGTH - CABLE_CHANNEL_EXIT_X_INSET,
+         "mm vs assumed back-side U.FL face X ", U201_ANTENNA_FACE_X_CENTER, "mm."));
 PINHOLE_EDGE_CLEARANCE_X = SW102_X_FACE_LOCAL + PINHOLE_DIAMETER / 2 + PINHOLE_X_CLEARANCE;
 MOUNT_X_MIN = PINHOLE_EDGE_CLEARANCE_X;                // 57.75mm
 MOUNT_X_MAX = MOUNT_X_MIN + MOUNT_LAND_LENGTH;         // 105.55mm
@@ -383,28 +432,30 @@ echo(str("[pilink-8hx.4] Display-panel shadow X ", PANEL_X_MIN_FACE_LOCAL, "-",
 // ("Treated as x:[28,87] y:[5,47] on the board") -- only the X range was
 // captured above; this is its Y start, needed for the face-Y estimate.
 PANEL_Y_MIN_BOARD_LOCAL = 5.0; // mm, hardware/README.md:971
-PANEL_Y_MIN_FACE_LOCAL = PANEL_Y_MIN_BOARD_LOCAL + BOARD_TO_FACE_Y_OFFSET; // 11.0mm, ESTIMATE (unconfirmed mapping)
+PANEL_Y_MIN_FACE_LOCAL = PANEL_Y_MIN_BOARD_LOCAL + BOARD_TO_FACE_Y_OFFSET; // 9.0mm below the face top edge (pilink-3ym: was 11.0 with the stale 6mm offset; = Qface 47)
 
 // The element itself sits on the top wall's INNER surface, i.e.
 // WALL_THICKNESS below the face's own top edge (face-y=0) -- an estimate,
 // not a confirmed figure, same caveat as everything else derived from the
 // unconfirmed board-to-face mapping.
-ANTENNA_ELEMENT_FACE_Y_ESTIMATE = WALL_THICKNESS; // ~2.0mm, ESTIMATE
+ANTENNA_ELEMENT_FACE_Y_ESTIMATE = WALL_THICKNESS; // ~2.0mm below the face top edge (inner top-wall surface, Qface 54)
 
 // Board's own top edge (where SW101/SW102's copper and the board outline
-// itself sit) is at face-y = BOARD_TO_FACE_Y_OFFSET = 6.0mm.
-CLEARANCE_TO_BOARD_TOP_EDGE_ESTIMATE = BOARD_TO_FACE_Y_OFFSET - ANTENNA_ELEMENT_FACE_Y_ESTIMATE; // ~4.0mm
-// Panel frame's top edge is at face-y = PANEL_Y_MIN_FACE_LOCAL = 11.0mm.
-CLEARANCE_TO_PANEL_FRAME_ESTIMATE = PANEL_Y_MIN_FACE_LOCAL - ANTENNA_ELEMENT_FACE_Y_ESTIMATE; // ~9.0mm
+// itself sit) is at face-y = BOARD_TO_FACE_Y_OFFSET = 4.0mm (Qface 52; pilink-3ym, was 6.0).
+CLEARANCE_TO_BOARD_TOP_EDGE_ESTIMATE = BOARD_TO_FACE_Y_OFFSET - ANTENNA_ELEMENT_FACE_Y_ESTIMATE; // 2.0mm (pilink-3ym: was ~4.0 under the stale 6mm offset)
+// Panel frame's top edge is at face-y = PANEL_Y_MIN_FACE_LOCAL = 9.0mm (pilink-3ym, was 11.0).
+CLEARANCE_TO_PANEL_FRAME_ESTIMATE = PANEL_Y_MIN_FACE_LOCAL - ANTENNA_ELEMENT_FACE_Y_ESTIMATE; // 7.0mm (pilink-3ym: was ~9.0)
 
 // The guidance (ANTENNA_KEEPOUT_FROM_METAL, ~46mm -- roughly the element's
 // own length) is measured against a face that is only FACE_H=56mm tall in
-// total, with only ~11mm of that above the panel's own top edge. So this
+// total, with only ~9mm of that above the panel's own top edge (pilink-3ym:
+// was ~11mm under the stale mapping). So this
 // is not a marginal shortfall and not something a different X position in
 // this same top wall can fix: EVERY top-wall position puts the element
 // within single-digit mm of the board's top-edge copper and the panel
-// frame, roughly 5-11x closer (46/9 ~= 5.1x to the panel frame, 46/4 ~=
-// 11.5x to the board edge) than the ~46mm guidance asks for. That is a
+// frame, roughly 6-23x closer (46/7 ~= 6.6x to the panel frame, 46/2 =
+// 23x to the board edge; pilink-3ym, corrected mapping -- was 5.1x/11.5x)
+// than the ~46mm guidance asks for. That is a
 // real RF-performance trade-off (reduced range/link reliability risk), not
 // a modeling gap to leave open in an echo() addressed to a mechanical
 // fit-check bead. It is now tracked as its own product decision in
@@ -414,15 +465,15 @@ CLEARANCE_TO_PANEL_FRAME_ESTIMATE = PANEL_Y_MIN_FACE_LOCAL - ANTENNA_ELEMENT_FAC
 // the enclosure). This file does not re-litigate those options or change
 // the mount's X position for them; that call belongs to pilink-58z once
 // Andreas decides.
-echo(str("[pilink-8hx.4] Face-Y clearance ESTIMATE (unconfirmed board-to-face ",
-         "mapping, same caveat as the X-axis numbers above): element at ",
+echo(str("[pilink-8hx.4] Face-Y clearance (pilink-3ym: merged-shell board-to-face ",
+         "mapping Qface=52-by): element at ",
          "face-y~", ANTENNA_ELEMENT_FACE_Y_ESTIMATE, "mm, board top edge at ",
          "face-y=", BOARD_TO_FACE_Y_OFFSET, "mm (~",
          CLEARANCE_TO_BOARD_TOP_EDGE_ESTIMATE, "mm clearance), panel frame top ",
          "at face-y=", PANEL_Y_MIN_FACE_LOCAL, "mm (~",
          CLEARANCE_TO_PANEL_FRAME_ESTIMATE, "mm clearance) -- vs the ",
          ANTENNA_KEEPOUT_FROM_METAL, "mm guidance. NOT MET at this or any ",
-         "top-wall X position (face is only ", FACE_H, "mm tall, ~11mm of ",
+         "top-wall X position (face is only ", FACE_H, "mm tall, ~9mm of ",
          "it above the panel). Real RF trade-off, tracked in pilink-58z -- ",
          "not resolved here, not left pending."));
 
@@ -463,7 +514,7 @@ module antenna_mount(
   channel_width = CABLE_CHANNEL_WIDTH,
   channel_depth = CABLE_CHANNEL_DEPTH,
   channel_length = 1.0, // mm, short stub -- reduced from 8.0mm as part of the mount-depth fix (see MOUNT_LAND_WIDTH's "Mount depth" note above); real length still depends on pilink-8hx.1's cavity geometry and is expected to be overridden once that exists
-  channel_exit_x = CABLE_CHANNEL_EXIT_X_INSET,
+  channel_exit_x = MOUNT_LAND_LENGTH - CABLE_CHANNEL_EXIT_X_INSET, // pilink-3ym: land-local X of the pigtail exit, 6mm in from the right end (nearest U201's back-side U.FL)
   clip_id = STRAIN_RELIEF_CLIP_ID,
   clip_height = STRAIN_RELIEF_CLIP_HEIGHT
 ) {
@@ -680,7 +731,9 @@ module demo_assembly() {
   }
 
   // U201 U.FL connector X-center marker (short red peg dropping toward
-  // where the PCB sits, well below this local slab).
+  // where the PCB sits, well below this local slab). pilink-3ym: the
+  // connector is on the BACK face of the board (assumed X), not in front
+  // of this mount.
   //
   // *** FIX for PR #48 review item 7 (minor, fixed as low-cost) ***
   // The first version subtracted MOUNT_X_MIN from every marker's X position,

@@ -186,7 +186,7 @@ CAP_CHAMFER = 0.3;
 //     on PANEL_CX (board_to_x(57.5) = 59.5mm); its right edge sits at
 //     board x = 57.5 + 59/2 + 2.0 = 89.0mm. board_to_x() is a pure
 //     +WALL offset, so board-space and shell-space distances are the
-//     same. The X button (front_shell.scad BTN_X, board (94,34)) is
+//     same. The X button (front_shell.scad BTN_X, board (94,25) since pilink-hdl/3ym; was (94,34) at pilink-2yw) is
 //     only 94 - 89 = 5.0mm from that edge -- so the flange radius at
 //     that button must stay under 5.0mm. The old Ø11 flange (radius
 //     5.5mm) intruded ~0.5mm into the ledge there -- the X cap
