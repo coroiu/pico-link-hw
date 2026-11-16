@@ -364,9 +364,12 @@ official datasheet).
 bottom-contact `AFC01-S40FCA-00` described below to the dual-contact
 `FC-05B40P21H20` (LCSC `C23398824`) — see the "Known gaps" item 3 update
 further down and `BOM.md`'s `pilink-4b6` addendum for why (required
-pre-fab fix) and what remains unresolved (pin-1 concordance). The
-narrative below is kept for history/context on the original part choice
-and is otherwise still accurate (pin table sourcing, symbol rationale).**
+pre-fab fix) and what was found and fixed on review (pin-1 numbering was
+backwards between the two parts; footprint/symbol pin numbers corrected,
+net assignments by physical location unchanged; cable-entry-side vs. the
+old part remains unconfirmed). The narrative below is kept for
+history/context on the original part choice and is otherwise still
+accurate (pin table sourcing, symbol rationale).**
 
 **Connector and pin table.** J501 was originally a 40-position, 0.5mm-pitch,
 bottom-contact, flip-top-lock SMT FPC/ZIF connector — LCSC `C262674`
@@ -1048,19 +1051,26 @@ the "why", not just the numbers.
    identical to the old footprint's (24.4mm), so a human KiCad-GUI pass
    should re-confirm this placement still clears the panel-shadow keepout
    and the 3.4mm under-panel gap once the new footprint's real dimensions
-   are checked. **The pin-1-concordance risk described below is still
-   UNRESOLVED**, not closed by the swap: `pilink-4b6` confirmed the new
-   part's own NO.1 location from its own CAD drawing, but found
-   `AFC01-S40FCA-00`'s LCSC-hosted datasheet has no dimensioned drawing at
-   all (re-confirmed independently, not just inherited from the research
-   finding below) -- so there is still no primary source to compare the
-   two parts' NO.1 ends against each other. The schematic's pin/net
-   mapping was carried over unchanged (no reversal) as a neutral default,
-   not a verified-correct choice. A human must physically compare real
-   samples of both connectors (or get a proper Jushuo drawing) before fab;
-   if their NO.1 ends turn out to be at opposite tail ends, J501's pin
-   mapping in the schematic must still be reversed at that point. The
-   original note is kept below for history/context.
+   are checked. **The pin-1-concordance risk described below is now
+   RESOLVED** (fix round, 2026-11-16): `C23398824`'s pin 1 and
+   `C262674`'s pin 1 land at **opposite** physical ends of the connector,
+   confirmed independently via JLCPCB's own assembly-library footprint
+   data for both parts (`easyeda.com/api/products/<LCSC>/components` --
+   answers a plain `curl GET` with no WAF block, unlike the easyeda.com
+   website itself), agreeing with the BXCONN drawing's own NO.1 marker.
+   Fix applied: since the ZIF contacts are straight-through, each physical
+   pad position keeps the same net it always had -- only the pad/pin
+   *number labels* were backwards. The footprint's 40 signal pads and the
+   symbol's 40 signal pins were both mirror-renumbered (pin/pad `k` ->
+   `41-k`) so every signal still lands on the same physical pad position
+   as before; verified via an exported-netlist diff showing J501's
+   physical pin-to-net mapping is unchanged. Separately, whether the two
+   parts' FPC cables enter from the same side relative to the pad row
+   could **not** be confirmed (no entry-side field in JLC's parametric
+   data or the LCSC product photos, and `C262674` still has no dimensioned
+   drawing) -- flagged as a remaining open item for a human with physical
+   samples before fab. The original note is kept below for
+   history/context.
 3a. **Original note (now superseded by the update above, kept for
    history): J501 is still the bottom-contact `AFC01-S40FCA-00`, and under
    this project's own back-face working assumption that part is

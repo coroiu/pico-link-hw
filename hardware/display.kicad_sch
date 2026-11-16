@@ -685,7 +685,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "40-position 0.5mm-pitch dual-contact (top-and-bottom entry, 'no polarity') Flip-Top ZIF FPC connector for the Crystalfontz CFAF240320A0-024SN display, 4-wire SPI pinout (pilink-7el.5). Pin table sourced directly from Crystalfontz's own datasheet (Rev 1v2, 2021-03-26), section 6, SPI-mode column. REQUIRED PRE-FAB SWAP (pilink-4b6): the original bottom-contact-only AFC01-S40FCA-00 (LCSC C262674, Jushuo) does not correctly mate the display FPC's J-fold geometry (pilink-7el.12) under this project's back-face contact-side working assumption (.research/findings/2026-11-15-display-fpc-contact-side.md) -- swapped to the dual-contact FC-05B40P21H20 (LCSC C23398824, BXCONN; confirmed 2,635 units live LCSC stock at swap time), which mates either contact orientation and removes the dependency on resolving that question at all, with no change to the proven J-fold geometry. No stock KiCad symbol exists for this exact part; hand-authored here (reusing the prior part's generic 'CFAF240320A0_FPC40' symbol, pin layout unchanged -- a simple single-column schematic convenience, not a physical pinout diagram). PIN-1 CAVEAT (unresolved, flag before fab): the new part's own CAD drawing confirms its NO.1 contact position on its own housing (re-derived directly from the datasheet's vector drawing in this environment), but AFC01-S40FCA-00's LCSC-hosted datasheet (C262674.pdf) is confirmed to be a generic reliability/process booklet with no dimensioned drawing at all, so there is no primary source to confirm the two parts' NO.1 ends correspond to the same physical tail end. This schematic's pin/net mapping (DB17-0, SDA, DOTCLK, HSYNC/VSYNC, RD/WR, RS, CS, RESET, IMx, power/ground) is therefore carried over UNCHANGED from the prior part (no reversal applied) -- a neutral default, not a confirmed-correct choice. A human must physically compare real samples of both connectors (or get a proper Jushuo drawing) before fab; if their NO.1 ends turn out to be at opposite tail ends, this pin mapping must be reversed, not just the footprint swapped. See the matching hand-authored footprint's own Footprint caveat for the same flag plus its dimension-sourcing notes. MP1/MP2 (pilink-2ar) are the footprint's two side mounting/reinforcement pads, added here as two extra passive pins (not part of the 40-position signal pinout) and tied to GND on the schematic -- unchanged from the prior part's own unresolved verification gap on whether these tabs carry a frame-ground function in the real part. Flag for human reverification against real datasheets before fab."
+		(property "Description" "40-position 0.5mm-pitch dual-contact (top-and-bottom entry, 'no polarity') Flip-Top ZIF FPC connector for the Crystalfontz CFAF240320A0-024SN display, 4-wire SPI pinout (pilink-7el.5). Pin table sourced directly from Crystalfontz's own datasheet (Rev 1v2, 2021-03-26), section 6, SPI-mode column. REQUIRED PRE-FAB SWAP (pilink-4b6): the original bottom-contact-only AFC01-S40FCA-00 (LCSC C262674, Jushuo) does not correctly mate the display FPC's J-fold geometry (pilink-7el.12) under this project's back-face contact-side working assumption (.research/findings/2026-11-15-display-fpc-contact-side.md) -- swapped to the dual-contact FC-05B40P21H20 (LCSC C23398824, BXCONN; confirmed 2,635 units live LCSC stock at swap time), which mates either contact orientation and removes the dependency on resolving that question at all, with no change to the proven J-fold geometry. No stock KiCad symbol exists for this exact part; hand-authored here (reusing the prior part's generic 'CFAF240320A0_FPC40' symbol, pin layout unchanged -- a simple single-column schematic convenience, not a physical pinout diagram). PIN-1 -- RESOLVED (pilink-4b6 fix round): independently confirmed via the EasyEDA/JLCPCB assembly-library footprint data for both parts (easyeda.com/api/products/<LCSC>/components, which answers a plain curl GET with no WAF block, unlike the easyeda.com website itself) that the two parts number pin 1 from OPPOSITE physical ends: C23398824's own JLC footprint has pad 1 (and its silkscreen dot) at its RIGHT end; C262674's has pad 1 at its LEFT end, both in the same canonical orientation -- agreeing with the BXCONN drawing's own NO.1 marker. This symbol's pin numbers are mirror-renumbered (pin k -> 41-k) to match the corrected footprint (Connector_FPC:FC-05B40P21H20, pad 1 now at its right/+X end). Since ZIF contacts are straight-through, each PHYSICAL pad position keeps the SAME net/signal it had before the renumbering -- only the pin/pad NUMBER labels changed in lockstep, verified by an exported-netlist diff showing J501's physical pin-to-net mapping is unchanged. CABLE-ENTRY-SIDE CAVEAT (still open, separate from pin-1): whether the two parts' FPC cables insert from the same side relative to the pad row could not be confirmed from the EasyEDA footprint data, LCSC product photos, or JLC parametric fields -- flagged for a human with physical samples before fab. See the matching hand-authored footprint's own descr for the same findings plus its dimension-correction notes (mounting-pad size/offset, signal-pad length). MP1/MP2 (pilink-2ar) are the footprint's two side mounting/reinforcement pads, added here as two extra passive pins (not part of the 40-position signal pinout) and tied to GND on the schematic -- unchanged from the prior part's own unresolved verification gap on whether these tabs carry a frame-ground function in the real part. Flag for human reverification against real datasheets before fab."
 			(at 0 0 0)
 			(effects
 				(font
@@ -727,7 +727,7 @@
 						)
 					)
 				)
-				(number "1"
+				(number "40"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -745,7 +745,7 @@
 						)
 					)
 				)
-				(number "2"
+				(number "39"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -763,7 +763,7 @@
 						)
 					)
 				)
-				(number "3"
+				(number "38"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -781,7 +781,7 @@
 						)
 					)
 				)
-				(number "4"
+				(number "37"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -799,7 +799,7 @@
 						)
 					)
 				)
-				(number "5"
+				(number "36"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -817,7 +817,7 @@
 						)
 					)
 				)
-				(number "6"
+				(number "35"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -835,7 +835,7 @@
 						)
 					)
 				)
-				(number "7"
+				(number "34"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -853,7 +853,7 @@
 						)
 					)
 				)
-				(number "8"
+				(number "33"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -871,7 +871,7 @@
 						)
 					)
 				)
-				(number "9"
+				(number "32"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -889,7 +889,7 @@
 						)
 					)
 				)
-				(number "10"
+				(number "31"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -907,7 +907,7 @@
 						)
 					)
 				)
-				(number "11"
+				(number "30"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -925,7 +925,7 @@
 						)
 					)
 				)
-				(number "12"
+				(number "29"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -943,7 +943,7 @@
 						)
 					)
 				)
-				(number "13"
+				(number "28"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -961,7 +961,7 @@
 						)
 					)
 				)
-				(number "14"
+				(number "27"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -979,7 +979,7 @@
 						)
 					)
 				)
-				(number "15"
+				(number "26"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -997,7 +997,7 @@
 						)
 					)
 				)
-				(number "16"
+				(number "25"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1015,7 +1015,7 @@
 						)
 					)
 				)
-				(number "17"
+				(number "24"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1033,7 +1033,7 @@
 						)
 					)
 				)
-				(number "18"
+				(number "23"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1051,7 +1051,7 @@
 						)
 					)
 				)
-				(number "19"
+				(number "22"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1069,7 +1069,7 @@
 						)
 					)
 				)
-				(number "20"
+				(number "21"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1087,7 +1087,7 @@
 						)
 					)
 				)
-				(number "21"
+				(number "20"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1105,7 +1105,7 @@
 						)
 					)
 				)
-				(number "22"
+				(number "19"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1123,7 +1123,7 @@
 						)
 					)
 				)
-				(number "23"
+				(number "18"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1141,7 +1141,7 @@
 						)
 					)
 				)
-				(number "24"
+				(number "17"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1159,7 +1159,7 @@
 						)
 					)
 				)
-				(number "25"
+				(number "16"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1177,7 +1177,7 @@
 						)
 					)
 				)
-				(number "26"
+				(number "15"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1195,7 +1195,7 @@
 						)
 					)
 				)
-				(number "27"
+				(number "14"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1213,7 +1213,7 @@
 						)
 					)
 				)
-				(number "28"
+				(number "13"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1231,7 +1231,7 @@
 						)
 					)
 				)
-				(number "29"
+				(number "12"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1249,7 +1249,7 @@
 						)
 					)
 				)
-				(number "30"
+				(number "11"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1267,7 +1267,7 @@
 						)
 					)
 				)
-				(number "31"
+				(number "10"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1285,7 +1285,7 @@
 						)
 					)
 				)
-				(number "32"
+				(number "9"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1303,7 +1303,7 @@
 						)
 					)
 				)
-				(number "33"
+				(number "8"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1321,7 +1321,7 @@
 						)
 					)
 				)
-				(number "34"
+				(number "7"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1339,7 +1339,7 @@
 						)
 					)
 				)
-				(number "35"
+				(number "6"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1357,7 +1357,7 @@
 						)
 					)
 				)
-				(number "36"
+				(number "5"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1375,7 +1375,7 @@
 						)
 					)
 				)
-				(number "37"
+				(number "4"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1393,7 +1393,7 @@
 						)
 					)
 				)
-				(number "38"
+				(number "3"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1411,7 +1411,7 @@
 						)
 					)
 				)
-				(number "39"
+				(number "2"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1429,7 +1429,7 @@
 						)
 					)
 				)
-				(number "40"
+				(number "1"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -3284,7 +3284,7 @@
     (effects (font (size 1.27 1.27)))
     (uuid b643acd0-f8ee-43e6-be49-3f6c609cbf5d)
   )
-  (text "Connector: J501 is the LCSC FC-05B40P21H20 (C23398824, BXCONN), 40-position, 0.5mm\npitch, dual-contact (top-and-bottom entry, 'no polarity'), Flip-Top SMT FPC/ZIF\nconnector -- swapped in by pilink-4b6 (REQUIRED pre-fab fix) from the originally-\nspecified bottom-contact-only AFC01-S40FCA-00 (C262674, Jushuo), which does not\ncorrectly mate the display FPC's J-fold geometry (pilink-7el.12) under this project's\nback-face contact-side working assumption -- see\n.research/findings/2026-11-15-display-fpc-contact-side.md. The dual-contact part mates\neither orientation, removing the dependency on resolving contact side at all, with no\nchange to the proven J-fold geometry. Confirmed 2,635 units live LCSC stock at swap\ntime (2026-11-16) via the jlcpcb-search MCP tool; pitch/position-count/contact-type/\nlocking-feature all confirmed from its own LCSC spec table and independently\nre-derived from its own CAD drawing (BXCONN dwg BX-CN-001-A), recovered in this\nenvironment by hand-decompressing the datasheet PDF's content stream and replaying its\nvector path/bezier operators (no PDF rasterizer installed here). No stock KiCad symbol\nor footprint exists for this exact part, so both were hand-authored/reused for this\nbead (pico_link_custom:CFAF240320A0_FPC40 in symbols/pico_link_custom.kicad_sym,\nunchanged; Connector_FPC:FC-05B40P21H20 in footprints/Connector_FPC.pretty/, newly\nadded, registered in fp-lib-table under the existing Connector_FPC entry). The\nsymbol's single-column pin layout is a schematic drawing convenience, not a physical\npinout diagram -- pin *numbers* match the datasheet exactly, which is what the netlist\ncares about. PIN-1 CAVEAT (unresolved, flag before fab): the new footprint places pad\n1 at the same end as the old AFC01-S40FCA-00 footprint did, so the schematic's\npin/net mapping carries over UNCHANGED (no reversal) -- but this was NOT verified\nagainst a real part: AFC01-S40FCA-00's own LCSC-hosted datasheet (C262674.pdf) is\nconfirmed to be a generic reliability/process booklet with no dimensioned drawing at\nall, so there is no primary source to confirm the two parts' NO.1 contacts land at the\nsame physical tail end. A human must physically compare real samples of both\nconnectors (or get a proper Jushuo drawing) before fab; if they turn out to be\nopposite-ended, J501's pin mapping must be reversed, not just the footprint. The new\nfootprint's pitch/span (0.5mm, 19.5mm pin1-pin40) are sourced from its own CAD drawing;\nits body/courtyard Y-profile and MP1/MP2 mounting-pad geometry are reused placeholders\nfrom the prior AFC01 footprint (same connector class/similar size), not independently\nmeasured for this part -- flag for a human KiCad-GUI pass before PCB fab, same caveat\nclass this project already applies to the RP2350 QFN-80 and PSRAM USON-8 hand-authored\nfootprints." (at 20 360 0)
+  (text "Connector: J501 is the LCSC FC-05B40P21H20 (C23398824, BXCONN), 40-position, 0.5mm\npitch, dual-contact (top-and-bottom entry, 'no polarity'), Flip-Top SMT FPC/ZIF\nconnector -- swapped in by pilink-4b6 (REQUIRED pre-fab fix) from the originally-\nspecified bottom-contact-only AFC01-S40FCA-00 (C262674, Jushuo), which does not\ncorrectly mate the display FPC's J-fold geometry (pilink-7el.12) under this project's\nback-face contact-side working assumption -- see\n.research/findings/2026-11-15-display-fpc-contact-side.md. The dual-contact part mates\neither orientation, removing the dependency on resolving contact side at all, with no\nchange to the proven J-fold geometry. Confirmed 2,635 units live LCSC stock at swap\ntime (2026-11-16) via the jlcpcb-search MCP tool; pitch/position-count/contact-type/\nlocking-feature all confirmed from its own LCSC spec table and independently\nre-derived from its own CAD drawing (BXCONN dwg BX-CN-001-A), recovered in this\nenvironment by hand-decompressing the datasheet PDF's content stream and replaying its\nvector path/bezier operators (no PDF rasterizer installed here). No stock KiCad symbol\nor footprint exists for this exact part, so both were hand-authored/reused for this\nbead (pico_link_custom:CFAF240320A0_FPC40 in symbols/pico_link_custom.kicad_sym;\nConnector_FPC:FC-05B40P21H20 in footprints/Connector_FPC.pretty/, registered in\nfp-lib-table under the existing Connector_FPC entry). The symbol's single-column pin\nlayout is a schematic drawing convenience, not a physical pinout diagram. PIN-1 --\nRESOLVED (pilink-4b6 fix round, 2026-11-16): independently confirmed via the\nEasyEDA/JLCPCB assembly-library footprint data for both parts\n(easyeda.com/api/products/<LCSC>/components -- answers a plain curl GET with no WAF\nblock, unlike the easyeda.com website itself) that the two parts number pin 1 from\nOPPOSITE physical ends: C23398824's own JLC footprint has pad 1 (and its silkscreen\ndot) at its RIGHT end; C262674's has pad 1 at its LEFT end, both in the same canonical\norientation (signal-pad row at the front edge, mounting tabs/body behind) -- agreeing\nwith the BXCONN drawing's own NO.1 marker (right end in its view 1). Because ZIF\ncontacts are straight-through, each PHYSICAL pad position keeps the SAME net it always\nhad; only the pad/pin NUMBER labels needed correcting. Fix applied: the footprint's\npads 1-40 were mirror-renumbered (physical position x=+9.75 is now pad '1', matching\nthe real part; was mislabeled '40') and the symbol's pins were mirror-renumbered in\nlockstep (pin k -> 41-k) so every signal (DB17-0, SDA, DOTCLK, HSYNC/VSYNC, RD/WR, RS,\nCS, RESET, IMx, power/ground) still lands on the same physical pad position as before\n-- verified via an exported-netlist diff showing J501's physical pin-to-net mapping is\nunchanged from the pre-fix state. CABLE-ENTRY-SIDE CAVEAT (still open, separate from\npin-1): whether the two parts' FPC cables insert from the same side relative to the\npad row could not be confirmed from the EasyEDA footprint data, LCSC product photos,\nor JLC parametric fields (both parts show identical 'Flip-Top'/'Right Angle' fields,\nno explicit entry-side attribute, and the old part's datasheet has no dimensioned\ndrawing to check against) -- flag for a human with physical samples before fab. The\nfootprint's pitch/span (0.5mm, 19.5mm pin1-pin40) are sourced from its own CAD drawing\nand cross-checked against the EasyEDA data; its mounting-pad (MP1/MP2) size/offset and\nsignal-pad length were corrected the same way (1.5mm wide x 2.5mm tall tabs centered\nat X=+/-11.45mm, 3.10mm from the signal pad row; 1.5mm-long signal pads) -- replacing\nplaceholder values reused from the prior AFC01 footprint. Its body/courtyard Y-profile\nis still an unmeasured placeholder from that prior footprint -- flag for a human\nKiCad-GUI pass before PCB fab, same caveat class this project already applies to the\nRP2350 QFN-80 and PSRAM USON-8 hand-authored footprints." (at 20 360 0)
     (effects (font (size 1.27 1.27)))
     (uuid d3d3d5c7-bb11-4ca6-94fd-526311d57df6)
   )
