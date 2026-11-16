@@ -12,4 +12,13 @@ services:
     volumes:
       - ../hardware:/work/hardware:ro
       - ../enclosure:/work/enclosure:ro
+      # Board's 3D models, synced from the host's KiCad library by
+      # scripts/sync-3dmodels.sh (run it first; re-run after adding parts).
+      - ./.3dmodels:/kicad-3dmodels:ro
+    environment:
+      # The board's model paths use ${KICAD8_3DMODEL_DIR}; set the newer names
+      # too so footprints re-saved by KiCad 9/10 also resolve.
+      - KICAD8_3DMODEL_DIR=/kicad-3dmodels
+      - KICAD9_3DMODEL_DIR=/kicad-3dmodels
+      - KICAD10_3DMODEL_DIR=/kicad-3dmodels
     restart: unless-stopped
