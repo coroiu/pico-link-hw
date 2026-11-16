@@ -926,9 +926,11 @@ The board is generated, not hand-drawn. From `hardware/`, in this order:
 | Step | Script | What it does |
 |---|---|---|
 | 1 | `scripts/place.py` | Outline, 4 M2 mounting holes, design-rule minimums, net classes, every footprint position |
+| 1b | `scripts/sw_keepout.py` | (library, not run directly) Alps SKRTLAE010 no-copper rule areas; called by `route.py` and `zones.py` |
 | 2 | `scripts/route.py` | Freerouting autoroute of every net (Specctra DSN/SES round-trip) |
 | 3 | `scripts/widen.py` | Widens +3V3/+1V1/VREG_LX/VBUS_RAW to 0.4mm wherever DRC allows |
 | 4 | `scripts/zones.py` | GND pours on both layers, +3V3 heat spreader and stitching vias at U1 |
+| 4b | `scripts/sw_reroute.py` | One-off, idempotent local reroute of SW101/SW102 pad-2 GND and BOOTSEL/RESET around the keepout (only needed on the committed board; a fresh `route.py` run already avoids it; run before `zones.py`) |
 | check | `scripts/drc_summary.py -v` | `kicad-cli pcb drc` with schematic parity, summarised |
 | check | `scripts/netlist_check.py` | Pin-for-pin diff of board nets against a fresh schematic netlist |
 

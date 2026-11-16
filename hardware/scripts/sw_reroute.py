@@ -107,7 +107,8 @@ def main():
                 board.Remove(t)   # whole signal net is local to this cluster
                 continue
             if t.GetNetCode() == gnd.GetNetCode() and any(
-                    seg_match(t, a, b) for a, b in cfg["gnd_drop"]):
+                    seg_match(t, a, b) for a, b in
+                    cfg["gnd_drop"] + [((cx, cy - 0.9), g_via)]):
                 board.Remove(t)
 
         # --- add ----------------------------------------------------------
