@@ -37,7 +37,9 @@ VIA_D, VIA_DRILL = 0.6, 0.3
 XIN = "/RP2350B + Memory/XIN"
 XOUT = "/RP2350B + Memory/XOUT"
 # Nets whose locked tracks/vias route.py must keep (it drops all other vias).
-PREROUTE_NETS = ["USB_DP", "USB_DM", XIN, XOUT]
+LED_K = "Net-(J501-LED_K)"
+LED_A = "Net-(D501-K)"  # backlight anode rail J501 pin 40 -> D501 pad 1
+PREROUTE_NETS = ["USB_DP", "USB_DM", XIN, XOUT, LED_K, LED_A]
 
 
 def main():
@@ -117,6 +119,28 @@ def main():
                   (xr - 0.6, y_xin[1] - 0.4), y_xin])
     path(XOUT, F, [xout, (xout[0], r_xout[1] - 0.96),
                    (xout[0] + 0.93, r_xout[1] - 0.03), r_xout])
+
+    # ---- backlight feedback (pilink-4qc) ---------------------------------
+    # J501 pin 39 -> R501 pad 2 (the FB divider), kept right of the boost
+    # cluster so it stays >=1.2mm from the switching node (DRU rule
+    # backlight_sw_vs_fb). Shape copied from the pre-pilink-4qc master
+    # autoroute, expressed relative to J501 pin 39 so it follows the pair
+    # (J501 and the boost cluster move together). Freerouting, left alone,
+    # looped the net through B.Cu and failed that rule. U501 pin 3 -> R501
+    # is left to the router (short).
+    j39 = pad("J501", "39")
+    ox, oy = j39[0] - 62.08, j39[1] - 9.75
+    led = [(62.08, 9.75), (61.28, 9.75), (61.05, 9.52), (61.05, 8.97),
+           (61.23, 8.78), (63.03, 8.78), (77.36, 23.11), (77.36, 36.97),
+           (77.63, 37.24), (77.63, 41.88), (75.51, 44.0)]
+    path(LED_K, F, [(x + ox, y + oy) for x, y in led])
+    # Net-(D501-K) runs in parallel just below it (pin 40 -> D501 pad 1);
+    # the router could not complete it once LED_K was fixed without it.
+    ka = [(62.08, 9.25), (62.89, 9.25), (76.65, 23.01), (76.65, 38.0)]
+    path(LED_A, F, [(x + ox, y + oy) for x, y in ka])
+    # ... and U501 pin 5 -> D501 pad 1 (short F.Cu link, same shape as before)
+    ku = [(76.14, 41.0), (76.45, 41.0), (77.07, 40.38), (77.07, 38.42), (76.65, 38.0)]
+    path(LED_A, F, [(x + ox, y + oy) for x, y in ku])
 
     pcbnew.SaveBoard(BOARD, board)
     print("pre-routed USB_DP/USB_DM/XIN/XOUT (locked)")
