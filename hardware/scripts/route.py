@@ -30,6 +30,7 @@ import pcbnew
 from preroute import PREROUTE_NETS
 from antenna_reroute import add_route_keepout, remove_route_keepout
 from sw_keepout import add_sw_keepouts
+from l101_keepout import add_l101_route_keepout, remove_l101_route_keepout
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 HW = os.path.normpath(os.path.join(HERE, ".."))
@@ -64,6 +65,8 @@ def main():
     # is removed again before the board is saved (zones.py adds the pour-only
     # KO_ANT_* areas).
     add_route_keepout(board)
+    # L101 (pilink-2wq): no B.Cu track/via under the regulator inductor.
+    add_l101_route_keepout(board)
 
     shutil.rmtree(WORK, ignore_errors=True)
     os.makedirs(WORK)
@@ -117,6 +120,7 @@ def main():
     if not pcbnew.ImportSpecctraSES(board, ses):
         sys.exit("SES import failed")
     remove_route_keepout(board)
+    remove_l101_route_keepout(board)
     pcbnew.SaveBoard(BOARD, board)
     tracks = [t for t in board.GetTracks()]
     vias = sum(1 for t in tracks if t.Type() == pcbnew.PCB_VIA_T)

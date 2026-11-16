@@ -31,6 +31,7 @@ import pcbnew
 from preroute import PREROUTE_NETS
 from antenna_reroute import check_strip as check_antenna_strip
 from sw_keepout import add_sw_keepouts
+from l101_keepout import add_l101_pour_keepout
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BOARD = os.path.join(HERE, "..", "pico-link-hw.kicad_pcb")
@@ -176,8 +177,16 @@ def main():
         if pad.GetNetname() == "GND" and pad.GetNumber() == "2":
             pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
 
+    # C103 pad 2 (GND, VREG_VIN cap, pilink-2wq): the KO_L101_F pour cut-out
+    # beside it leaves a single thermal spoke after the L101 re-placement;
+    # same solid-connect fix as above.
+    for pad in board.FindFootprintByReference("C103").Pads():
+        if pad.GetNetname() == "GND" and pad.GetNumber() == "2":
+            pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
+
     check_antenna_strip(board)
     add_antenna_keepout(board)
+    add_l101_pour_keepout(board)   # no F.Cu pour under L101 (pilink-2wq)
     add_sw_keepouts(board)   # Alps SKRTLAE010 no-copper areas (pilink-ge9)
     full = (0, 0, BOARD_W, BOARD_H)
     add_zone(board, "GND", pcbnew.F_Cu, full, 0, name="GND_F")
