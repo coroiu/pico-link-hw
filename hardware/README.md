@@ -1343,3 +1343,17 @@ scripts):
    position ships; plus whether the boot can enter the 10x5mm cutout
    tunnel). Full numbers and reasoning: `enclosure/README.md`'s "USB-C
    cable-vs-table clearance (`pilink-8ry`)" section.
+
+### SW101/SW102 hole-clearance rule (`pilink-ge9`)
+
+The 8 `hole_clearance` errors on the Alps SKRTLAE010 are the part's real
+geometry, not a footprint bug: KiCad's stock footprint and JLCPCB/EasyEDA's
+own C110293 footprint have identical pad/peg coordinates (pin-1 pad edge
+0.0993mm, MP tab edge 0.15mm from the 0.9mm NPTH pegs). No override
+footprint is warranted. Instead `pico-link-hw.kicad_dru` relaxes
+`hole_clearance` to 0.09mm for SW101/SW102 only; all other parts keep 0.2mm.
+JLCPCB's published capability is "NPTH to Track 0.2mm" (tracks, not SMD
+pads), so this relies on JLCPCB assembly accepting their own library
+footprint; confirm in the JLCPCB DFM check at order time. No STEP model
+exists on EasyEDA for this part (only an embedded outline), so 3D is unchanged.
+After: 78 violations (0 errors, all warnings), 0 unconnected, 0 parity.

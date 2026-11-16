@@ -1,0 +1,11 @@
+(version 1)
+
+# pilink-ge9: Alps SKRTLAE010 (SW101/SW102). The part's own land pattern --
+# identical in KiCad's stock footprint and in JLCPCB/EasyEDA's C110293
+# footprint -- puts pad 1 and the MP tabs 0.0993/0.15mm from its own 0.9mm
+# NPTH locating pegs. That is the manufacturer's geometry, so the global
+# 0.2mm hole_clearance is relaxed for these two footprints only (floor kept
+# above zero so a real mis-placement still flags). Every other part keeps 0.2mm.
+(rule skrtlae010_own_npth
+	(constraint hole_clearance (min 0.09mm))
+	(condition "A.memberOfFootprint('SW101') || A.memberOfFootprint('SW102') || B.memberOfFootprint('SW101') || B.memberOfFootprint('SW102')"))
