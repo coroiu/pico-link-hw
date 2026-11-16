@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""RETIRED (pilink-xzs): aborts. One-off local reroute of SW101/SW102 around the Alps no-copper area
+"""RETIRED (pilink-xzs, PR #72): the script aborts on run and must not be used. Historical record of the one-off local reroute of SW101/SW102 around the Alps no-copper area
 (pilink-ge9). Usage (from hardware/):  python3 scripts/sw_reroute.py
 
 Freerouting had run pad-2 GND and the pad-1 BOOTSEL/RESET net straight

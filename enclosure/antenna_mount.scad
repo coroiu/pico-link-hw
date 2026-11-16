@@ -95,9 +95,9 @@ ANTENNA_ELEMENT_WIDTH  = 6.5;    // mm
 ANTENNA_ELEMENT_THICKNESS_NOMINAL = 0.3; // mm, UNVERIFIED placeholder
 
 // Pigtail: Ø1.13mm coax, IPEX/U.FL-class plug. The "-240" part-number
-// suffix implies a 240mm cable but the finding is explicit this is
-// INFERRED from the part number, not a confirmed datasheet/listing field
-// -- confirm before ordering. Not used for any geometry below beyond the
+// suffix and Kinghelm's datasheet table ("CABLE RF-1.13-L=240 MM") say
+// 240mm, but the same page's drawing says "100+-2MM" (pilink-bl2); the real
+// length is unresolved until a unit is measured. Not used for any geometry below beyond the
 // cable-channel's nominal width.
 ANTENNA_CABLE_DIAMETER = 1.13; // mm
 
@@ -356,8 +356,8 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE;  // 8.5mm
 // (bz ~2) to the mount's cable exit is bounded by the top-wall cavity
 // depth (~10mm, see the mount-depth note above). Estimated pigtail needed:
 //   5 + 2 + 10 + 4.28 ~= 21mm, call it ~30mm with bend radii/slack.
-// The part's pigtail is ~240mm (inferred from the part number), so ~210mm
-// of excess has to be stowed (coiled/looped) inside the enclosure.
+// The part's pigtail is ~240mm per Kinghelm's table (the drawing says 100mm,
+// unresolved, pilink-bl2), so up to ~210mm of excess has to be stowed (coiled/looped) inside the enclosure.
 // pilink-phg: it is wound on a printed spool in the back shell's cavity
 // (back_shell.scad pigtail_spool(), board (73,18)), not in this mount. Clearances checked:
 //   - SW101/SW102 pinholes (face X 44/54, Q ~49.3) vs the cable at X ~95-100:
@@ -368,7 +368,7 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE;  // 8.5mm
 //   - H2 mounting boss (face (114,46), boss r 3.5 -> X >= 110.5) vs a
 //     cable at X 95.3-99.55: ~11mm.
 echo(str("[pilink-3ym] Pigtail exit face X ", MOUNT_X_MIN + MOUNT_LAND_LENGTH - CABLE_CHANNEL_EXIT_X_INSET,
-         "mm vs assumed back-side U.FL face X ", U201_ANTENNA_FACE_X_CENTER, "mm."));
+         "mm vs back-side U.FL face X (verified, pilink-bl2) ", U201_ANTENNA_FACE_X_CENTER, "mm."));
 PINHOLE_EDGE_CLEARANCE_X = SW102_X_FACE_LOCAL + PINHOLE_DIAMETER / 2 + PINHOLE_X_CLEARANCE;
 MOUNT_X_MIN = PINHOLE_EDGE_CLEARANCE_X;                // 57.75mm
 MOUNT_X_MAX = MOUNT_X_MIN + MOUNT_LAND_LENGTH;         // 105.55mm

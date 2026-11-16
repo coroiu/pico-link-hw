@@ -288,7 +288,7 @@ is a 4G (cellular) antenna with 2dBi listed, so not a 2.4GHz candidate;
 AIWF026 (C49242188, 100mm cable) is 0.02dB over the 2.33dBi cert-safe
 ceiling. None of the shorter parts has confirmed cable length, 2.4GHz band,
 size and in-ceiling gain together, so the 240mm part with a coil stays. BOM
-unchanged (the antenna has no row in `BOM.md`; tracked separately). If a
+unchanged (the antenna now has a BOM row, `C4943394`, added in PR #75). If a
 verified short part is found, it removes the spool.
 
 **Stowage.** B.Cu is nearly empty left of U201 and the cavity behind the
@@ -655,7 +655,7 @@ Changes in `antenna_mount.scad` (not rendered, arithmetic in Python):
   top edge (5mm, inside the U201 relief) -> over the edge through the 2mm
   top-slack gap (2mm) -> into the mount (<= ~10mm of front-to-back travel,
   the top-wall cavity depth) + 4.28mm lateral = ~21mm, ~30mm with bend
-  slack. The ~240mm pigtail (inferred) leaves ~210mm to stow; where is not
+  slack. The pigtail (~240mm per Kinghelm's table and part number, possibly 100mm per its drawing; unresolved, see `pilink-bl2`) leaves ~210mm to stow; where is not
   designed yet (new bead).
 - **Clearances:** SW101/SW102 pinholes (X 44/54) >45mm from the cable;
   restored diamond (courtyard y 13.58..36.43, front side) 8.6mm in Y and on
