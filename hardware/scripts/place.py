@@ -125,10 +125,13 @@ P = {
     "C114": (CX - 2.4, CY - RING, "chip"),
     "C115": (CX + 0.7, CY - RING, "chip"),
     "C103": (CX + 2.85, CY - RING, "chip"),
-    "C105": (CX + 6.6, CY - 5.4, "chip"),
-    "R104": (CX + 6.6, CY - 6.7, 0),
-    "L101": (CX + 6.5, CY - 10.6, "chip"),
-    "C104": (CX + 10.0, CY - 10.6, "l101"),
+    "C105": (CX + 9.6, CY - 5.4, "chip"),
+    "R104": (CX + 9.6, CY - 6.7, 0),
+    # pilink-2wq: L101 (DMBJ CXP0420, 4.4x4.2, pads along its 6.75mm terminal
+    # axis, stood vertical) sits right above VREG_LX (pin 63); C104 (VREG
+    # output cap, +1V1) beside its far pad; C103 (VREG_VIN cap) stays at pin 64.
+    "L101": (CX + 5.9, CY - 9.6, 90),
+    "C104": (CX + 2.6, CY - 11.7, 180),
     "Y101": (CX, CY + 11.5, 0),
     "C101": (CX - 3.5, CY + 11.5, 90),
     "C102": (CX + 3.5, CY + 11.5, 90),
