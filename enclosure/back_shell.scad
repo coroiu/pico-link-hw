@@ -22,7 +22,7 @@
 // ---------------------------------------------------------------------
 // 1. "Local" frame (back_shell_local() and everything it contains):
 //      X = Pface  -- lateral position across the face, 0 at the face's
-//                     left edge, FACE_W (122mm) at its right edge.
+//                     left edge, FACE_W (127.5mm) at its right edge.
 //      Y = Qface  -- position up the face, 0 at the face's bottom edge,
 //                     FACE_H (56mm) at its top edge. This is exactly the
 //                     "N mm up the face" quantity the ADR and
@@ -62,60 +62,19 @@
 // Constants
 // =====================================================================
 
-// --- Overall envelope (ADR "Decision", PROP 6c "Dimensions") ---
-FACE_W      = 122.0;  // face width, ADR: "about 122 W x 56 H mm"
-FACE_H      = 56.0;   // face height, same source
+// --- Overall envelope ---
+// pilink-6lz: board size, wall, board clearance, FACE_W/FACE_H, the
+// board<->face mapping (board_to_face(), MARGIN_X, QTOP) and the board-local
+// mounting-hole positions are defined once in common.scad, shared with the
+// front shell and every other part. The board is centred in this shell's
+// cavity with BOARD_CLEARANCE_X (0.5mm) / BOARD_CLEARANCE_Y (1.0mm) per side
+// (supersedes pilink-mav's 0.00mm bottom gap and the old 0.00/0.4mm side
+// gaps).
+include <common.scad>
+
 LEAN_DEG    = 15;      // ADR: body leans back ~15 deg (face ~75 deg to table)
 
-// --- Board (PCB section of hardware/README.md, pilink-7el.12) ---
-BOARD_W     = 118.0;  // Edge.Cuts: 118 x 50mm board
-BOARD_H     = 50.0;
-
-MARGIN_X    = (FACE_W - BOARD_W) / 2;  // = 2.0mm each side -- also reused
-                                        // below as the generic side-wall
-                                        // thickness, since it matches the
-                                        // back wall's own 2.0mm (PROP 6c
-                                        // thickness breakdown) and gives a
-                                        // single consistent "2mm wall"
-                                        // figure across the shell.
-WALL_T      = MARGIN_X;  // = 2.0mm
-
-// Lateral running clearance between the board's edge and the hollow
-// cavity's inner wall (back_shell_shell() below) -- PR #52 review
-// finding #1 (part 2): as originally written the 118mm board sat in a
-// 118mm-wide cavity with zero clearance. Sibling front_shell.scad (#50)
-// maps board X with board_to_x(bx) = WALL + bx -- also zero clearance,
-// but that file only positions openings (window, knob/button holes),
-// not a physical pocket the board has to be dropped into. This file's
-// hollow cavity IS such a pocket, so zero clearance is a real assembly
-// problem here even though front_shell.scad has no equivalent figure to
-// match. 0.4mm/side is this file's own reasonable default (not a cited
-// source figure): a common loose running-fit allowance for a rigid PCB
-// dropped into a printed cavity, comfortably inside typical FDM
-// dimensional tolerance (+/-0.1-0.2mm) stacked on both mating parts.
-// Only widens the cavity cut below -- board_to_face() (hole/connector
-// positions) is unaffected, since those must stay keyed to the real PCB
-// coordinates regardless of cavity clearance.
-BOARD_CLEARANCE_X = 0.4;
-
-// Face<->board Y mapping -- REVISED per PR #52 review finding #1 (NOT
-// APPROVED on 31c5f16): the original formula (Qface = BOARD_H - by) put
-// the board's bottom edge flush with the face's bottom edge, leaving no
-// room for this shell's own WALL_T (2mm) bottom wall -- the PCB's own
-// slab (bz 5.0..6.6) overlapped the wall that should sit behind it.
-// Sibling PR #50 (front_shell.scad)'s board_to_y() instead derives a
-// slack margin from the real 52mm inner-cavity height (FACE_H -
-// 2*WALL_T) minus the board's own 50mm height, and puts that 2mm of
-// slack above the board (board bottom edge sits WALL_T, not 0, above
-// the face's own bottom edge). This file now uses that same derivation,
-// so the two shells agree -- they previously disagreed by exactly 2mm.
-// (The old comment's "knob (16,31) -> ~19mm confirms the mapping"
-// argument is dropped: the review correctly called it circular, since
-// place.py generated 31 from this same unchecked formula to begin with,
-// so the match proved nothing either way.)
-TOP_SLACK_Y = (FACE_H - 2*WALL_T) - BOARD_H;  // = 2.0mm
-
-function board_to_face(bx, by) = [bx + MARGIN_X, FACE_H - (WALL_T + TOP_SLACK_Y + by)];
+WALL_T      = WALL;    // = 2.0mm side/top/bottom wall, same as the back wall
 
 // --- Body thickness stack-up (PROP 6c: "about 14mm. That's face 2.0,
 // 5.5mm to the PCB (5.0 switches, 3.3 panel stack, J501 ~2mm), PCB 1.6,
@@ -148,17 +107,17 @@ CORNER_R = 3.0;  // style choice (AES: "deliberate but not aggressive
 // face, per the bead description)
 // =====================================================================
 // Positions: hardware/README.md, "Mounting holes for back-shell bosses"
-// row -- 4 M2 holes at board-local (10,44), (112,6), (112,44), (59,2.5).
-PCB_MOUNT_HOLES_BOARD = [[10,44], [112,6], [112,44], [59,2.5]];
+// row -- 4 M2 holes at board-local (10,44), (116.5,6), (116.5,44), (29,2.5)
+// after pilink-4qc.
+// (positions: PCB_MOUNT_HOLES_BOARD in common.scad)
 PCB_MOUNT_HOLES_FACE  = [ for (p = PCB_MOUNT_HOLES_BOARD) board_to_face(p[0], p[1]) ];
-// -> [[12,8], [114,46], [114,8], [61,48]] in (Pface, Qface) -- updated
-// per the board_to_face() mapping fix above (each +2 in Qface vs. the
-// pre-fix values).
+// -> [[12.5,43], [119,47], [119,9], [31.5,50.5]] in (Pface, Qface).
 //
-// H4 (board-local (59,2.5), -> face (61,49.5)): pilink-8ag moved this hole
-// from (59,4) to (59,2.5) so its screw HEAD (driven in from the FRONT,
-// through the PCB) no longer overlaps the display panel envelope (board
-// y>=5): head radius 2.0 -> reaches y=4.5, 0.5mm clear.
+// H4 (board-local (29,2.5), -> face (31.5,50.5)): at pilink-8ag the hole sat
+// at (59,2.5) so its screw HEAD (driven in from the FRONT, through the PCB)
+// stayed clear of the display panel envelope; pilink-4qc moved the panel to
+// y 4..46 and H4 to x 29 (left of the panel, which starts at x 34.12), head
+// radius 2.0 -> reaches x 31, 3.1mm clear.
 
 // Heat-set insert sizing: no bead/finding pins an exact insert down for
 // this project, so this is this file's own reasonable-default choice,
@@ -170,25 +129,22 @@ PCB_MOUNT_HOLES_FACE  = [ for (p = PCB_MOUNT_HOLES_BOARD) board_to_face(p[0], p[
 INSERT_OD   = 3.5;
 INSERT_LEN  = 4.0;
 BOSS_OD     = 7.0;   // insert OD + ~1.75mm wall each side
-// pilink-i72: H2 (index 1, board (112,6)) uses the same 7.0mm boss as the
-// others. pilink-3ym briefly trimmed it to 6.0mm to clear U201's relief,
-// but the relief pocket's edge is at face X 110.3 vs the 7mm boss's left
-// edge at 110.5 (0.2mm apart, no overlap), and the pocket only cuts the
-// back wall, so the trim was not needed.
+// pilink-i72: H2 (index 1, board (116.5,6)) uses the same 7.0mm boss as the
+// others. Since pilink-4qc moved H2 to x 116.5 its boss left edge is at face
+// X 115.5, 4.7mm clear of the U201 relief pocket's right edge (110.8).
 
 // =====================================================================
 // Rear USB-C opening (J401, vertical-mount receptacle on the PCB back)
 // =====================================================================
-// Position: hardware/README.md PCB table -- board-local (59, 37), B.Cu,
-// rot 0. pilink-3ym (2026-11-16): UPDATED for pilink-hdl's J401 raise
-// (user decision) from (59, 45.5) to (59, 37); verified against
-// hardware/pico-link-hw.kicad_pcb (J401 `at 159 137`, B.Cu, rot 0, with
-// the board's own +100/+100 page offset). Plug centreline Qface is now
-// 52 - 37 = 15.0 (was 6.5) -- the product-layout proposal's own "~15mm
-// up the back" intent (section 6c). The old (59, 45.5) -> face (61, 6.5)
+// Position: board-local (61.25, 37) after pilink-4qc (was (59, 37)), B.Cu,
+// rot 0 -- on the face's vertical centreline X = FACE_W / 2 = 63.75. pilink-3ym (2026-11-16): UPDATED for pilink-hdl's J401 raise
+// (user decision) from (59, 45.5) to (59, 37); pilink-4qc moved it to
+// x 61.25. Plug centreline Qface is now QTOP - 37 = 53 - 37 = 16.0 (was 15.0
+// under the old Q = 52 - by mapping and 6.5 before that) -- the product-layout
+// proposal's own "~15mm up the back" intent (section 6c). The old (59, 45.5) -> face (61, 6.5)
 // position is history; every pilink-8ry table/strip number computed for
 // it is recomputed in enclosure/README.md.
-J401_FACE = board_to_face(59, 37);    // -> (61, 15) in (Pface, Qface)
+J401_FACE = board_to_face(61.25, 37); // -> (63.75, 16) in (Pface, Qface)
 USBC_PFACE = J401_FACE[0];
 USBC_QFACE = J401_FACE[1];
 
@@ -270,14 +226,13 @@ U201_PAD_RISE         = U201_RELIEF_DEPTH;  // raised pad outside restores the
                                              // full 2.0mm wall under the pocket.
 
 // Footprint of the pocket in board-local coordinates: the module body
-// (F.Fab, NOT the F.CrtYd, which at x:[89.25,108.75] would clip the H2
-// mounting boss -- 7mm boss left edge at face x 110.5, courtyard edge
-// 110.75; pocket edge below stays clear of it) plus a small margin, and out to the
+// (F.Fab, NOT the F.CrtYd, x:[89.25,108.75]; the H2 boss now sits at board
+// x 116.5, so either would clear it) plus a small margin, and out to the
 // board's top edge (board y = 0) so the U.FL end and the cable's bend /
 // exit toward the top wall are inside the relief.
 U201_BODY_X = [90.0, 108.0];   // board-local, measured off hardware/pico-link-hw.kicad_pcb
 U201_BODY_Y = [2.0, 21.2];
-U201_RELIEF_MARGIN = 0.3;      // own choice; 0.2mm short of the H2 boss's left edge (face X 110.5)
+U201_RELIEF_MARGIN = 0.3;      // own choice
 U201_RELIEF_BOARD_X = [U201_BODY_X[0] - U201_RELIEF_MARGIN, U201_BODY_X[1] + U201_RELIEF_MARGIN]; // [89.7, 108.3]
 U201_RELIEF_BOARD_Y = [0.0, U201_BODY_Y[1] + U201_RELIEF_MARGIN];                                  // [0, 21.5]
 // board_to_face() flips Y, so the board's y=0 edge is the HIGH Qface end.
@@ -295,9 +250,9 @@ U201_UFL_FACE = board_to_face(U201_UFL_BOARD_ASSUMED[0], U201_UFL_BOARD_ASSUMED[
 
 module u201_relief_pad() {
     // Solid pad on the OUTSIDE of the back wall (bz < 0), same idea as
-    // usbc_local_boss_pad(). Its Qface top (53.5) stays below the shell's
-    // inner top wall (54); it overlaps the right leg boss base (x = 101,
-    // Q = 40) -- that is a plain union (the boss simply sits 0.8mm proud
+    // usbc_local_boss_pad(). Its Qface top is clamped 0.5mm below the shell's
+    // inner top wall (Q 54 -> 53.5); it overlaps the right leg boss base (x =
+    // 103.75, Q = 40) -- that is a plain union (the boss simply sits 0.8mm proud
     // of the pad's surface); leg_mount_tip_* are unchanged.
     translate([u201_p0[0] - U201_PAD_WALL, u201_p0[1] - U201_PAD_WALL, -U201_PAD_RISE])
         cube([u201_p1[0] - u201_p0[0] + 2*U201_PAD_WALL,
@@ -327,8 +282,8 @@ module u201_relief_pocket() {
 // pigtail can't be trimmed (needs crimp tooling), so it is wound here.
 //
 // The board's B.Cu is nearly empty left of U201 (only J401 at board
-// (59,37), the 0402/0603 parts at x~87-89 beside the module, H4 at
-// (59,4)); the 3.0mm cavity behind the PCB there is free. A flat spiral is
+// (61.25,37), the 0402/0603 parts at x~87-89 beside the module; H4 is now
+// at (29,2.5)); the 3.0mm cavity behind the PCB there is free. A flat spiral is
 // wound on a printed post: coax Ø1.13, min bend radius 5mm (TE UMCC 5mm /
 // Data Alliance 4.5mm), so post Ø10 -> first turn centreline R 5.57mm.
 // Both cable ends are fixed (U.FL plug, antenna), so the inner end has to
@@ -338,8 +293,8 @@ module u201_relief_pocket() {
 // crossover/entry/exit; a 5th turn (245.8mm gross, outer centreline R
 // 10.1) is tight and not counted on, so ~50mm of the 210mm excess stays a
 // loose >=5mm-radius loop on the route. Three lugs at R 12 hold it in. Centre: board (73,18) =
-// face (75,34): board x 61..85 (4.7mm short of the relief's left edge,
-// 91.7 -> face X; ~15mm from J401's nearest possible edge, ~20mm from H4).
+// face (75.5,35): board x 61..85 (4.7mm short of the relief's left edge,
+// 92.2 face X; the lugs reach board y 30, J401's shell starts at y 35.4).
 // UNVERIFIED: J401's real body extent (not read off the board outline);
 // whether the plug-to-relief-top-wall bend (cable centre bz <= ~2.9, see
 // pilink-phg comment) works with the real mated plug. Needs a real module.
@@ -363,7 +318,7 @@ echo(str("U201 relief: floor bz=", U201_RELIEF_FLOOR_BZ, " (", U201_RELIEF_DEPTH
          "mm above host PCB (module ", U201_MODULE_H, ", plug top ", UFL_PLUG_TOP_H, ")"));
 echo(str("U201 relief pocket face X ", u201_p0[0], "..", u201_p1[0],
          " Q ", u201_p0[1], "..", u201_p1[1], "; H2 boss left edge at face X ",
-         board_to_face(112, 6)[0] - BOSS_OD/2));
+         board_to_face(PCB_MOUNT_HOLES_BOARD[1][0], PCB_MOUNT_HOLES_BOARD[1][1])[0] - BOSS_OD/2));
 
 // =====================================================================
 // Rear legs / A-frame mounting bosses
@@ -377,14 +332,12 @@ LEG_MOUNT_Q     = 40;   // "~40mm up the face" -- directly a Qface value
 LEG_FOOT_SETBACK = 47;  // midpoint of the ADR's "45-50mm behind the
                          // front edge" range
 
-// Cross-check against the PCB: leg lateral positions (Pface 21, 101) map
-// back to board-local X = 19 and 99 (board_to_face inverse: x = Pface -
-// MARGIN_X), exactly matching the figure hardware/README.md's own ADR
-// verification section already used ("legs at x 19/99", since board
-// centre/J401 is x=59, 59+/-40=19/99). Confirms this file's leg
-// positions agree with the already-placed board, not a fresh guess.
-LEG_PFACE_LEFT  = FACE_W/2 - LEG_OFFSET;   // = 21
-LEG_PFACE_RIGHT = FACE_W/2 + LEG_OFFSET;   // = 101
+// Cross-check against the PCB: leg lateral positions (Pface 23.75, 103.75)
+// map back to board-local X = 21.25 and 101.25 (x = Pface - MARGIN_X), i.e.
+// board centre / J401 at x 61.25 +/- 40 -- the legs stay symmetric about the
+// J401 / face centreline (FACE_W/2 = 63.75).
+LEG_PFACE_LEFT  = FACE_W/2 - LEG_OFFSET;   // = 23.75
+LEG_PFACE_RIGHT = FACE_W/2 + LEG_OFFSET;   // = 103.75
 
 // "Hidden fasteners (feet cover screw heads)" -- this file's reading:
 // each leg is attached to its back-shell mounting boss by a single long
@@ -504,7 +457,7 @@ BASE_STRIP_T     = WALL_T;  // = 2.0mm, matches the shell's own wall
 BASE_STRIP_FOOT_OFFSET_X = 30;  // lateral spacing of the strip's own 2
                                   // feet -- own choice, not a cited
                                   // figure (chosen to sit well inside
-                                  // FACE_W/2=61 on each side).
+                                  // FACE_W/2=63.75 on each side).
 
 // Ballast reserve (PR #52 review finding #5): the bead description
 // says to "leave room for a later ballast insert (weighted-base
@@ -582,37 +535,38 @@ module back_shell_shell() {
     difference() {
         rounded_box(FACE_W, FACE_H, BACK_SHELL_DEPTH, CORNER_R);
         // Hollow it out: a through-cut from just above the back wall
-        // (bz = WALL_T) out past the open front rim. Inset by WALL_T on
-        // Y (top/bottom) and Z (the back wall itself), but by
-        // WALL_T - BOARD_CLEARANCE_X on X, so the 118mm board gets real
-        // running clearance instead of a zero-clearance exact fit (see
-        // BOARD_CLEARANCE_X above -- PR #52 review finding #1). This
-        // thins the X side wall from WALL_T to WALL_T - BOARD_CLEARANCE_X
-        // (1.6mm); that side-wall thickness was always this file's own
-        // default choice, not an ADR-cited figure (only the back wall's
-        // 2.0mm Z thickness is ADR-specified), so trading a little of it
-        // for real clearance is a reasonable choice.
+        // (bz = WALL_T) out past the open front rim, inset by WALL_T on all
+        // four sides. pilink-6lz: FACE_W/FACE_H are now BOARD_W/H plus
+        // 2*(WALL + clearance) (common.scad), so this one cavity already
+        // leaves the board BOARD_CLEARANCE_X = 0.5mm on each side and
+        // BOARD_CLEARANCE_Y = 1.0mm top and bottom, centred. (Before, the X
+        // side wall was thinned to 1.6mm to buy 0.4mm and Y had 0.00mm at the
+        // bottom; the side wall is back to a full 2.0mm.)
         //
         // pilink-cix: the cavity's four corners are SQUARE (corner relief),
-        // not rounded. The old r = max(CORNER_R - WALL_T, 0.5) = 1.0mm inner
-        // radius cut ~0.3mm into the board's square 118 x 50 corners
-        // (Edge.Cuts has no corner arcs and the PCB outline is not changed
-        // for this). With the outer corner at CORNER_R = 3.0 (centre (3,3)
-        // from the face corner) the square inner corner at (1.6, 2.0) is
-        // sqrt(1.4^2 + 1.0^2) = 1.72mm from that centre, so the wall at the
-        // diagonal is 3.0 - 1.72 = 1.28mm: thinner than the 1.6-2.0mm
-        // walls elsewhere, but still >= 3 perimeters of a 0.4mm nozzle.
-        translate([WALL_T - BOARD_CLEARANCE_X, WALL_T, WALL_T])
-            cube([FACE_W - 2*(WALL_T - BOARD_CLEARANCE_X), FACE_H - 2*WALL_T,
-                  BACK_SHELL_DEPTH]);
+        // not rounded, so the board's square corners are never clipped
+        // (Edge.Cuts has no corner arcs). With the outer corner at CORNER_R =
+        // 3.0 (centre (3,3) from the face corner) the square inner corner at
+        // (2.0, 2.0) is sqrt(1^2 + 1^2) = 1.41mm from that centre, so the wall
+        // at the diagonal is 3.0 - 1.41 = 1.59mm: thinner than the 2.0mm walls
+        // elsewhere, but still >= 3 perimeters of a 0.4mm nozzle.
+        translate([WALL_T, WALL_T, WALL_T])
+            cube([FACE_W - 2*WALL_T, FACE_H - 2*WALL_T, BACK_SHELL_DEPTH]);
     }
 }
+
+// pilink-6lz: H4 (board (29, 2.5) -> face (31.5, 50.5)) sits 3.5mm below the
+// top wall's inner surface (Q 54), so a 7.0mm boss is exactly TANGENT to the
+// wall -- a line contact that makes the STL non-manifold. A 7.5mm boss on H4
+// overlaps the wall by 0.25mm instead and fuses with it cleanly (the boss
+// stays behind the board, which ends at Q 53, so nothing else is affected).
+BOSS_OD_H4 = BOSS_OD + 0.5;
 
 module pcb_mount_boss_solids() {
     for (i = [0 : len(PCB_MOUNT_HOLES_FACE) - 1])
         translate([PCB_MOUNT_HOLES_FACE[i][0], PCB_MOUNT_HOLES_FACE[i][1], BACK_WALL_T])
             boss_solid(height = REAR_CLEARANCE,
-                       boss_d = BOSS_OD);
+                       boss_d = (i == 3) ? BOSS_OD_H4 : BOSS_OD);
             // Boss spans bz = BACK_WALL_T .. BACK_WALL_T+REAR_CLEARANCE
             // (= 5.0mm = exactly the PCB's back surface, see the
             // BACK_SHELL_DEPTH stack-up above).
@@ -697,6 +651,15 @@ module leg_mount_insert_pockets() {
                     cylinder(h = INSERT_LEN + 0.1, d = INSERT_OD, $fn = 32);
 }
 
+// pilink-6lz: relief in the top wall so the Ø1.13 pigtail can cross the PCB
+// plane above the board's (now 1.0mm) top-edge gap; see common.scad. Face-frame
+// Z maps to local bz = BODY_T - Z.
+module pigtail_notch_cutout() {
+    translate([PIGTAIL_NOTCH_X0, FACE_H - WALL_T - 0.01, BODY_T - PIGTAIL_NOTCH_Z1])
+        cube([PIGTAIL_NOTCH_X1 - PIGTAIL_NOTCH_X0, PIGTAIL_NOTCH_DEPTH + 0.01,
+              BACK_SHELL_DEPTH + 1 - (BODY_T - PIGTAIL_NOTCH_Z1)]);
+}
+
 module back_shell_local() {
     difference() {
         union() {
@@ -709,6 +672,7 @@ module back_shell_local() {
         }
         usbc_cutout();
         u201_relief_pocket();
+        pigtail_notch_cutout();
         pcb_mount_insert_pockets();
         leg_mount_insert_pockets();
     }

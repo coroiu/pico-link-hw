@@ -14,7 +14,9 @@ match the kicad-cli PCB export.
 Frames, as the .scad files define them (and as enclosure/scripts/check_fit.py
 uses them):
   face frame (front_shell, knob, plungers, antenna mount):
-      X = board_x + MARGIN_X, Q = QTOP - board_y, Z = 0 at the outer face
+      X = board_x + MARGIN_X (2.5), Q = QTOP (53) - board_y, Z = 0 at the outer face
+      (MARGIN_X / QTOP come from enclosure/common.scad, the single shared
+      board-to-face mapping)
       increasing into the body (PCB front surface at Z = FRONT_SHELL_DEPTH).
   back-shell local frame: same X/Q, bz = BODY_T - Z (0 at the back wall's
       outer surface), so face -> local is a mirror in Z.
@@ -34,6 +36,7 @@ import json
 import math
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -54,15 +57,21 @@ PARTS = [
 ]
 
 
-def scad_vars(path):
+def scad_vars(path, env=None):
     """Evaluate top-level `NAME = expr;` numeric/list assignments (best effort,
-    same approach as check_fit.py)."""
-    env = {"max": max, "min": min,
-           "tan": lambda d: math.tan(math.radians(d)),
-           "cos": lambda d: math.cos(math.radians(d)),
-           "sin": lambda d: math.sin(math.radians(d))}
+    same approach as check_fit.py), following `include <file>` lines so the
+    constants in enclosure/common.scad are visible."""
+    if env is None:
+        env = {"max": max, "min": min,
+               "tan": lambda d: math.tan(math.radians(d)),
+               "cos": lambda d: math.cos(math.radians(d)),
+               "sin": lambda d: math.sin(math.radians(d))}
     with open(path) as f:
         for line in f:
+            inc = re.match(r"^include\s*<([^>]+)>", line)
+            if inc:
+                scad_vars(os.path.join(os.path.dirname(path), inc.group(1)), env)
+                continue
             m = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+?);\s*(//.*)?$", line)
             if not m:
                 continue
@@ -148,7 +157,7 @@ def main():
 
     BODY_T, LEAN = bv["BODY_T"], bv["LEAN_DEG"]
     MARGIN_X = bv["MARGIN_X"]
-    QTOP = bv["FACE_H"] - (bv["WALL_T"] + bv["TOP_SLACK_Y"])
+    QTOP = bv["QTOP"]
     Z_PCB_FRONT = fv["FRONT_SHELL_DEPTH"]
     PCB_T = bv["PCB_T"]
 
@@ -160,6 +169,7 @@ def main():
     def wrapper(key, file, strip, body):
         lib = os.path.join(work, "lib_%s.scad" % key)
         strip_calls(src(file), lib, strip)
+        shutil.copy(src("common"), os.path.join(work, "common.scad"))
         w = os.path.join(work, "w_%s.scad" % key)
         with open(w, "w") as f:
             f.write("include <%s>\n%s\n" % (lib, body))

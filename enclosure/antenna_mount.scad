@@ -75,6 +75,18 @@
 // that mapping correction (4->2mm to the board top edge, 9->7mm to the
 // panel frame), not through the PCB change. Still NOT rendered.
 
+// pilink-6lz (2026-11-16) REVISION -- board 122.5 x 50 (pilink-4qc), face
+// 127.5 x 56, board centred in the cavity with 0.5mm (X) / 1.0mm (Y)
+// clearance. All board<->face numbers now come from common.scad:
+// face X = board_x + 2.5, Qface = 53 - board_y. The element/mount X span
+// moves to 58.25-106.05 (it is anchored to the SW102 pinhole, now at face X
+// 54.5). The gap between the board's top edge (Q 53) and the top wall's inner
+// surface (Q 54) shrinks from 2.0mm to 1.0mm, LESS than the mount's own
+// lip/element stack plus the Ø1.13 coax -- so the pigtail can no longer cross
+// the PCB plane there. The shells therefore carry a local pigtail notch
+// (common.scad PIGTAIL_NOTCH_*) just right of this mount's land; see "Cable-
+// run consequence" below.
+
 // ---------------------------------------------------------------------------
 // Antenna part -- Kinghelm KH-FPC2.4G-1.13IPEX-240, LCSC C4943394. Selected
 // (over the AIWF026 alternate) in
@@ -117,41 +129,33 @@ ANTENNA_CABLE_DIAMETER = 1.13; // mm
 ANTENNA_KEEPOUT_FROM_METAL = ANTENNA_ELEMENT_LENGTH; // mm, see note above
 
 // ---------------------------------------------------------------------------
-// Board / face coordinate assumptions.
+// Board / face coordinates (pilink-6lz).
 //
-// hardware/README.md "PCB layout (pilink-7el.12, upright desk-clock form
-// factor)" gives the real 118 x 50mm board's placement table in board-local
-// mm (origin top-left, x right, y down). The mapping onto the ~122 x 56mm
-// face is SETTLED (pilink-8hx.2 / pilink-3ym; shared with back_shell.scad's
-// board_to_face() and front_shell.scad's board_to_y()):
-//   - face_x = board_x + 2 (board centered left-right: (FACE_W-BOARD_W)/2)
-//   - Qface = 52 - board_y (2mm wall + 2mm TOP_SLACK above the board's
-//     top edge; the board is NOT bottom-flush)
-// X is the one axis that matters for this file: left-right position is
-// unaffected by the body's 15-degree lean, so board-local X and face-local
-// X are directly comparable to pilink-8hx.2's SW101/SW102 pinhole X values
+// BOARD_W/H, FACE_W/H, WALL, the board-to-face mapping and the board-local
+// SW101/SW102 and panel positions all come from common.scad, the single
+// definition shared with the shells (previously this file kept its own copy
+// of `face_x = board_x + 2` / `Qface = 52 - board_y`):
+//   - face X = board_x + MARGIN_X (2.5, board centred left-right with
+//     0.5mm clearance per side)
+//   - Qface = QTOP - board_y (QTOP = 53: 2mm wall + 1.0mm clearance above the
+//     board's top edge; the board is centred top-to-bottom)
+// X is the one axis that matters for placing this file's mount: left-right
+// position is unaffected by the body's 15-degree lean, so board-local and
+// face-local X are directly comparable to the SW101/SW102 pinhole X values
 // via this same offset.
 // ---------------------------------------------------------------------------
+include <common.scad>
 
-BOARD_W = 118.0; // mm, hardware/README.md
-BOARD_H = 50.0;  // mm, hardware/README.md
-FACE_W  = 122.0; // mm, .planning/decisions/2026-11-15-upright-desk-clock-form-factor.md ("Face about 122 W x 56 H mm")
-FACE_H  = 56.0;  // mm, same ADR
+BOARD_TO_FACE_X_OFFSET = MARGIN_X; // = 2.5mm
 
-BOARD_TO_FACE_X_OFFSET = (FACE_W - BOARD_W) / 2; // = 2.0mm
-
-// pilink-3ym: the Y mapping is no longer the "bottom-flush,
-// 6mm above" assumption this file inherited from hardware/README.md. Both
-// shells (back_shell.scad board_to_face(), front_shell.scad board_to_y())
-// settled on Qface = 52 - board_y (2mm wall + 2mm TOP_SLACK above the
-// board), so the board's top edge (board y=0) is at Qface 52, i.e. 4mm
-// below the face's top outer edge (Q 56), NOT 6mm. The top wall's INNER
-// surface (where this mount sits) is at Qface 54. Y distances below use
-// this mapping; the old 6mm figure overstated every clearance by 2mm.
-WALL_THICKNESS_FACE = 2.0;                                // = back/front shell WALL_T/WALL
-BOARD_TOP_EDGE_Q = FACE_H - WALL_THICKNESS_FACE - 2.0;    // = 52, board y=0 (TOP_SLACK 2.0)
-function board_to_q(by) = BOARD_TOP_EDGE_Q - by;
-// Kept (derived, = 4.0mm) so the older "face-Y below the face top" wording
+// The board's top edge (board y=0) is at Qface 53, i.e. 3.0mm below the
+// face's top outer edge (Q 56); the top wall's INNER surface (where this
+// mount sits) is at Qface 54, so the gap between the board's top edge and the
+// mount's wall surface is BOARD_CLEARANCE_Y = 1.0mm (was 2.0mm before
+// pilink-6lz; see the pigtail-gap note below).
+WALL_THICKNESS_FACE = WALL;
+BOARD_TOP_EDGE_Q = QTOP;                       // = 53, board y=0
+// Kept (derived, = 3.0mm) so the older "face-Y below the face top" wording
 // still reads: distance from the face's top outer edge down to the board's top edge.
 BOARD_TO_FACE_Y_OFFSET = FACE_H - BOARD_TOP_EDGE_Q;
 
@@ -175,33 +179,32 @@ BOARD_TO_FACE_Y_OFFSET = FACE_H - BOARD_TOP_EDGE_Q;
 // receptacle (round socket); it is chosen at assembly.
 U201_UFL_BOARD_X = 93.27;  // verified, datasheet Fig. 11
 U201_UFL_BOARD_Y = 5.07;   // verified, datasheet Fig. 11
-U201_ANTENNA_FACE_X_CENTER = U201_UFL_BOARD_X + BOARD_TO_FACE_X_OFFSET; // 95.27mm
-U201_UFL_Q = board_to_q(U201_UFL_BOARD_Y);                              // Qface ~46.9
+U201_ANTENNA_FACE_X_CENTER = U201_UFL_BOARD_X + BOARD_TO_FACE_X_OFFSET; // 95.77mm
+U201_UFL_Q = board_to_q(U201_UFL_BOARD_Y);                              // Qface ~47.9
 
-// SW101/SW102 (BOOTSEL/RESET) top-edge pinhole X positions, board-local,
-// from hardware/README.md's placement table: "SW101 (42, 2.7), SW102
-// (52, 2.7) -- in the 5mm strip above the panel". This is pilink-8hx.2's
-// own geometry (front shell, top-edge pinhole channels) -- NOT duplicated
-// here, only read for the position/collision check below.
-SW101_X_BOARD_LOCAL = 42.0;
-SW102_X_BOARD_LOCAL = 52.0;
-SW101_X_FACE_LOCAL = SW101_X_BOARD_LOCAL + BOARD_TO_FACE_X_OFFSET; // 44.0mm
-SW102_X_FACE_LOCAL = SW102_X_BOARD_LOCAL + BOARD_TO_FACE_X_OFFSET; // 54.0mm
+// SW101/SW102 (BOOTSEL/RESET) top-edge pinhole X positions: SW101_BOARD /
+// SW102_BOARD in common.scad ("SW101 (42, 2.7), SW102 (52, 2.7) -- in the
+// strip above the panel"). This is the front shell's own geometry -- NOT
+// duplicated here, only read for the position/collision check below.
+SW101_X_BOARD_LOCAL = SW101_BOARD[0];
+SW102_X_BOARD_LOCAL = SW102_BOARD[0];
+SW101_X_FACE_LOCAL = SW101_X_BOARD_LOCAL + BOARD_TO_FACE_X_OFFSET; // 44.5mm
+SW102_X_FACE_LOCAL = SW102_X_BOARD_LOCAL + BOARD_TO_FACE_X_OFFSET; // 54.5mm
 
 // Pinhole diameter, from the ADR's own wording: "pressed straight down
 // through about a 1.5 mm pinhole". Same channel is shared by both
 // SW101/SW102 per that same ADR passage.
 PINHOLE_DIAMETER = 1.5; // mm, ADR (upright-desk-clock-form-factor.md)
 
-// Display-panel shadow, board-local, from hardware/README.md:971 ("Treated
-// as x:[28,87] y:[5,47] on the board"). Converted to face-local X using the
+// Display-panel shadow, board-local: PANEL_BOARD_X0/X1/Y0 in common.scad
+// (pilink-4qc: x 34.12..93.12, y 4..46). Converted to face-local X using the
 // same offset as everything else in this file. Only the X range is used
 // below (see "Display-panel / ground-plane clearance check" note further
 // down for why Y/Z aren't checked here).
-PANEL_X_MIN_BOARD_LOCAL = 28.0; // mm, hardware/README.md:971
-PANEL_X_MAX_BOARD_LOCAL = 87.0; // mm, hardware/README.md:971
-PANEL_X_MIN_FACE_LOCAL = PANEL_X_MIN_BOARD_LOCAL + BOARD_TO_FACE_X_OFFSET; // 30.0mm
-PANEL_X_MAX_FACE_LOCAL = PANEL_X_MAX_BOARD_LOCAL + BOARD_TO_FACE_X_OFFSET; // 89.0mm
+PANEL_X_MIN_BOARD_LOCAL = PANEL_BOARD_X0;
+PANEL_X_MAX_BOARD_LOCAL = PANEL_BOARD_X1;
+PANEL_X_MIN_FACE_LOCAL = PANEL_X_MIN_BOARD_LOCAL + BOARD_TO_FACE_X_OFFSET; // 36.62mm
+PANEL_X_MAX_FACE_LOCAL = PANEL_X_MAX_BOARD_LOCAL + BOARD_TO_FACE_X_OFFSET; // 95.62mm
 
 // ---------------------------------------------------------------------------
 // This file's own choices (not sourced from any ADR/finding -- stated so a
@@ -210,10 +213,12 @@ PANEL_X_MAX_FACE_LOCAL = PANEL_X_MAX_BOARD_LOCAL + BOARD_TO_FACE_X_OFFSET; // 89
 
 ASSEMBLY_CLEARANCE = 1.0;     // mm, margin added around the element footprint on the LENGTH axis (X) so an installer can place the adhesive antenna by eye, not a datasheet figure
 // pilink-0yp: the WIDTH axis (Y, the depth-constrained one) gets a tighter
-// 0.5mm per side. That is the cut the "Mount depth" note below had already
-// identified as the one that lands the stack inside the cavity budget.
+// 0.25mm per side (ASSEMBLY_CLEARANCE_WIDTH below; the first version of this
+// note said 0.5mm, which was never the value). That is the cut the "Mount
+// depth" note below had already identified as the one that lands the stack
+// inside the cavity budget.
 ASSEMBLY_CLEARANCE_WIDTH = 0.25; // mm per side on the width (Y) axis
-WALL_THICKNESS = 2.0;         // mm, nominal FDM shell wall -- pilink-8hx.1 may land on a different value; parameterized so it's a one-line change here
+WALL_THICKNESS = WALL;        // mm, shell wall (common.scad)
 PINHOLE_X_CLEARANCE = 3.0;    // mm, this file's own minimum-margin choice from a pinhole's edge to the mount's land edge (same figure the first version used for the left-wall margin, kept consistent rather than tuned differently just because the position moved)
 // *** FIX for PR #48 review item (mount depth vs. available wall depth) ***
 // LIP_WIDTH is reduced from 0.8 to 0.5mm here as part of that fix -- see
@@ -354,8 +359,8 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE_WIDTH;  // 7.
 // (it doesn't fit) is unchanged either way). Minimum clearance from SW102's pinhole edge
 // (SW102_X_FACE_LOCAL +/- half PINHOLE_DIAMETER) to the land is
 // PINHOLE_X_CLEARANCE, same margin figure the old left-wall placement used:
-//   MOUNT_X_MIN = 54.0 + 1.5/2 + 3.0 = 57.75mm
-//   MOUNT_X_MAX = 57.75 + 47.8   = 105.55mm
+//   MOUNT_X_MIN = 54.5 + 1.5/2 + 3.0 = 58.25mm  (pilink-6lz; was 57.75)
+//   MOUNT_X_MAX = 58.25 + 47.8   = 106.05mm
 // Right-side margin to the assumed inner wall (FACE_W - WALL_THICKNESS =
 // 120mm) is then 120 - 105.55 = 14.45mm -- comfortably clear, no further
 // tuning needed on that side.
@@ -366,12 +371,24 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE_WIDTH;  // 7.
 // (verified, see U201_UFL_* above). The pigtail exit stays 6mm in from the
 // RIGHT end of the land (pilink-bl2 did not move it; the verified U.FL is
 // 4.3mm further left than first assumed, which only lengthens the run):
-//   exit face X = MOUNT_X_MIN + (MOUNT_LAND_LENGTH - 6) = 99.55mm
-//   lateral run to the U.FL = |95.27 - 99.55| = 4.28mm
+//   exit face X = MOUNT_X_MIN + (MOUNT_LAND_LENGTH - 6) = 100.05mm
+//   lateral run to the U.FL = |95.77 - 100.05| = 4.28mm  (pilink-6lz: both
+//   ends moved +0.5, the run is unchanged)
 // Route (assembled, not modelled): plug -> along the back cavity toward the
 // board's top edge (Q 47 -> 52, 5mm, inside back_shell.scad's U201 relief)
-// -> over the board's top edge through the 2mm TOP_SLACK gap (Q 52 -> 54,
-// 2mm) -> into the top-wall mount. Front-to-back travel from the cavity
+// -> over the board's top edge (Q 53) into the top-wall mount. pilink-6lz:
+// that gap is now only 1.0mm (Q 53 -> 54) and the mount's lip (0.4) + element
+// (0.3) already take 0.7 of it under the land, so a Ø1.13 coax does NOT fit
+// across the PCB plane anywhere along the board edge. Resolved with a local
+// notch in the top wall, not by moving the PCB: common.scad
+// PIGTAIL_NOTCH_X0..X1 (face X 107..111, just right of this mount's land at
+// X <= 106.05 and left of H3's boss) cut 1.0mm deep into the front and back
+// shells' top walls (Q 54 -> 55, wall left 1.0mm) over Z 6.0..10.6 (the PCB
+// plane +/- 1.5), giving a 2.0mm-high crossing (the pre-pilink-6lz gap).
+// The cable goes behind the board to X ~109, crosses forward through the
+// notch, and returns left inside the front cavity to the exit above; the
+// extra ~20mm is absorbed by the spool's excess length. check_fit.py sweeps a
+// Ø1.13 probe through the notch and reports the clearance. Front-to-back travel from the cavity
 // (bz ~2) to the mount's cable exit is bounded by the top-wall cavity
 // depth (~10mm, see the mount-depth note above). Estimated pigtail needed:
 //   5 + 2 + 10 + 4.28 ~= 21mm, call it ~30mm with bend radii/slack.
@@ -379,13 +396,13 @@ MOUNT_LAND_WIDTH  = ANTENNA_ELEMENT_WIDTH + 2 * ASSEMBLY_CLEARANCE_WIDTH;  // 7.
 // unresolved, pilink-bl2), so up to ~210mm of excess has to be stowed (coiled/looped) inside the enclosure.
 // pilink-phg: it is wound on a printed spool in the back shell's cavity
 // (back_shell.scad pigtail_spool(), board (73,18)), not in this mount. Clearances checked:
-//   - SW101/SW102 pinholes (face X 44/54, Q ~49.3) vs the cable at X ~95-100:
-//     >45mm apart.
+//   - SW101/SW102 pinholes (face X 44.5/54.5, Q ~50.3) vs the cable at X ~95-111:
+//     >40mm apart.
 //   - Restored A/B/X/Y diamond (courtyard board y 13.58-36.43, front side)
 //     vs the cable at board y <= 5 on the back: 8.6mm in Y and on the
 //     opposite board face.
-//   - H2 mounting boss (face (114,46), boss r 3.5 -> X >= 110.5) vs a
-//     cable at X 95.3-99.55: ~11mm.
+//   - H2 mounting boss (face (119,47), boss r 3.5 -> Q <= 50.5) vs the notch
+//     (Q >= 54): >3.5mm.
 echo(str("[pilink-3ym] Pigtail exit face X ", MOUNT_X_MIN + MOUNT_LAND_LENGTH - CABLE_CHANNEL_EXIT_X_INSET,
          "mm vs back-side U.FL face X (verified, pilink-bl2) ", U201_ANTENNA_FACE_X_CENTER, "mm."));
 PINHOLE_EDGE_CLEARANCE_X = SW102_X_FACE_LOCAL + PINHOLE_DIAMETER / 2 + PINHOLE_X_CLEARANCE;
@@ -405,14 +422,14 @@ echo(str("[pilink-8hx.4] Mount X ", MOUNT_X_MIN, "-", MOUNT_X_MAX,
 // as a marker and never actually compared it with anything. Doing that
 // comparison honestly, with real numbers:
 //
-//   Display-panel shadow, face-local X: PANEL_X_MIN_FACE_LOCAL..PANEL_X_MAX_FACE_LOCAL = 30-89mm.
-//   New mount, face-local X:            MOUNT_X_MIN..MOUNT_X_MAX           = 57.75-105.55mm.
-//   X-overlap: max(0, min(89,105.55) - max(30,57.75)) = 31.25mm.
+//   Display-panel shadow, face-local X: PANEL_X_MIN_FACE_LOCAL..PANEL_X_MAX_FACE_LOCAL = 36.62-95.62mm (pilink-6lz).
+//   New mount, face-local X:            MOUNT_X_MIN..MOUNT_X_MAX           = 58.25-106.05mm.
+//   X-overlap: max(0, min(95.62,106.05) - max(36.62,58.25)) = 37.37mm.
 //
 // That overlap is NOT avoidable by sliding the mount further: the panel
-// shadow alone spans 59mm of the face's 122mm width, and the only clear
-// span to its right (past face-local X=89, before the assumed right inner
-// wall at X=120) is ~31mm -- less than the 45.8mm element, the same reason
+// shadow alone spans 59mm of the face's 127.5mm width, and the only clear
+// span to its right (past face-local X=95.62, before the assumed right inner
+// wall at X=125.5) is ~30mm -- less than the 45.8mm element, the same reason
 // a left-of-SW101 placement didn't fit either. So within the fixed
 // footprint this enclosure already committed to (panel width + a 45.8mm
 // element + pinholes that can't move), there is no X position that clears
@@ -446,14 +463,14 @@ echo(str("[pilink-8hx.4] Display-panel shadow X ", PANEL_X_MIN_FACE_LOCAL, "-",
 // edge, in the FACE PLANE (face-Y, the same axis FACE_H/BOARD_H already
 // use) -- not in front of or behind them in Z. And that face-Y distance
 // *is* derivable to first order from constants already in this file, using
-// the settled board-to-face mapping (Qface = 52 - board_y, face_x =
-// board_x + 2).
+// the settled board-to-face mapping (common.scad: Qface = 53 - board_y,
+// face_x = board_x + 2.5).
 //
 // Display-panel shadow Y start, board-local, from hardware/README.md:971
-// ("Treated as x:[28,87] y:[5,47] on the board") -- only the X range was
-// captured above; this is its Y start, needed for the face-Y estimate.
-PANEL_Y_MIN_BOARD_LOCAL = 5.0; // mm, hardware/README.md:971
-PANEL_Y_MIN_FACE_LOCAL = PANEL_Y_MIN_BOARD_LOCAL + BOARD_TO_FACE_Y_OFFSET; // 9.0mm below the face top edge (pilink-3ym: was 11.0 with the stale 6mm offset; = Qface 47)
+// (now y:[4,46], pilink-4qc) -- only the X range was captured above; this is
+// its Y start, needed for the face-Y estimate.
+PANEL_Y_MIN_BOARD_LOCAL = PANEL_BOARD_Y0;
+PANEL_Y_MIN_FACE_LOCAL = PANEL_Y_MIN_BOARD_LOCAL + BOARD_TO_FACE_Y_OFFSET; // 7.0mm below the face top edge (pilink-6lz; = Qface 49)
 
 // The element itself sits on the top wall's INNER surface, i.e.
 // WALL_THICKNESS below the face's own top edge (face-y=0) -- an estimate,
@@ -461,20 +478,20 @@ PANEL_Y_MIN_FACE_LOCAL = PANEL_Y_MIN_BOARD_LOCAL + BOARD_TO_FACE_Y_OFFSET; // 9.
 ANTENNA_ELEMENT_FACE_Y_ESTIMATE = WALL_THICKNESS; // ~2.0mm below the face top edge (inner top-wall surface, Qface 54)
 
 // Board's own top edge (where SW101/SW102's copper and the board outline
-// itself sit) is at face-y = BOARD_TO_FACE_Y_OFFSET = 4.0mm (Qface 52; pilink-3ym, was 6.0).
-CLEARANCE_TO_BOARD_TOP_EDGE_ESTIMATE = BOARD_TO_FACE_Y_OFFSET - ANTENNA_ELEMENT_FACE_Y_ESTIMATE; // 2.0mm (pilink-3ym: was ~4.0 under the stale 6mm offset)
-// Panel frame's top edge is at face-y = PANEL_Y_MIN_FACE_LOCAL = 9.0mm (pilink-3ym, was 11.0).
-CLEARANCE_TO_PANEL_FRAME_ESTIMATE = PANEL_Y_MIN_FACE_LOCAL - ANTENNA_ELEMENT_FACE_Y_ESTIMATE; // 7.0mm (pilink-3ym: was ~9.0)
+// itself sit) is at face-y = BOARD_TO_FACE_Y_OFFSET = 3.0mm (Qface 53; pilink-6lz, was 4.0).
+CLEARANCE_TO_BOARD_TOP_EDGE_ESTIMATE = BOARD_TO_FACE_Y_OFFSET - ANTENNA_ELEMENT_FACE_Y_ESTIMATE; // 1.0mm (pilink-6lz: was 2.0)
+// Panel frame's top edge is at face-y = PANEL_Y_MIN_FACE_LOCAL = 7.0mm (pilink-6lz, was 9.0).
+CLEARANCE_TO_PANEL_FRAME_ESTIMATE = PANEL_Y_MIN_FACE_LOCAL - ANTENNA_ELEMENT_FACE_Y_ESTIMATE; // 5.0mm (pilink-6lz: was 7.0)
 
 // The guidance (ANTENNA_KEEPOUT_FROM_METAL, ~46mm -- roughly the element's
 // own length) is measured against a face that is only FACE_H=56mm tall in
-// total, with only ~9mm of that above the panel's own top edge (pilink-3ym:
-// was ~11mm under the stale mapping). So this
+// total, with only ~7mm of that above the panel's own top edge (pilink-6lz:
+// was ~9mm). So this
 // is not a marginal shortfall and not something a different X position in
 // this same top wall can fix: EVERY top-wall position puts the element
 // within single-digit mm of the board's top-edge copper and the panel
-// frame, roughly 6-23x closer (46/7 ~= 6.6x to the panel frame, 46/2 =
-// 23x to the board edge; pilink-3ym, corrected mapping -- was 5.1x/11.5x)
+// frame, roughly 9-46x closer (46/5 ~= 9.2x to the panel frame, 46/1 =
+// 46x to the board edge; pilink-6lz -- was 6.6x/23x)
 // than the ~46mm guidance asks for. That is a
 // real RF-performance trade-off (reduced range/link reliability risk), not
 // a modeling gap to leave open in an echo() addressed to a mechanical
@@ -493,7 +510,7 @@ echo(str("[pilink-8hx.4] Face-Y clearance (pilink-3ym: merged-shell board-to-fac
          "at face-y=", PANEL_Y_MIN_FACE_LOCAL, "mm (~",
          CLEARANCE_TO_PANEL_FRAME_ESTIMATE, "mm clearance) -- vs the ",
          ANTENNA_KEEPOUT_FROM_METAL, "mm guidance. NOT MET at this or any ",
-         "top-wall X position (face is only ", FACE_H, "mm tall, ~9mm of ",
+         "top-wall X position (face is only ", FACE_H, "mm tall, ~7mm of ",
          "it above the panel). Real RF trade-off, tracked in pilink-58z -- ",
          "not resolved here, not left pending."));
 

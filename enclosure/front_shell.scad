@@ -41,22 +41,20 @@
 
 $fn = 48;
 
+// pilink-6lz: board size, wall, running clearance, FACE_W/FACE_H, the
+// board<->face mapping (board_to_x/board_to_q) and every board-local part
+// position (panel, knob, diamond, pinholes, mounting holes) now live in ONE
+// place, shared with the back shell, antenna mount, plunger and knob.
+include <common.scad>
+
 /* ============================== Face / body ============================== */
 
-// Face outline.
-// Source: .planning/decisions/2026-11-15-upright-desk-clock-form-factor.md
-// "Decision": "Face about 122 W x 56 H mm"; also
-// docs/plans/2026-11-15-product-layout-proposal.md section 6c
-// "Dimensions": "about 122 W x 56 H mm along the face".
-FACE_W = 122.0;
-FACE_H = 56.0;
+// Face outline: FACE_W x FACE_H from common.scad (127.5 x 56 since
+// pilink-6lz; the ADR's "about 122 W x 56 H" was for the older 118mm board).
 
-// Face-plate thickness AND perimeter-wall thickness (the same figure
-// is used both ways throughout the source docs).
+// Face-plate thickness (WALL, common.scad, is also the perimeter wall).
 // Source: proposal 6c "Body thickness" breakdown: "face 2.0 ... and a
-// 2.0 mm back wall"; proposal section 2 / Option A width build-up:
-// "wall 2 + margin 5 + knob radius 9 ...".
-WALL = 2.0;
+// 2.0 mm back wall".
 FACE_T = WALL;
 
 // Depth from the outer face surface to the PCB's front surface / this
@@ -89,49 +87,13 @@ FRONT_SHELL_DEPTH = FACE_T + GAP_FACE_TO_PCB; // 7.5 mm
 // value for its rim-mismatch check.
 CORNER_RADIUS = 3.0;
 
-/* ========================= Real board coordinates =========================
-   Source: hardware/README.md, "PCB layout (pilink-7el.12, upright
-   desk-clock form factor)" placement table -- the as-placed,
-   as-routed board (118 x 50mm), not the earlier Option-A proposal
-   sketch. Board-local origin is the board's own top-left corner,
-   x right, y DOWN (opposite sense from this file's own Y axis --
-   see board_to_y() below). */
-BOARD_W = 118.0;
-BOARD_H = 50.0;
-
-/* ===================== Face <-> board coordinate mapping ===================== */
-
-// X: exact, no assumption needed. (FACE_W - 2*WALL) == BOARD_W
-// (122 - 2*2 == 118) -- the board's width exactly fills the inner
-// cavity with zero extra side margin, so board-local X maps onto this
-// file's X with a flat WALL offset and no scaling or guessing.
-function board_to_x(bx) = WALL + bx;
-
-// Y: NOT exact, but now CONFIRMED to match the convention
-// enclosure/back_shell.scad (pilink-8hx.1) independently landed on
-// after its own PR #52 review round, not just inherited as an open
-// assumption. hardware/README.md's raw rule ("N mm up the face" means
-// `y = 50 - N`) implicitly puts the board's bottom edge flush with the
-// face's bottom edge, leaving no room for either shell's own WALL_T
-// (2mm) wall -- back_shell.scad's review caught that its own PCB cavity
-// physically needs that bottom wall, and fixed it by deriving a 2mm
-// TOP_SLACK from the real inner-cavity height instead:
-// `TOP_SLACK_Y = (FACE_H - 2*WALL_T) - BOARD_H`, giving
-// `board_to_face()` Y = `FACE_H - (WALL_T + TOP_SLACK_Y + by)`, i.e.
-// Qface = 52 - by. This file's TOP_SLACK/board_to_y() below is the
-// exact same formula (WALL == WALL_T, TOP_SLACK == TOP_SLACK_Y, both
-// 2.0mm) -- so every Y position in this file already sits 2mm higher
-// than README's raw "y = 50 - N" figures (board bottom at face-y=WALL
-// =2, not 0), and that is a deliberate, now cross-confirmed choice
-// shared with back_shell.scad, not a silent deviation. (A prior review
-// round flagged this file's formula as an unreconciled 2mm change from
-// README's stated assumption -- it has since been reconciled: both
-// shells now derive and state the same 2mm.)
-TOP_SLACK = (FACE_H - 2 * WALL) - BOARD_H; // 2.0mm, matches back_shell.scad's TOP_SLACK_Y
-
-// Converts a board-local y (down-positive, 0 at the board's top edge)
-// to this file's y (up-positive, 0 at the face's bottom outer edge).
-function board_to_y(by) = FACE_H - (WALL + TOP_SLACK + by);
+/* ===================== Face <-> board coordinate mapping =====================
+   board_to_x() / board_to_q() are defined once in common.scad:
+     X = board_x + MARGIN_X (2.5),  Q = QTOP (53) - board_y.
+   The board is centred in the cavity with BOARD_CLEARANCE_X/Y of running
+   clearance per side (common.scad). Q is "up the face", 0 at the bottom outer
+   edge -- this file's own Y axis. */
+function board_to_y(by) = board_to_q(by);
 
 /* ============================ Display window ============================
    Crystalfontz CFAF240320A0-024SN, landscape (rotated 90deg from its
@@ -140,9 +102,7 @@ function board_to_y(by) = FACE_H - (WALL + TOP_SLACK + by);
    docs/plans/2026-11-15-product-layout-proposal.md section 1.1, which
    cites the Crystalfontz datasheet directly. */
 
-// Panel outline (landscape): "Panel footprint 59.0 wide x 42.0 deep".
-PANEL_W = 59.0;
-PANEL_H = 42.0;
+// Panel outline (landscape, 59 x 42) and its board position: common.scad.
 
 // Active area (landscape). Confirmed both by the display ADR and
 // proposal 1.1's table ("Active area (AA) 36.72 W x 48.96 H" stated
@@ -166,31 +126,15 @@ AA_INSET_BOTTOM = 2.64;
 AA_INSET_LEFT   = 2.65; // knob side
 AA_INSET_RIGHT  = 7.39; // button / FPC / COG-ledge side
 
-// Where the panel sits relative to the real board, used ONLY to
-// derive the active area's real center below -- the display is a
-// separate physical part held by this shell, connected to J501 by
-// FPC, not a PCB footprint with its own fixed coordinate.
-// Source: hardware/README.md placement table, "Display panel shadow
-// 59 x 42mm ... Treated as x:[28,87] y:[5,47] on the board". That
-// rectangle's own size (59 x 42) exactly matches the panel outline
-// above, so it is read here as the panel's real intended position,
-// not just a generic keepout margin.
-PANEL_BOARD_X0 = 28.0;
-PANEL_BOARD_X1 = 87.0;
-PANEL_BOARD_Y0 = 5.0;
-PANEL_BOARD_Y1 = 47.0;
-
-PANEL_BOARD_CX = (PANEL_BOARD_X0 + PANEL_BOARD_X1) / 2; // 57.5
-PANEL_BOARD_CY = (PANEL_BOARD_Y0 + PANEL_BOARD_Y1) / 2; // 26.0
-
-// Active-area center, board-local, derived from the panel position
-// above plus the datasheet insets. This reproduces the ADR's own
-// "2.37mm off panel centre" figure exactly
-// ((AA_INSET_RIGHT - AA_INSET_LEFT) / 2 = 2.37) -- a good sign the two
-// sources (datasheet insets, real board placement) agree with each
-// other.
-AA_BOARD_CX = PANEL_BOARD_X0 + AA_INSET_LEFT + AA_W / 2; // 55.13
-AA_BOARD_CY = PANEL_BOARD_CY; // insets symmetric top/bottom -> unchanged (26.0)
+// Active-area centre, board-local. The panel position (PANEL_BOARD_X0.. in
+// common.scad, from pilink-4qc) puts it at (61.25, 25): AA_BOARD_CX =
+// 34.12 + 2.65 + 48.96/2 = 61.25, which maps to face X 63.75 = FACE_W / 2
+// -- the window is centred on the face horizontally -- and AA_BOARD_CY = 25
+// maps to Q 28 = FACE_H / 2, centred vertically too.
+PANEL_BOARD_CX = (PANEL_BOARD_X0 + PANEL_BOARD_X1) / 2; // 63.62
+PANEL_BOARD_CY = (PANEL_BOARD_Y0 + PANEL_BOARD_Y1) / 2; // 25.0
+AA_BOARD_CX = PANEL_BOARD_X0 + AA_INSET_LEFT + AA_W / 2; // 61.25
+AA_BOARD_CY = PANEL_BOARD_CY; // insets symmetric top/bottom -> 25.0
 
 // This file's own face coordinates for the window and the panel
 // pocket behind it.
@@ -199,19 +143,15 @@ WINDOW_CY = board_to_y(AA_BOARD_CY);
 PANEL_CX  = board_to_x(PANEL_BOARD_CX);
 PANEL_CY  = board_to_y(PANEL_BOARD_CY);
 
-// Cross-check worth flagging, NOT resolved here: an earlier design
-// rule (proposal section 1.1: "The enclosure should centre the
-// *window* on the face, not the panel") implied WINDOW_CX should land
-// on FACE_W/2 = 61.0mm exactly. The real board placement above
-// instead puts it at board_to_x(55.13) = 57.13mm, about 3.9mm left of
-// face-center (toward the knob side -- the right direction per the
-// rule, just not the same magnitude). That is expected: this is the
-// first place anything fixes the panel's real physical position in
-// 3D, so it is derived here from the real placed board rather than
-// the pre-placement proposal's idealised centering, the same way the
-// board outline, knob position etc. all superseded Option-A's
-// placeholder numbers once pilink-7el.12 ran. Flagged for
-// pilink-8hx.5 to confirm this is still an acceptable look.
+// Centring check (pilink-6lz): WINDOW_CX == FACE_W / 2 and WINDOW_CY ==
+// FACE_H / 2 by construction (see AA_BOARD_CX above); echoed so a render
+// shows it. The PANEL (not the window) is therefore off-centre by
+// (AA_INSET_RIGHT - AA_INSET_LEFT) / 2 = 2.37mm toward the right (COG/FPC
+// ledge side), as the proposal's "centre the window, not the panel" rule
+// intends.
+echo(str("[pilink-6lz] window centre (", WINDOW_CX, ", ", WINDOW_CY, ") vs face centre (",
+         FACE_W / 2, ", ", FACE_H / 2, "); knob (", ENCODER_CX, ", ", ENCODER_CY,
+         "); diamond centre X ", board_to_x(BTN_Y[0])));
 
 // Glass registration depth: how far below the outer face the display
 // glass sits, per this bead's own description ("glass ~1.2mm below the
@@ -253,27 +193,12 @@ LEDGE_DEPTH = 2.2;      // mm, slightly over the panel's own 2.1mm
 /* ========================= Knob / encoder opening =========================
    Alps EC11E18244AU (SW303). */
 
-// Shaft/knob center, board-local.
-// Source: hardware/README.md placement table (updated by pilink-2yw,
-// merged 2026-11-16): "Shaft/knob centre at (16, 25) -- exactly
-// board-vertical-centre (50/2)". This SUPERSEDES the old (16, 31)
-// position: U201 (ESP32) used to share this column and forced the knob
-// low; pilink-2yw relocated U201 off the column (see
-// hardware/README.md's updated table / hardware/scripts/place.py), so
-// the knob could move to the board's true vertical centre instead.
-ENCODER_BOARD_CX = 16.0;
-ENCODER_BOARD_CY = 25.0;
+// Shaft/knob centre, board-local: ENCODER_BOARD_CX/CY in common.scad
+// (pilink-4qc: (14.25, 25), the board's vertical centre and the face's
+// horizontal centreline, so knob and diamond share one horizontal line).
 ENCODER_CX = board_to_x(ENCODER_BOARD_CX);
 ENCODER_CY = board_to_y(ENCODER_BOARD_CY);
-// (= (18, 27) in this file's coords -- 27mm up from the face's bottom
-// edge, i.e. 1mm BELOW the face's own vertical centre (FACE_H/2 =
-// 28mm), under this file's board_to_y() mapping (2mm of the face's
-// 6mm board/face height slack sits below the board, 4mm above -- see
-// board_to_y() above). NOT "lower third" any more -- that description
-// was already false for the old (16,31) position (37.5% up a 56mm
-// face, past the lower third's 18.7mm cutoff) and is doubly inapplicable
-// now that the knob sits at the board's true vertical centre. Describe
-// it as "near face vertical centre" instead.)
+// (= (16.75, 28) in face coordinates: Q 28 = FACE_H / 2.)
 
 // Body / courtyard, used to size the inner-face pocket.
 // Source: docs/plans/2026-11-15-product-layout-proposal.md section
@@ -335,21 +260,8 @@ KNOB_PROUD_MM = 17.0; // informational only
    BUTTON LABELS, not coordinate axes -- don't confuse e.g. "BTN_Y"
    with a Y coordinate. */
 
-// Diamond positions, board-local [board_x, board_y].
-// Source: hardware/README.md placement table, RESTORED by pilink-hdl
-// (PR #60, 2026-11-16): centre (102, 25) -- exactly board-vertical-centre,
-// same y as the knob -- Y top (102,17), X left (94,25), B right (110,25),
-// A bottom (102,33); verified against hardware/pico-link-hw.kicad_pcb
-// (SW308 (102,17), SW307 (94,25), SW306 (110,25), SW305 (102,33)).
-// pilink-3ym: this SUPERSEDES the pilink-2yw-era centre (102,34) / Y
-// (102,26) / X (94,34) / B (110,34) / A (102,42) this file carried from
-// PR #50 -- every y below is the old value -9. The 8mm pitch and the
-// X-button x=94 are unchanged.
-BTN_Y = [102, 17]; // top of diamond
-BTN_X = [94, 25];  // left of diamond
-BTN_B = [110, 25]; // right of diamond
-BTN_A = [102, 33]; // bottom of diamond
-
+// Diamond positions: BTN_Y/BTN_X/BTN_B/BTN_A in common.scad (pilink-4qc:
+// centre (108.25, 25), 8mm pitch; PCB SW308/SW307/SW306/SW305).
 // U201 (ESP32-WROOM-32UE) is on the BACK of the board (B.Cu) since
 // pilink-hdl -- no longer in a front-side pocket above the diamond, so
 // there is nothing to check against on the front any more (the old
@@ -390,10 +302,8 @@ BUTTON_POSITIONS = [
 
 PINHOLE_DIA = 1.5;
 
-SW101_BOARD = [42, 2.7];
-SW102_BOARD = [52, 2.7];
-
-PINHOLE_X = [board_to_x(SW101_BOARD[0]), board_to_x(SW102_BOARD[0])]; // [44, 54]
+// SW101_BOARD / SW102_BOARD: common.scad.
+PINHOLE_X = [board_to_x(SW101_BOARD[0]), board_to_x(SW102_BOARD[0])]; // [44.5, 54.5]
 
 // Depth (Z) position: the switches sit on the PCB's front surface, at
 // Z = FRONT_SHELL_DEPTH in this file's convention, right at this
@@ -414,15 +324,17 @@ PINHOLE_Z = FRONT_SHELL_DEPTH - 1.0;
    the ADR's pilink-5g8 verification note about U201's U.FL-connector
    edge -- stale (U201 is now on the BACK of the board at x~99,
    pilink-hdl, and its U.FL faces the back shell); pilink-8hx.4's own fix rounds moved the REAL antenna element/mount
-   well away from there, to face-local X 57.75-105.55mm (per
+   well away from there, to face-local X 58.25-106.05mm (per
    enclosure/README.md's antenna_mount.scad section / the file itself),
    clear of SW101/SW102's pinhole channels. Marker moved to roughly
    match that real position instead of the stale U.FL-pad location, so
    it no longer actively misleads -- the real geometry is
    antenna_mount.scad's, this is only an approximate visual flag. */
 
-ANT_ZONE_X0 = 57.75; // face-local mm, matches antenna_mount.scad's real element span
-ANT_ZONE_X1 = 105.55;
+// face-local mm, matches antenna_mount.scad's MOUNT_X_MIN/MAX (58.25..106.05):
+// SW102 pinhole edge + 3.0mm margin, 47.8mm long.
+ANT_ZONE_X0 = board_to_x(SW102_BOARD[0]) + PINHOLE_DIA / 2 + 3.0;
+ANT_ZONE_X1 = ANT_ZONE_X0 + 47.8;
 
 /* ================================ Geometry ================================ */
 
@@ -527,6 +439,14 @@ module pinhole_cutouts() {
                 cylinder(h = WALL + 1, d = PINHOLE_DIA);
 }
 
+// pilink-6lz: relief in the top wall so the Ø1.13 pigtail can cross the PCB
+// plane above the board's (now 1.0mm) top-edge gap; see common.scad.
+module pigtail_notch_cutout() {
+    translate([PIGTAIL_NOTCH_X0, FACE_H - WALL - 0.01, PIGTAIL_NOTCH_Z0])
+        cube([PIGTAIL_NOTCH_X1 - PIGTAIL_NOTCH_X0, PIGTAIL_NOTCH_DEPTH + 0.01,
+              FRONT_SHELL_DEPTH + 1 - PIGTAIL_NOTCH_Z0]);
+}
+
 module antenna_zone_marker() {
     %translate([ANT_ZONE_X0, FACE_H - WALL, 0])
         cube([ANT_ZONE_X1 - ANT_ZONE_X0, WALL, FRONT_SHELL_DEPTH]);
@@ -540,6 +460,7 @@ module front_shell() {
         encoder_cutouts();
         button_cutouts();
         pinhole_cutouts();
+        pigtail_notch_cutout();
     }
     panel_ledge();
     antenna_zone_marker();
@@ -557,37 +478,17 @@ front_shell();
    2. Encoder bushing diameter is an ASSUMED 7mm, not confirmed from
       any source read for this bead -- confirm against a real part or
       Alps' CAD drawing before finalizing ENCODER_SHAFT_HOLE_DIA.
-   3. RESOLVED (was open item 3): the board-to-face Y mapping is now
-      cross-confirmed to match enclosure/back_shell.scad's own landed
-      derivation (both shells independently arrived at the same 2mm
-      TOP_SLACK formula) -- see board_to_y()'s comment above. Not an
-      open item any more.
-   4. The display window's real center (derived from the as-placed
-      board) lands about 3.9mm off the face's exact horizontal center
-      -- toward the knob side, the direction the "center the window,
-      offset the panel" rule predicts, but not the same magnitude as
-      an idealized face-centered window. Flagged, not resolved (display
-      position is unaffected by pilink-2yw's coordinate updates).
+   3. RESOLVED: the board<->face mapping is defined once in common.scad
+      (pilink-6lz) and shared with every other part.
+   4. RESOLVED (pilink-4qc + pilink-6lz): the display window is centred on
+      the face (WINDOW_CX == FACE_W / 2, WINDOW_CY == FACE_H / 2).
    5. This is a flat rectangular shell, not the ADR's ~15-degree-
       leaning body profile, and has no final corner/edge styling pass.
    6. Front-to-back shell fastener bosses (hidden heat-set inserts,
       per the aesthetic ADR) are not modeled here -- left for
       reconciliation with pilink-8hx.1's own mating geometry once both
       exist.
-   8. pilink-3ym: diamond restored to board centre (102,25) -- bores at
-      (102,17)/(94,25)/(110,25)/(102,33); item 7's (102,34) figures are
-      superseded. Knob and SW101/SW102 pinholes unchanged. U201 is back-
-      side now (B.Cu), so the front-side proximity note is obsolete.
-      Not rendered or fit-checked (OpenSCAD not installed).
-   7. pilink-2yw (ESP32 relocation + knob/diamond re-placement, merged
-      2026-11-16) coordinate updates applied in this revision: knob
-      moved to board (16,25) (was (16,31)); A/B/X/Y diamond shifted
-      down 9mm to centre (102,34) (was (102,25)); SW101/SW102 pinholes
-      confirmed UNCHANGED at board (42,2.7)/(52,2.7) per
-      hardware/README.md's updated table. U201's new position (board
-      (99,11.6), directly above the new diamond) checked against the
-      diamond's and U201's own F.CrtYd boxes -- adjacent with ~0.6mm
-      PCB-side clearance, not overlapping, and irrelevant to this
-      file's own Z-layer regardless (see the comment by BTN_Y/BTN_X/
-      BTN_B/BTN_A above).
+   7. pilink-6lz: re-derived for the 122.5 x 50 board of pilink-4qc, face
+      127.5 x 56, 0.5mm (X) / 1.0mm (Y) board clearance per side. Every
+      board-local position now comes from common.scad.
 */
