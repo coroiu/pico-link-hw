@@ -20,10 +20,11 @@ finds here.
 
 Parametric front shell (face plate + perimeter skirt) for the upright
 desk-clock body — display window, knob/encoder opening, A/B/X/Y button
-bores, top-edge BOOTSEL/RESET pinholes, and a reserved (not yet cut)
-antenna zone for the sibling bead `pilink-8hx.4`. Not rendered — OpenSCAD
-isn't installed here (see above); every dimension in the file is cited
-in a comment next to it, sourced from:
+bores, top-edge BOOTSEL/RESET pinholes, and a debug-only visual marker
+for the antenna zone whose real geometry is built separately in the
+sibling bead `pilink-8hx.4`'s `antenna_mount.scad` (merged). Not
+rendered — OpenSCAD isn't installed here (see above); every dimension
+in the file is cited in a comment next to it, sourced from:
 
 - `.planning/decisions/2026-11-15-upright-desk-clock-form-factor.md` and
   `docs/plans/2026-11-15-product-layout-proposal.md` section 6c (face
@@ -31,8 +32,11 @@ in a comment next to it, sourced from:
 - `hardware/README.md`'s "PCB layout (pilink-7el.12)" placement table
   (the real as-placed board coordinates everything else is derived
   from — knob/encoder centre, A/B/X/Y diamond, SW101/SW102 pinhole
-  positions, the display panel-shadow rectangle, the ESP32/antenna-end
-  edge);
+  positions, the display panel-shadow rectangle);
+- `enclosure/antenna_mount.scad` (`pilink-8hx.4`, merged) for the real
+  antenna element/mount span, which `front_shell.scad`'s own debug-only
+  antenna-zone marker is positioned to roughly match (not the stale
+  ESP32 U.FL-pad edge the marker cited before `pilink-8hx.4` landed);
 - `.planning/decisions/2026-11-15-display-panel-crystalfontz-cfaf240320a0.md`
   and the display FPC/off-centre finding
   (`.research/findings/2026-11-15-display-fpc-contact-side.md`) for the
@@ -52,12 +56,18 @@ file) plus an 18mm x 1.2mm inner-face countersink; four Ø8.4mm button
 bores on the A/B/X/Y diamond; two Ø1.5mm top-edge pinholes at x=44/54mm
 aligned onto SW101/SW102.
 
+The board-to-face vertical mapping is settled, not an open item:
+`Qface = 52 - by` (`FACE_H` 56mm minus `WALL_T` 2mm minus `TOP_SLACK_Y`
+2mm, i.e. 52 = `FACE_H - WALL_T - TOP_SLACK_Y`), derived from the real
+inner-cavity height rather than assumed, and cross-confirmed against
+`back_shell.scad`'s own independently-derived `board_to_face()`
+formula — both shells land on the identical mapping. See
+`front_shell.scad`'s `board_to_y()` comment for the full derivation.
+
 **Open items, not resolved in this bead** (also in the file's own
 footer comment): the encoder bushing diameter is an unconfirmed 7mm
-assumption; the board-to-face vertical mapping inherits
-`hardware/README.md`'s own flagged, unconfirmed assumption about where
-the 6mm board/face height slack sits; the display window's derived
-centre lands about 3.9mm off the face's exact horizontal centre
+assumption; the display window's derived centre lands about 3.9mm off
+the face's exact horizontal centre
 (expected, but unresolved against the original "center the window"
 design rule); the shell is modeled flat, not with the ADR's real
 ~15-degree lean or a final corner/edge styling pass; and front-to-back

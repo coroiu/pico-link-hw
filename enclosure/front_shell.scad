@@ -337,8 +337,10 @@ BTN_A = [102, 42]; // bottom of diamond
 // U201 now at board (99, 11.6), directly ABOVE this new diamond centre
 // (102,34), do the two collide? Checked against the real F.CrtYd boxes
 // hardware/scripts/place.py cites (not re-measured, not assumed): U201's
-// courtyard is x:[89.22,108.78] y:[1.72,21.98] (anchor (99,11.6) +/-
-// (9.78, ~10.1)); the diamond's own courtyard, place.py's pre-shift
+// courtyard is x:[89.22,108.78] y:[1.72,21.98] (anchor (99,11.6):
+// X +/-9.78 symmetric, Y asymmetric -9.88/+10.38, not the symmetric
+// ~10.1 this comment previously implied -- the numbers above are the
+// real range either way); the diamond's own courtyard, place.py's pre-shift
 // figure x:[88.93,115.07] y:[13.58,36.43] shifted +9 in Y to match this
 // move, is y:[22.58,45.43] (X unchanged). Gap between U201's bottom
 // (21.98) and the diamond's new top (22.58) is ~0.6mm -- adjacent, not
