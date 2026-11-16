@@ -10,8 +10,9 @@ before being re-created.
   * GND pour on F.Cu and B.Cu over the whole board.
   * +3V3 heat-spreader pour around U1's tab (AP2114H-3.3, SOT-223; the tab
     is VOUT) on F.Cu, mirrored on B.Cu and stitched with a via grid, solid
-    (no thermal-relief spokes) pad connection. See README "PCB layout" for
-    the thermal estimate this is sized against. Box re-centred on U1's new
+    (no thermal-relief spokes) pad connection. See README "Power subsystem"
+    (U1 thermal check) and "Known gaps" item 10 for the estimates this is
+    sized against. Box re-centred on U1's new
     free-pocket location (board-local x~100,y~42) for the upright-form-
     factor placement (pilink-7el.12); the thermal math from pilink-mxx is
     unaffected by XY position.
@@ -42,6 +43,7 @@ BOARD_W, BOARD_H = 118.0, 50.0
 SPREADER = (6.5, 5.0, 21.5, 15.5)
 VIA_PITCH = 1.5
 VIA_D, VIA_DRILL = 0.6, 0.3
+NUDGE_STEPS = 7              # via nudge search radius, in 0.1mm steps
 VIA_KEEPOUT = 0.35           # via edge to any foreign copper / pad / hole
 
 
@@ -104,11 +106,12 @@ def main():
 
     # J401's end GND pads (A1/B12, A12/B1 share a land) sit against the
     # shell stakes and only have room for one thermal spoke; connect solid.
-    # (S1-S4 shell-stake pads too: the router's GND tracks to them leave
-    # one spoke on some runs.)
+    # (The four shell-stake pads are all numbered "S1" in the footprint, so
+    # matching on "S1" covers them all; the router's GND tracks to them
+    # leave one spoke on some runs.)
     for pad in board.FindFootprintByReference("J401").Pads():
         if pad.GetNetname() == "GND" and pad.GetNumber() in (
-                "A1", "A12", "B1", "B12", "S1", "S2", "S3", "S4"):
+                "A1", "A12", "B1", "B12", "S1"):
             pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
 
     # J501 pad 5 (GND, pilink-dya footprint sync): the FC-05B40P21H20's
@@ -118,6 +121,21 @@ def main():
         if pad.GetNetname() == "GND" and pad.GetNumber() == "5":
             pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
 
+    # pilink-xzs: the router leaves sub-5um stubs at U101 pins 66/67 (USB
+    # D-/D+) where its grid snap misses the pad centre by 0.5um; drop them.
+    for t in list(board.GetTracks()):
+        if (t.GetClass() == "PCB_TRACK" and not t.IsLocked()
+                and t.GetNetname() in ("USB_DP", "USB_DM")
+                and t.GetLength() < 5000):   # 5um, in nm
+            board.Remove(t)
+
+    # U103 pad 4 (GND): after the pilink-xzs XIN pre-route change the router's
+    # GND track to it leaves a single thermal spoke (DRC starved_thermal);
+    # same solid-connect fix as the J401/J501 pads above.
+    for pad in board.FindFootprintByReference("U103").Pads():
+        if pad.GetNetname() == "GND" and pad.GetNumber() == "4":
+            pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
+
     add_sw_keepouts(board)   # Alps SKRTLAE010 no-copper areas (pilink-ge9)
     full = (0, 0, BOARD_W, BOARD_H)
     add_zone(board, "GND", pcbnew.F_Cu, full, 0, name="GND_F")
@@ -125,26 +143,39 @@ def main():
     add_zone(board, "+3V3", pcbnew.F_Cu, SPREADER, 1, solid=True, name="U1_HEAT_F")
     add_zone(board, "+3V3", pcbnew.B_Cu, SPREADER, 1, solid=True, name="U1_HEAT_B")
 
+    # pilink-xzs: the router's own tracks/pads block some nominal grid
+    # points, which dropped the count 24 -> 13 after the pilink-rqd re-route.
+    # Instead of skipping a blocked point, nudge it to the nearest legal spot
+    # within NUDGE_STEPS x 0.1mm (nearest first) so the grid is kept.
     net = board.FindNet("+3V3")
     x0, y0, x1, y1 = SPREADER
+    steps = sorted(((dx, dy) for dx in range(-NUDGE_STEPS, NUDGE_STEPS + 1)
+                    for dy in range(-NUDGE_STEPS, NUDGE_STEPS + 1)),
+                   key=lambda d: d[0] ** 2 + d[1] ** 2)
     n = 0
     y = y0 + 1.0
     while y <= y1 - 1.0:
         x = x0 + 1.0
         while x <= x1 - 1.0:
-            pos = pt(x, y)
-            if via_ok(board, pos, "+3V3"):
-                v = pcbnew.PCB_VIA(board)
-                v.SetPosition(pos)
-                v.SetWidth(pcbnew.F_Cu, MM(VIA_D))
-                v.SetDrill(MM(VIA_DRILL))
-                v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
-                v.SetNet(net)
-                v.SetLocked(True)
-                board.Add(v)
-                n += 1
+            for dx, dy in steps:
+                nx, ny = x + dx * 0.1, y + dy * 0.1
+                if not (x0 + 0.8 <= nx <= x1 - 0.8 and y0 + 0.8 <= ny <= y1 - 0.8):
+                    continue
+                pos = pt(nx, ny)
+                if via_ok(board, pos, "+3V3"):
+                    v = pcbnew.PCB_VIA(board)
+                    v.SetPosition(pos)
+                    v.SetWidth(pcbnew.F_Cu, MM(VIA_D))
+                    v.SetDrill(MM(VIA_DRILL))
+                    v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+                    v.SetNet(net)
+                    v.SetLocked(True)
+                    board.Add(v)
+                    n += 1
+                    break
             x += VIA_PITCH
         y += VIA_PITCH
+    print("+3V3 stitching vias:", n)
 
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
     pcbnew.SaveBoard(BOARD, board)

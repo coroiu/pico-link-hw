@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-off local reroute of SW101/SW102 around the Alps no-copper area
+"""RETIRED (pilink-xzs): aborts. One-off local reroute of SW101/SW102 around the Alps no-copper area
 (pilink-ge9). Usage (from hardware/):  python3 scripts/sw_reroute.py
 
 Freerouting had run pad-2 GND and the pad-1 BOOTSEL/RESET net straight
@@ -19,6 +19,7 @@ full place/route/zones re-run supersedes it, since route.py now loads the
 keepouts before Freerouting.
 """
 import os
+import sys
 
 import pcbnew
 
@@ -82,6 +83,9 @@ def add_via(board, net, p):
 
 
 def main():
+    sys.exit("sw_reroute.py is retired (pilink-xzs): it causes shorts on the "
+             "current routing. route.py already loads the sw_keepout.py rule "
+             "areas before Freerouting, so fresh runs avoid the keepout.")
     board = pcbnew.LoadBoard(BOARD)
     for ref, cfg in SWITCHES.items():
         sw = board.FindFootprintByReference(ref)

@@ -15,7 +15,9 @@ Idempotent: it first deletes every track/via on the nets it owns.
     F.Cu to a via, runs B.Cu as a 45-degree parallel pair under U101's
     body to a via just inside pins 66/67, and returns to the pin on F.Cu.
   * XIN / XOUT: out of U101's bottom edge between decoupling caps C110/C117,
-    then to Y101 pad 1 / R101 pad 2 (F.Cu). XTAL2 (R101 pad 1 -> Y101 pad 3) is
+    then to Y101 pad 1 / R101 pad 2 (F.Cu), ending at each pad's centre
+    (pilink-xzs: XIN used to stop 0.57mm short of Y101 pad 1 and leave the
+    last bit to the router). XTAL2 (R101 pad 1 -> Y101 pad 3) is
     left to the router.
 
 Geometry is derived from the pads' actual positions, so it follows the
@@ -112,7 +114,7 @@ def main():
     # point where XOUT has already turned away from XIN)
     xr = xin[0] + 0.1
     path(XIN, F, [xin, (xin[0], 133.4), (xr, 133.5), (xr, y_xin[1] - 1.0),
-                  (xr - 0.6, y_xin[1] - 0.4)])
+                  (xr - 0.6, y_xin[1] - 0.4), y_xin])
     path(XOUT, F, [xout, (xout[0], r_xout[1] - 0.96),
                    (xout[0] + 0.93, r_xout[1] - 0.03), r_xout])
 
