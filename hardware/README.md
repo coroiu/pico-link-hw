@@ -1219,21 +1219,21 @@ verification entry above:
    fix + USB-C boss-pad clamp both already merged) first suggested a
    comfortable margin, but redoing it with a real mated-cable boot
    (sourced real example: Anker 515 cable, 6.3mm-thick plug head cover)
-   found the boot contacts the back-shell's own base strip itself --not
-   the table -- only about 3mm out from the connector's mating face for
-   boots at or above that sourced diameter; thinner boots (below ~5.7mm)
-   clear the strip but still hit the table far sooner (~12-16mm out) than
-   the original ~22.8mm claim. This is a real, elevated-probability
-   physical-interference risk at the current geometry, not a confirmed
-   collision (no cable is chosen for this product) and not something
-   this bead's own scope (investigation only) resolves by changing
-   `back_shell.scad`. No PCB re-placement of J401 is warranted by
-   anything found so far -- the issue is the base-strip geometry around a
-   confirmed-good connector position, not the position itself. Carried
-   forward as the decisive check in `pilink-q03` (now also covering
-   whether the boot can enter the 10x5mm USB-C cutout/boss tunnel at
-   all), with a local base-strip relief notch under J401 flagged as the
-   *likely* needed fix once a prototype and a real cable exist, not just
-   a remote possibility. Full numbers and reasoning:
-   `enclosure/README.md`'s "USB-C cable-vs-table clearance (`pilink-8ry`)"
-   section.
+   found a materially worse result. Two base-strip positions matter: the
+   placeholder in `back_shell.scad` (back edge Z=-8.125mm) is hit by
+   every boot at or above ~4.93mm diameter (the crossover is where the
+   boot's radius exceeds the 2.465mm perpendicular clearance), ~3-6mm out;
+   the design-decision position (back edge Z~-0.88mm, 2.25mm in front of
+   the plug, never under the cable) is not hit at all, and then every
+   5.0-6.5mm boot hits the **table** ~10.6-13.4mm out along the cable
+   (6.3mm Anker boot: ~11mm along, ~9.8mm horizontal), versus the
+   original, wrong ~22.8mm. Table contact is independent of any strip
+   notch; it only goes away if the plug's rigid moulded end is shorter
+   than ~11mm (unsourced), the body is raised (roughly 1-5mm for a
+   15-30mm rigid end), or J401 is moved higher on the PCB -- all still
+   open. Not a confirmed collision (no cable is chosen) and
+   `back_shell.scad` is untouched (investigation only). Carried forward
+   in `pilink-q03` (table contact first; strip only if the placeholder
+   position ships; plus whether the boot can enter the 10x5mm cutout
+   tunnel). Full numbers and reasoning: `enclosure/README.md`'s "USB-C
+   cable-vs-table clearance (`pilink-8ry`)" section.

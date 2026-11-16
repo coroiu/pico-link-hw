@@ -171,13 +171,13 @@ conclusion about real cables** — see Step 2.
 The base strip's own Z position is keyed off this file's documented
 `front_edge_z` approximation (`BACK_SHELL_DEPTH = 6.6mm`, *not* the real
 front-shell edge, which the file's own `BODY_T` stack-up says sits a
-further `FACE_T + FRONT_CAVITY = 7.5mm` forward **along the local Q
-axis**). Correcting that stand-in — a known, already-flagged
+further `FACE_T + FRONT_CAVITY = 7.5mm` forward **along bz
+(depth)**). Correcting that stand-in — a known, already-flagged
 simplification, not something this bead's own scope allows fixing
 (`back_shell.scad`'s geometry isn't touched here) — would shift the whole
 base-strip + leg assembly forward by `7.5mm x cos(15°) = 7.24mm` in world
-Z (not 7.5mm — the shift is along the *local*, pre-rotation axis, and
-world Z is the rotated projection of it), away from the back wall and the
+Z (not 7.5mm — the shift is along the *local*, pre-rotation bz depth
+axis, and world Z is the rotated projection of it), away from the back wall and the
 connector, moving the strip's back edge from Z=-8.12mm to about
 **Z=-0.88mm** (not -0.6mm as an earlier draft of this section had it;
 correction from the same review). This stand-in-correction argument only
@@ -207,101 +207,105 @@ That's used below as the centre of a **5.0-6.5mm conservative range**
 
 **Model.** The boot is modeled as a rigid cylinder of diameter `D`
 centred on the same idealized mating axis used in Step 1 (same
-zero-droop, straight-line simplification — now just given thickness). At
-a point `s` mm out along that axis, the lowest point on the cylinder's
-surface sits `D/2 x cos(15°)` below the axis itself (the perpendicular
-offset of a circle's lowest point on a line tilted 15° from vertical,
-derived directly, not assumed — see the git history of this file's
-companion analysis for the derivation if it needs rechecking).
+zero-droop, straight-line simplification — now just given thickness). The
+axis points along -bz, i.e. 15° *below horizontal*, heading backward. The
+cylinder's lower edge is the axis offset by `r = D/2` perpendicular to
+it, which sits `r x cos(15°)` below the axis in world Y at the same `s`.
 
-**Result — and the governing obstacle changes, not just the distance:**
+**Result.** Two strip positions matter, because the one in
+`back_shell.scad` is a flagged stand-in (see Step 1's last paragraph):
 
-| Boot diameter `D` | Governing obstacle | Contact point |
+- **Placeholder** (as built: back edge world Z = -8.125mm). The boot's
+  lower edge touches the strip's back-edge corner once its *radius*
+  exceeds the corner's 2.465mm perpendicular clearance from the axis, so
+  the strip-vs-table crossover is **D = 4.93mm** (not ~5.7mm, an earlier
+  draft's error). Every boot in the 5.0-6.5mm range hits the strip.
+- **Design-decision position** (back edge Z = -0.88mm, the position the
+  ADR's front-edge reference implies). That edge is 2.25mm *in front of*
+  the plug's mating face (Z = -3.13mm), so the strip is never under the
+  cable, and no boot in the range can hit it. The **table** is the only
+  obstacle.
+
+"Along" is measured along the axis from the connector's mating face;
+"horizontal" is the table-plane distance from that face (the axis points
+15 degrees below horizontal, so horizontal is a little less than along).
+Strip-hit distance is where the boot's lower edge reaches strip-top
+height (Y = 2.0mm); table-hit is where it reaches Y = 0.
+
+| Boot `D` | Placeholder strip (Z=-8.125) | Design-decision strip (Z=-0.88) |
 |---|---|---|
-| 5.0mm | table (strip is already behind it) | ~13.4mm out |
-| 5.5mm | table | ~12.5mm out |
-| ~5.7mm | **crossover** — see below | ~4-8mm out |
-| 6.0mm | **base strip itself** | ~3.8mm out |
-| 6.3mm (sourced, Anker 515) | **base strip itself** | ~3.3mm out |
-| 6.5mm | **base strip itself** | ~2.9mm out |
+| 5.0mm | **strip**, ~5.7mm along | **table**, ~13.4mm along (~12.3 horiz.) |
+| 5.5mm | **strip**, ~4.8mm along | **table**, ~12.5mm along (~11.4 horiz.) |
+| 6.0mm | **strip**, ~3.8mm along | **table**, ~11.6mm along (~10.4 horiz.) |
+| 6.3mm (Anker 515) | **strip**, ~3.3mm along | **table**, ~11.0mm along (~9.8 horiz.) |
+| 6.5mm | **strip**, ~2.9mm along | **table**, ~10.6mm along (~9.4 horiz.) |
 
-For boots thinner than about 5.7mm diameter, the boot's underside dips
-below the strip's top height (Y=2.0mm) only *after* it has already
-passed the strip's back edge in Z — so it clears the strip (consistent
-with Step 1's zero-thickness pinch point) and the open table beyond is
-what it eventually touches, at roughly 12.5-16mm out depending on exact
-diameter — much sooner than the zero-thickness line's 22.8mm, but still
-past the strip.
+Below D = 4.93mm the placeholder strip is also cleared and the table is
+again the first contact (e.g. D = 4.5mm: ~14.4mm along), but that is
+outside the 5.0-6.5mm range used here. Method: boot = 2D offset of the
+axis by `r = D/2`, perpendicular to it. With axis direction
+`(dy, dz) = (-sin15, -cos15)` from the face `(5.890, -3.131)`, the boot's
+lower edge sits `r cos15` below the axis, so table contact is at
+`s = (5.890 - r cos15) / sin15`. This simplified method ignores the small
+sideways (`r sin15`) shift of the lowest point, which is accounted for
+only in the "horiz." column. Both strip positions follow from the file's
+own numbers; no extra modelling was needed for the second.
 
-For boots at or above about 5.7mm diameter — which includes the one
-sourced real product above (6.3mm) — the boot's underside drops below
-the strip's own top surface **while it is still over the strip**, not
-past it: the governing collision is with the **raised base strip itself**,
-only about **3-4mm out from the connector's own mating face**. This is a
-materially worse result than either this PR's original "~22.8mm,
-comfortable margin" claim or the "~10mm out" ballpark the review used to
-flag the finding — both of those numbers are table-contact distances;
-neither accounts for the boot hitting the strip itself first, which this
-corrected model shows happens for boots at or above the sourced real
-diameter.
+**Which strip position ships.** The design-decision one (Z = -0.88) is
+the intended geometry; the placeholder exists only because the front
+shell's real base profile did not exist when `back_shell.scad` was
+authored. If the placeholder ships unchanged, the strip is the first
+obstacle for every boot at or above ~4.93mm and a relief notch helps
+with *that* contact only.
 
-The Step 1 "front_edge_z stand-in is conservative, so real clearance is
-probably better" argument does **not** rescue this: it only shifts the
-*strip's* position (potentially out of the way, forward, away from the
-connector) once the real front-shell edge exists — it doesn't change
-where the boot's underside drops below Y=2.0mm relative to the
-connector, so a thinner boot might still clear a shifted strip, but a
-thick one crossing the strip at only ~3mm out is not obviously rescued by
-a strip that may end up ~7mm further forward; that interaction isn't
-modeled here and would need the real front-shell geometry to check.
+**Table contact does not depend on a strip notch.** At the
+design-decision strip position (or with a notch cut anywhere), a 6.3mm
+boot's rigid end still reaches the table about 11mm along the axis
+(~9.8mm horizontal). A notch changes nothing about this; only geometry
+that moves the connector relative to the table does.
 
-**Boot vs. the cutout/boss itself (review finding #2).** Separately from
-table/strip clearance, `back_shell.scad:229-230`'s `USBC_CUTOUT_W/H =
-10.0 x 5.0mm` tunnel runs from the boss's outer face (`bz=-2.0`,
-`USBC_BOSS_RISE`) to past the receptacle's own mating face (`bz=-1.5`) —
-a 0.5mm-deep recess the plug has to clear to fully seat. A boot wider
-than 10mm or thicker than 5mm can't pass through that tunnel at all. This
-file's own comment at `back_shell.scad:223-228` already flags this as
-open. Reasoning, not a confirmed resolution: USB-C plugs expose several
-millimetres of bare, un-overmolded metal shell beyond the mating contacts
-before the boot/overmold begins (standard mechanical convention for
-depth-of-insertion and compliance-test-fixture engagement, not a specific
-datasheet figure found for this bead) — almost certainly more than this
-tunnel's 0.5mm depth, so the overmold most likely never has to enter the
-tunnel at all; it would rest against the boss's outer face once the bare
-shell bottoms out in the receptacle. This is plausible, not verified, and
-is added to `pilink-q03`'s scope below rather than asserted as settled.
+- **How short would the rigid end have to be?** The rigid moulded end
+  (plug shell + overmold, before the flexible jacket) must end before
+  the table-contact distance: **under ~11mm for the 6.3mm Anker boot**
+  (under ~10.6mm at 6.5mm, ~13.4mm at 5.0mm), measured from the
+  receptacle's mating face. The Anker page gives no head length, so this
+  is unsourced; a real cable's overmold length is the deciding unknown.
+- **Option (a), raise the body / lengthen the feet.** For a 6.3mm boot
+  with a rigid end of length `L` along the axis, the lift needed is
+  `L sin15 + r cos15 - 5.89`: ~0 for L <= 11mm, ~1.0mm for L = 15mm,
+  ~2.3mm for L = 20mm, ~3.6mm for L = 25mm, ~4.9mm for L = 30mm. (The
+  strip is 2.0mm tall and the connector face is 5.89mm up, so the body
+  would have to sit on feet/strip that add this much height.)
+- **Option (b), move J401 higher on the PCB** stays open: it raises the
+  face height by ~cos15 (0.97mm) per mm moved, without touching the
+  enclosure's resting height, and nothing here argues against it.
 
-**Conclusion: do not treat this as resolved/"comfortable margin."** The
-original "~22.8mm out, comfortable margin" claim does not hold for any
-realistic cable — once the boot has real thickness, the contact point
-moves to somewhere between ~3mm and ~16mm out depending on boot diameter,
-and for boots at or above the one sourced real diameter checked here
-(6.3mm), the governing obstacle is the **base strip itself**, not the
-table, at only ~3mm out. This is a real, elevated-probability physical
-interference for many real cables at the current geometry — not a
-confirmed collision (no cable is chosen, and boot shapes/lengths vary
-enough that a thin-boot cable could still clear), but no longer a case
-that supports "accept as comfortable margin" either.
+**Boot vs. the cutout/boss itself.** Separately from table/strip
+clearance, `back_shell.scad:229-230`'s `USBC_CUTOUT_W/H = 10.0 x 5.0mm`
+tunnel runs from the boss's outer face (`bz=-2.0`, `USBC_BOSS_RISE`) to
+past the receptacle's own mating face (`bz=-1.5`), a 0.5mm-deep recess
+the plug has to clear to fully seat. A boot wider than 10mm or thicker
+than 5mm can't pass through that tunnel at all. The file's own comment at
+`back_shell.scad:223-228` already flags this as open. What matters is how
+much bare, un-overmolded metal shell is still *outside the receptacle*
+when the plug is fully mated, and whether that exceeds the 0.5mm recess
+(it is much less than the plug's total bare length, which is partly
+inside the receptacle). That figure isn't sourced for any real cable
+here, so this is open, not settled, and is in `pilink-q03`'s scope.
 
-This bead's own scope is investigation, not a geometry fix, and nothing
-in this analysis — zero-thickness or real-boot alike — points to J401's
-*placement* (option (b), a PCB re-route) as the problem; the issue is the
-back-shell base-strip geometry built around a confirmed-good connector
-position, which is option (a)'s territory. `pilink-q03` (discovered from
-`pilink-8ry`) is updated to carry this forward as the decisive check: once
-a back-shell prototype and a real cable both exist (both a physical
-action only a human can take), verify (1) whether the mated cable's boot
-actually foul the strip or the table at J401's current position, now
-checking the strip explicitly, not just the table, and (2) whether the
-boot can physically enter the 10x5mm cutout/boss tunnel per the reasoning
-above. Given how little margin this analysis finds for any boot at or
-above the sourced real diameter, a small local relief/notch cut into the
-base strip under J401 (pilink-q03's own stated fallback, bounded, not a
-full redesign) looks like the *likely* needed fix, not just a remote
-possibility — but that's `pilink-q03`'s call once real parts exist, not
-resolved here, and `back_shell.scad` itself is intentionally not touched
-by this docs-only bead.
+**Conclusion: not resolved, and no longer pointing at the strip alone.**
+Table contact at ~10-13mm along the axis is the primary finding for the
+intended strip position, and it is the bead's original (a)-vs-(b)
+question: it only goes away if the cable's rigid end is shorter than
+~11mm (6.3mm boot), or the face is raised (option (a): body/feet lift,
+estimate above) or J401 is moved higher (option (b)). Neither is chosen
+here and no PCB re-placement is ruled out. The placeholder strip adds a
+second, earlier contact (~3-6mm along) that only exists while the
+placeholder position ships. This bead is investigation only;
+`back_shell.scad` is intentionally not touched. `pilink-q03` carries the
+physical check: with a printed prototype and a real cable, check table
+contact first, the strip only if the placeholder strip position ships,
+and the cutout-tunnel entry above.
 
 ## `antenna_mount.scad` (pilink-8hx.4)
 
