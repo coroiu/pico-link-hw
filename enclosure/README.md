@@ -227,7 +227,7 @@ centreline Qface 15.0 (was 6.5). Boss pad: `usbc_boss_pad_q0/q1` = 9.0 /
 21.0 (the `USBC_BOSS_RISE*tan(15)` = 0.54mm clamp is now inactive); cutout
 Q 12.5..17.5. Lateral X is unchanged, so the leg clearance echoes (~31.5mm
 each side) hold. The four PCB mounting holes did not move (re-read from
-the board: (10,44), (112,6), (112,44), (59,4)).
+the board: (10,44), (112,6), (112,44), (59,2.5)).
 
 **U201 relief (not a 0.2mm boss).** Envelope above the host PCB back
 surface: module 3.2mm; mated U.FL-LP-066 plug 0.8 (module PCB top,

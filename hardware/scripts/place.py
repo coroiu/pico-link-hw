@@ -61,7 +61,7 @@ HOLE_D = 2.2  # M2 clearance, NPTH
 # whole left edge, so holes are placed in the genuinely free pockets --
 # top-right and bottom-right of the button zone, the bottom-left strip
 # below the encoder, and the gap between the top-edge switches and J501.
-HOLES = [(10, 44), (112, 6), (112, 44), (59, 4)]
+HOLES = [(10, 44), (112, 6), (112, 44), (59, 2.5)]  # H4 y 4->2.5: pilink-8ag screw-head vs panel
 
 # Display panel shadow, per the ADR/proposal 6c panel-shadow rule: 59x42mm,
 # centred on the face window. Derived from J501's own anchor math below (not
