@@ -39,6 +39,12 @@ few seconds -- no restart needed.
   `.kicad_pro` is used to pick the root rather than picking the first file by
   name) and exports it to a single PDF via `kicad-cli sch export pdf`, which
   pulls in every hierarchical child sheet as extra pages.
+- The PCB GLB (copper tracks, pads, vias and zones/GND pours included) is
+  post-processed with `gltf-transform optimize` (meshopt compression, no
+  simplification): the raw `kicad-cli` export is ~13.5MB in ~17k separate
+  primitives, which lags in the browser; optimized it's ~1.1MB in 3 draw
+  calls with identical geometry. `site/index.html` points `<model-viewer>`
+  at the vendored meshopt decoder.
 - `scripts/entrypoint.sh` runs that export once, starts a plain
   `python3 -m http.server` on `0.0.0.0:$PORT`, then runs `inotifywait` in
   monitor mode against the mounted `hardware/`/`enclosure/` directories and

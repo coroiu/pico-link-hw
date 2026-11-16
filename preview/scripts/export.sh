@@ -48,15 +48,35 @@ export_pcb() {
   echo "[export] PCB source: $pcb"
 
   # --include-{tracks,pads,zones} are off by default (board body + 3D
-  # component models only) -- without them copper, pads and vias are
-  # invisible in the GLB, not just low-contrast.
+  # component models only) -- without them copper, pads, vias and the GND
+  # pours are invisible in the GLB, not just low-contrast.
+  #
+  # The raw export is heavy for a browser (~13.5MB, ~17k separate primitives
+  # -- one per track segment/pad/via/zone fragment; the draw-call count, not
+  # the ~210k triangles, is what made it lag on phones). gltf-transform
+  # `optimize` joins same-material meshes (-> 3 draw calls) and applies
+  # meshopt compression (-> ~1.1MB). --simplify false keeps geometry exact so
+  # thin traces aren't distorted; it only saved ~0.3MB anyway. --instance
+  # false because model-viewer frames the camera on the un-instanced mesh
+  # bounds with EXT_mesh_gpu_instancing, so the board showed up as a speck.
+  # If optimize fails for any reason, fall back to serving the raw export.
+  local raw_glb
+  raw_glb="$(mktemp --suffix=.glb)"
   if kicad-cli pcb export glb --subst-models -f \
       --include-tracks --include-pads --include-zones \
-      -o "$SITE_DIR/models/pcb.glb" "$pcb" 2>&1; then
-    echo "[export] wrote $SITE_DIR/models/pcb.glb"
+      -o "$raw_glb" "$pcb" 2>&1; then
+    if gltf-transform optimize "$raw_glb" "$SITE_DIR/models/pcb.glb" \
+        --compress meshopt --texture-compress false --simplify false \
+        --instance false 2>&1; then
+      echo "[export] wrote $SITE_DIR/models/pcb.glb (optimized)"
+    else
+      echo "[export] WARNING: gltf-transform optimize failed; serving raw GLB" >&2
+      cp -f "$raw_glb" "$SITE_DIR/models/pcb.glb"
+    fi
   else
     echo "[export] WARNING: kicad-cli glb export failed for $pcb" >&2
   fi
+  rm -f "$raw_glb"
 
   # Note: unlike `pcb export glb`, `pcb export svg` has no -f/--force flag;
   # it overwrites the output file unprompted, so just remove any stale one
