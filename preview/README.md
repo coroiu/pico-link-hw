@@ -26,13 +26,20 @@ few seconds -- no restart needed.
 
 ## How it works
 
-- Base image: `kicad/kicad:8.0` (ships `kicad-cli`), plus `openscad`,
-  `python3-trimesh` (for STL -> GLB, since OpenSCAD has no native glTF
+- Base image: `kicad/kicad:10.0` (ships `kicad-cli`), plus `openscad`,
+  `trimesh` (pip; for STL -> GLB, since OpenSCAD has no native glTF
   export) and `inotify-tools` (file watcher), installed in `Dockerfile`.
-- `scripts/export.sh` finds the first `*.kicad_pcb` under `hardware/` and the
-  first `*.scad` under `enclosure/`, exports the PCB straight to GLB (and a
-  2D SVG render) via `kicad-cli`, and renders the enclosure to STL via
-  `openscad` then converts STL -> GLB via `trimesh`. It also finds the root
+- `scripts/export.sh` finds the first `*.kicad_pcb` under `hardware/` and
+  exports it straight to GLB (and a 2D SVG render) via `kicad-cli`. It then
+  runs `scripts/export_enclosure.py`, which renders every enclosure part
+  (front shell, back shell + base strip, both legs, knob, button plunger,
+  antenna mount) to STL via `openscad` (in parallel), converts them with
+  `trimesh` into one coloured GLB per part plus `assembly.glb` -- every part
+  in its assembled position, with the PCB placed using the .scad files' own
+  face mapping (`X = board_x + 2`, `Q = 52 - board_y`, PCB front surface
+  7.5mm behind the outer face) and the 15 degree lean -- and a
+  `parts.json` manifest the page's part picker is built from. Each GLB is
+  meshopt-compressed like the PCB one. It also finds the root
   schematic sheet (the `*.kicad_sch` whose basename matches the project's
   `*.kicad_pro` file -- the project's child sheets are separate `.kicad_sch`
   files that would sort first alphabetically, so a name match against the
@@ -55,14 +62,12 @@ few seconds -- no restart needed.
   changes, so the page updates live without a manual refresh (a plain
   refresh works too).
 
-## Seed/placeholder files
+## Adding enclosure parts
 
-`hardware/placeholder.kicad_pcb` was deleted when the real, placed and
-routed PCB landed (`pilink-7el.12`); the pipeline now picks up
-`hardware/pico-link-hw.kicad_pcb` instead. `enclosure/` still only contains
-a placeholder design file (`cube.scad`) -- the real enclosure lands via a
-separate epic (`pilink-8hx`). The pipeline picks up whatever matching file
-it finds, so no changes are needed here once that lands either.
+`export_enclosure.py` has an explicit part list (`PARTS` plus each part's
+placement) rather than globbing `enclosure/*.scad`, because each file uses
+its own frame and some need a `-D PART=...` flag or a wrapper. A new part
+file needs an entry there to show up.
 
 ## Known cosmetic issue
 

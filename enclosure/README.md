@@ -10,11 +10,10 @@ OpenSCAD isn't available in the agent environment this repo was scaffolded
 in. A parametric `.scad` file can be authored as code, but rendering and
 fit-checking need OpenSCAD installed on a machine that has it.
 
-`cube.scad` is a trivial seed file for the `preview/` docker-compose
-service — it proves the OpenSCAD -> STL -> GLB export pipeline end-to-end
-before the real enclosure exists. Delete it once the real enclosure from
-pilink-8hx lands; the preview pipeline picks up whatever `*.scad` file it
-finds here.
+The `preview/` docker-compose service renders every part here (see
+`preview/scripts/export_enclosure.py` for the part list and how each is
+placed) into a per-part view plus an assembled view with the PCB in place.
+Adding a new part file means adding it to that script's part list.
 
 ## Front shell (`front_shell.scad`, `pilink-8hx.2`)
 

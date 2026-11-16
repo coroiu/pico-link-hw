@@ -4,10 +4,9 @@
 # PDF, under $SITE_DIR, then writes status.json with the export timestamp so
 # the web page can show "last updated" and cache-bust models.
 #
-# Picks the first matching file in each directory (sorted by name) -- today
-# that's the placeholder seed file; once the real design files land from
-# pilink-7el/pilink-8hx this picks those up with no changes needed here.
-# The schematic is the exception: a KiCad project has one root sheet plus
+# The PCB is the first *.kicad_pcb by name. The enclosure is every part --
+# export_enclosure.py knows the part list and how each is placed. The
+# schematic is picked specially too: a KiCad project has one root sheet plus
 # several child sheet files (all *.kicad_sch), so picking "first by name"
 # would be wrong -- see export_schematic() below for how the root is found.
 set -uo pipefail
@@ -17,6 +16,8 @@ HARDWARE_DIR="${HARDWARE_DIR:-/work/hardware}"
 ENCLOSURE_DIR="${ENCLOSURE_DIR:-/work/enclosure}"
 
 mkdir -p "$SITE_DIR/models" "$SITE_DIR/renders"
+WORK_DIR="$(mktemp -d)"
+trap 'rm -rf "$WORK_DIR"' EXIT
 
 find_root_schematic() {
   # A KiCad project's root schematic shares its basename with the .kicad_pro
@@ -60,8 +61,9 @@ export_pcb() {
   # false because model-viewer frames the camera on the un-instanced mesh
   # bounds with EXT_mesh_gpu_instancing, so the board showed up as a speck.
   # If optimize fails for any reason, fall back to serving the raw export.
-  local raw_glb
-  raw_glb="$(mktemp --suffix=.glb)"
+  # The raw export is kept in $WORK_DIR for export_enclosure's assembly view
+  # (trimesh can't read the meshopt-compressed copy).
+  local raw_glb="$WORK_DIR/pcb-raw.glb"
   if kicad-cli pcb export glb --subst-models -f \
       --include-tracks --include-pads --include-zones \
       -o "$raw_glb" "$pcb" 2>&1; then
@@ -75,8 +77,8 @@ export_pcb() {
     fi
   else
     echo "[export] WARNING: kicad-cli glb export failed for $pcb" >&2
+    rm -f "$raw_glb"
   fi
-  rm -f "$raw_glb"
 
   # Note: unlike `pcb export glb`, `pcb export svg` has no -f/--force flag;
   # it overwrites the output file unprompted, so just remove any stale one
@@ -104,29 +106,40 @@ export_pcb() {
 }
 
 export_enclosure() {
-  local scad tmp_stl
-  scad=$(find "$ENCLOSURE_DIR" -maxdepth 1 -name '*.scad' 2>/dev/null | sort | head -n1)
-  if [[ -z "$scad" ]]; then
+  # Renders every enclosure part (not just one .scad file) and builds one
+  # GLB per part plus assembly.glb (all parts in place, with the PCB when
+  # $WORK_DIR/pcb-raw.glb exists) -- see export_enclosure.py for the frames
+  # and placements. Each GLB is then meshopt-compressed the same way as
+  # pcb.glb. Built in a staging dir and swapped in at the end so the page
+  # never sees a half-written set.
+  if ! find "$ENCLOSURE_DIR" -maxdepth 1 -name '*.scad' 2>/dev/null | grep -q .; then
     echo "[export] no .scad file found in $ENCLOSURE_DIR yet"
     return 0
   fi
-  echo "[export] enclosure source: $scad"
-
-  tmp_stl="$(mktemp --suffix=.stl)"
-  if openscad -o "$tmp_stl" "$scad" 2>&1; then
-    if python3 -c "
-import sys
-import trimesh
-trimesh.load(sys.argv[1]).export(sys.argv[2])
-" "$tmp_stl" "$SITE_DIR/models/enclosure.glb"; then
-      echo "[export] wrote $SITE_DIR/models/enclosure.glb"
-    else
-      echo "[export] WARNING: trimesh stl->glb conversion failed for $scad" >&2
-    fi
-  else
-    echo "[export] WARNING: openscad render failed for $scad" >&2
+  local stage="$WORK_DIR/enclosure" out="$SITE_DIR/models/enclosure" pcb f
+  mkdir -p "$stage/raw" "$stage/opt"
+  pcb=$(find "$HARDWARE_DIR" -maxdepth 1 -name '*.kicad_pcb' 2>/dev/null | sort | head -n1)
+  if ! python3 /preview/scripts/export_enclosure.py "$ENCLOSURE_DIR" "$stage/raw" \
+      "$WORK_DIR/pcb-raw.glb" "$pcb" 2>&1; then
+    echo "[export] WARNING: some enclosure parts failed to render (see above)" >&2
   fi
-  rm -f "$tmp_stl"
+  [[ -f "$stage/raw/parts.json" ]] || return 0
+  cp -f "$stage/raw/parts.json" "$stage/opt/parts.json"
+  for f in "$stage"/raw/*.glb; do
+    [[ -e "$f" ]] || continue
+    # --simplify false keeps printed-part geometry exact; --instance false
+    # for the same model-viewer framing reason as pcb.glb.
+    if ! gltf-transform optimize "$f" "$stage/opt/$(basename "$f")" \
+        --compress meshopt --texture-compress false --simplify false \
+        --instance false >/dev/null 2>&1; then
+      echo "[export] WARNING: gltf-transform optimize failed for $(basename "$f"); serving raw" >&2
+      cp -f "$f" "$stage/opt/"
+    fi
+  done
+  rm -rf "$out.old"
+  [[ -d "$out" ]] && mv -f "$out" "$out.old"
+  mv -f "$stage/opt" "$out" && rm -rf "$out.old"
+  echo "[export] wrote $(ls "$out" | grep -c '\.glb$') enclosure GLBs to $out"
 }
 
 export_schematic() {
