@@ -930,7 +930,6 @@ The board is generated, not hand-drawn. From `hardware/`, in this order:
 | 1c | `scripts/preroute.py` | Locked hand pre-route of USB D+/D- and the crystal (run after `place.py`, before `route.py`; idempotent) |
 | 2 | `scripts/route.py` | Freerouting autoroute of every net except the pre-routed ones (Specctra DSN/SES round-trip) |
 | 3 | `scripts/widen.py` | Widens +3V3/+1V1/VREG_LX/VBUS_RAW to 0.4mm wherever DRC allows |
-| 3b | `scripts/sw_reroute.py` | One-off, idempotent local reroute of SW101/SW102 pad-2 GND and BOOTSEL/RESET around the keepout (only needed on the committed board; a fresh `route.py` run already avoids it; run before `zones.py`) |
 | 4 | `scripts/zones.py` | GND pours on both layers, +3V3 heat spreader and stitching vias at U1 (grid points nudged to stay legal), USB stub cleanup |
 | check | `scripts/drc_summary.py -v` | `kicad-cli pcb drc` with schematic parity, summarised |
 | check | `scripts/netlist_check.py` | Pin-for-pin diff of board nets against a fresh schematic netlist |
@@ -1349,15 +1348,18 @@ scripts):
     `"S1"` only (all four are numbered `S1`, so the old `S2-S4` entries
     never matched), removes the sub-5um USB stubs the router leaves at
     U101 pins 66/67, and nudges each blocked +3V3 stitching-via grid point
-    to the nearest legal spot (<=0.7mm) instead of dropping it: **36**
+    to the nearest legal spot (up to 0.7mm per axis, ~1mm diagonal) instead of dropping it: **36**
     vias, up from 13 after the `pilink-rqd` re-route (24 before it). Via
     thermal sanity check: one 0.3mm-drill via is a ~0.024mm^2 copper
     barrel through 1.6mm of board, about 175K/W; 36 in parallel are
     ~5K/W, small next to the SOT-223's ~128K/W, so the vias are not the
     bottleneck -- the spreader pour area is. Pipeline run end to end
-    (`place` -> `preroute` -> `route` -> `widen` -> `zones`;
-    `sw_reroute.py` skipped, as a fresh `route.py` already avoids the
-    keepout and `sw_reroute` on this routing introduced shorts). One new
+    (`place` -> `preroute` -> `route` -> `widen` -> `zones`).
+    `sw_reroute.py` is **retired** (it now aborts with a message): on this
+    routing it caused a GPIO27/RESET_NODE short and ~11 clearance errors.
+    Keepout-clean copper on re-runs is guaranteed because `route.py` adds
+    the `sw_keepout.py` F.Cu rule areas before exporting the DSN
+    (Freerouting treats them as keepouts), and DRC enforces them. One new
     local fix: U103 pad 4 (GND) is solid-connected in `zones.py` because
     this routing left it with one thermal spoke (`starved_thermal`).
     Result: `kicad-cli pcb drc --severity-all --schematic-parity
@@ -1394,8 +1396,8 @@ adds it as an F.Cu rule area (no tracks, vias or pours) per switch; `zones.py`
 and `route.py` both call it so it survives pipeline re-runs and Freerouting
 sees it. B.Cu is not covered (far side of the board; the drawing's note is on
 the mounting layer). The pad-2 GND and pad-1 BOOTSEL/RESET routing that ran
-through it was replaced locally by `scripts/sw_reroute.py` (nothing else
-re-routed): GND leaves pad 2 through a via above its top edge to the B.Cu pour;
+through it was replaced locally (by the now-retired `scripts/sw_reroute.py`;
+fresh `route.py` runs avoid the keepout themselves, see item 10): GND leaves pad 2 through a via above its top edge to the B.Cu pour;
 the two pad-1 lands are tied by a B.Cu bar via a via beside each, with a B.Cu
 trunk to a via at the pull-up resistor. Pad 1's two lands are therefore
 joined on B.Cu, not F.Cu.

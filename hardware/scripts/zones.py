@@ -121,7 +121,7 @@ def main():
         if pad.GetNetname() == "GND" and pad.GetNumber() == "5":
             pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
 
-    # pilink-xzs: the router leaves sub-10um stubs at U101 pins 66/67 (USB
+    # pilink-xzs: the router leaves sub-5um stubs at U101 pins 66/67 (USB
     # D-/D+) where its grid snap misses the pad centre by 0.5um; drop them.
     for t in list(board.GetTracks()):
         if (t.GetClass() == "PCB_TRACK" and not t.IsLocked()
