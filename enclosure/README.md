@@ -15,6 +15,50 @@ The `preview/` docker-compose service renders every part here (see
 placed) into a per-part view plus an assembled view with the PCB in place.
 Adding a new part file means adding it to that script's part list.
 
+## Board-to-face mapping and board clearance (`common.scad`, `pilink-6lz`)
+
+`common.scad` is the single definition of the board size (122.5 x 50 since
+`pilink-4qc`), wall, board clearance, face size and the board<->face mapping,
+`include`d by `front_shell.scad`, `back_shell.scad` and `antenna_mount.scad`
+and read by `scripts/check_fit.py` and `preview/scripts/export_enclosure.py`
+(both follow `include <...>` lines; `check_fit.py` skips `common.scad` itself
+as it has no geometry). `button_plunger.scad` and `knob.scad` are
+board-independent single parts (their positions are applied by the scripts,
+from `common.scad`'s constants) so they do not include it. The earlier
+per-file copies of `face_x = board_x + 2` / `Qface = 52 - board_y` are gone.
+Keep each assignment in `common.scad` on one line: the scripts parse it with a
+line-based regex.
+
+- **Mapping:** `X = board_x + 2.5` (`MARGIN_X = WALL + BOARD_CLEARANCE_X`),
+  `Q = 53 - board_y` (`QTOP = FACE_H - WALL - BOARD_CLEARANCE_Y`).
+- **Face:** `FACE_W = BOARD_W + 2*(WALL + BOARD_CLEARANCE_X)` = **127.5mm**,
+  `FACE_H` = 56mm (unchanged).
+- **Board clearance (supersedes `pilink-mav`):** 0.5mm per side in X, 1.0mm
+  per side in Y, board centred in both shells' cavity (both now inset a full
+  2.0mm wall; before: 0.00mm at the bottom, 2.00mm at the top, 0.0 / 0.4mm at
+  the sides depending on the shell). Reasoning: JLCPCB outline +/-0.2mm and
+  an FDM wall +/-0.1-0.2mm stack to +/-0.4mm on one side; 0.5mm leaves >= 0.1mm
+  worst case in X without a loose fit, and Y keeps FACE_H at 56mm (leg, strip
+  and USB-C numbers key off it), which is exactly 1.0mm per side.
+- **Centring:** the display active area (board (61.25, 25)) maps to face
+  (63.75, 28) = face centre; the knob (14.25, 25) -> (16.75, 28) and the
+  diamond centre (108.25, 25) -> (110.75, 28) are on the horizontal centreline.
+  `check_fit.py` asserts all of this.
+- **Pigtail notch:** the board-edge-to-top-wall gap is now 1.0mm, less than the
+  antenna mount's lip + element (0.7mm) plus the Ø1.13 coax, so a 7 x 1.0mm
+  notch (face X 107..114, Z 6.0..10.6, wall left 1.0mm) is cut into the top wall
+  of both shells just right of the mount (`PIGTAIL_NOTCH_*`). `check_fit.py`
+  sweeps a Ø1.13 probe through it.
+- **Other changes:** the H4 boss is 7.5mm OD (H4 moved to (29, 2.5), which put a
+  7.0mm boss exactly tangent to the top wall -> non-manifold STL); the antenna
+  mount moves to face X 58.25..106.05 (anchored to SW102, now at face X 54.5).
+  `button_plunger`'s flange vs `panel_ledge()` at the X button: 0.63mm nominal,
+  0.43mm worst case (was 0.5 / 0.3).
+
+Numbers in the older sections below that quote `face_x = board_x + 2`,
+`Qface = 52 - board_y`, "face 122 x 56" or the pre-`pilink-4qc` board
+coordinates are history; the values here and in `common.scad` supersede them.
+
 ## Front shell (`front_shell.scad`, `pilink-8hx.2`)
 
 Parametric front shell (face plate + perimeter skirt) for the upright
@@ -47,28 +91,21 @@ in the file is cited in a comment next to it, sourced from:
   as a styling pass — see the file's own "Open items" footer).
 
 Key numbers (all re-derivable from the file's own named constants):
-face 122 x 56mm, 2.0mm wall/face thickness, 7.5mm outer-face-to-PCB
-depth; display window 48.96 x 36.72mm (active area), recessed 1.2mm
+face 127.5 x 56mm (`pilink-6lz`; was 122), 2.0mm wall/face thickness,
+7.5mm outer-face-to-PCB depth; display window 48.96 x 36.72mm (active area), recessed 1.2mm
 below the outer face; knob/encoder opening with an 8.5mm through-hole
 (assumed 7mm bushing + clearance — **not confirmed**, flagged in the
 file) plus an 18mm x 1.2mm inner-face countersink; four Ø8.4mm button
-bores on the A/B/X/Y diamond; two Ø1.5mm top-edge pinholes at x=44/54mm
+bores on the A/B/X/Y diamond; two Ø1.5mm top-edge pinholes at x=44.5/54.5mm
 aligned onto SW101/SW102.
 
-The board-to-face vertical mapping is settled, not an open item:
-`Qface = 52 - by` (`FACE_H` 56mm minus `WALL_T` 2mm minus `TOP_SLACK_Y`
-2mm, i.e. 52 = `FACE_H - WALL_T - TOP_SLACK_Y`), derived from the real
-inner-cavity height rather than assumed, and cross-confirmed against
-`back_shell.scad`'s own independently-derived `board_to_face()`
-formula — both shells land on the identical mapping. See
-`front_shell.scad`'s `board_to_y()` comment for the full derivation.
+The board-to-face mapping is settled and now shared (see the `common.scad`
+section above): `X = board_x + 2.5`, `Q = 53 - board_y`.
 
 **Open items, not resolved in this bead** (also in the file's own
 footer comment): the encoder bushing diameter is an unconfirmed 7mm
-assumption; the display window's derived centre lands about 3.9mm off
-the face's exact horizontal centre
-(expected, but unresolved against the original "center the window"
-design rule); the shell is modeled flat, not with the ADR's real
+assumption (the window-centring item is resolved: `pilink-4qc` +
+`pilink-6lz` put the window centre on the face centre); the shell is modeled flat, not with the ADR's real
 ~15-degree lean or a final corner/edge styling pass; and front-to-back
 shell fastener bosses aren't modeled yet, pending `pilink-8hx.1`'s own
 mating geometry. All of this needs a human with OpenSCAD — ideally
@@ -222,7 +259,7 @@ J401 from (59, 45.5) to (59, 37). `back_shell.scad` now carries both.
 Not rendered (no OpenSCAD); arithmetic checked in Python.
 
 **J401.** `J401_FACE = board_to_face(59, 37)` = face (61, 15), plug
-centreline Qface 15.0 (was 6.5). Boss pad: `usbc_boss_pad_q0/q1` = 9.0 /
+centreline Qface 15.0 (was 6.5; Qface 16.0 since `pilink-6lz`). Boss pad: `usbc_boss_pad_q0/q1` = 9.0 /
 21.0 (the `USBC_BOSS_RISE*tan(15)` = 0.54mm clamp is now inactive); cutout
 Q 12.5..17.5. Lateral X is unchanged, so the leg clearance echoes (~31.5mm
 each side) hold. The four PCB mounting holes did not move (re-read from
@@ -509,6 +546,8 @@ and the cutout-tunnel entry above.
 
 ### USB-C cable-vs-table clearance, recomputed for Qface 15 (`pilink-3ym`)
 
+> `pilink-6lz`: the Q = 53 - by mapping moves J401 to Qface 16 (x 63.75); the table-contact figures below get slightly better (6.3mm boot: 46.5mm along the axis, from `back_shell.scad`'s echo, was 42.7). The strip is still not an obstacle.
+
 The `pilink-8ry` figures above are for the old Qface 6.5 and are kept as
 history. Same method and boot range (5.0-6.5mm, Anker 515 6.3mm as the
 sourced point; boot = 2D offset of the mating axis by D/2, axis 15 deg below
@@ -566,8 +605,9 @@ or is marked as this file's own assumption.
   own the real top-wall geometry this feature gets instantiated onto; the
   file's own `demo_assembly()` stand-in slab is for local preview only and
   must not be unioned into either shell.
-- **Position:** face-local X 57.75-105.55mm, clear of both SW101 (X=44mm)
-  and SW102 (X=54mm) top-edge pinholes by construction (3mm margin past
+- **Position:** face-local X 58.25-106.05mm (`pilink-6lz`; was 57.75-105.55),
+  clear of both SW101 (X=44.5mm)
+  and SW102 (X=54.5mm) top-edge pinholes by construction (3mm margin past
   each pinhole's own ~1.5mm channel diameter). A left-of-SW101 placement
   doesn't fit (only 38.25mm of clear width there, less than the 45.8mm
   element) — fixed per a code-reviewer's NOT APPROVED verdict on the first
@@ -576,14 +616,17 @@ or is marked as this file's own assumption.
   from its U.FL to the mount is only ~18-30mm against the part's ~240mm
   pigtail (240mm per its table, 100mm per its drawing, see `pilink-bl2`); the ~210mm excess is stowed per the pigtail
   stowage section above. Board-to-face coordinate mapping is settled
-  (`face_x = board_x + 2`, `Qface = 52 - board_y`), shared with the front
-  and back shells.
+  (`common.scad`: `face_x = board_x + 2.5`, `Qface = 53 - board_y`), shared
+  with the front and back shells. The gap above the board edge is now 1.0mm,
+  so the pigtail crosses the PCB plane through the shells' top-wall notch (see
+  the `common.scad` section).
 - **Display/ground clearance guidance is NOT met — real RF trade-off, not
   pending:** a second review round found the governing number here is the
   face-Y distance (not a Z gap, as an earlier revision wrongly framed it),
   and it *is* derivable from this file's own constants: the element sits
-  roughly **2mm from the board's top edge and roughly 7mm from the display
-  panel's frame** (both estimates; the board-to-face mapping itself is
+  roughly **1mm from the board's top edge and roughly 5mm from the display
+  panel's frame** (`pilink-6lz`: was 2 / 7 after the Y recentring and the panel
+  moving up 1mm) (both estimates; the board-to-face mapping itself is
   settled), against general adhesive-FPC-antenna practice
   cited in the research finding (not a figure from any datasheet — the
   32UE's own datasheet carries no such keepout, and no antenna datasheet
@@ -683,14 +726,16 @@ Changes in `antenna_mount.scad` (not rendered, arithmetic in Python):
 ## CAD-level fit check (`pilink-7tm`)
 
 `enclosure/scripts/check_fit.sh` renders every `enclosure/*.scad` headlessly,
-builds a PCB envelope (118 x 50 x 1.6 board slab read from
+builds a PCB envelope (122.5 x 50 x 1.6 board slab read from
 `hardware/pico-link-hw.kicad_pcb`, plus one box per footprint from its
 courtyard x an assumed height, with composite models for the encoder, tact
 switches, U201, J401, J101, mounting screws and the display stack), places
-everything in the shells' shared face frame (`X = board_x + 2`,
-`Q = 52 - board_y`, `Z = 0` at the outer face), and reports interference
-volumes and approximate minimum distances (trimesh/manifold). It exits
-non-zero if any pair overlaps.
+everything in the shells' shared face frame (`common.scad`: `X = board_x +
+2.5`, `Q = 53 - board_y`, `Z = 0` at the outer face), and reports interference
+volumes and approximate minimum distances (trimesh/manifold). It also checks
+board clearance and centring on all four sides, window / knob / diamond
+centring on the face, and a Ø1.13 pigtail probe through the top-wall notch. It
+exits non-zero if any pair overlaps.
 
 ```bash
 enclosure/scripts/check_fit.sh                 # full run (~5 min via docker)

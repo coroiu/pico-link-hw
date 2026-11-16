@@ -184,11 +184,10 @@ CAP_CHAMFER = 0.3;
 // against front_shell.scad's (pilink-8hx.2, merged) own geometry:
 //   - front_shell.scad's panel_ledge() (front_shell.scad:476-483) is
 //     a rectangle PANEL_W + 2*LEDGE_W wide (59 + 2*2 = 63mm) centred
-//     on PANEL_CX (board_to_x(57.5) = 59.5mm); its right edge sits at
-//     board x = 57.5 + 59/2 + 2.0 = 89.0mm. board_to_x() is a pure
-//     +WALL offset, so board-space and shell-space distances are the
-//     same. The X button (front_shell.scad BTN_X, board (94,25) since pilink-hdl/3ym; was (94,34) at pilink-2yw) is
-//     only 94 - 89 = 5.0mm from that edge -- so the flange radius at
+//     on PANEL_CX (board x 57.5 at that review; 63.62 since pilink-4qc);
+//     its right edge then sat at board x = 57.5 + 59/2 + 2.0 = 89.0mm.
+//     The X button (BTN_X, board (94,25) at that review; (100.25,25) now)
+//     was only 94 - 89 = 5.0mm from that edge -- so the flange radius at
 //     that button must stay under 5.0mm. The old Ø11 flange (radius
 //     5.5mm) intruded ~0.5mm into the ledge there -- the X cap
 //     physically couldn't seat.
@@ -204,7 +203,12 @@ CAP_CHAMFER = 0.3;
 // stop under the ~2.6N switch load). Ledge clearance at the X button
 // (5.0mm edge distance): 0.5mm nominal; 0.3mm worst case once the
 // cap's 0.2mm radial bore play is included (cap shifted toward the
-// ledge). Diagonal gap to the next flange: 11.31 - 9.0 = ~2.3mm
+// ledge). pilink-6lz re-check after the pilink-4qc re-placement: panel
+// centre board x 63.62, ledge right edge 63.62 + 31.5 = 95.12, X button at
+// board x 100.25 -> 5.13mm edge distance, so 0.63mm nominal / 0.43mm worst
+// case (was 0.5 / 0.3); the diamond pitch is unchanged. Board-space and
+// face-space distances are the same (board_to_x is a pure offset,
+// common.scad). Diagonal gap to the next flange: 11.31 - 9.0 = ~2.3mm
 // nominal, ~1.9mm worst case with both caps shifted toward each other
 // (0.2mm each) -- far above zero. Retention holds: Ø9.0 > Ø8.4 bore.
 FLANGE_DIA = BORE_DIA + 0.6; // 9.0mm, radius 4.5mm

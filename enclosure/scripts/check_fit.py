@@ -10,9 +10,9 @@ Run it through enclosure/scripts/check_fit.sh (docker, needs the preview image
 for openscad + pcbnew + trimesh). Needs: openscad, pcbnew (KiCad python),
 trimesh, numpy, manifold3d, scipy, rtree.
 
-Face frame (matches front_shell.scad / back_shell.scad's own mapping):
-  X = board_x + 2        (left -> right)
-  Q = 52 - board_y       (bottom of face = 0, top = 56)
+Face frame (the single mapping in enclosure/common.scad, read from there):
+  X = board_x + MARGIN_X (2.5; left -> right)
+  Q = QTOP - board_y     (QTOP 53; bottom of face = 0, top = FACE_H 56)
   Z = 0 at the outer face, increasing into the body (front shell 0..7.5,
       PCB 7.5..9.1, back shell outer face at Z = BODY_T = 14.1)
 """
@@ -22,6 +22,7 @@ import json
 import math
 import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -31,12 +32,19 @@ import trimesh
 # ---------------------------------------------------------------- scad utils
 
 
-def scad_vars(path):
-    """Evaluate top-level `NAME = expr;` numeric/list assignments (best effort)."""
-    env = {"max": max, "min": min, "tan": lambda d: math.tan(math.radians(d)),
-           "cos": lambda d: math.cos(math.radians(d)),
-           "sin": lambda d: math.sin(math.radians(d))}
+def scad_vars(path, env=None):
+    """Evaluate top-level `NAME = expr;` numeric/list assignments (best effort),
+    following `include <file.scad>` lines (relative to the including file) so
+    constants from enclosure/common.scad are visible."""
+    if env is None:
+        env = {"max": max, "min": min, "tan": lambda d: math.tan(math.radians(d)),
+               "cos": lambda d: math.cos(math.radians(d)),
+               "sin": lambda d: math.sin(math.radians(d))}
     for line in open(path):
+        inc = re.match(r"^include\s*<([^>]+)>", line)
+        if inc:
+            scad_vars(os.path.join(os.path.dirname(path), inc.group(1)), env)
+            continue
         m = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+?);\s*(//.*)?$", line)
         if not m:
             continue
@@ -200,7 +208,7 @@ def build_envelope(pcb_path, ev):
     meta = {"board_w": bw, "board_h": bh, "board_t": thick, "origin": [ox, oy]}
 
     X0 = ev["MARGIN_X"]
-    QTOP = ev["QTOP"]              # Q of board y=0 (52)
+    QTOP = ev["QTOP"]              # Q of board y=0 (53)
     ZF = ev["Z_PCB_FRONT"]         # 7.5
     ZB = ZF + thick                # PCB back surface (9.1)
 
@@ -308,9 +316,11 @@ def build_envelope(pcb_path, ev):
         parts["screw_H%d.head" % (i + 1)] = (cyl(fx(hx), fq(hy), ZF - 1.6, ZF, 4.0), "F", "M2 pan head d4.0x1.6 (assumed)")
         parts["screw_H%d.shank" % (i + 1)] = (cyl(fx(hx), fq(hy), ZF, ZB + ev["INSERT_LEN"], 2.0), "S", "M2 shank into insert (assumed length)")
 
-    # Display module stack: panel shadow x[28,87] y[5,47] (hardware/README.md),
-    # 3.3mm above the PCB front (proposal 6c "3.3 panel stack").
-    add_box("DISPLAY", 28.0, 87.0, 5.0, 47.0, 3.3, "F", "panel shadow x28-87 y5-47 x 3.3 stack (README / proposal 6c)")
+    # Display module stack: panel shadow (common.scad PANEL_BOARD_*, pilink-4qc:
+    # x[34.12,93.12] y[4,46]), 3.3mm above the PCB front (proposal 6c "3.3
+    # panel stack").
+    px0, px1, py0, py1 = ev["PANEL_BOX"]
+    add_box("DISPLAY", px0, px1, py0, py1, 3.3, "F", "panel shadow x%.2f-%.2f y%.0f-%.0f x 3.3 stack (common.scad / proposal 6c)" % (px0, px1, py0, py1))
     return parts, meta, unknown
 
 
@@ -343,6 +353,8 @@ def main():
     jobs = []
     for scad in sorted(glob.glob(os.path.join(enc, "*.scad"))):
         n = os.path.basename(scad)[:-5]
+        if n == "common":      # shared constants/functions only, no geometry
+            continue
         if n == "back_shell":
             jobs += [("back_shell[assembly]", scad, [], "bs_asm"),
                      ("back_shell[PART=back_shell]", scad, ['PART="back_shell"'], "bs_back"),
@@ -380,6 +392,7 @@ def main():
     def wrapper(name, src, calls, body, defs=()):
         lib = os.path.join(work, "lib_" + name + ".scad")
         strip_calls(os.path.join(enc, src), lib, calls)
+        shutil.copy(os.path.join(enc, "common.scad"), os.path.join(work, "common.scad"))
         w = os.path.join(work, "w_" + name + ".scad")
         open(w, "w").write("include <%s>\n%s\n" % (lib, body))
         out = os.path.join(work, "w_" + name + ".stl")
@@ -410,7 +423,8 @@ def main():
     print("\n=== 3. PCB envelope ===")
     ev = {
         "MARGIN_X": bv["MARGIN_X"],
-        "QTOP": bv["FACE_H"] - (bv["WALL_T"] + bv["TOP_SLACK_Y"]),
+        "QTOP": bv["QTOP"],
+        "PANEL_BOX": (fv["PANEL_BOARD_X0"], fv["PANEL_BOARD_X1"], fv["PANEL_BOARD_Y0"], fv["PANEL_BOARD_Y1"]),
         "Z_PCB_FRONT": fv["FRONT_SHELL_DEPTH"],
         "U201_BODY_X": bv["U201_BODY_X"], "U201_BODY_Y": bv["U201_BODY_Y"],
         "U201_MODULE_H": bv["U201_MODULE_H"], "UFL_PLUG_TOP_H": bv["UFL_PLUG_TOP_H"],
@@ -420,7 +434,7 @@ def main():
     }
     parts, meta, unknown = build_envelope(os.path.abspath(args.pcb), ev)
     print("  board outline %.2f x %.2f x %.2f mm (from Edge.Cuts)" % (meta["board_w"], meta["board_h"], meta["board_t"]))
-    print("  %d envelope bodies; PCB at Z %.1f..%.1f; frame: X=bx+%.0f, Q=%.0f-by" % (
+    print("  %d envelope bodies; PCB at Z %.1f..%.1f; frame: X=bx+%.1f, Q=%.1f-by" % (
         len(parts), ev["Z_PCB_FRONT"], ev["Z_PCB_FRONT"] + meta["board_t"], ev["MARGIN_X"], ev["QTOP"]))
     for u in unknown:
         print("  note: default/missing height ->", u)
@@ -470,7 +484,7 @@ def main():
     if front is not None and back is not None:
         check("PCB slab vs front shell", pcb, front, dist=True)
         check("PCB slab vs back shell", pcb, back, dist=True,
-              note="(board 118 wide vs back cavity %.1f)" % (bv["FACE_W"] - 2 * (bv["WALL_T"] - bv["BOARD_CLEARANCE_X"])))
+              note="(board %.1f wide vs back cavity %.1f)" % (meta["board_w"], bv["FACE_W"] - 2 * bv["WALL_T"]))
         check("front shell vs back shell", front, back, note="(butt joint at Z=7.5)")
         # per-component, only report overlaps
         bad = 0
@@ -575,14 +589,77 @@ def main():
         check("antenna mount vs front shell", a, front, dist=True, note="(touches top-wall inner surface by design)")
         check("antenna mount vs back shell", a, back, dist=True)
         check("antenna mount vs PCB envelope (slab+components)", a, union([pcb, env_all]), dist=True)
-    # --- board bottom edge vs back-shell bottom wall
+    # --- board clearance to the cavity walls, all four sides (pilink-6lz)
+    # Edge.Cuts tolerance (JLCPCB +/-0.2mm) and the FDM wall tolerance
+    # (+/-0.1-0.2mm) are stacked below; the nominal clearance must exceed it.
+    CLEAR_MIN = 0.3   # mm nominal required per side (0.2 JLCPCB outline + ~0.1 FDM, one-sided)
+    CLEAR_WORST = 0.4  # mm: JLCPCB 0.2 + FDM 0.2 on the same side
     if back is not None:
-        bottom_q = ev["QTOP"] - meta["board_h"]          # Q of the board's bottom edge
-        wall_q = bv["WALL_T"]                             # Q of the back cavity's bottom inner wall
-        gap = bottom_q - wall_q
-        rec("board bottom edge vs back-shell bottom wall", "OK" if gap >= 0.1 else "WARN",
-            "%.2f mm clearance (board edge Q=%.2f, cavity wall Q=%.2f)%s" % (
-                gap, bottom_q, wall_q, "" if gap >= 0.1 else " -- zero running clearance, no tolerance margin on Y"))
+        inner = {
+            "left":   bv["WALL_T"],
+            "right":  bv["FACE_W"] - bv["WALL_T"],
+            "bottom": bv["WALL_T"],
+            "top":    bv["FACE_H"] - bv["WALL_T"],
+        }
+        gaps = {
+            "left":   ev["MARGIN_X"] - inner["left"],
+            "right":  inner["right"] - (ev["MARGIN_X"] + meta["board_w"]),
+            "bottom": (ev["QTOP"] - meta["board_h"]) - inner["bottom"],
+            "top":    inner["top"] - ev["QTOP"],
+        }
+        for side, g in gaps.items():
+            rec("board edge vs cavity wall, " + side, "OK" if g >= CLEAR_MIN else "WARN",
+                "%.2f mm nominal clearance (%.2f mm worst case after the +/-0.2 JLCPCB outline + FDM wall tolerance)" % (g, g - CLEAR_WORST))
+        # centred in the shell, both axes
+        rec("board centred in cavity (X)", "OK" if abs(gaps["left"] - gaps["right"]) < 0.01 else "FAIL",
+            "left %.2f / right %.2f" % (gaps["left"], gaps["right"]))
+        rec("board centred in cavity (Y)", "OK" if abs(gaps["bottom"] - gaps["top"]) < 0.01 else "FAIL",
+            "bottom %.2f / top %.2f" % (gaps["bottom"], gaps["top"]))
+        if abs(gaps["left"] - gaps["right"]) >= 0.01:
+            failed.append("board centred X")
+        if abs(gaps["bottom"] - gaps["top"]) >= 0.01:
+            failed.append("board centred Y")
+
+    # --- face-centring of window / knob / diamond (pilink-4qc / pilink-6lz)
+    def fxq(bx, by):
+        return bx + ev["MARGIN_X"], ev["QTOP"] - by
+    wx, wq = fxq(fv["AA_BOARD_CX"], fv["AA_BOARD_CY"])
+    ok_w = abs(wx - fv["FACE_W"] / 2) < 0.01 and abs(wq - fv["FACE_H"] / 2) < 0.01
+    rec("display window centred on the face", "OK" if ok_w else "FAIL",
+        "window (%.2f, %.2f) vs face centre (%.2f, %.2f)" % (wx, wq, fv["FACE_W"] / 2, fv["FACE_H"] / 2))
+    if not ok_w:
+        failed.append("window centring")
+    ky = fxq(fv["ENCODER_BOARD_CX"], fv["ENCODER_BOARD_CY"])[1]
+    dy = fxq(*fv["BTN_X"])[1]
+    ok_l = abs(ky - fv["FACE_H"] / 2) < 0.01 and abs(dy - fv["FACE_H"] / 2) < 0.01 and abs(fxq(*fv["BTN_B"])[1] - dy) < 0.01
+    rec("knob and diamond on the face horizontal centreline", "OK" if ok_l else "FAIL",
+        "knob Q %.2f, diamond X/B Q %.2f, face centre Q %.2f" % (ky, dy, fv["FACE_H"] / 2))
+    if not ok_l:
+        failed.append("knob/diamond centreline")
+    # --- pigtail crossing (pilink-6lz): a straight d1.13 probe through the
+    # notch across the PCB plane, centred in the notch.
+    if front is not None and back is not None:
+        cable_d = av["ANTENNA_CABLE_DIAMETER"]
+        gap_plain = (fv["FACE_H"] - fv["WALL"]) - ev["QTOP"]
+        qmid = (ev["QTOP"] + fv["FACE_H"] - fv["WALL"] + fv["PIGTAIL_NOTCH_DEPTH"]) / 2.0  # centre of board edge .. notch top
+        xmid = (fv["PIGTAIL_NOTCH_X0"] + fv["PIGTAIL_NOTCH_X1"]) / 2.0
+        probe = cyl(xmid, qmid, fv["PIGTAIL_NOTCH_Z0"] + 0.1, fv["PIGTAIL_NOTCH_Z1"] - 0.1, cable_d, 16)
+        # centre the probe vertically in the notch+gap crossing region
+        probe_ok = True
+        for nm, other in (("front", front), ("back", back), ("PCB", pcb)):
+            v, _ = inter(probe, other)
+            if v > 1e-3:
+                probe_ok = False
+                rec("pigtail probe d%.2f vs %s" % (cable_d, nm), "FAIL", "overlap %.3f mm3" % v)
+                failed.append("pigtail probe vs " + nm)
+        rec("pigtail d%.2f probe crosses PCB plane via top-wall notch" % cable_d, "OK" if probe_ok else "FAIL",
+            "plain top-edge gap %.2f mm (< d%.2f, so the notch is needed); notch crossing height %.2f mm at face X %.1f" % (
+                gap_plain, cable_d, gap_plain + fv["PIGTAIL_NOTCH_DEPTH"], xmid))
+        # the unnotched gap really is too small (sanity: why the notch exists)
+        rec("plain top-edge gap vs mount stack + coax", "INFO",
+            "gap %.2f mm vs lip %.1f + element %.1f + coax %.2f = %.2f mm" % (
+                gap_plain, av["LIP_HEIGHT"], av["ANTENNA_ELEMENT_THICKNESS_NOMINAL"], cable_d,
+                av["LIP_HEIGHT"] + av["ANTENNA_ELEMENT_THICKNESS_NOMINAL"] + cable_d))
     # --- legs
     lt, lb = renders.get("bs_legl"), renders.get("bs_back")
     if lt is not None and lb is not None:
