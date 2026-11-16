@@ -56,12 +56,25 @@ export_pcb() {
   # Note: unlike `pcb export glb`, `pcb export svg` has no -f/--force flag;
   # it overwrites the output file unprompted, so just remove any stale one
   # first in case a previous run left a directory or unreadable file there.
-  rm -f "$SITE_DIR/renders/pcb.svg"
+  #
+  # Two separate renders, front and back: a single combined render can only
+  # show one copper layer's own traces (whichever layer list is passed) --
+  # on a 2-layer board, routing on the layer left out is simply absent from
+  # the image, not just low-contrast. B.Cu is mirrored so it reads correctly
+  # as "looking at the back of the board," matching how B.Cu-mounted parts
+  # (e.g. J401) are actually oriented.
+  rm -f "$SITE_DIR/renders/pcb-front.svg" "$SITE_DIR/renders/pcb-back.svg"
   if kicad-cli pcb export svg --layers "Edge.Cuts,F.Cu,F.SilkS,F.Mask" \
-      -o "$SITE_DIR/renders/pcb.svg" "$pcb" 2>&1; then
-    echo "[export] wrote $SITE_DIR/renders/pcb.svg"
+      -o "$SITE_DIR/renders/pcb-front.svg" "$pcb" 2>&1; then
+    echo "[export] wrote $SITE_DIR/renders/pcb-front.svg"
   else
-    echo "[export] WARNING: kicad-cli svg export failed for $pcb" >&2
+    echo "[export] WARNING: kicad-cli svg export (front) failed for $pcb" >&2
+  fi
+  if kicad-cli pcb export svg --layers "Edge.Cuts,B.Cu,B.SilkS,B.Mask" --mirror \
+      -o "$SITE_DIR/renders/pcb-back.svg" "$pcb" 2>&1; then
+    echo "[export] wrote $SITE_DIR/renders/pcb-back.svg"
+  else
+    echo "[export] WARNING: kicad-cli svg export (back) failed for $pcb" >&2
   fi
 }
 

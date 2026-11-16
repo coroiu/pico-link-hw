@@ -103,8 +103,13 @@
   </div>
 
   <div class="card render">
-    <h2>PCB (2D render)</h2>
-    <img id="pcb-render" src="/renders/pcb.svg" alt="PCB 2D render" />
+    <h2>PCB (2D render, front: F.Cu traces + silkscreen)</h2>
+    <img id="pcb-render-front" src="/renders/pcb-front.svg" alt="PCB 2D render, front copper layer" />
+  </div>
+
+  <div class="card render">
+    <h2>PCB (2D render, back: B.Cu traces + silkscreen, mirrored)</h2>
+    <img id="pcb-render-back" src="/renders/pcb-back.svg" alt="PCB 2D render, back copper layer" />
   </div>
 
   <div class="card render">
@@ -134,7 +139,8 @@
         lastExport = data.last_export;
         bust(document.getElementById('pcb-model'), 'src', '/models/pcb.glb', lastExport);
         bust(document.getElementById('enclosure-model'), 'src', '/models/enclosure.glb', lastExport);
-        bust(document.getElementById('pcb-render'), 'src', '/renders/pcb.svg', lastExport);
+        bust(document.getElementById('pcb-render-front'), 'src', '/renders/pcb-front.svg', lastExport);
+        bust(document.getElementById('pcb-render-back'), 'src', '/renders/pcb-back.svg', lastExport);
         bust(document.getElementById('schematic-pdf'), 'src', '/renders/schematic.pdf', lastExport);
         bust(document.getElementById('schematic-link'), 'href', '/renders/schematic.pdf', lastExport);
         document.getElementById('status').textContent = 'Last export: ' + lastExport + ' UTC';
