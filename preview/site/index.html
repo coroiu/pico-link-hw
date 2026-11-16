@@ -4,6 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Pico Link HW preview</title>
+<script>
+  // pcb.glb is meshopt-compressed (see scripts/export.sh); model-viewer has
+  // no default decoder location, so point it at the vendored copy. Must be
+  // set before model-viewer.min.js loads.
+  self.ModelViewerElement = self.ModelViewerElement || {};
+  self.ModelViewerElement.meshoptDecoderLocation = '/vendor/meshopt_decoder.js';
+</script>
 <script type="module" src="/vendor/model-viewer.min.js"></script>
 <style>
   :root {
