@@ -271,18 +271,28 @@ instead).
 **Update (`pilink-2ar`):** fixed the four single-pad-net items flagged
 above as out of `pilink-kt4`'s scope:
 
-- **SWD/SWCLK** now reach a real 3-pin, 1.27mm-pitch debug header, `J101`
+- **SWD/SWCLK** now reach a real 3-pin, 2.54mm-pitch debug header, `J101`
   on `rp2350b_memory.kicad_sch` (stock `Connector_Generic:Conn_01x03` +
-  `Connector_PinHeader_1.27mm:PinHeader_1x03_P1.27mm_Vertical`): pin 1
-  SWCLK, pin 2 GND, pin 3 SWDIO -- the same 3-signal order Raspberry Pi's
-  own Debug Probe/Picoprobe cable uses for RP2040/RP2350 targets, so a
-  standard Pi debug cable plugs in directly. No VTref/target-power-sense
-  pin: this board is always target-powered over USB-C regardless of the
-  probe. See the schematic's own `J101` text note for the full rationale
-  (kept out of the symbol's `Description` field so the embedded
-  `Conn_01x03` cache stays byte-identical to the real stock library symbol
-  -- editing a stock symbol's own properties is exactly the "modified in
-  library" trap this project's `W25Q128JVS` note already documents).
+  `Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical`): pin 1
+  SWCLK, pin 2 GND, pin 3 SWDIO. Pitch corrected in PR #43 review (was
+  1.27mm, LCSC `C22438100`): Raspberry Pi's Debug Probe docs
+  (`raspberrypi/documentation` repo) list its three bundled cables as
+  JST-SH-to-JST-SH, and JST-SH-to-0.1in (2.54mm) header in both male and
+  female, with the latter explicitly recommended ("solder a male
+  connector to the SWCLK, GND, and SWDIO header pins") for boards without
+  an onboard JST-SH connector, same as this one -- none of those cables
+  fit a 1.27mm header directly. 2.54mm was chosen over an onboard JST-SH
+  connector or a 1.27mm-plus-adapter note as the simplest fix needing no
+  extra part and no adapter, with nothing else on the board forcing
+  1.27mm pitch. Same SWCLK/GND/SWDIO order as the Debug Probe's own
+  SC/GND/SD pins, so the bundled cable plugs in directly. No
+  VTref/target-power-sense pin: this board is always target-powered over
+  USB-C regardless of the probe. See the schematic's own `J101` text note
+  for the full rationale (kept out of the symbol's `Description` field so
+  the embedded `Conn_01x03` cache stays byte-identical to the real stock
+  library symbol -- editing a stock symbol's own properties is exactly
+  the "modified in library" trap this project's `W25Q128JVS` note already
+  documents).
 - **U103 (PSRAM) pin 9/"EP"** -- the footprint's real copper
   exposed/thermal pad (`Winbond_USON-8-1EP`'s pad `"9"`, not the
   project's hand-authored part number) -- added to the project-local
