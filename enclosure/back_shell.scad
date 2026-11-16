@@ -315,9 +315,10 @@ LEG_BOSS_TILT = atan2(-LEG_DY, LEG_DZ) + LEAN_DEG;
 
 // The boss's tip (where the leg attaches) then lies exactly on the
 // mount->foot line, LEG_MOUNT_BOSS_LEN out from the wall -- used as the
-// leg's own mount point below (review finding #6: the leg now mates
-// flush with the boss along its own axis, instead of a same-point
-// sphere overlapping the boss/shell at the wrong angle).
+// leg's own mount point below. Review finding #6 (round 2): sitting AT
+// this point isn't by itself enough for the strut to mate flush --
+// see the mount-point comment above leg()'s p_mount for why the strut
+// also needs a flat (disc) end here, not a sphere.
 leg_mount_tip_y = leg_mount_y + LEG_MOUNT_BOSS_LEN * LEG_DY/leg_length;
 leg_mount_tip_z = leg_mount_z + LEG_MOUNT_BOSS_LEN * LEG_DZ/leg_length;
 
@@ -345,6 +346,15 @@ FOOT_PAD_D       = 12.0; // flat pad the rubber foot sticks to
 FOOT_PAD_T       = 2.5;
 FOOT_RECESS_D    = 10.4; // registration pocket for the rubber foot,
 FOOT_RECESS_T    = 1.0;  // sized for the chosen foot product (below)
+
+// PR #52 review (46647da, finding #6 carried over): the strut's mount
+// end must be a flat disc, not a sphere -- see the leg() comment below.
+// A true zero-height disc is a degenerate (non-solid) cylinder in
+// OpenSCAD, so this uses a near-zero but nonzero height instead; half
+// of it (0.005mm) sits on the boss side of the tip, which is two
+// orders of magnitude under typical FDM dimensional tolerance
+// (+/-0.1-0.2mm) -- negligible next to the ~4mm intrusion it replaces.
+MOUNT_CAP_T      = 0.01;
 
 // =====================================================================
 // Base strip + feet (front contact patch, separate from the leg feet)
@@ -607,12 +617,25 @@ module base_strip() {
 // AT the wall rather than at the boss's own tip. Now uses
 // leg_mount_tip_y/z (derived above, in the "Leg axis geometry" block),
 // the point LEG_MOUNT_BOSS_LEN out from the wall ALONG THE SAME tilted
-// axis the boss itself now uses (LEG_BOSS_TILT) -- the leg's strut
-// mates flush with, and continues the same axis as, the boss, instead
-// of overlapping it at a mismatched angle. This still leaves the exact
-// mounting lug/socket interface geometry (where the leg physically
-// registers onto the boss, beyond just the screw) unmodelled -- a
-// human should add that once this is actually rendered and fitted.
+// axis the boss itself now uses (LEG_BOSS_TILT).
+//
+// Still-blocking re-review on 46647da (finding #6, round 2): moving the
+// capsule's mount-end SPHERE to that tip point did not actually make it
+// flush -- a sphere of radius LEG_STRUT_D/2 (4mm) centred ON the boss's
+// tip still reaches 4mm back INTO the boss along the axis (the boss is
+// only LEG_MOUNT_BOSS_LEN=6mm long), filling the boss's last 4mm --
+// which is exactly where leg_mount_insert_pockets() puts the heat-set
+// insert pocket (axis distance 2..6.1 from the wall). "Mates flush"
+// was true of the POINT the capsule started at, not of the capsule's
+// actual solid, so the leg and back-shell STLs still intersected.
+// Fixed below: the mount end is now a flat disc (MOUNT_CAP_T thick,
+// same LEG_STRUT_D diameter), rotated to the boss's own net world axis
+// angle (LEG_BOSS_TILT - LEAN_DEG) and centred at p_mount, so the
+// strut's solid stops at the boss's own tip FACE instead of wrapping
+// around and past it. This still leaves the exact mounting lug/socket
+// interface geometry (where the leg physically registers onto the
+// boss, beyond just the screw) unmodelled -- a human should add that
+// once this is actually rendered and fitted.
 
 module leg(side) {
     x = FACE_W/2 + side*LEG_OFFSET;
@@ -630,12 +653,29 @@ module leg(side) {
     p_foot_strut = [p_foot[0], LEG_STRUT_D/2, p_foot[2]];
     difference() {
         union() {
-            // Strut: a capsule (hull of two spheres) between the mount
-            // and (raised) foot points -- avoids needing an
-            // arbitrary-axis cylinder rotation, which this file can't
-            // test-render to verify.
+            // Strut: hull of a flat disc at the mount end and a sphere
+            // at the (raised) foot end. The foot end stays a sphere --
+            // direction-agnostic is fine there, since only its lowest
+            // point matters (review finding #3(b), above). The mount
+            // end is a disc, not a sphere (review finding #6, round 2,
+            // see the comment above p_mount): a sphere centred on the
+            // boss tip reaches back along the axis and fills part of
+            // the boss, including its own insert pocket, with solid
+            // strut material -- not actually flush. A disc perpendicular
+            // to the mount->foot axis, rotated by that same net world
+            // angle (LEG_BOSS_TILT - LEAN_DEG -- the boss's own axis,
+            // see the "Leg axis geometry" block) and centred AT p_mount,
+            // caps the strut at the boss's own tip face instead of past
+            // it. This does use an arbitrary-axis rotation; the old
+            // reason for avoiding one here ("can't test-render to
+            // verify") no longer applies now that the screw-head
+            // counterbore below (LEG_AXIS_TILT) already relies on
+            // exactly this kind of rotation and was independently
+            // re-verified by the PR #52 review.
             hull() {
-                translate(p_mount)      sphere(d = LEG_STRUT_D, $fn = 24);
+                translate(p_mount)
+                    rotate([LEG_BOSS_TILT - LEAN_DEG, 0, 0])
+                        cylinder(h = MOUNT_CAP_T, d = LEG_STRUT_D, $fn = 24, center = true);
                 translate(p_foot_strut) sphere(d = LEG_STRUT_D, $fn = 24);
             }
             // Flat pad at the foot end for the rubber foot to stick to.
