@@ -220,9 +220,9 @@ ledge's y span 2..50). Only a stale `(94,34)` comment in
 ## Back shell + rear legs (`back_shell.scad`, pilink-8hx.1)
 
 Covers the back half of the enclosure: PCB-mounting bosses (heat-set
-inserts), the 3mm clearance cavity behind the PCB for the encoder's
-through-hole leads, the rear USB-C cutout (with a local raised boss, since
-the chosen connector is taller than the bare back cavity), a horizontal
+inserts), the 7mm (was 3mm, `pilink-9i4`) clearance cavity behind the PCB for the encoder's
+through-hole leads, the rear USB-C cutout (no boss since `pilink-9i4`: the 7mm cavity
+holds the connector), a horizontal
 base strip with feet pockets, and the fixed two-leg A-frame that screws to
 this shell. The front shell (face, display window, button/knob openings)
 is `pilink-8hx.2`'s separate file; the antenna mount is `pilink-8hx.4`'s.
@@ -252,7 +252,59 @@ NOTE asked for (whether the rear USB-C port and its mating plug clear the
 two rear legs), computed analytically rather than rendered; see the
 file's own comments for the numbers and reasoning.
 
-### U201 back-side relief and J401 raise (`pilink-3ym`)
+### Deeper rear cavity, flush leg mounts, solid legs (`pilink-9i4`)
+
+User review of the rendered back shell found the U201 relief showing as a
+bump on the outside, tacked-on cylinder tops at the leg mounts, hollow legs,
+and the back plate clashing with the feet pockets. This section supersedes
+the "U201 back-side relief", "J401 boss" and "leg boss" descriptions below
+(kept as history).
+
+1. **`REAR_CLEARANCE` 3.0 -> 7.0mm (BODY_T 14.1 -> 18.1, +4.0mm; back shell
+   6.6 -> 10.6mm deep).** Chosen over a thicker back plate: same added
+   thickness, but the room is behind the PCB where the parts are. Envelopes
+   above the PCB back surface: J401 6.5 (sets the figure: +0.5 margin = 7.0),
+   U201 module 3.2, mated U.FL plug top 3.3 (module top 0.8 inferred + 2.5
+   Hirose max), coax centre ~3.0-3.3 which must drop ~2mm to the PCB plane over
+   the ~5mm run to the top-wall notch (an R >= 4.5mm arc fits; headroom over
+   the plug is 3.7mm, `assert`ed >= 3.5), spool stack 2.26. Removed: the U201
+   relief pocket + raised pad, the J401 boss pad. The outside of the back
+   plate is now a flat plane (J401 opening only). The notch Z range and PCB
+   position are face-frame values and are unchanged; spool post stays 2.6mm.
+   UNVERIFIED: plug/module heights are datasheet/inferred, a real module is
+   still needed.
+2. **J401 mating face is recessed 2.5mm** behind the outer face (was
+   protruding 0.5 inside its boss), so the opening is widened from 10 x 5 to
+   13.2 x 7.4mm (R1.0 corners): USB-IF Type-C rev 1.2 allows a 12.35 x 6.5mm
+   overmould with 6.65mm of plug past it, so a max-spec plug seats with ~0.4mm
+   FDM clearance per side (wall around it: >30mm to the nearest boss, spool
+   lug 7mm above). The 6.3mm Anker boot fits.
+3. **Leg mounts.** The original attachment scheme is kept (tilted boss with a
+   heat-set insert in its tip; leg screwed on from the foot through a hidden
+   channel). The boss is extended back along its axis by 8mm and clipped at the
+   plate's inner side, so it runs into the rear surface and no flat base face
+   is exposed. Strut and boss are solid apart from the Ø2.6 screw channel and
+   the insert pocket. No fillet (oblique cylinder-to-plane blend not modelled).
+4. **Feet pockets.** The shell's rear-bottom corner dips into the strip's
+   y 0..1 band over z ~0..3.7, filling about half of each pocket. The pocket
+   cutters (`feet_recess_cutters()`) are now subtracted from the shell too
+   (`shell_world()`), so both pockets are complete circles. That thins the
+   shell's bottom rear corner where the pockets pass (not checked in
+   detail).
+
+**USB-C cable-vs-table, recomputed.** Mating face world (Y, Z) = (16.10,
+-1.73) (was (14.10, -5.33)). Table contact along the mating axis from the
+face: 5.0mm boot 52.9, 5.5 51.9, 6.0 51.0, 6.3 (Anker 515) 50.5, 6.5
+50.1mm; ~2.5mm of that is spent getting out through the recess. The base
+strip back edge is now at Z -4.26 (stand-in front edge moved with the deeper
+shell); a 6.3mm boot clears the strip top by ~10mm there. The concern stays
+retired. Leg clearance is unchanged (31.5mm).
+
+Checks: `check_fit.sh` 55 OK / 0 FAIL / 0 WARN; every part renders
+watertight; `preview/scripts/export_enclosure.py` still exports the
+assembly with the PCB placed.
+
+### U201 back-side relief and J401 raise (`pilink-3ym`) (superseded by `pilink-9i4` above)
 
 `pilink-hdl` (PR #60) put U201 on B.Cu at board (99, 11.6) and raised
 J401 from (59, 45.5) to (59, 37). `back_shell.scad` now carries both.

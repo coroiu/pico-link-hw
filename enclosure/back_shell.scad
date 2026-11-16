@@ -88,8 +88,22 @@ FRONT_CAVITY    = 5.5;   // ...nor the front cavity -- both only used here
                            // further down, so the two shells can be
                            // designed to meet correctly later.
 PCB_T           = 1.6;   // PCB thickness, matches hardware/README.md
-REAR_CLEARANCE  = 3.0;   // ADR: "3mm clearance behind the PCB for the
-                           // encoder's through-hole leads"
+// pilink-9i4: was 3.0 (ADR "3mm for the encoder's leads"). Deepened to 7.0 so
+// the WHOLE rear cavity clears every B.Cu envelope with no local relief or
+// raised pad on the outside of the back plate (the ESP32 relief used to show as
+// a bump). Envelopes above the PCB back surface (mm):
+//   J401 USB-C receptacle        6.5   (USBC_HEIGHT_ABOVE_PCB) -> 0.5 margin
+//   U201 module body             3.2
+//   U201 mated U.FL plug top     3.3   (U201_MODULE_PCB_TOP_H + 2.5)
+//   coax centre leaving plug     ~3.0..3.3, Ø1.13; to reach the top-wall notch
+//                                it must drop ~2mm to the PCB plane over the
+//                                ~5mm run to the board edge: an R >= 4.5mm
+//                                arc (min bend, TE/Data Alliance) fits in 7.0
+//   pigtail spool stack          2.26  (2 cables on the wall) on a 2.6 post
+//   encoder/through-hole leads   <= 3.0 (original ADR need)
+// J401 sets the figure: 6.5 + 0.5 = 7.0. U201 + plug + bend then have 3.7mm
+// of headroom. +4.0mm on BODY_T (14.1 -> 18.1).
+REAR_CLEARANCE  = 7.0;
 BACK_WALL_T     = 2.0;   // ADR: "a 2.0mm back wall"
 
 BACK_SHELL_DEPTH = PCB_T + REAR_CLEARANCE + BACK_WALL_T;  // = 6.6mm --
@@ -97,7 +111,8 @@ BACK_SHELL_DEPTH = PCB_T + REAR_CLEARANCE + BACK_WALL_T;  // = 6.6mm --
                     // open front rim (bz=BACK_SHELL_DEPTH), where the PCB
                     // front surface / front shell's rim meets it.
 BODY_T = FACE_T + FRONT_CAVITY + PCB_T + REAR_CLEARANCE + BACK_WALL_T;
-// Sanity check against the ADR's own "about 14mm": BODY_T = 14.1mm. OK.
+// BODY_T = 18.1mm (was 14.1 before pilink-9i4; the ADR's "about 14mm" assumed
+// a 3mm rear cavity -- the user chose a deeper cavity over any outside bump).
 
 CORNER_R = 3.0;  // style choice (AES: "deliberate but not aggressive
                   // corner radii"), not a dimensioned source figure.
@@ -179,9 +194,10 @@ USBC_HEIGHT_ABOVE_PCB = 6.5;  // component height above the PCB back
 // 6.5mm tall -- it overhangs by 1.5mm. USBC finding's own recommendation:
 // "add a ~1.5-2mm boss around the connector cutout". This file uses the
 // upper end of that range for a bit of margin.
-USBC_BOSS_RISE = 2.0;  // boss_outer_face sits 2.0mm beyond the back
-                        // wall's nominal outer surface; leaves the bare
-                        // connector (which needs 1.5mm) 0.5mm of margin.
+// pilink-9i4: NO boss any more -- REAR_CLEARANCE = 7.0 holds the 6.5mm
+// connector entirely inside the cavity: its mating face ends 0.5mm clear of
+// the wall's inner face (bz 2.5, i.e. 2.5mm behind the outer face).
+USBC_BOSS_RISE = 0.0;
 
 // Clear opening through the back wall / boss: sized to pass the
 // connector's own shell (9.0 x 3.2mm) with margin. NOTE: this does NOT
@@ -189,21 +205,27 @@ USBC_BOSS_RISE = 2.0;  // boss_outer_face sits 2.0mm beyond the back
 // varies a lot by cable and isn't confirmed against any datasheet in
 // this project -- flagged as an open item, not resolved here. The figure
 // below is this file's own reasonable allowance, not a cited spec.
-USBC_CUTOUT_W   = 10.0;
-USBC_CUTOUT_H   = 5.0;
+// pilink-9i4: the receptacle's mating face is now recessed (see
+// USBC_MATING_BZ), so a full-size plug has to pass the opening to seat. USB-IF
+// Type-C spec (rev 1.2) max overmould is 12.35 x 6.5mm with 6.65mm of plug past
+// it; opening = overmould + ~0.85mm FDM clearance, corners radiused.
+USBC_CUTOUT_W   = 13.2;
+USBC_CUTOUT_H   = 7.4;
+USBC_CUTOUT_R   = 1.0;
+USBC_MATING_BZ  = BACK_WALL_T + REAR_CLEARANCE - USBC_HEIGHT_ABOVE_PCB; // 2.5: mating face depth below the outer face
 USBC_BOSS_PAD_W = 18.0;  // raised-boss footprint around the cutout
 USBC_BOSS_PAD_H = 12.0;  // (generous, own choice -- not a cited figure)
 
 // =====================================================================
-// U201 (ESP32-WROOM-32UE) back-side relief (pilink-3ym)
+// U201 (ESP32-WROOM-32UE) back-side envelope (pilink-3ym, reworked pilink-9i4)
 // =====================================================================
-// pilink-hdl (PR #60) moved U201 to B.Cu at board-local (99, 11.6), so
-// the module body, its mated U.FL plug and the Ø1.13mm pigtail now sit in
-// the 3.0mm REAR_CLEARANCE cavity. NOT a 0.2mm boss -- the module body
-// alone overhangs by 0.2mm, but the governing envelope is the mated U.FL
-// plug plus the cable bend (PR #60 review correction). Same class of fix
-// as J401's boss: a pocket cut into the inside of the back wall PLUS a
-// raised pad on its outside so the wall is not thinned.
+// pilink-hdl (PR #60) moved U201 to B.Cu at board-local (99, 11.6), so the
+// module body, its mated U.FL plug and the Ø1.13mm pigtail sit in the rear
+// cavity. Until pilink-9i4 this had a local relief pocket plus a raised pad
+// on the OUTSIDE of the back plate (a visible bump). The whole cavity is now
+// deep enough (REAR_CLEARANCE = 7.0, see the stack-up above), so there is no
+// relief at all: the module (3.2) and plug top (3.3) clear the wall by
+// REAR_CLEARANCE - 3.3 = 3.7mm, room for the R >= 4.5mm coax bend.
 //
 // Sources: module 18.0 x 19.2 x 3.2mm (hardware/README.md U201 row,
 // datasheet-confirmed for the external-antenna variants; F.Fab outline
@@ -215,59 +237,19 @@ USBC_BOSS_PAD_H = 12.0;  // (generous, own choice -- not a cited figure)
 U201_BOARD            = [99.0, 11.6];  // anchor, B.Cu (stored rot 180 = L/R mirror)
 U201_MODULE_H         = 3.2;           // above the host PCB back surface
 U201_MODULE_PCB_TOP_H = 0.8;           // INFERRED, see above
-UFL_PLUG_ABOVE_RECEPTACLE = 2.5;       // Hirose max, mated LP-066 plug
+UFL_PLUG_ABOVE_RECEPTACLE = 2.5;       // Hirose max mated height
 UFL_PLUG_TOP_H        = U201_MODULE_PCB_TOP_H + UFL_PLUG_ABOVE_RECEPTACLE; // 3.3mm
-U201_RELIEF_CLEAR     = 0.5;           // own choice: margin over the taller of
-                                        // module body / plug top / cable bend
-U201_ENVELOPE_H       = max(U201_MODULE_H, UFL_PLUG_TOP_H) + U201_RELIEF_CLEAR; // 3.8mm
-// Pocket floor in bz: PCB back surface is at bz = BACK_WALL_T + REAR_CLEARANCE.
-U201_RELIEF_FLOOR_BZ  = BACK_WALL_T + REAR_CLEARANCE - U201_ENVELOPE_H;       // 1.2mm
-U201_RELIEF_DEPTH     = BACK_WALL_T - U201_RELIEF_FLOOR_BZ;  // 0.8mm into the wall
-U201_PAD_RISE         = U201_RELIEF_DEPTH;  // raised pad outside restores the
-                                             // full 2.0mm wall under the pocket.
-
-// Footprint of the pocket in board-local coordinates: the module body
-// (F.Fab, NOT the F.CrtYd, x:[89.25,108.75]; the H2 boss now sits at board
-// x 116.5, so either would clear it) plus a small margin, and out to the
-// board's top edge (board y = 0) so the U.FL end and the cable's bend /
-// exit toward the top wall are inside the relief.
 U201_BODY_X = [90.0, 108.0];   // board-local, measured off hardware/pico-link-hw.kicad_pcb
 U201_BODY_Y = [2.0, 21.2];
-U201_RELIEF_MARGIN = 0.3;      // own choice
-U201_RELIEF_BOARD_X = [U201_BODY_X[0] - U201_RELIEF_MARGIN, U201_BODY_X[1] + U201_RELIEF_MARGIN]; // [89.7, 108.3]
-U201_RELIEF_BOARD_Y = [0.0, U201_BODY_Y[1] + U201_RELIEF_MARGIN];                                  // [0, 21.5]
-// board_to_face() flips Y, so the board's y=0 edge is the HIGH Qface end.
-u201_p0 = board_to_face(U201_RELIEF_BOARD_X[0], U201_RELIEF_BOARD_Y[1]);  // lower-left  (Pface, Qface)
-u201_p1 = board_to_face(U201_RELIEF_BOARD_X[1], U201_RELIEF_BOARD_Y[0]);  // upper-right
-U201_PAD_WALL = 1.5;           // own choice: pad overhangs the pocket by this much each side
 // U.FL receptacle position (NOT in the footprint). VERIFIED in pilink-bl2
 // from Espressif's ESP32-WROOM-32E/32UE datasheet v2.1 Figure 11: centre
 // 3.07mm in from the antenna-end edge (board y 2.0) and 3.27mm in from the
 // long edge on the pin 25-38 side (board x 90.0 on this B.Cu module), i.e.
-// the corner beside the antenna notch, not module-centre X. The pocket is
-// still sized to the whole antenna end, so it does not depend on this.
+// the corner beside the antenna notch, not module-centre X.
 U201_UFL_BOARD_ASSUMED = [U201_BODY_X[0] + 3.27, U201_BODY_Y[0] + 3.07];  // [93.27, 5.07]
 U201_UFL_FACE = board_to_face(U201_UFL_BOARD_ASSUMED[0], U201_UFL_BOARD_ASSUMED[1]);
-
-module u201_relief_pad() {
-    // Solid pad on the OUTSIDE of the back wall (bz < 0), same idea as
-    // usbc_local_boss_pad(). Its Qface top is clamped 0.5mm below the shell's
-    // inner top wall (Q 54 -> 53.5); it overlaps the right leg boss base (x =
-    // 103.75, Q = 40) -- that is a plain union (the boss simply sits 0.8mm proud
-    // of the pad's surface); leg_mount_tip_* are unchanged.
-    translate([u201_p0[0] - U201_PAD_WALL, u201_p0[1] - U201_PAD_WALL, -U201_PAD_RISE])
-        cube([u201_p1[0] - u201_p0[0] + 2*U201_PAD_WALL,
-              min(u201_p1[1] + U201_PAD_WALL, FACE_H - WALL_T - 0.5) - (u201_p0[1] - U201_PAD_WALL),
-              U201_PAD_RISE + BACK_WALL_T]);
-}
-
-module u201_relief_pocket() {
-    // Cut from the cavity floor (bz = U201_RELIEF_FLOOR_BZ) up through the
-    // open cavity. Does not reach the PCB (that is at bz = 5.0).
-    translate([u201_p0[0], u201_p0[1], U201_RELIEF_FLOOR_BZ])
-        cube([u201_p1[0] - u201_p0[0], u201_p1[1] - u201_p0[1],
-              REAR_CLEARANCE + BACK_WALL_T - U201_RELIEF_FLOOR_BZ]);
-}
+U201_HEADROOM = REAR_CLEARANCE - max(U201_MODULE_H, UFL_PLUG_TOP_H);  // 3.7mm
+assert(U201_HEADROOM >= 3.5, "rear cavity too shallow for U201 + plug + coax bend");
 
 // ---------------------------------------------------------------------
 // U.FL pigtail slack spool (pilink-phg)
@@ -301,7 +283,7 @@ module u201_relief_pocket() {
 // pilink-phg comment) works with the real mated plug. Needs a real module.
 SPOOL_BOARD         = [73.0, 18.0];
 SPOOL_POST_D        = 10.0;
-SPOOL_POST_H        = REAR_CLEARANCE - 0.4;   // 2.6mm, 0.4mm short of the PCB
+SPOOL_POST_H        = 2.6;   // pilink-9i4: fixed (was REAR_CLEARANCE - 0.4); above the 2.26mm cable stack, well short of the PCB
 SPOOL_LUG_R         = 12.0;
 SPOOL_LUG_D         = 2.0;
 SPOOL_FACE          = board_to_face(SPOOL_BOARD[0], SPOOL_BOARD[1]);  // [75, 34]
@@ -314,12 +296,7 @@ module pigtail_spool() {
     }
 }
 
-echo(str("U201 relief: floor bz=", U201_RELIEF_FLOOR_BZ, " (", U201_RELIEF_DEPTH,
-         "mm into wall), pad rise ", U201_PAD_RISE, ", envelope ", U201_ENVELOPE_H,
-         "mm above host PCB (module ", U201_MODULE_H, ", plug top ", UFL_PLUG_TOP_H, ")"));
-echo(str("U201 relief pocket face X ", u201_p0[0], "..", u201_p1[0],
-         " Q ", u201_p0[1], "..", u201_p1[1], "; H2 boss left edge at face X ",
-         board_to_face(PCB_MOUNT_HOLES_BOARD[1][0], PCB_MOUNT_HOLES_BOARD[1][1])[0] - BOSS_OD/2));
+echo(str("U201 headroom behind PCB: ", U201_HEADROOM, "mm; REAR_CLEARANCE ", REAR_CLEARANCE, ", BODY_T ", BODY_T));
 
 // =====================================================================
 // Rear legs / A-frame mounting bosses
@@ -587,64 +564,36 @@ module pcb_mount_insert_pockets() {
             cylinder(h = INSERT_LEN + 0.1, d = INSERT_OD, $fn = 32);
 }
 
-// PR #52 review finding #4: the boss pad's lowest corner (lowest Qface,
-// lowest/most-negative bz) must not dip below the shell's own
-// world-Y=0 bottom-edge datum once the lean rotation is applied -- i.e.
-// Q*cos(LEAN_DEG) + (-USBC_BOSS_RISE)*sin(LEAN_DEG) >= 0, which solves
-// to Q >= USBC_BOSS_RISE*tan(LEAN_DEG). Clamping the pad's own bottom
-// edge to this value (instead of letting it float at
-// USBC_QFACE - USBC_BOSS_PAD_H/2, which the mapping fix above already
-// moves to a safe 0.5mm but not safe ENOUGH once the rotation's own
-// small additional dip is accounted for) makes this hold for any future
-// retuning of these constants, not just the current numbers. (pilink-3ym:
-// with J401 raised to Qface 15 the pad's natural bottom edge is
-// 15 - 12/2 = 9.0mm, far above the 0.54mm clamp, so the clamp is now
-// inactive -- q0 = 9.0, q1 = 21.0. The clamp stays for retuning safety.) Does NOT
-// address the mated-plug/cable-vs-table clearance question raised in
-// the same review finding -- that's tracked separately in pilink-8ry.
-usbc_boss_pad_q_min = USBC_BOSS_RISE * tan(LEAN_DEG);
-usbc_boss_pad_q0    = max(usbc_boss_pad_q_min, USBC_QFACE - USBC_BOSS_PAD_H/2);
-usbc_boss_pad_q1    = USBC_QFACE + USBC_BOSS_PAD_H/2;
-
-module usbc_local_boss_pad() {
-    // Solid pad added on the OUTSIDE of the back wall (bz < 0) around
-    // J401, to accommodate the connector's 1.5mm overhang past the
-    // nominal 5.0mm back cavity (see USBC_BOSS_RISE above).
-    translate([USBC_PFACE - USBC_BOSS_PAD_W/2,
-               usbc_boss_pad_q0,
-               -USBC_BOSS_RISE])
-        cube([USBC_BOSS_PAD_W, usbc_boss_pad_q1 - usbc_boss_pad_q0,
-              USBC_BOSS_RISE + BACK_WALL_T]);
-}
-
+// pilink-9i4: the J401 boss pad (and its cable-vs-table clamp) is gone; the
+// 7.0mm cavity holds the connector entirely inside the shell.
 module usbc_cutout() {
     translate([USBC_PFACE - USBC_CUTOUT_W/2,
                USBC_QFACE - USBC_CUTOUT_H/2,
                -USBC_BOSS_RISE - 0.5])
-        cube([USBC_CUTOUT_W, USBC_CUTOUT_H,
-              USBC_BOSS_RISE + BACK_SHELL_DEPTH + 1.0]);
+        linear_extrude(height = USBC_BOSS_RISE + BACK_SHELL_DEPTH + 1.0)
+            rounded_rect(USBC_CUTOUT_W, USBC_CUTOUT_H, USBC_CUTOUT_R);
 }
 
+// pilink-9i4 (rev 2): the leg-mount boss keeps the original scheme (heat-set
+// insert in the boss tip, screw from the foot through the leg). Its flat base
+// face used to sit proud of the plate (the tilted cylinder's base disc is only
+// cut by the rear plane, leaving half of it exposed), so the boss is extended
+// back along its own axis and clipped at the plate's inner side (bz = 1.0):
+// the cylinder runs into the rear surface with no exposed flat face.
+LEG_BOSS_EXTEND = 8.0;   // extension behind the base along the boss axis
+
 module leg_mount_boss_solids() {
-    // PR #52 review finding #2: tilted along LEG_BOSS_TILT (derived
-    // above) instead of straight out along local Z, so the boss points
-    // along the SAME axis as the leg's own strut/screw channel. Base
-    // flush with the wall at bz=0, protruding LEG_MOUNT_BOSS_LEN along
-    // that tilted axis (toward the foot).
     for (x = [LEG_PFACE_LEFT, LEG_PFACE_RIGHT])
         translate([x, LEG_MOUNT_Q, 0])
-            rotate([LEG_BOSS_TILT, 0, 0])
-                boss_solid(height = LEG_MOUNT_BOSS_LEN);
+            intersection() {
+                rotate([LEG_BOSS_TILT, 0, 0])
+                    translate([0, 0, -LEG_BOSS_EXTEND])
+                        boss_solid(height = LEG_MOUNT_BOSS_LEN + LEG_BOSS_EXTEND);
+                translate([-50, -50, -50]) cube([100, 100, 51.0]);
+            }
 }
 
 module leg_mount_insert_pockets() {
-    // Same tilted axis as the boss above (LEG_BOSS_TILT), bored from
-    // its outward tip inward by INSERT_LEN. The boss (6.0mm long) is
-    // still taller than the insert (4.0mm), so the pocket stays fully
-    // inside the boss with ~2mm of solid boss material left between the
-    // pocket's inner end and the shell's own back wall -- same
-    // structural margin as before, just along the corrected axis so
-    // the leg's screw channel can actually reach it (review finding #2).
     for (x = [LEG_PFACE_LEFT, LEG_PFACE_RIGHT])
         translate([x, LEG_MOUNT_Q, 0])
             rotate([LEG_BOSS_TILT, 0, 0])
@@ -665,14 +614,11 @@ module back_shell_local() {
     difference() {
         union() {
             back_shell_shell();
-            usbc_local_boss_pad();
-            u201_relief_pad();
             pigtail_spool();
             pcb_mount_boss_solids();
             leg_mount_boss_solids();
         }
         usbc_cutout();
-        u201_relief_pocket();
         pigtail_notch_cutout();
         pcb_mount_insert_pockets();
         leg_mount_insert_pockets();
@@ -697,6 +643,26 @@ module back_shell_local() {
 // earlier in the file (the "Leg axis geometry" block, Rear legs
 // section) so this module and leg() below read the same values.
 
+// pilink-9i4: feet pockets as a cutter, applied to the strip AND the shell.
+// The shell's rear-bottom corner dips into the strip's y 0..1 band over
+// z ~0..3.7, so cutting the pockets only from the strip left the back plate
+// filling half of each one.
+module feet_recess_cutters() {
+    z0 = front_edge_z;
+    z1 = front_edge_z - BASE_STRIP_DEPTH;
+    for (side = [-1, 1])
+        translate([FACE_W/2 + side*BASE_STRIP_FOOT_OFFSET_X, -0.1, (z0 + z1)/2])
+            rotate([-90, 0, 0])
+                cylinder(h = FOOT_RECESS_T + 0.1, d = FOOT_RECESS_D, $fn = 32);
+}
+
+module shell_world() {
+    difference() {
+        rotate([-LEAN_DEG, 0, 0]) back_shell_local();
+        feet_recess_cutters();
+    }
+}
+
 module base_strip() {
     z0 = front_edge_z;
     z1 = front_edge_z - BASE_STRIP_DEPTH;
@@ -708,11 +674,7 @@ module base_strip() {
         translate([0, 0, z1])
             cube([FACE_W, BASE_STRIP_T, z0 - z1]);
         // feet recesses, cut from the strip's bottom (table-facing) face
-        for (side = [-1, 1])
-            translate([FACE_W/2 + side*BASE_STRIP_FOOT_OFFSET_X,
-                       -0.1, (z0 + z1)/2])
-                rotate([-90, 0, 0])
-                    cylinder(h = FOOT_RECESS_T + 0.1, d = FOOT_RECESS_D, $fn = 32);
+        feet_recess_cutters();
         // Ballast reserve (review finding #5): shallow pocket cut from
         // the strip's TOP (interior-facing) face, centred, well clear
         // of both foot recesses -- see BALLAST_RESERVE_* above. Not a
@@ -862,9 +824,9 @@ echo(str("USB-C-to-leg clearance, right: ", clearance_right, " mm"));
 // pilink-3ym: USB-C cable-vs-table numbers at the raised J401 (Qface 15),
 // same method as enclosure/README.md's pilink-8ry section (boot = 2D offset
 // of the mating axis by D/2, axis 15 deg below horizontal heading -bz,
-// mating face at bz = -1.5). Mating-face world position:
-usbc_face_y = USBC_QFACE*cos(LEAN_DEG) + (-1.5)*sin(LEAN_DEG);   // 14.10mm
-usbc_face_z = -USBC_QFACE*sin(LEAN_DEG) + (-1.5)*cos(LEAN_DEG);  // -5.33mm
+// mating face at bz = +2.5 after pilink-9i4: recessed 2.5mm behind the outer face). Mating-face world position:
+usbc_face_y = USBC_QFACE*cos(LEAN_DEG) + USBC_MATING_BZ*sin(LEAN_DEG);   // pilink-9i4: bz +2.5 (recessed)
+usbc_face_z = -USBC_QFACE*sin(LEAN_DEG) + USBC_MATING_BZ*cos(LEAN_DEG);
 // along-axis distance to table contact for a boot of diameter D:
 function usbc_table_s(D) = (usbc_face_y - (D/2)*cos(LEAN_DEG)) / sin(LEAN_DEG);
 echo(str("USB-C mating face world (Y,Z): (", usbc_face_y, ", ", usbc_face_z,
@@ -885,13 +847,12 @@ echo(str("USB-C mating face world (Y,Z): (", usbc_face_y, ", ", usbc_face_z,
 PART = "assembly";
 
 if (PART == "assembly") {
-    color("dimgray")
-        rotate([-LEAN_DEG, 0, 0]) back_shell_local();
+    color("dimgray") shell_world();
     color("gray") base_strip();
     color("slategray") leg(-1);
     color("slategray") leg(1);
 } else if (PART == "back_shell") {
-    rotate([-LEAN_DEG, 0, 0]) back_shell_local();
+    shell_world();
     base_strip();
 } else if (PART == "leg_left") {
     leg(-1);
