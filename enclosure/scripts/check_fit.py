@@ -153,6 +153,16 @@ HEIGHTS = [
     (r"FC-05B40P21H20", 2.0),                 # FPC connector, "H20" + proposal 6c "J501 ~2mm"
 ]
 DEFAULT_H = 1.0
+# EC11E18244AU terminal length measured from the mounting face to the tip:
+# 3.5mm, the "3.5" dimension at the terminal end of the side view in Alps'
+# EC11E Series catalogue, Drawing No.2 (tech.alpsalpine.com
+# product_catalog_ec_01_ec11e_en_611f078659.pdf, update 2510). It starts at
+# the housing's PCB-mounting face, so the protrusion past the board's back
+# surface is 3.5 - board thickness (1.9 at 1.6mm).
+ENCODER_LEAD_LEN = 3.5
+# 2.54mm pin-header pin tail below the PCB: standard 3.0mm (assumed
+# catalogue-class value, pilink-1x5; no J101 part drawing in this repo).
+HEADER_TAIL_LEN = 3.0
 TOUCH_TOL = 0.02  # mm
 
 
@@ -234,14 +244,16 @@ def build_envelope(pcb_path, ev):
             flat = box(fx(cx) + 1.5, fx(cx) + 4, fq(cy_) - 4, fq(cy_) + 4, ZF - 24.5 - 1, ZF - 24.5 + 10)
             shaft = trimesh.boolean.difference([shaft, flat], engine="manifold")
             parts[ref + ".shaft"] = (shaft, side, "EC11 D-shaft d6, flat 4.5 across x 10mm from tip, to 24.5")
-            # THT leads on the back: pad bbox, assumed 2.5mm protrusion
+            # THT leads on the back: pad bbox, protrusion = ENCODER_LEAD_LEN - board thickness
             pb = [p.GetBoundingBox() for p in f.Pads() if p.GetDrillSize().x > 0]
             if pb:
                 x0 = min(p.GetX() for p in pb) / 1e6 - ox
                 x1 = max(p.GetX() + p.GetWidth() for p in pb) / 1e6 - ox
                 y0 = min(p.GetY() for p in pb) / 1e6 - oy
                 y1 = max(p.GetY() + p.GetHeight() for p in pb) / 1e6 - oy
-                parts[ref + ".leads"] = (box(fx(x0), fx(x1), fq(y1), fq(y0), ZB, ZB + 2.5), "B", "EC11 THT leads, assumed 2.5 protrusion")
+                lead_out = ENCODER_LEAD_LEN - thick
+                parts[ref + ".leads"] = (box(fx(x0), fx(x1), fq(y1), fq(y0), ZB, ZB + lead_out), "B",
+                                         "EC11 THT leads, %.1f protrusion (Alps drawing 3.5 terminal length - %.1f board)" % (lead_out, thick))
             continue
         if ref == "J101" and f.IsDNP():
             # pilink-cto: J101 is DNP (pads only; the 8.5mm-tall header would
@@ -256,8 +268,8 @@ def build_envelope(pcb_path, ev):
                     box(fx(px - 0.32), fx(px + 0.32), fq(py + 0.32), fq(py - 0.32), ZF - 8.5, ZF),
                     side, "header pin, ASSUMED 6.0 above plastic (8.5 total) -- UNVERIFIED")
                 parts["%s.tail%d" % (ref, k + 1)] = (
-                    box(fx(px - 0.32), fx(px + 0.32), fq(py + 0.32), fq(py - 0.32), ZB, ZB + 2.5),
-                    "B", "header pin tail, assumed 2.5")
+                    box(fx(px - 0.32), fx(px + 0.32), fq(py + 0.32), fq(py - 0.32), ZB, ZB + HEADER_TAIL_LEN),
+                    "B", "header pin tail, assumed %.1f" % HEADER_TAIL_LEN)
             continue
         if ref == "U201":
             bx, by = ev["U201_BODY_X"], ev["U201_BODY_Y"]
@@ -418,8 +430,12 @@ def main():
 
     def check(pair, a, b, mode="vol", note="", expect_zero=True, dist=False, contact_ok=False):
         v, loc = inter(a, b)
-        if v > 1e-3 and contact_ok and v < 0.25:
-            rec(pair, "INFO", "contact only (%.3f mm3 sliver, mating faces by design) %s" % (v, note))
+        # Mating-face contact is only excused when the overlap is a thin sliver:
+        # < 0.1 mm3 AND no more than 0.1mm thick in its thinnest direction. A
+        # larger or thicker overlap is a real interference and FAILs.
+        thin = loc is not None and min(loc[-3:]) <= 0.1
+        if v > 1e-3 and contact_ok and v < 0.1 and thin:
+            rec(pair, "INFO", "contact only (%.3f mm3 sliver, %.2fmm thick, mating faces by design) %s" % (v, min(loc[-3:]), note))
             return 0.0
         if v > 1e-3:
             rec(pair, "FAIL" if expect_zero else "INFO", "overlap %.3f mm3 at (X,Q,Z)~%s %s" % (v, loc, note))
@@ -545,6 +561,14 @@ def main():
         check("antenna mount vs front shell", a, front, dist=True, note="(touches top-wall inner surface by design)")
         check("antenna mount vs back shell", a, back, dist=True)
         check("antenna mount vs PCB envelope (slab+components)", a, union([pcb, env_all]), dist=True)
+    # --- board bottom edge vs back-shell bottom wall
+    if back is not None:
+        bottom_q = ev["QTOP"] - meta["board_h"]          # Q of the board's bottom edge
+        wall_q = bv["WALL_T"]                             # Q of the back cavity's bottom inner wall
+        gap = bottom_q - wall_q
+        rec("board bottom edge vs back-shell bottom wall", "OK" if gap >= 0.1 else "WARN",
+            "%.2f mm clearance (board edge Q=%.2f, cavity wall Q=%.2f)%s" % (
+                gap, bottom_q, wall_q, "" if gap >= 0.1 else " -- zero running clearance, no tolerance margin on Y"))
     # --- legs
     lt, lb = renders.get("bs_legl"), renders.get("bs_back")
     if lt is not None and lb is not None:
