@@ -58,21 +58,23 @@ regression from the AMS1117 (same SOT-223 exposure); both were left open
 by `pilink-ddq` and are recorded here so they are not assumed fine:
 
 - *Thermal (layout time).* AP2114H-3.3TRG1's datasheet gives roughly
-  128°C/W junction-to-ambient for the bare SOT-223 and a ~160°C thermal
-  shutdown. Dissipation is (VIN - 3.3V) x I. Sustained worst case, 5.25V
-  VIN at 0.65A: 1.27W, a 162°C rise on the bare package -- over shutdown
-  even from a cool start. Realistic case, 5.0V at ~0.2A average (RP2350B,
-  display, ESP32 averaging ~80mA): ~0.34W, a ~44°C rise, comfortable. The
-  0.65A figure is the ESP32 TX-burst *peak* (ms-scale), not a sustained
-  load, so the real exposure sits between those two. To survive the
-  sustained worst case at 40°C ambient the layout would need
-  junction-to-ambient below ~95°C/W (~106°C/W at 25°C), i.e. about a
-  quarter below the bare package. The PCB provides a +3V3 heat-spreader
-  pour around U1's VOUT tab on both layers (`zones.py`, ~270mm^2 filled)
-  stitched with 36 vias, but no datasheet-backed number for the resulting
-  junction-to-ambient exists, so this stays a **bench measurement**:
-  record case temperature of U1 on the first board under the worst
-  sustained load available before trusting the margin.
+  128°C/W junction-to-ambient for the bare SOT-223, a 150°C maximum
+  junction temperature and a ~160°C thermal shutdown. Dissipation is
+  (VIN - 3.3V) x I. Sustained worst case, 5.25V VIN at 0.65A: 1.27W, a
+  162°C rise on the bare package -- over the 150°C limit even from 0°C.
+  Realistic case, 5.0V at ~0.2A average (RP2350B, display, and an ESP32
+  average of ~80mA -- an estimate, not an Espressif datasheet figure):
+  ~0.34W, a ~44°C rise, comfortable. The 0.65A figure is the ESP32
+  TX-burst *peak* (ms-scale), not a sustained load, so the real exposure
+  sits between those two. To hold the 150°C limit under the sustained
+  worst case at 40°C ambient the layout would need junction-to-ambient
+  below ~87°C/W (~99°C/W at 25°C), about a third below the bare package.
+  The PCB design adds a +3V3 heat-spreader pour around U1's VOUT tab on
+  both layers (`zones.py`) stitched with a via grid (once PR #72 merges:
+  36 vias, ~270mm^2 filled), but no datasheet-backed number for the
+  resulting junction-to-ambient exists, so this stays a **bench
+  measurement**: record case temperature of U1 on the first board under
+  the worst sustained load available before trusting the margin.
 - *Bring-up (bench).* AP2114H-3.3's datasheet limits short-circuit current
   to ~50mA (foldback) and says input must be applied before a
   current-source load is connected. Verify on the first board that +3V3
