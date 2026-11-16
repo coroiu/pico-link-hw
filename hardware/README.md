@@ -1212,3 +1212,28 @@ verification entry above:
      now above the button diamond instead of above the encoder; whatever
      antenna-mount geometry that PR is converging on was derived against
      the old position.
+8. **J401's low anchor (59, 45.5) vs. the product-layout proposal's "~15mm
+   up" rear-USB-C intent (section 6c) -- investigated, not resolved as a
+   simple accept (`pilink-8ry`).** A zero-thickness-line check of the
+   merged `enclosure/back_shell.scad` geometry (board_to_face Y-mapping
+   fix + USB-C boss-pad clamp both already merged) first suggested a
+   comfortable margin, but redoing it with a real mated-cable boot
+   (sourced real example: Anker 515 cable, 6.3mm-thick plug head cover)
+   found a materially worse result. Two base-strip positions matter: the
+   placeholder in `back_shell.scad` (back edge Z=-8.125mm) is hit by
+   every boot at or above ~4.93mm diameter (the crossover is where the
+   boot's radius exceeds the 2.465mm perpendicular clearance), ~3-6mm out;
+   the design-decision position (back edge Z~-0.88mm, 2.25mm in front of
+   the plug, never under the cable) is not hit at all, and then every
+   5.0-6.5mm boot hits the **table** ~10.6-13.4mm out along the cable
+   (6.3mm Anker boot: ~11mm along, ~9.8mm horizontal), versus the
+   original, wrong ~22.8mm. Table contact is independent of any strip
+   notch; it only goes away if the plug's rigid moulded end is shorter
+   than ~11mm (unsourced), the body is raised (roughly 1-5mm for a
+   15-30mm rigid end), or J401 is moved higher on the PCB -- all still
+   open. Not a confirmed collision (no cable is chosen) and
+   `back_shell.scad` is untouched (investigation only). Carried forward
+   in `pilink-q03` (table contact first; strip only if the placeholder
+   position ships; plus whether the boot can enter the 10x5mm cutout
+   tunnel). Full numbers and reasoning: `enclosure/README.md`'s "USB-C
+   cable-vs-table clearance (`pilink-8ry`)" section.

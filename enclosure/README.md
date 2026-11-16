@@ -110,6 +110,203 @@ NOTE asked for (whether the rear USB-C port and its mating plug clear the
 two rear legs), computed analytically rather than rendered; see the
 file's own comments for the numbers and reasoning.
 
+### USB-C cable-vs-table clearance (`pilink-8ry`)
+
+PR #52's review flagged, but left unresolved (out of that bead's own
+scoping call), a real concern: J401 sits low on the board (board-local
+(59, 45.5), only ~4.5mm from the board's bottom edge) — well short of the
+product-layout proposal's "~15mm up" intent (section 6c) — and the
+back-shell's own base strip, directly below it, might force a mated
+cable's molded boot to hit the table or the strip before it can exit
+cleanly. This bead investigated the *current* merged geometry (not the
+placement question itself) analytically, since OpenSCAD still isn't
+available here.
+
+**Numbers used** (all read directly from the current `back_shell.scad`,
+not re-derived): `USBC_QFACE = 6.5mm` (J401's position in the shell's own
+"height up the face" convention — already reflects the `board_to_face()`
+Y-mapping fix merged in `pilink-8hx.1` (PR #52), not in this bead, +2mm
+over the original, pre-fix figure); connector height above the PCB back surface
+`USBC_HEIGHT_ABOVE_PCB = 6.5mm` (so its outer mating face actually
+overhangs 1.5mm *past* the back wall's own outer surface, at local
+`bz = -1.5mm`, not `bz = 0` — the connector height exceeds the bare
+5.0mm cavity by design, per the USB-C finding); base strip `BASE_STRIP_DEPTH
+= 14.5mm`, `BASE_STRIP_T = 2.0mm` (its table-facing thickness/top-surface
+height); shell lean `LEAN_DEG = 15`.
+
+### Step 1: idealized zero-thickness line (first pass, numbers corrected)
+
+Projecting the connector's own mating axis outward (the direction a
+plugged-in cable's body would run, straight-line/worst-case, ignoring any
+droop, modeled with **zero thickness** — just the axis itself) through the
+shell's `rotate([-LEAN_DEG,0,0])` world transform:
+
+- The connector's outer mating face sits at world `(Y, Z) = (5.89mm,
+  -3.13mm)` relative to the file's own table-level datum (Y=0).
+- Clearance above the base strip's top surface (Y=2.0mm) **right at the
+  connector face** is **3.89mm**.
+- That clearance *shrinks* as the straight-line path runs outward (down
+  and back, per the 15-degree lean), reaching a **vertical minimum of
+  ~2.55mm** about **5.2mm out from the connector's own mating face** —
+  exactly the point where the path crosses the base strip's own back edge
+  (world Z=-8.12mm, using the strip's `front_edge_z` stand-in reference).
+  The *true* clearance a zero-thickness line leaves at that pinch point,
+  measured perpendicular to the cable's own axis (the direction a round
+  cable boot's surface would actually approach that corner from) rather
+  than straight up, is smaller: **2.465mm**, not ~2.5mm/2.55mm (2.552mm is
+  the vertical gap; 2.552mm x cos(15°) = 2.465mm is the perpendicular
+  one — correction from a code-reviewer's NOT APPROVED verdict on this
+  bead's first PR). Beyond the strip's back edge the strip no longer
+  exists underneath the path at all; the zero-thickness line itself
+  reaches table level (Y=0) about 22.8mm out from the connector face.
+- **No point along this idealized, zero-thickness line dips below the
+  strip or the table** — a real improvement over the stale number quoted
+  in `pilink-8ry`'s own description (~2.4mm *into* collision), which
+  predates the `board_to_face()` Y-mapping fix (`pilink-8hx.1`, +2mm) and
+  the USB-C boss-pad clamp fix already merged here.
+
+This zero-thickness result is **not, by itself, a basis for any
+conclusion about real cables** — see Step 2.
+
+The base strip's own Z position is keyed off this file's documented
+`front_edge_z` approximation (`BACK_SHELL_DEPTH = 6.6mm`, *not* the real
+front-shell edge, which the file's own `BODY_T` stack-up says sits a
+further `FACE_T + FRONT_CAVITY = 7.5mm` forward **along bz
+(depth)**). Correcting that stand-in — a known, already-flagged
+simplification, not something this bead's own scope allows fixing
+(`back_shell.scad`'s geometry isn't touched here) — would shift the whole
+base-strip + leg assembly forward by `7.5mm x cos(15°) = 7.24mm` in world
+Z (not 7.5mm — the shift is along the *local*, pre-rotation bz depth
+axis, and world Z is the rotated projection of it), away from the back wall and the
+connector, moving the strip's back edge from Z=-8.12mm to about
+**Z=-0.88mm** (not -0.6mm as an earlier draft of this section had it;
+correction from the same review). This stand-in-correction argument only
+ever applied to the **strip-crossing** pinch point above — it says
+nothing about table clearance, since the table (world Y=0) is a fixed
+datum the `front_edge_z` stand-in doesn't move. See Step 2 for why that
+distinction now matters.
+
+### Step 2: redone with a real cable boot, not a zero-thickness line
+
+A real mated USB-C cable is not a line — right at the plug, a molded
+"boot"/overmold (strain relief + shielding) adds real thickness around
+the bare connector shell before the flexible cable jacket begins. This is
+the check the bead's own description asked for ("plug dimensions, typical
+cable boot size, actual achievable clearance") and the first version of
+this PR skipped — flagged as the review's blocking finding.
+
+**Sourced boot thickness.** No cable is chosen for this product, and the
+USB Type-C Cable and Connector Specification doesn't fix a boot
+envelope (it's a manufacturer choice, not a compliance dimension), so
+there's no single "correct" number. One real, sourced data point: Anker's
+own FAQ for the Anker 515 USB-C-to-USB-C cable (model A8487) states its
+"USB-C head cover is 6.3mm thick" and 12.15mm wide
+([source](https://service.anker.com/article-description/Anker-515-USB-C-to-USB-C-cable-FAQ)).
+That's used below as the centre of a **5.0-6.5mm conservative range**
+(bracketing the sourced 6.3mm figure), not a survey of the market.
+
+**Model.** The boot is modeled as a rigid cylinder of diameter `D`
+centred on the same idealized mating axis used in Step 1 (same
+zero-droop, straight-line simplification — now just given thickness). The
+axis points along -bz, i.e. 15° *below horizontal*, heading backward. The
+cylinder's lower edge is the axis offset by `r = D/2` perpendicular to
+it, which sits `r x cos(15°)` below the axis in world Y at the same `s`.
+
+**Result.** Two strip positions matter, because the one in
+`back_shell.scad` is a flagged stand-in (see Step 1's last paragraph):
+
+- **Placeholder** (as built: back edge world Z = -8.125mm). The boot's
+  lower edge touches the strip's back-edge corner once its *radius*
+  exceeds the corner's 2.465mm perpendicular clearance from the axis, so
+  the strip-vs-table crossover is **D = 4.93mm** (not ~5.7mm, an earlier
+  draft's error). Every boot in the 5.0-6.5mm range hits the strip.
+- **Design-decision position** (back edge Z = -0.88mm, the position the
+  ADR's front-edge reference implies). That edge is 2.25mm *in front of*
+  the plug's mating face (Z = -3.13mm), so the strip is never under the
+  cable, and no boot in the range can hit it. The **table** is the only
+  obstacle.
+
+"Along" is measured along the axis from the connector's mating face;
+"horizontal" is the table-plane distance from that face (the axis points
+15 degrees below horizontal, so horizontal is a little less than along).
+Strip-hit distance is where the boot's lower edge reaches strip-top
+height (Y = 2.0mm); table-hit is where it reaches Y = 0.
+
+| Boot `D` | Placeholder strip (Z=-8.125) | Design-decision strip (Z=-0.88) |
+|---|---|---|
+| 5.0mm | **strip**, ~5.7mm along | **table**, ~13.4mm along (~12.3 horiz.) |
+| 5.5mm | **strip**, ~4.8mm along | **table**, ~12.5mm along (~11.4 horiz.) |
+| 6.0mm | **strip**, ~3.8mm along | **table**, ~11.6mm along (~10.4 horiz.) |
+| 6.3mm (Anker 515) | **strip**, ~3.3mm along | **table**, ~11.0mm along (~9.8 horiz.) |
+| 6.5mm | **strip**, ~2.9mm along | **table**, ~10.6mm along (~9.4 horiz.) |
+
+Below D = 4.93mm the placeholder strip is also cleared and the table is
+again the first contact (e.g. D = 4.5mm: ~14.4mm along), but that is
+outside the 5.0-6.5mm range used here. Method: boot = 2D offset of the
+axis by `r = D/2`, perpendicular to it. With axis direction
+`(dy, dz) = (-sin15, -cos15)` from the face `(5.890, -3.131)`, the boot's
+lower edge sits `r cos15` below the axis, so table contact is at
+`s = (5.890 - r cos15) / sin15`. This simplified method ignores the small
+sideways (`r sin15`) shift of the lowest point, which is accounted for
+only in the "horiz." column. Both strip positions follow from the file's
+own numbers; no extra modelling was needed for the second.
+
+**Which strip position ships.** The design-decision one (Z = -0.88) is
+the intended geometry; the placeholder exists only because the front
+shell's real base profile did not exist when `back_shell.scad` was
+authored. If the placeholder ships unchanged, the strip is the first
+obstacle for every boot at or above ~4.93mm and a relief notch helps
+with *that* contact only.
+
+**Table contact does not depend on a strip notch.** At the
+design-decision strip position (or with a notch cut anywhere), a 6.3mm
+boot's rigid end still reaches the table about 11mm along the axis
+(~9.8mm horizontal). A notch changes nothing about this; only geometry
+that moves the connector relative to the table does.
+
+- **How short would the rigid end have to be?** The rigid moulded end
+  (plug shell + overmold, before the flexible jacket) must end before
+  the table-contact distance: **under ~11mm for the 6.3mm Anker boot**
+  (under ~10.6mm at 6.5mm, ~13.4mm at 5.0mm), measured from the
+  receptacle's mating face. The Anker page gives no head length, so this
+  is unsourced; a real cable's overmold length is the deciding unknown.
+- **Option (a), raise the body / lengthen the feet.** For a 6.3mm boot
+  with a rigid end of length `L` along the axis, the lift needed is
+  `L sin15 + r cos15 - 5.89`: ~0 for L <= 11mm, ~1.0mm for L = 15mm,
+  ~2.3mm for L = 20mm, ~3.6mm for L = 25mm, ~4.9mm for L = 30mm. (The
+  strip is 2.0mm tall and the connector face is 5.89mm up, so the body
+  would have to sit on feet/strip that add this much height.)
+- **Option (b), move J401 higher on the PCB** stays open: it raises the
+  face height by ~cos15 (0.97mm) per mm moved, without touching the
+  enclosure's resting height, and nothing here argues against it.
+
+**Boot vs. the cutout/boss itself.** Separately from table/strip
+clearance, `back_shell.scad:229-230`'s `USBC_CUTOUT_W/H = 10.0 x 5.0mm`
+tunnel runs from the boss's outer face (`bz=-2.0`, `USBC_BOSS_RISE`) to
+past the receptacle's own mating face (`bz=-1.5`), a 0.5mm-deep recess
+the plug has to clear to fully seat. A boot wider than 10mm or thicker
+than 5mm can't pass through that tunnel at all. The file's own comment at
+`back_shell.scad:223-228` already flags this as open. What matters is how
+much bare, un-overmolded metal shell is still *outside the receptacle*
+when the plug is fully mated, and whether that exceeds the 0.5mm recess
+(it is much less than the plug's total bare length, which is partly
+inside the receptacle). That figure isn't sourced for any real cable
+here, so this is open, not settled, and is in `pilink-q03`'s scope.
+
+**Conclusion: not resolved, and no longer pointing at the strip alone.**
+Table contact at ~10-13mm along the axis is the primary finding for the
+intended strip position, and it is the bead's original (a)-vs-(b)
+question: it only goes away if the cable's rigid end is shorter than
+~11mm (6.3mm boot), or the face is raised (option (a): body/feet lift,
+estimate above) or J401 is moved higher (option (b)). Neither is chosen
+here and no PCB re-placement is ruled out. The placeholder strip adds a
+second, earlier contact (~3-6mm along) that only exists while the
+placeholder position ships. This bead is investigation only;
+`back_shell.scad` is intentionally not touched. `pilink-q03` carries the
+physical check: with a printed prototype and a real cable, check table
+contact first, the strip only if the placeholder strip position ships,
+and the cutout-tunnel entry above.
+
 ## `antenna_mount.scad` (pilink-8hx.4)
 
 Internal mount for the adhesive U.FL 2.4GHz antenna, for the top wall of
