@@ -84,7 +84,7 @@ installed here (see above); every dimension cites its source in the
 file's own comments.
 
 **The real switch:** SW305-SW308 are C&K `PTS645SK50SMTR92LFS` (LCSC
-`C221872`), confirmed from `hardware/README.md`'s BOM table. Per C&K's
+`C221872`), confirmed from `hardware/BOM.md`'s BOM table. Per C&K's
 own PTS645 ordering key, decoded against this exact part number in
 [`.research/findings/2026-11-15-encoder-ec11e18244au-specs.md`](../.research/findings/2026-11-15-encoder-ec11e18244au-specs.md)'s
 "Lower-force PTS645 mitigation options" section, the trailing `50`
@@ -101,32 +101,51 @@ with the switch's 5.0mm height above the PCB leaves only **0.5mm**
 of spare depth between the plate's inner face and the switch
 actuator's resting top -- not a bug, but a deliberate consequence of
 the proposal's own stack-up (section 6c: "5.5mm to the PCB (5.0mm
-switches...)" = 0.5mm spare). This file's retention flange (0.2mm),
-stem (0.2mm) and working clearance (0.1mm) split that same 0.5mm three
-ways, each sub-millimetre -- flagged as the single highest-risk
-dimension in this file for a real FDM print, more so than the general
-"not rendered" caveat that applies everywhere in this directory. See
-the file's own "Open items" footer for the two documented mitigations
-if a real print shows this doesn't hold up.
+switches...)" = 0.5mm spare). This file's working clearance (0.1mm)
+and stem (0.4mm) split that same 0.5mm on-axis budget -- flagged as
+the single highest-risk dimension in this file for a real FDM print,
+more so than the general "not rendered" caveat that applies everywhere
+in this directory. See the file's own "Open items" footer for the
+documented mitigation if a real print shows this doesn't hold up.
 
 **Cap/bore fit:** cap Ø8.0mm (matching `front_shell.scad`'s
 `BUTTON_CAP_DIA`) inside the existing Ø8.4mm bore -- 0.2mm/side
 clearance, within the bead's own suggested 0.15-0.2mm/side FDM
-clearance range. Retention is a single flange wider than the bore
-(Ø11mm, own choice), which cannot pass back through the bore in either
-direction -- it stops the cap both popping out the front and falling
-through into the cavity. Cap must be dropped in from inside the shell
-cavity before the two shells are joined (an assembly-order note, not
-modeled).
+clearance range. Retention is a flange *ring* wider than the bore
+(Ø9.4mm = `BORE_DIA` + 1.0mm, 0.5mm radial overlap each side), which
+cannot pass back through the bore in either direction -- it stops the
+cap both popping out the front and falling through into the cavity.
+Cap must be dropped in from inside the shell cavity before the two
+shells are joined (an assembly-order note, not modeled).
+
+**Review fixes (PR #56, round 2):** the first version used a Ø11mm
+solid flange. That both intruded ~0.5mm into `front_shell.scad`'s
+`panel_ledge()` at the X button's position (only 5.0mm of clearance
+there, board x 94 vs. the ledge's edge at board x 89) and left only
+0.31mm between adjacent flanges on the diamond's 11.31mm diagonal
+pitch -- less than the caps' own 0.4mm of bore play, so adjacent
+flanges could touch/bind. `FLANGE_DIA` is now `BORE_DIA` + 1.0mm
+(9.4mm), clearing both. The flange is also now a 1.2mm-thick ring with
+a Ø4.5mm relief pocket over the actuator, instead of a 0.2mm
+single-layer disc: off-axis (beside the actuator, over the switch's
+own housing) there's more real clearance than directly over the
+actuator -- the switch housing sits an assumed 1.5mm lower there, per
+the review -- so the ring's thickness draws on that off-axis budget
+(2.0mm) instead of the tight 0.5mm on-axis one, while the stem passes
+through the pocket to reach the actuator using the full 0.5mm on-axis
+budget itself (minus only the 0.1mm working clearance).
 
 **Not covered by this file:** the encoder's (SW303, EC11E18244AU) own
 knob/shaft treatment, which `pilink-8hx.3`'s acceptance criteria also
-names -- filed as a separate follow-up bead rather than addressed
-here; that AC item stays open against `pilink-8hx.3` until that lands.
-A straight-cut (non-chamfered) bore in the already-merged
-`front_shell.scad` is also flagged as a discrepancy against the
-original bead text's "chamfered bores" phrasing -- not fixed here
-(out of this file's scope).
+names -- filed as a separate follow-up bead (`pilink-0ty`) rather than
+addressed here; `pilink-8hx.3` stays open (not closed on this PR
+alone) until `pilink-0ty` also lands, and `pilink-8hx.5` (fit
+verification) now depends on `pilink-0ty` too. A straight-cut
+(non-chamfered) bore in the already-merged `front_shell.scad` is also
+flagged as a discrepancy against the original bead text's "chamfered
+bores" phrasing -- filed as its own follow-up (`pilink-ci0`) per code
+review rather than fixed here (out of this file's scope, different
+file's established geometry).
 
 ## Back shell + rear legs (`back_shell.scad`, pilink-8hx.1)
 

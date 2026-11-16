@@ -24,7 +24,7 @@
 // ============================== Why this geometry ==============================
 //
 // Real switch: SW305-SW308 are C&K PTS645SK50SMTR92LFS (LCSC
-// C221872), confirmed from hardware/README.md's BOM table (grep
+// C221872), confirmed from hardware/BOM.md's BOM table (grep
 // "SW305" there). This is a 6x6mm SMD tactile switch, "PTS645"
 // family. Per C&K's own PTS645 ordering key (decoded against this
 // exact part number in
@@ -62,14 +62,16 @@
 // features that are genuinely tight for FDM. See "OPEN ITEMS" at the
 // bottom.
 //
-// Retention: a single flange/shoulder wider than the Ø8.4mm bore,
-// sitting on the inner-face side, physically cannot pass back out
-// through the bore in either direction -- it is what stops the cap
-// both from popping out the front (switch's own dome pushing back) and
-// from being pushed/falling all the way through into the cavity. The
-// cap must be dropped into the shell cavity from behind (inside) before
-// the two shells are joined, since the flange is wider than the bore
-// it sits behind -- an assembly-order note, not modeled here.
+// Retention: a flange/shoulder (now a ring, with a relief pocket over
+// the actuator -- see FLANGE_DIA/RELIEF_DIA below) wider than the
+// Ø8.4mm bore, sitting on the inner-face side, physically cannot pass
+// back out through the bore in either direction -- it is what stops
+// the cap both from popping out the front (switch's own dome pushing
+// back) and from being pushed/falling all the way through into the
+// cavity. The cap must be dropped into the shell cavity from behind
+// (inside) before the two shells are joined, since the flange is wider
+// than the bore it sits behind -- an assembly-order note, not modeled
+// here.
 //
 // Encoder knob: this bead's own acceptance criteria also names the
 // EC11E18244AU encoder's knob/shaft treatment ("confirmed against the
@@ -108,7 +110,7 @@ FRONT_SHELL_DEPTH = 7.5;
 BORE_DIA = 8.4;
 
 /* ============================ Switch (SW305-308) ============================
-   C&K PTS645SK50SMTR92LFS, LCSC C221872. Source: hardware/README.md's
+   C&K PTS645SK50SMTR92LFS, LCSC C221872. Source: hardware/BOM.md's
    BOM table row for SW305-SW308, and
    .research/findings/2026-11-15-encoder-ec11e18244au-specs.md's
    decode of this exact part's ordering-key suffix. */
@@ -174,13 +176,72 @@ CAP_CHAMFER = 0.3;
 
 // Retention flange/shoulder: wider than the bore so it cannot pass
 // back through in either direction -- the "simple retention feature"
-// this bead's description asks for. Diameter is this file's own
-// choice (comfortably wider than the 8.4mm bore for a solid printed
-// shoulder under light tact-switch loads, ~2.6N per the BOM part);
-// thickness is deliberately thin because it has to share the tiny
-// 0.5mm INNER_FACE_TO_ACTUATOR_GAP budget with the stem below.
-FLANGE_DIA = 11.0; // mm, own choice (>BORE_DIA for a positive stop)
-FLANGE_T   = 0.2;  // mm, own choice -- thin disk, stop-only, no load-bearing need
+// this bead's description asks for.
+//
+// REVIEW FIX (PR #56, NOT APPROVED round 1): the original FLANGE_DIA
+// (11.0mm) was too wide on two independent counts, both checked
+// against front_shell.scad's (pilink-8hx.2, merged) own geometry:
+//   - front_shell.scad's panel_ledge() (front_shell.scad:476-483) is
+//     a rectangle PANEL_W + 2*LEDGE_W wide (59 + 2*2 = 63mm) centred
+//     on PANEL_CX (board_to_x(57.5) = 59.5mm); its right edge sits at
+//     board x = 57.5 + 59/2 + 2.0 = 89.0mm. board_to_x() is a pure
+//     +WALL offset, so board-space and shell-space distances are the
+//     same. The X button (front_shell.scad BTN_X, board (94,34)) is
+//     only 94 - 89 = 5.0mm from that edge -- so the flange radius at
+//     that button must stay under 5.0mm. The old Ø11 flange (radius
+//     5.5mm) intruded ~0.5mm into the ledge there -- the X cap
+//     physically couldn't seat.
+//   - the diamond's own button pitch is 8mm in both board X and Y
+//     (front_shell.scad BTN_Y/BTN_X/BTN_B/BTN_A), so the diagonal
+//     pitch between adjacent buttons (e.g. X to Y, X to A) is
+//     hypot(8,8) = 11.3137mm. With Ø11 flanges that left only 0.31mm
+//     nominal gap between adjacent flanges -- less than the caps'
+//     own BORE_DIA-CAP_DIA = 0.4mm of bore play, so adjacent flanges
+//     could touch/bind if both caps shifted toward each other.
+// FLANGE_DIA = BORE_DIA + 1.0mm (0.5mm radial overlap past the bore
+// edge each side -- still a solid positive stop under the ~2.6N
+// switch load) resolves both: radius 4.7mm leaves 0.3mm clearance to
+// the ledge, and a 1.91mm nominal gap to the next flange over
+// (comfortably more than the 0.4mm worst-case bore-play closing
+// distance, even doubled for both caps moving toward each other).
+FLANGE_DIA = BORE_DIA + 1.0; // 9.4mm, radius 4.7mm -- see review-fix note above
+
+// Thickness: a real structural ring now (not the old fragile 0.2mm
+// single-layer disc cantilevered off the stem -- also a review
+// finding). Picked from the 1.0-1.4mm range the review suggested,
+// sized against the RELIEF_DIA pocket below rather than the tight
+// on-axis INNER_FACE_TO_ACTUATOR_GAP budget.
+FLANGE_T = 1.2; // mm
+
+// Relief pocket: REVIEW FIX for the "Important" finding that the
+// original design applied the full on-axis INNER_FACE_TO_ACTUATOR_GAP
+// (0.5mm) budget to the flange EVERYWHERE, when that worst case only
+// actually applies directly over the switch's actuator. Off-axis
+// (beside the actuator, over the switch's own housing) there's more
+// real clearance: the switch housing sits SWITCH_BODY_OFFAXIS_RELIEF
+// lower than the actuator's own resting top there, per the review.
+// That figure is NOT independently confirmed against this exact SKU's
+// own dimensioned drawing in this repo's research (same tier of
+// assumption as SWITCH_TRAVEL/SWITCH_ACTUATOR_DIA_ASSUMED above, and
+// not tightened further here per the review's own note not to rely on
+// anything tighter than what's already flagged) -- it is used as-is,
+// giving an off-axis budget of INNER_FACE_TO_ACTUATOR_GAP +
+// SWITCH_BODY_OFFAXIS_RELIEF = 0.5 + 1.5 = 2.0mm for the flange RING
+// (the part of the flange outside this pocket), with FLANGE_T (1.2mm)
+// using well under that (0.8mm to spare).
+//
+// The pocket itself is a through-void in the flange's centre,
+// concentric with the stem, so the stem can pass through the flange's
+// thickness unobstructed and keep going to reach the actuator (see
+// STEM_LEN below) without the flange's own material bottoming out on
+// the actuator first. Diameter kept bigger than both STEM_DIA (3.0mm)
+// and SWITCH_ACTUATOR_DIA_ASSUMED (3.5mm), with margin, so neither the
+// stem nor the actuator can catch on the ring's inner edge.
+SWITCH_BODY_OFFAXIS_RELIEF = 1.5; // mm, per PR #56 code review finding, ASSUMED (not re-confirmed against a dimensioned drawing)
+RELIEF_DIA = 4.5; // mm, > STEM_DIA and > SWITCH_ACTUATOR_DIA_ASSUMED
+
+assert(FLANGE_T <= INNER_FACE_TO_ACTUATOR_GAP + SWITCH_BODY_OFFAXIS_RELIEF,
+    "FLANGE_T exceeds the off-axis clearance budget -- the flange ring would bottom out on the switch housing beside the actuator");
 
 // Working clearance: the stem is deliberately built a touch SHORT of
 // the actuator's exact resting height, so ordinary print tolerance
@@ -194,17 +255,24 @@ WORKING_CLEARANCE = 0.1; // mm
 // kept at/under SWITCH_ACTUATOR_DIA_ASSUMED so it lands within the
 // real button's own contact area regardless of the surrounding
 // housing's exact height (unconfirmed from a dimensioned drawing --
-// see the switch section above). Length is whatever is left of the
-// 0.5mm budget after the flange and the working clearance.
-STEM_DIA = 3.0; // mm, own choice, < SWITCH_ACTUATOR_DIA_ASSUMED (3.5mm)
-STEM_LEN = INNER_FACE_TO_ACTUATOR_GAP - FLANGE_T - WORKING_CLEARANCE;
-// = 0.5 - 0.2 - 0.1 = 0.2mm -- GENUINELY TIGHT. See OPEN ITEMS below;
-// this is the single most important thing pilink-8hx.5/.6 needs to
-// verify on a real print, more so than the general "not rendered"
-// disclaimer that applies to every file in this directory.
+// see the switch section above), and under RELIEF_DIA so it clears
+// the flange ring's inner edge as it passes through the pocket.
+//
+// REVIEW FIX: length is now the full on-axis budget minus only the
+// working clearance -- NOT minus FLANGE_T any more. The flange's own
+// thickness no longer sits stacked on the stem's on-axis path (it's
+// a ring in the relief pocket's off-axis annulus instead, see
+// RELIEF_DIA above), so it no longer eats into this length.
+STEM_DIA = 3.0; // mm, own choice, < SWITCH_ACTUATOR_DIA_ASSUMED (3.5mm) and < RELIEF_DIA (4.5mm)
+STEM_LEN = INNER_FACE_TO_ACTUATOR_GAP - WORKING_CLEARANCE;
+// = 0.5 - 0.1 = 0.4mm -- still sub-millimetre and still the highest-
+// risk dimension in this file for a real FDM print (double the
+// pre-fix 0.2mm, but not generous), more so than the general "not
+// rendered" disclaimer that applies to every file in this directory.
+// See OPEN ITEMS below for what pilink-8hx.5/.6 needs to verify.
 
 assert(STEM_LEN > 0,
-    "STEM_LEN went non-positive -- FLANGE_T + WORKING_CLEARANCE exceeds the real 0.5mm depth budget, re-check the constants above");
+    "STEM_LEN went non-positive -- WORKING_CLEARANCE exceeds the real 0.5mm on-axis depth budget (INNER_FACE_TO_ACTUATOR_GAP), re-check the constants above");
 
 /* ============== Optional preview: cap depressed by SWITCH_TRAVEL ==============
    Purely informational -- shifts the whole plunger back by
@@ -230,14 +298,28 @@ module button_plunger() {
         cylinder(h = CAP_CHAMFER, d1 = CAP_DIA - 2 * CAP_CHAMFER, d2 = CAP_DIA);
 
         // Retention flange: right behind the head, wider than the
-        // bore -- cannot pass back through it either direction.
+        // bore -- cannot pass back through it either direction. Now a
+        // RING, not a solid disc: the relief pocket (RELIEF_DIA) is
+        // removed from its centre so the stem can pass straight
+        // through it to reach the actuator, and so the ring's own
+        // thickness only has to clear the switch housing OFF-axis
+        // (see RELIEF_DIA/SWITCH_BODY_OFFAXIS_RELIEF above), not the
+        // tight on-axis actuator gap.
         translate([0, 0, CAP_HEAD_LEN])
-            cylinder(h = FLANGE_T, d = FLANGE_DIA);
+            difference() {
+                cylinder(h = FLANGE_T, d = FLANGE_DIA);
+                translate([0, 0, -0.5])
+                    cylinder(h = FLANGE_T + 1, d = RELIEF_DIA);
+            }
 
-        // Stem: narrow, reaches toward the actuator. Its free (far)
-        // end sits WORKING_CLEARANCE short of the actuator's real
-        // resting height (ACTUATOR_Z) -- see WORKING_CLEARANCE above.
-        translate([0, 0, CAP_HEAD_LEN + FLANGE_T])
+        // Stem: narrow, reaches toward the actuator, starting right
+        // after the head and passing through the flange's own relief
+        // pocket (same start Z as the flange -- they occupy different
+        // radii, not different Z ranges, so neither needs to wait for
+        // the other to end). Its free (far) end sits WORKING_CLEARANCE
+        // short of the actuator's real resting height (ACTUATOR_Z) --
+        // see WORKING_CLEARANCE above.
+        translate([0, 0, CAP_HEAD_LEN])
             cylinder(h = STEM_LEN, d = STEM_DIA);
     }
 }
@@ -263,22 +345,30 @@ button_plungers_x4();
       real printed sample test-fitted against a real
       PTS645SK50SMTR92LFS part and a real front_shell.scad print
       (pilink-8hx.5/.6).
-   2. STEM_LEN (0.2mm) and FLANGE_T (0.2mm) are both sub-millimetre,
-      splitting an intentionally tight 0.5mm total depth budget
+   2. STEM_LEN (0.4mm) is still sub-millimetre, drawing on the
+      intentionally tight 0.5mm on-axis depth budget
       (INNER_FACE_TO_ACTUATOR_GAP) that the enclosure's own 5.5mm
       face-to-PCB gap was sized against (5.5mm gap - 5.0mm switch
-      height = 0.5mm spare, per proposal 6c). This is the single
-      highest-risk dimension in this file for real FDM printing --
-      more so than the general "not rendered" caveat. If a real print
-      shows the stem too fragile/short to reliably engage, the two
-      documented mitigations are: (a) rebalance FLANGE_T/STEM_LEN/
-      WORKING_CLEARANCE within the same 0.5mm (e.g. thinner flange,
-      longer stem), which this file's named constants make a one-line
-      change; or (b) revisit GAP_FACE_TO_PCB in front_shell.scad
-      itself for more depth at the button locations specifically --
-      out of this file's scope (front_shell.scad is a separate,
-      already-merged file), filed as a question for a human/follow-up
-      bead rather than silently reworked here.
+      height = 0.5mm spare, per proposal 6c). REVIEW FIX (round 2):
+      the flange itself no longer shares that same on-axis budget --
+      it's now a thicker (1.2mm) ring sitting in a relief pocket
+      (RELIEF_DIA) that only has to clear the switch housing OFF-axis
+      (a 2.0mm budget, per SWITCH_BODY_OFFAXIS_RELIEF), not stacked on
+      top of the stem's own on-axis path. STEM_LEN is still the
+      single highest-risk dimension in this file for real FDM
+      printing -- more so than the general "not rendered" caveat. If
+      a real print shows the stem too fragile/short to reliably
+      engage, the two documented mitigations are: (a) trim
+      WORKING_CLEARANCE within the same 0.5mm (the only other term in
+      STEM_LEN's formula now), which this file's named constants make
+      a one-line change; or (b) revisit GAP_FACE_TO_PCB in
+      front_shell.scad itself for more depth at the button locations
+      specifically -- out of this file's scope (front_shell.scad is a
+      separate, already-merged file), filed as a question for a
+      human/follow-up bead rather than silently reworked here.
+      SWITCH_BODY_OFFAXIS_RELIEF (1.5mm) itself is also unverified
+      against a dimensioned drawing (see its own comment) -- the
+      relief-pocket fix depends on that figure being roughly right.
    3. SWITCH_TRAVEL (0.25mm) is a generic PTS645-family figure, not
       independently confirmed against PTS645SK50SMTR92LFS's own
       dimensioned drawing in this repo's research -- flagged per the
@@ -294,7 +384,9 @@ button_plungers_x4();
       a straight-cut cylinder with no entry chamfer, even though this
       bead's own original description mentions "chamfered bores" --
       noted as a discrepancy between the bead text and the already-
-      landed shell geometry, not fixed here (would require editing
+      landed shell geometry. Per the PR #56 code review, this is filed
+      as its own follow-up bead (pilink-ci0, discovered-from
+      pilink-8hx.3) rather than fixed here (would require editing
       front_shell.scad, outside this file's scope). This cap's own
       CAP_CHAMFER is a cosmetic edge bevel on the cap only and does not
       address that gap.
