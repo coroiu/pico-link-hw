@@ -596,9 +596,19 @@ module back_shell_shell() {
         // default choice, not an ADR-cited figure (only the back wall's
         // 2.0mm Z thickness is ADR-specified), so trading a little of it
         // for real clearance is a reasonable choice.
+        //
+        // pilink-cix: the cavity's four corners are SQUARE (corner relief),
+        // not rounded. The old r = max(CORNER_R - WALL_T, 0.5) = 1.0mm inner
+        // radius cut ~0.3mm into the board's square 118 x 50 corners
+        // (Edge.Cuts has no corner arcs and the PCB outline is not changed
+        // for this). With the outer corner at CORNER_R = 3.0 (centre (3,3)
+        // from the face corner) the square inner corner at (1.6, 2.0) is
+        // sqrt(1.4^2 + 1.0^2) = 1.72mm from that centre, so the wall at the
+        // diagonal is 3.0 - 1.72 = 1.28mm: thinner than the 1.6-2.0mm
+        // walls elsewhere, but still >= 3 perimeters of a 0.4mm nozzle.
         translate([WALL_T - BOARD_CLEARANCE_X, WALL_T, WALL_T])
-            rounded_box(FACE_W - 2*(WALL_T - BOARD_CLEARANCE_X), FACE_H - 2*WALL_T,
-                        BACK_SHELL_DEPTH, max(CORNER_R - WALL_T, 0.5));
+            cube([FACE_W - 2*(WALL_T - BOARD_CLEARANCE_X), FACE_H - 2*WALL_T,
+                  BACK_SHELL_DEPTH]);
     }
 }
 
