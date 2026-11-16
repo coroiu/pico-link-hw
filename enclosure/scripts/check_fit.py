@@ -243,6 +243,11 @@ def build_envelope(pcb_path, ev):
                 y1 = max(p.GetY() + p.GetHeight() for p in pb) / 1e6 - oy
                 parts[ref + ".leads"] = (box(fx(x0), fx(x1), fq(y1), fq(y0), ZB, ZB + 2.5), "B", "EC11 THT leads, assumed 2.5 protrusion")
             continue
+        if ref == "J101" and f.IsDNP():
+            # pilink-cto: J101 is DNP (pads only; the 8.5mm-tall header would
+            # pierce the 2mm face plate). Nothing is populated, so nothing to
+            # check; the header is hand-fitted for bring-up with the shell open.
+            continue
         if ref == "J101":
             add_box(ref + ".plastic", bx0, bx1, by0, by1, 2.5, side, "2.54 header plastic 2.5")
             for k, pad in enumerate(sorted(f.Pads(), key=lambda p: p.GetNumber())):
@@ -469,8 +474,9 @@ def main():
         check("display stack vs front shell (pocket/ledge)", part("DISPLAY"), front, dist=True)
         check("U201 module+plug vs back shell (relief pocket)", union([part("U201.module"), part("U201.ufl_plug")]), back, dist=True)
         check("J401 body vs back shell (cutout/boss)", part("J401"), back, dist=True)
-        check("J101 header pins vs front shell", union([part("J101.pin%d" % k) for k in (1, 2, 3)]), front, dist=True,
-              note="(pin height ASSUMED, see envelope notes)")
+        if "J101.pin1" in parts:   # absent when J101 is DNP (pilink-cto)
+            check("J101 header pins vs front shell", union([part("J101.pin%d" % k) for k in (1, 2, 3)]), front, dist=True,
+                  note="(pin height ASSUMED, see envelope notes)")
     # --- spool
     if spool is not None:
         env_back_all = union([env_back_side, pcb])

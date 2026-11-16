@@ -150,7 +150,7 @@ guarantee than this BOM's first draft claimed.
 | U103 | 1 | APS6404L-3SQR-ZR (8MB QSPI PSRAM) | USON-8L | C3040877 | APS6404L-3SQR-ZR | Extended (confirmed via JLCPCB's own API + partdetail page — see flag 2 note) | 1,268 |
 | C121 | 1 | 2.2uF, X5R, 50V | 0603 | C7432769 | HGC0603R5225K500NTHJ | Extended† | 417,960 |
 | R105 | 1 | 100k | 0402 | C25530 | 0402WGJ0104TCE | Extended† | 9,817,600 |
-| J101 | 1 | SWD debug header, 3-pin, 2.54mm pitch (`pilink-2ar` — SWCLK/GND/SWDIO; pitch corrected in PR #43 review — 1.27mm doesn't match any cable Raspberry Pi's Debug Probe actually ships with) | THT vertical, 1x3P | C32713269 | Hanxia HX PZ2.54-1x3P ZZ | Extended | 60,450 (checked live via `jlcpcb-search` MCP 2026-11-16, same session as the PR #43 review fix — not re-checked against the rest of this BOM's 2026-11-15 13:12 snapshot) |
+| J101 | 1 | **DNP (pilink-cto: do not assemble; footprint/pads only)** SWD debug header, 3-pin, 2.54mm pitch (`pilink-2ar` — SWCLK/GND/SWDIO; pitch corrected in PR #43 review — 1.27mm doesn't match any cable Raspberry Pi's Debug Probe actually ships with) | THT vertical, 1x3P | C32713269 | Hanxia HX PZ2.54-1x3P ZZ | Extended | 60,450 (checked live via `jlcpcb-search` MCP 2026-11-16, same session as the PR #43 review fix — not re-checked against the rest of this BOM's 2026-11-15 13:12 snapshot) |
 
 ## ESP32 BT coprocessor (`esp32_bt.kicad_sch`, refs 200-299)
 
@@ -253,6 +253,19 @@ match any cable Raspberry Pi's Debug Probe actually ships with (checked
 against the `raspberrypi/documentation` repo, not just the original
 claim) — see `hardware/README.md`'s `J101` bullet for the full rationale.
 Re-checked live via `jlcpcb-search` MCP, 2026-11-16.
+
+**Update (`pilink-cto`):** `J101` is now **DNP** (schematic `dnp`, PCB
+footprint `dnp` attribute; pads kept). The Hanxia `PZ2.54-1x3P ZZ` (LCSC
+`C32713269`, 59,380 in stock 2026-11-16) really is 2.5mm plastic + 6mm
+mating pin + 3mm solder tail (LCSC spec table), so 8.5mm above the PCB
+face -- 3mm taller than the 5.5mm front cavity, i.e. the pins would pierce
+the 2mm face plate. A short/low-profile 2.54mm header can't work either
+(a Dupont/Debug Probe cable needs ~6mm of pin) and a right-angle one
+points at an enclosure wall. Pads-only keeps SWD reachable for bring-up:
+hand-solder a 3-pin header (or three wires) into J101's holes before
+closing the shell; leave DNP in the JLCPCB assembly order. A
+face-plate/bottom-wall access cutout is an enclosure call for a later
+bead. "Populated parts" count stays 69 on the schematic, 68 assembled.
 
 ## Not verified by this bead
 

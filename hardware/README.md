@@ -316,7 +316,10 @@ above as out of `pilink-kt4`'s scope:
   1.27mm pitch. Same SWCLK/GND/SWDIO order as the Debug Probe's own
   SC/GND/SD pins, so the bundled cable plugs in directly. No
   VTref/target-power-sense pin: this board is always target-powered over
-  USB-C regardless of the probe. See the schematic's own `J101` text note
+  USB-C regardless of the probe. **`pilink-cto`: `J101` is DNP** (pads
+  only) -- the real part stands 8.5mm (2.5 plastic + 6 pin) above the
+  PCB and would pierce the 2mm front face plate; see `hardware/BOM.md`.
+  Hand-fit a header or wires for bring-up with the shell open. See the schematic's own `J101` text note
   for the full rationale (kept out of the symbol's `Description` field so
   the embedded `Conn_01x03` cache stays byte-identical to the real stock
   library symbol -- editing a stock symbol's own properties is exactly
