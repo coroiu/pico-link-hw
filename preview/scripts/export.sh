@@ -158,9 +158,42 @@ export_schematic() {
   fi
 }
 
+export_fab() {
+  # JLCPCB fab files (Gerber zip, BOM, CPL) + enclosure STLs -- see
+  # export_fab.py. Runs after export_enclosure so the STLs it rendered
+  # (kept in $WORK_DIR/enclosure/raw/stl) are available. Staged, then swapped.
+  local pcb sch bom_md="$HARDWARE_DIR/BOM.md" out="$SITE_DIR/fab" stage="$WORK_DIR/fab"
+  pcb=$(find "$HARDWARE_DIR" -maxdepth 1 -name '*.kicad_pcb' 2>/dev/null | sort | head -n1)
+  sch=$(find_root_schematic)
+  if [[ -z "$pcb" || -z "$sch" ]]; then
+    echo "[export] no PCB/schematic yet; skipping fab files"
+    return 0
+  fi
+  # Source commit: the compose file mounts ../.git read-only at /work/gitdir
+  # (a file, not a dir, in a git worktree -> commit stays "unknown").
+  local commit="unknown" dirty=""
+  if [[ -d /work/gitdir ]]; then
+    local g=(git --git-dir=/work/gitdir --work-tree=/work -c safe.directory='*')
+    commit=$("${g[@]}" rev-parse --short=10 HEAD 2>/dev/null || echo unknown)
+    "${g[@]}" diff --quiet HEAD -- hardware enclosure 2>/dev/null || dirty=" (+ uncommitted changes)"
+  fi
+  rm -rf "$stage"
+  mkdir -p "$stage"
+  if FAB_SOURCE_COMMIT="$commit$dirty" python3 /preview/scripts/export_fab.py \
+      "$pcb" "$sch" "$bom_md" "$WORK_DIR/enclosure/raw" "$stage" 2>&1; then
+    rm -rf "$out.old"
+    [[ -d "$out" ]] && mv -f "$out" "$out.old"
+    mv -f "$stage" "$out" && rm -rf "$out.old"
+    echo "[export] wrote fab files to $out"
+  else
+    echo "[export] WARNING: fab file export failed (see above); keeping previous files" >&2
+  fi
+}
+
 export_pcb
 export_enclosure
 export_schematic
+export_fab
 
 printf '{"last_export": "%s"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$SITE_DIR/status.json"
 echo "[export] status.json updated: $(cat "$SITE_DIR/status.json")"

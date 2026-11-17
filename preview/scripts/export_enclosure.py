@@ -200,6 +200,10 @@ def main():
             m = trimesh.load(out, force="mesh")
             m.merge_vertices()
             meshes[key] = m
+            # Printable STL for the page's Files section: the raw OpenSCAD
+            # output (part frame), one per rendered part.
+            os.makedirs(os.path.join(out_dir, "stl"), exist_ok=True)
+            shutil.copyfile(out, os.path.join(out_dir, "stl", key + ".stl"))
             print("[enclosure] rendered %s (%d faces)" % (key, len(m.faces)))
 
     # ---- placements in world mm: key -> list of 4x4 transforms

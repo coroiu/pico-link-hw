@@ -118,6 +118,16 @@
     font-size: 0.85rem;
     color: var(--fg);
   }
+  .files { grid-column: 1 / -1; }
+  .files .meta, .files .note { color: var(--muted); font-size: 0.85rem; }
+  .files table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .files td { padding: 6px 8px 6px 0; border-top: 1px solid var(--border); vertical-align: top; }
+  .files td.size { white-space: nowrap; color: var(--muted); }
+  .files a { color: var(--fg); font-weight: 600; word-break: break-all; }
+  .files .d { color: var(--muted); font-size: 0.8rem; }
+  .files details { margin-top: 8px; font-size: 0.85rem; }
+  .files summary { cursor: pointer; }
+  .files li { margin: 2px 0; }
   .missing {
     color: var(--muted);
     font-size: 0.9rem;
@@ -166,6 +176,18 @@
     <h2>Schematic (PDF)</h2>
     <embed id="schematic-pdf" src="/renders/schematic.pdf" type="application/pdf" />
     <a id="schematic-link" href="/renders/schematic.pdf" target="_blank" rel="noopener">Open full size</a>
+  </div>
+
+  <div class="card files" id="files-card">
+    <h2>Files (JLCPCB fab files + enclosure STLs)</h2>
+    <div id="files-meta" class="meta">loading...</div>
+    <table id="files-table"><tbody></tbody></table>
+    <p class="note">JLCPCB's CPL rotation offsets differ from KiCad's for some
+      packages (typically ICs, connectors, polarised parts): check each part's
+      orientation in JLCPCB's placement preview and correct it there before
+      ordering. The BOM's LCSC numbers come from <code>hardware/BOM.md</code>
+      (the schematic has no LCSC field).</p>
+    <div id="files-warn"></div>
   </div>
 </div>
 
@@ -233,6 +255,55 @@
     el.setAttribute(attr, baseUrl + '?t=' + encodeURIComponent(ts));
   }
 
+  // Files: fab.json is written by scripts/export_fab.py. Built with
+  // textContent/DOM nodes only (part and footprint names are not trusted HTML).
+  function el(tag, text, cls) {
+    const e = document.createElement(tag);
+    if (text !== undefined) e.textContent = text;
+    if (cls) e.className = cls;
+    return e;
+  }
+  function fmtSize(n) {
+    return n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(2) + ' MB';
+  }
+  async function loadFiles(ts) {
+    const meta = document.getElementById('files-meta');
+    const tbody = document.querySelector('#files-table tbody');
+    const warn = document.getElementById('files-warn');
+    try {
+      const res = await fetch('/fab/fab.json?t=' + encodeURIComponent(ts), { cache: 'no-store' });
+      if (!res.ok) throw new Error('status ' + res.status);
+      const m = await res.json();
+      meta.textContent = 'Generated ' + m.generated + ' from git commit ' + m.commit;
+      tbody.innerHTML = '';
+      for (const f of m.files) {
+        const tr = el('tr');
+        const td = el('td');
+        const a = el('a', f.file.split('/').pop());
+        a.href = '/fab/' + f.file + '?t=' + encodeURIComponent(ts);
+        a.download = '';
+        td.append(a, el('div', f.label + ' - ' + f.desc, 'd'));
+        tr.append(td, el('td', fmtSize(f.size), 'size'));
+        tbody.appendChild(tr);
+      }
+      warn.innerHTML = '';
+      if (m.missing_lcsc.length) {
+        warn.append(el('p', 'Placed parts without an LCSC number (blank in the BOM): ' + m.missing_lcsc.join(', ')));
+      }
+      if (m.flagged.length) {
+        const d = el('details');
+        d.append(el('summary', 'Parts to double-check in the JLCPCB preview (' + m.flagged.length + ')'));
+        const ul = el('ul');
+        for (const p of m.flagged) ul.appendChild(el('li', p.ref + ' (' + p.footprint + '): ' + p.reasons.join('; ')));
+        d.appendChild(ul);
+        warn.appendChild(d);
+      }
+    } catch (err) {
+      meta.textContent = 'no fab export yet';
+      tbody.innerHTML = '';
+    }
+  }
+
   async function poll() {
     try {
       const res = await fetch('/status.json', { cache: 'no-store' });
@@ -242,6 +313,7 @@
         lastExport = data.last_export;
         bust(document.getElementById('pcb-model'), 'src', '/models/pcb.glb', lastExport);
         loadEnclosureParts(lastExport);
+        loadFiles(lastExport);
         bust(document.getElementById('pcb-render-front'), 'src', '/renders/pcb-front.svg', lastExport);
         bust(document.getElementById('pcb-render-back'), 'src', '/renders/pcb-back.svg', lastExport);
         bust(document.getElementById('schematic-pdf'), 'src', '/renders/schematic.pdf', lastExport);
