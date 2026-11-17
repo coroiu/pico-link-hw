@@ -22,6 +22,9 @@ REF = "L101"
 X0, X1, Y0, Y1 = -2.4, 2.4, -2.1, 2.1   # pads +/-2.375 x 1.25, body 4.4 x 4.2
 MARGIN = 0.1
 NAME_RT = "KO_L101_RT_B"
+# B.Cu region (board-local mm, x0,y0,x1,y1) kept free of routed copper so the
+# GND_B plane under L101 joins U101 pin 62 / C103 / C104 (pilink-2wq).
+PLANE_B = [(47.0, 13.0, 53.0, 20.5), (45.9, 13.0, 47.0, 16.5)]
 NAME_RT_F = "KO_L101_RT_F"
 NAME_F = "KO_L101_F"
 
@@ -70,8 +73,28 @@ def _add(board, name, layer, tracks_vias, pour, box=None):
     board.Add(z)
 
 
+def _add_abs(board, name, layer, box):
+    x0, y0, x1, y1 = box
+    z = pcbnew.ZONE(board)
+    z.SetLayer(layer)
+    z.SetIsRuleArea(True)
+    z.SetZoneName(name)
+    z.SetDoNotAllowTracks(True)
+    z.SetDoNotAllowVias(True)
+    z.SetDoNotAllowZoneFills(False)
+    z.SetDoNotAllowPads(False)
+    z.SetDoNotAllowFootprints(False)
+    o = z.Outline()
+    o.NewOutline()
+    for x, y in ((x0, y0), (x1, y0), (x1, y1), (x0, y1)):
+        o.Append(pcbnew.FromMM(100.0 + x), pcbnew.FromMM(100.0 + y))
+    board.Add(z)
+
+
 def add_l101_route_keepout(board):
     _add(board, NAME_RT, pcbnew.B_Cu, True, False)
+    for i, box in enumerate(PLANE_B):
+        _add_abs(board, NAME_RT + "P" + str(i), pcbnew.B_Cu, box)
     for i, box in enumerate(F_RECTS):
         _add(board, NAME_RT_F + str(i), pcbnew.F_Cu, True, False, box)
 

@@ -181,16 +181,19 @@ def main():
 
     # ---- VREG ground return + L101 output (pilink-2wq) ---------------------
     # RP2350 DS 6.3.8.1: short ground return, ground plane under the
-    # regulator. GND vias beside U101 pin 62 and C104 pad 2 put
+    # regulator. GND vias beside U101 pin 62, C103 pad 2 and C104 pad 2 put
     # the loop's return on B.Cu, and two anchor vias just outside L101's
     # courtyard (east side) give the isolated B.Cu pocket under L101 a GND
     # connection so GND_B fills there. L101 pad 2 -> C104 pad 1 is a locked
     # 0.4mm F.Cu link (+1V1; widen.py could not widen the router's 0.2mm one).
-    # (A C103 pad 2 via was tried: it made Freerouting leave QSPI_SD1/SD2
-    # unrouted or short +1V1 to it, so C103's GND stays on the F.Cu pour.)
+    # route.py keeps B.Cu routing out of x 45.9..53, y 13..20.5 (l101_keepout.py
+    # PLANE_B) so these vias land on one connected GND_B region.
     x62, y62 = pad("U101", "62")
     path("GND", F, [(x62, y62), (x62, y62 + 1.2)])
     via("GND", x62, y62 + 1.2)
+    xc3, yc3 = pad("C103", "2")
+    path("GND", F, [(xc3, yc3), (xc3, yc3 - 0.9)])
+    via("GND", xc3, yc3 - 0.9)
     xc4, yc4 = pad("C104", "2")
     path("GND", F, [(xc4, yc4), (xc4, yc4 + 0.9)])
     via("GND", xc4, yc4 + 0.9)
