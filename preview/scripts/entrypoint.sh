@@ -21,7 +21,6 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-echo "[watch] watching $HARDWARE_DIR and $ENCLOSURE_DIR for changes"
 
 # -m: monitor continuously (don't exit after one event).
 # -r: recurse (hardware/enclosure may gain subdirectories later).
@@ -32,6 +31,7 @@ echo "[watch] watching $HARDWARE_DIR and $ENCLOSURE_DIR for changes"
 # section (hardware/BOM.md edits are covered by the hardware/ watch).
 WATCH=("$HARDWARE_DIR" "$ENCLOSURE_DIR")
 [[ -d /work/gitdir/logs ]] && WATCH+=(/work/gitdir/logs)
+echo "[watch] watching ${WATCH[*]} for changes"
 inotifywait -m -r -e close_write,create,delete,move --format '%w%f' \
     "${WATCH[@]}" 2>&1 |
 while read -r changed_path; do

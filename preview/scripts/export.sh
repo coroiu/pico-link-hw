@@ -194,12 +194,21 @@ export_fab() {
     # ln + rename over the old symlink is atomic (rename(2)); a pre-existing
     # real fab/ directory from an older version is removed once.
     [[ -d "$SITE_DIR/fab" && ! -L "$SITE_DIR/fab" ]] && rm -rf "$SITE_DIR/fab"
-    ln -s "fab.d/$ts" "$SITE_DIR/fab.tmp" && mv -T "$SITE_DIR/fab.tmp" "$SITE_DIR/fab"
-    # Keep only the two newest generations (the previous one may still be
-    # mid-download).
-    ls -1d "$SITE_DIR"/fab.d/*/ 2>/dev/null | sort -r | tail -n +3 | xargs -r rm -rf
-    FAB_STATUS=ok
-    echo "[export] wrote fab files to $new"
+    rm -f "$SITE_DIR/fab.tmp"
+    if ln -s "fab.d/$ts" "$SITE_DIR/fab.tmp" && mv -T "$SITE_DIR/fab.tmp" "$SITE_DIR/fab"; then
+      # Keep the two newest generations, but never the one fab points to
+      # (the previous one may still be mid-download).
+      local cur
+      cur=$(readlink "$SITE_DIR/fab")
+      ls -1d "$SITE_DIR"/fab.d/*/ 2>/dev/null | sort -r | tail -n +3 \
+        | grep -v -F "/${cur#fab.d/}/" | xargs -r rm -rf
+      FAB_STATUS=ok
+      echo "[export] wrote fab files to $new"
+    else
+      rm -rf "$new" "$SITE_DIR/fab.tmp"
+      FAB_STATUS=failed
+      echo "[export] WARNING: could not swap in the new fab files; previous files stay served and are marked stale" >&2
+    fi
   else
     rm -rf "$new"
     FAB_STATUS=failed

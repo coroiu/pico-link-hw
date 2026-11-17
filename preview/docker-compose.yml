@@ -15,6 +15,9 @@ services:
       # Only read for the source commit shown in the Files section (a file,
       # not a dir, in a git worktree: the commit then shows as "unknown").
       - ${GIT_DIR_MOUNT:-../.git}:/work/gitdir:ro
+      # Repo-root ignore rules, so the dirty check doesn't count ignored files
+      # (e.g. hardware/*.kicad_prl) as untracked.
+      - ../.gitignore:/work/.gitignore:ro
       # Board's 3D models, synced from the host's KiCad library by
       # scripts/sync-3dmodels.sh (run it first; re-run after adding parts).
       - ./.3dmodels:/kicad-3dmodels:ro

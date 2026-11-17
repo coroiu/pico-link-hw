@@ -50,6 +50,32 @@ ROT_TABLE = [
 ]
 
 
+def pad_centre(fp, rot):
+    """Centre (mm, Y negated) of the bounding box of all pads, as
+    Fabrication-Toolkit's _get_footprint_position does: for a footprint that
+    is not rotated by a multiple of 90 degrees, the bbox is taken on an
+    unrotated copy and its offset from the anchor is rotated back. Falls back
+    to the anchor only for a footprint with no pads."""
+    import pcbnew
+    pos = fp.GetPosition()
+    if not list(fp.Pads()):
+        return pos.x / 1e6, -pos.y / 1e6
+    ref = fp
+    if rot % 90 != 0:
+        ref = pcbnew.FOOTPRINT(fp)
+        ref.SetOrientationDegrees(0)
+    pads = list(ref.Pads())
+    bb = pads[0].GetBoundingBox()
+    for pd in pads:
+        bb.Merge(pd.GetBoundingBox())
+    c, p0 = bb.GetCenter(), ref.GetPosition()
+    dx, dy = c.x - p0.x, c.y - p0.y
+    if rot % 90 != 0:
+        sn, cs = math.sin(math.radians(rot)), math.cos(math.radians(rot))
+        dx, dy = dx * cs + dy * sn, -dx * sn + dy * cs
+    return (p0.x + dx) / 1e6, -(p0.y + dy) / 1e6
+
+
 def rot_delta(name):
     for pat, deg in ROT_TABLE:
         if re.search(pat, name):
@@ -189,13 +215,7 @@ def main():
         ax, ay = fp.GetPosition().x / 1e6, -fp.GetPosition().y / 1e6
         rot = fp.GetOrientation().AsDegrees()
         bottom = fp.GetLayer() != pcbnew.F_Cu
-        pads = list(fp.Pads())
-        cx, cy = ax, ay
-        if pads and rot % 90 == 0:
-            bb = pads[0].GetBoundingBox()
-            for pd in pads:
-                bb.Merge(pd.GetBoundingBox())
-            cx, cy = bb.GetCenter().x / 1e6, -bb.GetCenter().y / 1e6
+        cx, cy = pad_centre(fp, rot)
         fname = str(fp.GetFPID().GetLibItemName())
         delta = rot_delta(fname)
         cpl.append(dict(ref=fp.GetReference(), x=cx, y=cy, ax=ax, ay=ay,
