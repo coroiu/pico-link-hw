@@ -153,7 +153,7 @@ def main():
     # larger signal pads leave room for only one thermal spoke here too;
     # same fix as J401 above.
     for pad in board.FindFootprintByReference("J501").Pads():
-        if pad.GetNetname() == "GND" and pad.GetNumber() == "5":
+        if pad.GetNetname() == "GND" and pad.GetNumber() in ("1", "5"):
             pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
 
     # pilink-xzs: the router leaves sub-5um stubs at U101 pins 66/67 (USB

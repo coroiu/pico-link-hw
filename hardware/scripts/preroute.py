@@ -48,7 +48,7 @@ RESET_NET = "/RP2350B + Memory/RESET_NODE"
 # keeps locked GND wiring. preroute.py removes only LOCKED items on these
 # nets (its own); unlocked router GND copper is never touched.
 PREROUTE_NETS = ["USB_DP", "USB_DM", XIN, XOUT, LED_K, LED_A,
-                 BOOT_NET, RESET_NET, "GND", "+1V1"]
+                 BOOT_NET, RESET_NET, "GND", "+1V1", "/RP2350B + Memory/QSPI_SCLK"]
 
 
 def main():
@@ -211,6 +211,22 @@ def main():
     # and C103's pads.
     x65, y65 = pad("U101", "65")
     path("+1V1", F, [(x65, y65), (x65, c1y + 0.8), (c1x, c1y)])
+
+    # ---- QSPI_SCLK U101 pin 71 -> U103 pad 6 (pilink-2wq) -------------------
+    # Locked F.Cu, no vias, ~6mm: after the VREG re-layout Freerouting sent
+    # this clock 34-41mm round the board with 2-4 vias. Straight up pin 71's
+    # column, a short diagonal past U103 pad 5 (SD0), then up the right side
+    # of U103's pad column into pad 6. The U103 -> U102 leg follows below.
+    s71 = pad("U101", "71")
+    s6 = pad("U103", "6")
+    path("/RP2350B + Memory/QSPI_SCLK", F,
+         [s71, (s71[0], 15.5 + 100.0), (44.65 + 100.0, 14.75 + 100.0),
+          (44.65 + 100.0, s6[1]), s6])
+    # ... and the U103 -> U102 pad 6 leg: up the same column past U103's pad
+    # 8, then straight left along y 12.14 into U102's pad 6 (no vias).
+    s102 = pad("U102", "6")
+    path("/RP2350B + Memory/QSPI_SCLK", F,
+         [(44.65 + 100.0, s6[1]), (44.65 + 100.0, s102[1]), s102])
 
     pcbnew.SaveBoard(BOARD, board)
     print("pre-routed USB D+/D-, XIN/XOUT, backlight, SW101/SW102 BOOTSEL/RESET + GND escapes (locked)")
