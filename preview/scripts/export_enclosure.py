@@ -102,6 +102,41 @@ def run_openscad(scad, out, defs=()):
     return ok, (p.stdout + p.stderr)[-600:]
 
 
+PRINT_NOTES = {
+    "front_shell": "outer face on the bed, open side up (as modelled, face frame Z = 0 at the face).",
+    "back_shell": "base strip flat on the bed, as assembled on a desk (the shell body leans 15 degrees; no print orientation is documented for this part, this is the chosen one).",
+    "leg_left": "foot pad on the bed (README: print each leg foot-pad down).",
+    "leg_right": "foot pad on the bed (README: print each leg foot-pad down).",
+    "knob": "upright as modelled, underside on the bed (knob.scad: print upright, dish up).",
+    "button_plunger": "as modelled, flat on the bed.",
+    "antenna_mount": "as modelled (own frame, land face on the bed).",
+}
+
+
+def write_print_stl(key, mesh, stl_dir, lean):
+    """Write <stl_dir>/<key>.stl in a print orientation (min Z on the bed, XY
+    centred). Most parts are modelled in their own print frame; back_shell and
+    the legs are output by back_shell.scad in the assembled world frame
+    (Y up, resting on the base strip / foot pads), so Y-up is mapped to Z-up
+    and the flat strip / foot pad lands on the bed. Parts without an entry
+    are written as rendered. Also records the orientation in orientation.json."""
+    os.makedirs(stl_dir, exist_ok=True)
+    m = mesh.copy()
+    if key == "back_shell" or key.startswith("leg_"):
+        m.apply_transform(mat3([[1, 0, 0], [0, 0, -1], [0, 1, 0]]))
+    lo, hi = m.bounds
+    m.apply_translation([-(lo[0] + hi[0]) / 2, -(lo[1] + hi[1]) / 2, -lo[2]])
+    m.export(os.path.join(stl_dir, key + ".stl"))
+    path = os.path.join(stl_dir, "orientation.json")
+    notes = {}
+    if os.path.exists(path):
+        with open(path) as f:
+            notes = json.load(f)
+    notes[key] = PRINT_NOTES.get(key, "as rendered by OpenSCAD (no print orientation defined for this part).")
+    with open(path, "w") as f:
+        json.dump(notes, f, indent=1)
+
+
 def edge_cuts_origin(pcb_file):
     """Min (x, y) in mm over every Edge.Cuts graphic's coordinates -- the
     board-local origin the .scad files' board_x/board_y are measured from."""
@@ -200,6 +235,7 @@ def main():
             m = trimesh.load(out, force="mesh")
             m.merge_vertices()
             meshes[key] = m
+            write_print_stl(key, m, os.path.join(out_dir, "stl"), LEAN)
             print("[enclosure] rendered %s (%d faces)" % (key, len(m.faces)))
 
     # ---- placements in world mm: key -> list of 4x4 transforms

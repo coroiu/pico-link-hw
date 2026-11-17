@@ -118,6 +118,16 @@
     font-size: 0.85rem;
     color: var(--fg);
   }
+  .files { grid-column: 1 / -1; }
+  .files .meta, .files .note { color: var(--muted); font-size: 0.85rem; }
+  .files table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .files td { padding: 6px 8px 6px 0; border-top: 1px solid var(--border); vertical-align: top; }
+  .files td.size { white-space: nowrap; color: var(--muted); }
+  .files a { color: var(--fg); font-weight: 600; word-break: break-all; }
+  .files .d { color: var(--muted); font-size: 0.8rem; }
+  .files details { margin-top: 8px; font-size: 0.85rem; }
+  .files summary { cursor: pointer; }
+  .files li { margin: 2px 0; }
   .missing {
     color: var(--muted);
     font-size: 0.9rem;
@@ -166,6 +176,22 @@
     <h2>Schematic (PDF)</h2>
     <embed id="schematic-pdf" src="/renders/schematic.pdf" type="application/pdf" />
     <a id="schematic-link" href="/renders/schematic.pdf" target="_blank" rel="noopener">Open full size</a>
+  </div>
+
+  <div class="card files" id="files-card">
+    <h2>Files (JLCPCB fab files + enclosure STLs)</h2>
+    <div id="files-meta" class="meta">loading...</div>
+    <table id="files-table"><tbody></tbody></table>
+    <p class="note">CPL positions are pad-bounding-box centres and bottom-side
+      rotations are converted (180 - KiCad rotation), with package rotation
+      offsets from Fabrication-Toolkit's table applied. JLCPCB's offsets can
+      still be wrong for packages not in that table (custom footprints,
+      connectors, modules): check the parts listed below in JLCPCB's placement
+      preview and correct them there before ordering. LCSC numbers come from
+      <code>hardware/BOM.md</code> (the schematic has no LCSC field). STLs are
+      in a print orientation (see each file's description), not the assembled
+      pose.</p>
+    <div id="files-warn"></div>
   </div>
 </div>
 
@@ -233,6 +259,67 @@
     el.setAttribute(attr, baseUrl + '?t=' + encodeURIComponent(ts));
   }
 
+  // Files: fab.json is written by scripts/export_fab.py. Built with
+  // textContent/DOM nodes only (part and footprint names are not trusted HTML).
+  function el(tag, text, cls) {
+    const e = document.createElement(tag);
+    if (text !== undefined) e.textContent = text;
+    if (cls) e.className = cls;
+    return e;
+  }
+  function fmtSize(n) {
+    return n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(2) + ' MB';
+  }
+  async function loadFiles(ts, fabStatus) {
+    const meta = document.getElementById('files-meta');
+    const tbody = document.querySelector('#files-table tbody');
+    const warn = document.getElementById('files-warn');
+    try {
+      const res = await fetch('/fab/fab.json?t=' + encodeURIComponent(ts), { cache: 'no-store' });
+      if (!res.ok) throw new Error('status ' + res.status);
+      const m = await res.json();
+      meta.textContent = 'Generated ' + m.generated + ' from git commit ' + m.commit +
+        ' (the commit and uncommitted-changes state are read at export time)';
+      if (fabStatus && fabStatus !== 'ok') {
+        const why = fabStatus === 'failed'
+          ? 'The latest fab export FAILED (see the container log). The files below are from the previous successful export at ' + m.generated + ' and do NOT match the current source.'
+          : 'The latest export skipped the fab files; the files below are from ' + m.generated + ' and may not match the current source.';
+        meta.textContent = 'STALE: ' + why;
+        meta.style.color = '#c0392b';
+        meta.style.fontWeight = '600';
+      } else {
+        meta.style.color = '';
+        meta.style.fontWeight = '';
+      }
+      tbody.innerHTML = '';
+      for (const f of m.files) {
+        const tr = el('tr');
+        const td = el('td');
+        const a = el('a', f.file.split('/').pop());
+        a.href = '/fab/' + f.file + '?t=' + encodeURIComponent(ts);
+        a.download = '';
+        td.append(a, el('div', f.label + ' - ' + f.desc, 'd'));
+        tr.append(td, el('td', fmtSize(f.size), 'size'));
+        tbody.appendChild(tr);
+      }
+      warn.innerHTML = '';
+      if (m.missing_lcsc.length) {
+        warn.append(el('p', 'Placed parts without an LCSC number (blank in the BOM): ' + m.missing_lcsc.join(', ')));
+      }
+      if (m.flagged.length) {
+        const d = el('details');
+        d.append(el('summary', 'Parts to double-check in the JLCPCB preview (' + m.flagged.length + ')'));
+        const ul = el('ul');
+        for (const p of m.flagged) ul.appendChild(el('li', p.ref + ' (' + p.footprint + '): ' + p.reasons.join('; ')));
+        d.appendChild(ul);
+        warn.appendChild(d);
+      }
+    } catch (err) {
+      meta.textContent = fabStatus === 'failed' ? 'Fab export FAILED and no earlier files exist (see the container log).' : 'no fab export yet';
+      tbody.innerHTML = '';
+    }
+  }
+
   async function poll() {
     try {
       const res = await fetch('/status.json', { cache: 'no-store' });
@@ -242,6 +329,7 @@
         lastExport = data.last_export;
         bust(document.getElementById('pcb-model'), 'src', '/models/pcb.glb', lastExport);
         loadEnclosureParts(lastExport);
+        loadFiles(lastExport, data.fab_status);
         bust(document.getElementById('pcb-render-front'), 'src', '/renders/pcb-front.svg', lastExport);
         bust(document.getElementById('pcb-render-back'), 'src', '/renders/pcb-back.svg', lastExport);
         bust(document.getElementById('schematic-pdf'), 'src', '/renders/schematic.pdf', lastExport);

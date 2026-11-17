@@ -158,9 +158,69 @@ export_schematic() {
   fi
 }
 
+export_fab() {
+  # JLCPCB fab files (Gerber zip, BOM, CPL) + enclosure STLs -- see
+  # export_fab.py. Runs after export_enclosure so the STLs it rendered
+  # (kept in $WORK_DIR/enclosure/raw/stl) are available. Staged, then swapped.
+  # Sets FAB_STATUS (ok | failed | skipped), shown on the page: a failed run
+  # keeps serving the previous files, so the page must be told they are stale.
+  # site/fab is a symlink to site/fab.d/<timestamp>, swapped with an atomic
+  # rename, so a download never sees a half-written or missing directory.
+  local pcb sch bom_md="$HARDWARE_DIR/BOM.md" ts new
+  ts=$(date -u +%Y%m%dT%H%M%SZ)
+  new="$SITE_DIR/fab.d/$ts"
+  pcb=$(find "$HARDWARE_DIR" -maxdepth 1 -name '*.kicad_pcb' 2>/dev/null | sort | head -n1)
+  sch=$(find_root_schematic)
+  if [[ -z "$pcb" || -z "$sch" || ! -f "$bom_md" ]]; then
+    echo "[export] no PCB/schematic/BOM.md yet; skipping fab files"
+    FAB_STATUS=skipped
+    return 0
+  fi
+  # Source commit: the compose file mounts ../.git read-only at /work/gitdir
+  # (a file, not a dir, in a git worktree -> commit stays "unknown").
+  local commit="unknown" dirty=""
+  if [[ -d /work/gitdir ]]; then
+    local g=(git --git-dir=/work/gitdir --work-tree=/work -c safe.directory='*')
+    commit=$("${g[@]}" rev-parse --short=10 HEAD 2>/dev/null || echo unknown)
+    # --porcelain with untracked files listed: modified, staged and new files
+    # under hardware/ and enclosure/ all count as "uncommitted changes".
+    if [[ -n "$("${g[@]}" --no-optional-locks status --porcelain --untracked-files=all -- hardware enclosure 2>/dev/null)" ]]; then
+      dirty=" (+ uncommitted changes)"
+    fi
+  fi
+  mkdir -p "$SITE_DIR/fab.d"
+  if FAB_SOURCE_COMMIT="$commit$dirty" python3 /preview/scripts/export_fab.py \
+      "$pcb" "$sch" "$bom_md" "$WORK_DIR/enclosure/raw" "$new" 2>&1; then
+    # ln + rename over the old symlink is atomic (rename(2)); a pre-existing
+    # real fab/ directory from an older version is removed once.
+    [[ -d "$SITE_DIR/fab" && ! -L "$SITE_DIR/fab" ]] && rm -rf "$SITE_DIR/fab"
+    rm -f "$SITE_DIR/fab.tmp"
+    if ln -s "fab.d/$ts" "$SITE_DIR/fab.tmp" && mv -T "$SITE_DIR/fab.tmp" "$SITE_DIR/fab"; then
+      # Keep the two newest generations, but never the one fab points to
+      # (the previous one may still be mid-download).
+      local cur
+      cur=$(readlink "$SITE_DIR/fab")
+      ls -1d "$SITE_DIR"/fab.d/*/ 2>/dev/null | sort -r | tail -n +3 \
+        | grep -v -F "/${cur#fab.d/}/" | xargs -r rm -rf
+      FAB_STATUS=ok
+      echo "[export] wrote fab files to $new"
+    else
+      rm -rf "$new" "$SITE_DIR/fab.tmp"
+      FAB_STATUS=failed
+      echo "[export] WARNING: could not swap in the new fab files; previous files stay served and are marked stale" >&2
+    fi
+  else
+    rm -rf "$new"
+    FAB_STATUS=failed
+    echo "[export] WARNING: fab file export failed (see above); the previous files stay served and are marked stale" >&2
+  fi
+}
+
+FAB_STATUS=skipped
 export_pcb
 export_enclosure
 export_schematic
+export_fab
 
-printf '{"last_export": "%s"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$SITE_DIR/status.json"
+printf '{"last_export": "%s", "fab_status": "%s"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$FAB_STATUS" > "$SITE_DIR/status.json"
 echo "[export] status.json updated: $(cat "$SITE_DIR/status.json")"
