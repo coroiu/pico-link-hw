@@ -48,7 +48,7 @@ RESET_NET = "/RP2350B + Memory/RESET_NODE"
 # keeps locked GND wiring. preroute.py removes only LOCKED items on these
 # nets (its own); unlocked router GND copper is never touched.
 PREROUTE_NETS = ["USB_DP", "USB_DM", XIN, XOUT, LED_K, LED_A,
-                 BOOT_NET, RESET_NET, "GND"]
+                 BOOT_NET, RESET_NET, "GND", "+1V1"]
 
 
 def main():
@@ -62,7 +62,7 @@ def main():
         p = next(p for p in fp.Pads() if p.GetNumber() == num)
         return p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
 
-    def path(net, layer, pts):
+    def path(net, layer, pts, width=W):
         code = board.FindNet(net).GetNetCode()
         for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
             if (x0, y0) == (x1, y1):
@@ -70,7 +70,7 @@ def main():
             t = pcbnew.PCB_TRACK(board)
             t.SetStart(pcbnew.VECTOR2I(MM(x0), MM(y0)))
             t.SetEnd(pcbnew.VECTOR2I(MM(x1), MM(y1)))
-            t.SetWidth(MM(W))
+            t.SetWidth(MM(width))
             t.SetLayer(layer)
             t.SetNetCode(code)
             t.SetLocked(True)
@@ -178,6 +178,27 @@ def main():
         path(net, B, [(cx, v_l[1]), v_low])
         via(net, *v_low)
         path(net, F, [v_low, (rx, ry)])
+
+    # ---- VREG ground return + L101 output (pilink-2wq) ---------------------
+    # RP2350 DS 6.3.8.1: short ground return, ground plane under the
+    # regulator. GND vias beside U101 pin 62 and C104 pad 2 put
+    # the loop's return on B.Cu, and two anchor vias just outside L101's
+    # courtyard (east side) give the isolated B.Cu pocket under L101 a GND
+    # connection so GND_B fills there. L101 pad 2 -> C104 pad 1 is a locked
+    # 0.4mm F.Cu link (+1V1; widen.py could not widen the router's 0.2mm one).
+    # (A C103 pad 2 via was tried: it made Freerouting leave QSPI_SD1/SD2
+    # unrouted or short +1V1 to it, so C103's GND stays on the F.Cu pour.)
+    x62, y62 = pad("U101", "62")
+    path("GND", F, [(x62, y62), (x62, y62 + 1.2)])
+    via("GND", x62, y62 + 1.2)
+    xc4, yc4 = pad("C104", "2")
+    path("GND", F, [(xc4, yc4), (xc4, yc4 + 0.9)])
+    via("GND", xc4, yc4 + 0.9)
+    lx, ly = pad("L101", "2")
+    for dy in (-1.0, 0.7):
+        via("GND", lx + 3.3, ly + 1.6 + dy + 0.0)
+    c1x, c1y = pad("C104", "1")
+    path("+1V1", F, [(c1x, c1y), (lx, ly)], width=0.4)
 
     pcbnew.SaveBoard(BOARD, board)
     print("pre-routed USB D+/D-, XIN/XOUT, backlight, SW101/SW102 BOOTSEL/RESET + GND escapes (locked)")

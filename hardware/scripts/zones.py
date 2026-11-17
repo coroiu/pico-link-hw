@@ -180,9 +180,11 @@ def main():
     # C103 pad 2 (GND, VREG_VIN cap, pilink-2wq): the KO_L101_F pour cut-out
     # beside it leaves a single thermal spoke after the L101 re-placement;
     # same solid-connect fix as above.
-    for pad in board.FindFootprintByReference("C103").Pads():
-        if pad.GetNetname() == "GND" and pad.GetNumber() == "2":
-            pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
+    # C114 pad 2 (GND) likewise lost a spoke to the re-route.
+    for ref in ("C103", "C114"):
+        for pad in board.FindFootprintByReference(ref).Pads():
+            if pad.GetNetname() == "GND" and pad.GetNumber() == "2":
+                pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
 
     check_antenna_strip(board)
     add_antenna_keepout(board)

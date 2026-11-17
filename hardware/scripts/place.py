@@ -378,7 +378,7 @@ P = {
     "J101": (20.0, 46.0, 180),
 }
 
-REF_TEXT = {"C104": (CX + 2.9, CY - 12.0), "L101": (CX + 6.5, CY - 13.0),
+REF_TEXT = {"C103": (CX + 1.69, CY - 7.2, 90), "C104": (CX + 2.9, CY - 12.0), "L101": (CX + 6.5, CY - 13.0),
             "R104": (CX + 12.6, CY - 6.7), "C105": (CX + 12.6, CY - 5.4)}
 
 FACE = {"chip": (CX, CY), "l101": (CX + 6.5, CY - 10.6)}
@@ -419,6 +419,11 @@ def resync_l101(board):
     if old is None or (sig(old) == sig(new)
                        and str(old.GetFPID().GetLibNickname())):
         return
+    # keep the schematic link (path + sheet) so Update-PCB-from-Schematic
+    # still pairs this footprint with its symbol
+    new.SetPath(old.GetPath())
+    new.SetSheetname(old.GetSheetname())
+    new.SetSheetfile(old.GetSheetfile())
     new.SetFPID(pcbnew.LIB_ID("Inductor_SMD_Custom", "L_DMBJ_CXP0420"))
     new.SetReference("L101")
     new.SetValue(old.GetValue())
@@ -544,9 +549,9 @@ def main():
 
     # pilink-2wq: reference-designator silk around the VREG block, set
     # absolutely so it clears L101's silk/outline and the neighbours' refs.
-    for ref, (x, y) in REF_TEXT.items():
+    for ref, (x, y, *ang) in ((r, tuple(v)) for r, v in REF_TEXT.items()):
         t = board.FindFootprintByReference(ref).Reference()
-        t.SetTextAngleDegrees(0)
+        t.SetTextAngleDegrees(ang[0] if ang else 0)
         t.SetPosition(pt(x, y))
 
     pcbnew.SaveBoard(BOARD, board)
