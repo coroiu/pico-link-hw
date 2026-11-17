@@ -62,13 +62,16 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
   the fin/foot geometry is derived from it. Print orientation: upright on
   the fin bottoms. This was a user decision on 2026-11-17. Consequences:
   - The front feet have to sit forward of the body's rear-bottom edge
-    because the CoG is about 2.6 mm ahead of it at 15°. They sit 3.5 mm
-    forward of it (`FRONT_FOOT_OFFSET`), under the body; the pads show
-    against the sloped underside and the rubber feet below it in a dead-level
-    front view.
-  - Static tip-over margin at the defaults is about 7.5 mm front (more than
-    the mass model's likely CoG error) and 49 mm back
-    (`enclosure/README.md`, `pilink-s98`).
+    because the CoG is about 2.6 mm ahead of it at 15°. After the user's
+    render review (2026-11-17: pads should come out of the fins and read as
+    their ends), each fin's bottom edge runs forward under the bottom wall
+    to the front foot, and the foot's rear edge sits 0.5 mm forward of the
+    edge (`FRONT_FOOT_OFFSET`, was 3.5). A pad wholly behind the edge would
+    tip forward. The pads show against the sloped underside and the rubber
+    feet below it in a dead-level front view.
+  - Static tip-over margin at the defaults is about 4.5 mm front (was 7.5;
+    still above the mass model's likely CoG error, but less so) and 49 mm
+    back (`enclosure/README.md`, `pilink-s98`).
   - A button press tips the body back at about 2.5 N, about the ~2.5 N
     estimate under Rationale and about where the feet would slide anyway.
     The feet-first physical test below still decides.
