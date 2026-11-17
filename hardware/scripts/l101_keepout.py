@@ -25,7 +25,7 @@ NAME_RT = "KO_L101_RT_B"
 # B.Cu region (board-local mm, x0,y0,x1,y1) kept free of routed copper.
 # pilink-2wq had one box here so the GND_B plane under L101 joined the VREG
 # GND vias; since pilink-2x7 the whole VREG block is plane_keepout.py's
-# VREG_B, so nothing is added here.
+# PLANE_B['VREG'] area, so nothing is added here.
 PLANE_B = []
 NAME_RT_F = "KO_L101_RT_F"
 NAME_F = "KO_L101_F"

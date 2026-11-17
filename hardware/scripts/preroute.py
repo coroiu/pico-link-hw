@@ -461,6 +461,12 @@ def main():
     path(AVDD_NET, F, [(x61, y61), (x61, yo), (x61 + 0.3, yo - 0.3),
                        (c5_1[0], yo - 0.3), c5_1], width=0.2)
     path(AVDD_NET, F, [r4_2, c5_1], width=0.25)
+    # R104's +3V3 end: the DVDD run, L101 and the pins box it in on F.Cu,
+    # and the B.Cu under the block is plane (plane_keepout.py), so the
+    # router can only rarely get it out. Take it straight down past C105's
+    # east end into C113.1 (+3V3, the pin 60 decoupler just below).
+    c113_1 = pad("C113", "1")
+    path("+3V3", F, [r4_1, (c113_1[0], r4_1[1]), c113_1], width=0.25)
 
     # ---- QSPI cluster replay (pilink-2wq) ----------------------------------
     # --no-qspi leaves the QSPI nets to the router; capture_qspi.py then

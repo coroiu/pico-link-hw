@@ -29,10 +29,12 @@ before being re-created.
   * After pouring: GND stitching vias (stitch_gnd) in every GND polygon
     that is not its layer's main plane, along both sides of the fast nets
     (USB, QSPI, display SPI) and on a STITCH_PITCH grid wherever both
-    layers have GND, then a per-polygon report (gnd_report) and the
-    ground-plane gate (gnd_gate, pilink-r1h), which fails the run if B.Cu
-    is not one plane, any GND fragment has no via, or a capacitor's GND
-    pad has no GND via within 1mm.
+    layers have GND; any GND island still not joined to the main ground
+    gets a track to it where one fits (gnd_repair.py); then a per-polygon
+    report (gnd_report) and the ground-plane gate (gnd_gate, pilink-r1h),
+    which fails the run if the GND copper is not one connected net, any
+    GND fragment has no via, or a capacitor's GND pad has no GND via
+    within 1mm.
 
 pilink-r1h: B.Cu is the ground plane. GND is no longer routed by
 Freerouting; every F.Cu GND pad has its own locked via (gnd_fanout.py,
@@ -53,6 +55,7 @@ from sw_keepout import add_sw_keepouts
 from l101_keepout import add_l101_pour_keepout
 from plane_keepout import add_pour_keepouts
 from gnd_fanout import GND_STITCH_D, GND_STITCH_DRILL
+from gnd_repair import repair as repair_gnd, remove_repairs
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BOARD = os.path.join(HERE, "..", "pico-link-hw.kicad_pcb")
@@ -153,7 +156,20 @@ def add_zone(board, net, layer, box, priority, solid=False, name="", outline=Non
     z.SetThermalReliefGap(MM(0.25))
     z.SetThermalReliefSpokeWidth(MM(0.3))
     if outline is not None:
-        z.SetOutline(outline)
+        # copy point by point: ZONE.SetOutline() takes ownership of the
+        # pointer, and a Python-owned SHAPE_POLY_SET is freed under it
+        # (segfault in the zone filler)
+        o = z.Outline()
+        for i in range(outline.OutlineCount()):
+            src = outline.Outline(i)
+            o.NewOutline()
+            for j in range(src.PointCount()):
+                o.Append(src.CPoint(j))
+            for h in range(outline.HoleCount(i)):
+                ho = outline.Hole(i, h)
+                o.NewHole()
+                for j in range(ho.PointCount()):
+                    o.Append(ho.CPoint(j), -1, -1)
     else:
         o = z.Outline()
         o.NewOutline()
@@ -161,6 +177,147 @@ def add_zone(board, net, layer, box, priority, solid=False, name="", outline=Non
             o.Append(pt(x, y))
     board.Add(z)
     return z
+
+
+def add_pours(board):
+    """The pour keepouts, both GND pours and U1's +3V3 heat spreader (not
+    filled). Returns the spreader outline. Also used by route.py to check
+    the GND connectivity of a fresh routing before accepting it."""
+    add_antenna_keepout(board)
+    add_l101_pour_keepout(board)   # no F.Cu pour under L101 (pilink-2wq)
+    add_pour_keepouts(board)       # VREG ground island, under U101 (pilink-2x7)
+    add_sw_keepouts(board)   # Alps SKRTLAE010 no-copper areas (pilink-ge9)
+    full = (0, 0, BOARD_W, BOARD_H)
+    add_zone(board, "GND", pcbnew.F_Cu, full, 0, name="GND_F")
+    add_zone(board, "GND", pcbnew.B_Cu, full, 0, name="GND_B")
+    spreader = spreader_outline()
+    add_zone(board, "+3V3", pcbnew.F_Cu, SPREADER, 1, solid=True, name="U1_HEAT_F",
+             outline=spreader)
+    add_zone(board, "+3V3", pcbnew.B_Cu, SPREADER, 1, solid=True, name="U1_HEAT_B",
+             outline=spreader)
+    return spreader
+
+
+def gnd_components(board):
+    """GND copper split into connected components, from the filled pours,
+    GND tracks, vias and pads. Returns (main, strays): main is the component
+    holding the largest GND pour polygon, as {layer: [SHAPE_POLY_SET]};
+    strays is [(label, {layer: [SHAPE_POLY_SET]})] for every other one.
+    Freerouting does not see GND (route.py), so nothing else stops it from
+    boxing a fan-out via or a B.Cu GND pad into a pocket of signal tracks."""
+    F, B = pcbnew.F_Cu, pcbnew.B_Cu
+    par = {}
+
+    def find(x):
+        par.setdefault(x, x)
+        while par[x] != x:
+            par[x] = par[par[x]]
+            x = par[x]
+        return x
+
+    def uni(a, c):
+        par[find(a)] = find(c)
+
+    polys = []
+    for z in board.Zones():
+        if z.GetIsRuleArea() or z.GetNetname() != "GND":
+            continue
+        for L in (F, B):
+            if z.IsOnLayer(L):
+                ps = z.GetFilledPolysList(L)
+                for i in range(ps.OutlineCount()):
+                    k = ("poly", L, z.GetZoneName(), i)
+                    polys.append((k, L, pcbnew.SHAPE_POLY_SET(ps.UnitSet(i))))
+                    find(k)
+    shapes = []      # (key, layers, polyset, label)
+    for t in board.GetTracks():
+        if t.GetNetname() != "GND":
+            continue
+        k = ("item", t.m_Uuid.AsString())
+        sp = pcbnew.SHAPE_POLY_SET()
+        if t.Type() == pcbnew.PCB_VIA_T:
+            Ls = [F, B]
+            t.TransformShapeToPolygon(sp, F, 0, 5000, pcbnew.ERROR_INSIDE)
+            label = "via (%.2f, %.2f)" % (pcbnew.ToMM(t.GetX()) - ORIGIN[0],
+                                          pcbnew.ToMM(t.GetY()) - ORIGIN[1])
+        else:
+            Ls = [t.GetLayer()]
+            t.TransformShapeToPolygon(sp, t.GetLayer(), 0, 5000, pcbnew.ERROR_INSIDE)
+            label = None
+        shapes.append((k, Ls, sp, label))
+    for fp in board.GetFootprints():
+        for p in fp.Pads():
+            if p.GetNetname() != "GND":
+                continue
+            Ls = [L for L in (F, B) if p.IsOnLayer(L)]
+            if not Ls:
+                continue
+            sp = pcbnew.SHAPE_POLY_SET()
+            p.TransformShapeToPolygon(sp, Ls[0], 0, 5000, pcbnew.ERROR_INSIDE)
+            shapes.append((("item", p.m_Uuid.AsString()), Ls, sp,
+                           f"{fp.GetReference()}.{p.GetNumber()}"))
+    for k, Ls, sp, _ in shapes:
+        find(k)
+
+    def touch(a, c):
+        if not a.BBox().Intersects(c.BBox()):
+            return False
+        x = pcbnew.SHAPE_POLY_SET(a)
+        x.BooleanIntersection(c)
+        return x.OutlineCount() > 0
+
+    for k, Ls, sp, _ in shapes:
+        for pk, L, ps in polys:
+            if L in Ls and touch(sp, ps):
+                uni(k, pk)
+    for i, (k, Ls, sp, _) in enumerate(shapes):
+        for k2, Ls2, sp2, _ in shapes[i + 1:]:
+            if set(Ls) & set(Ls2) and touch(sp, sp2):
+                uni(k, k2)
+    if not polys:
+        raise SystemExit("zones.py: no GND pour to check")
+    main = find(max(polys, key=lambda p: p[2].Area())[0])
+    groups = {}
+    for k, Ls, sp, label in shapes:
+        g = groups.setdefault(find(k), {"labels": [], F: [], B: []})
+        g["labels"].append(label)
+        for L in Ls:
+            g[L].append(sp)
+    for pk, L, ps in polys:
+        g = groups.setdefault(find(pk), {"labels": [], F: [], B: []})
+        g[L].append(ps)
+    strays = []
+    for r, g in groups.items():
+        if r == main:
+            continue
+        named = [s for s in g["labels"] if s]
+        area = sum(ps.Area() for pk, L, ps in polys if find(pk) == r) / 1e12
+        label = (f"GND island ({area:.1f} mm2 of pour: "
+                 + (", ".join(named[:8]) or "no pads") + ")")
+        strays.append((label, {F: g[F], B: g[B]}))
+    return {F: groups[main][F], B: groups[main][B]}, strays
+
+
+def pour_and_join(board, rounds=3):
+    """Fill, stitch (stitch_gnd), then join any GND island to the main
+    ground with a track (gnd_repair), refilling after each round. Returns
+    the repair log lines."""
+    pcbnew.ZONE_FILLER(board).Fill(board.Zones())
+    stitch_gnd(board)
+    log = []
+    for _ in range(rounds):
+        comps = gnd_components(board)
+        if not comps[1]:
+            break
+        log += repair_gnd(board, comps)
+        pcbnew.ZONE_FILLER(board).Fill(board.Zones())
+    return log
+
+
+def gnd_islands(board):
+    """One line per GND island not joined to the main ground
+    (gnd_components)."""
+    return [label + " not joined to the main ground" for label, _ in gnd_components(board)[1]]
 
 
 def split_at_t_joins(board):
@@ -232,6 +389,7 @@ def prune_dangling_locked(board):
     are touched: on GND/+3V3 a locked via can be joined by the pour alone."""
     skip = {"GND", "+3V3"}
     removed = 0
+    nets = set()
     while True:
         tracks = list(board.GetTracks())
         pads = [p for fp in board.GetFootprints() for p in fp.Pads()]
@@ -245,8 +403,10 @@ def prune_dangling_locked(board):
                 rv = t.GetWidth(pcbnew.F_Cu) // 2
                 layers = set()
                 for o in tracks:
+                    # pilink-r1h: anywhere on the track counts (KiCad joins
+                    # a via that a track merely passes over), not only its ends
                     if (o is not t and o.Type() == pcbnew.PCB_TRACE_T and o.GetNetCode() == net
-                            and min((pos - o.GetStart()).EuclideanNorm(), (pos - o.GetEnd()).EuclideanNorm()) <= rv):
+                            and o.HitTest(pos, rv)):
                         layers.add(o.GetLayer())
                 if any(p.GetNetCode() == net and p.HitTest(pos) for p in pads):
                     continue
@@ -264,7 +424,10 @@ def prune_dangling_locked(board):
                             if (o.GetPosition() - end).EuclideanNorm() <= o.GetWidth(pcbnew.F_Cu) // 2:
                                 ok = True
                                 break
-                        elif o.GetLayer() == t.GetLayer() and end in (o.GetStart(), o.GetEnd()):
+                        # an end anywhere on another same-net track joins it,
+                        # as in KiCad's connectivity (router T-joins that
+                        # split_at_t_joins did not split exactly, pilink-r1h)
+                        elif o.GetLayer() == t.GetLayer() and o.HitTest(end, 0):
                             ok = True
                             break
                 if not ok:
@@ -273,10 +436,11 @@ def prune_dangling_locked(board):
         if not gone:
             break
         for t in gone:
+            nets.add(t.GetNetname())
             board.Remove(t)
         removed += len(gone)
     if removed:
-        print(f"pruned {removed} dangling pre-route item(s)")
+        print(f"pruned {removed} dangling pre-route item(s) on: {', '.join(sorted(nets))}")
 
 
 def via_ok(board, pos, net, r=None, near_own_pads=False, keepout=None):
@@ -310,6 +474,7 @@ def main():
     board = pcbnew.LoadBoard(BOARD)
     for z in list(board.Zones()):
         board.Remove(z)
+    remove_repairs(board)      # this script's own GND island joins (gnd_repair)
     sx0, sy0, sx1, sy1 = SPREADER
     in_spreader = lambda p: (sx0 <= pcbnew.ToMM(p.x) - ORIGIN[0] <= sx1
                              and sy0 <= pcbnew.ToMM(p.y) - ORIGIN[1] <= sy1)
@@ -375,18 +540,7 @@ def main():
     split_at_t_joins(board)
     prune_dangling_locked(board)
     check_antenna_strip(board)
-    add_antenna_keepout(board)
-    add_l101_pour_keepout(board)   # no F.Cu pour under L101 (pilink-2wq)
-    add_pour_keepouts(board)       # VREG ground island, under U101 (pilink-2x7)
-    add_sw_keepouts(board)   # Alps SKRTLAE010 no-copper areas (pilink-ge9)
-    full = (0, 0, BOARD_W, BOARD_H)
-    add_zone(board, "GND", pcbnew.F_Cu, full, 0, name="GND_F")
-    add_zone(board, "GND", pcbnew.B_Cu, full, 0, name="GND_B")
-    spreader = spreader_outline()
-    add_zone(board, "+3V3", pcbnew.F_Cu, SPREADER, 1, solid=True, name="U1_HEAT_F",
-             outline=pcbnew.SHAPE_POLY_SET(spreader))
-    add_zone(board, "+3V3", pcbnew.B_Cu, SPREADER, 1, solid=True, name="U1_HEAT_B",
-             outline=pcbnew.SHAPE_POLY_SET(spreader))
+    spreader = add_pours(board)
 
     # pilink-xzs: the router's own tracks/pads block some nominal grid
     # points, which dropped the count 24 -> 13 after the pilink-rqd re-route.
@@ -397,6 +551,11 @@ def main():
     steps = sorted(((dx, dy) for dx in range(-NUDGE_STEPS, NUDGE_STEPS + 1)
                     for dy in range(-NUDGE_STEPS, NUDGE_STEPS + 1)),
                    key=lambda d: d[0] ** 2 + d[1] ** 2)
+    # distance to the notched outline's edge (SHAPE_POLY_SET.SquaredDistance
+    # with aOutlineOnly is unsupported in KiCad 10 and returns 0)
+    chain = spreader.Outline(0)
+    edges = [chain.CSegment(i) for i in range(chain.SegmentCount())]
+    edge_dist2 = lambda p: min(e.SquaredDistance(p) for e in edges)
     n = 0
     y = y0 + 1.0
     while y <= y1 - 1.0:
@@ -407,7 +566,7 @@ def main():
                 if not (x0 + 0.8 <= nx <= x1 - 0.8 and y0 + 0.8 <= ny <= y1 - 0.8):
                     continue
                 pos = pt(nx, ny)
-                if not spreader.Contains(pos) or spreader.SquaredDistance(pos, True) < MM(0.8) ** 2:
+                if not spreader.Contains(pos) or edge_dist2(pos) < MM(0.8) ** 2:
                     continue      # in a GND notch, or too close to its edge
                 if via_ok(board, pos, "+3V3"):
                     v = pcbnew.PCB_VIA(board)
@@ -424,8 +583,8 @@ def main():
         y += VIA_PITCH
     print("+3V3 stitching vias:", n)
 
-    pcbnew.ZONE_FILLER(board).Fill(board.Zones())
-    stitch_gnd(board)
+    for line in pour_and_join(board):
+        print(line)
     pcbnew.SaveBoard(BOARD, board)
     for z in board.Zones():
         if z.GetIsRuleArea():
@@ -661,8 +820,9 @@ def gnd_gate(board):
         via or PTH pad in it (so it reaches the plane through a via, not a
         trace).
       * Every capacitor's F.Cu GND pad has a GND via within GATE_VIA_DIST.
-      * U1 pin 1 (LDO GND) touches the F.Cu GND pour."""
-    problems = []
+      * U1 pin 1 (LDO GND) touches the F.Cu GND pour.
+      * All GND copper is one connected ground (gnd_islands)."""
+    problems = list(gnd_islands(board))
     fpol, bpol = gnd_polys(board)
     drills = gnd_drills(board)
     for name, ps in (("GND_B", bpol), ("GND_F", fpol)):

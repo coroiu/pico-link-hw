@@ -2,31 +2,41 @@
 """Autoroute pico-link-hw.kicad_pcb with Freerouting (pilink-7el.12).
 
 Usage (from hardware/):
-    python3 scripts/route.py [--passes N] [--tries N] [--jar PATH]
+    python3 scripts/route.py [--passes N] [--tries N] [--seed N] [--jobs N] [--jar PATH]
 
 Specctra round-trip: strip existing tracks/vias/zones (except the locked
 tracks/vias scripts/preroute.py laid) -> export DSN -> Freerouting
 (headless) -> import SES -> save. Run scripts/widen.py and scripts/zones.py
 next.
 
-Ground plane strategy (pilink-r1h): B.Cu is the board's ground plane, so
-  * GND is not routed by Freerouting at all. preroute.py gives every F.Cu
-    GND pad its own locked via to B.Cu (gnd_fanout.py), zones.py pours GND
+Ground strategy (pilink-r1h). B.Cu cannot be kept free of signals with
+this placement (see below), so the aim is one well-stitched GND net:
+  * GND is not routed by Freerouting at all. preroute.py gives every SMD
+    GND pad its own locked via (gnd_fanout.py), zones.py pours GND
     on both layers. edit_dsn() takes GND out of the DSN's netlist (GND pads
     become netless obstacles) and hands the locked GND copper to
     Freerouting as keepouts; after the import that copper is put back.
     (With GND left in the netlist, even under Freerouting's -inc "ignore
     net class" option, runs here never finished: it kept routing past the
     pass limit, joining the fixed GND fan-out pieces with traces.)
-  * Freerouting's per-layer trace costs make B.Cu B_COST times as
-    expensive as F.Cu, so signals stay on F.Cu and drop to B.Cu only for
-    short jumps under F.Cu crossings.
   * plane_keepout.py adds B.Cu track keepouts where the plane must stay
-    whole (crystal, under U101, ...), exported like the antenna strip and
-    the L101 area.
-A run is retried (up to --tries) when Freerouting writes no session, the
-import fails, or DRC reports any unconnected non-GND item afterwards
-(pilink-dbu).
+    whole (under the crystal; under the VREG hot loop), exported like the
+    antenna strip and the L101 area. Larger ones were tried and did not
+    route: under U101 (whole body, ring, or only the exposed pad), the
+    whole VREG block, and the VREG block plus a channel to the exposed pad
+    (the ESP32 UART nets then stayed unrouted).
+  * Per-layer trace costs do not keep signals off B.Cu: with the DSN's
+    (autoroute_settings ...) B.Cu trace cost at 50 (vs 1 for F.Cu)
+    Freerouting 2.0.1 still put ~52% of the signal track on B.Cu, the
+    same as at 4. The block stays (edit_dsn) for its other settings.
+Freerouting is deterministic per DSN, so each attempt gets its own net
+order (shuffle_nets, seed = --seed + attempt) and --jobs attempts run at
+once. An attempt is rejected when Freerouting writes no session or runs
+OVERRUN_PASSES past --passes, the import fails, DRC reports any unconnected
+non-GND item afterwards (pilink-dbu), or a trial pour (gnd_preview) leaves
+GND copper that cannot be joined to the main ground. The seed of the
+accepted attempt is printed; --seed N --tries 1 reproduces it from the same
+pre-routed board (place.py + preroute.py from scratch).
 
 Freerouting needs Java 21+. If no `java` is on PATH this falls back to
 `docker run eclipse-temurin:21-jre`. The DSN/SES are staged in a work
@@ -62,14 +72,15 @@ BOARD = os.path.join(HW, "pico-link-hw.kicad_pcb")
 WORK = os.path.join(HW, ".autoroute")
 
 
-ROUTE_TIMEOUT = 900   # seconds; a normal run takes 1.5-3 minutes
-# pilink-r1h: Freerouting trace cost per unit length, per layer. F.Cu 1.0 in
-# both directions (no preferred direction); B.Cu B_COST times that, so the
-# router only jumps to B.Cu where F.Cu is blocked. VIA_COST is Freerouting's
-# own via cost (its default is 50); lower makes short B.Cu jumps cheaper
-# than long F.Cu detours.
-B_COST = 4.0
+ROUTE_TIMEOUT = 900   # seconds; a normal run takes 3-6 minutes
+# v2.0.1 does not stop at -mp while a connection is unrouted; a run that
+# finishes does so within ~26 passes here, so one this far past the limit
+# is abandoned
+OVERRUN_PASSES = 5
+# Freerouting autoroute settings written into the DSN (edit_dsn): its via
+# cost (default 50) and the B.Cu trace cost relative to F.Cu
 VIA_COST = 40
+B_COST = 4.0
 # Freerouting log lines that mean the run is dead even if the JVM is not
 FATAL_LOG = ("HeadlessException", "\"this.board\" is null", "OutOfMemoryError")
 
@@ -105,8 +116,8 @@ def _circle_poly(layer, x, y, r):
                           y + R * math.sin(math.radians(22.5 + 45 * k))) for k in range(8)])
 
 
-def edit_dsn(text, b_cost, via_cost):
-    """GND into its own (ignored) class; per-layer costs; +10um clearance."""
+def edit_dsn(text):
+    """GND out of the netlist (its locked copper as keepouts); +10um clearance."""
     # Freerouting rounds to its own grid and can land a few um under the
     # clearance it was given; hand it +10um so KiCad's DRC sees no slivers.
     text = re.sub(r"\(clearance (\d+(?:\.\d+)?)\)",
@@ -153,21 +164,43 @@ def edit_dsn(text, b_cost, via_cost):
     k = text.index("    (boundary", text.index("  (structure"))
     k = text.index("\n", text.index("    )", k)) + 1   # after the boundary scope
     text = text[:k] + "".join(keepouts) + text[k:]
+    # Freerouting's own autorouter settings. The per-layer trace costs had
+    # no measurable effect (see the module docstring), but the runs that
+    # finished were all made with this block, and the same DSN without it
+    # did not finish (pilink-r1h), so it stays.
     settings = ("    (autoroute_settings\n"
                 "      (fanout off) (autoroute on) (postroute on) (vias on)\n"
-                f"      (via_costs {via_cost}) (plane_via_costs 5)\n"
+                f"      (via_costs {VIA_COST}) (plane_via_costs 5)\n"
                 "      (start_ripup_costs 100) (start_pass_no 1)\n"
                 "      (layer_rule F.Cu (active on) (preferred_direction horizontal)\n"
                 "        (preferred_direction_trace_costs 1.0)\n"
                 "        (against_preferred_direction_trace_costs 1.0))\n"
                 "      (layer_rule B.Cu (active on) (preferred_direction vertical)\n"
-                f"        (preferred_direction_trace_costs {b_cost})\n"
-                f"        (against_preferred_direction_trace_costs {b_cost}))\n"
+                f"        (preferred_direction_trace_costs {B_COST})\n"
+                f"        (against_preferred_direction_trace_costs {B_COST}))\n"
                 "    )\n")
     # after the (layer ...) scopes: Freerouting resolves layer_rule names
     # against layers it has already read
     k = text.index("    (boundary", text.index("  (structure"))
     return text[:k] + settings + text[k:]
+
+
+def shuffle_nets(text, seed):
+    """The DSN with its (net ...) entries in a seeded random order (seed 0:
+    unchanged). Freerouting is deterministic: the same DSN gives the same
+    result every time, so re-running a DSN that did not finish is useless,
+    while any change to the input (even only the order of items) gives a
+    different routing. Shuffling the net order is a reproducible way to get
+    another try (pilink-r1h)."""
+    if seed == 0:
+        return text
+    import random
+    key = "\n    (net "
+    a = text.index(key, text.index("  (network"))
+    b = text.index("\n    (class ", a)
+    nets = [key + n for n in text[a:b].split(key)[1:]]
+    random.Random(seed).shuffle(nets)
+    return text[:a] + "".join(nets) + text[b:]
 
 
 def unconnected_signals(board_path):
@@ -185,6 +218,22 @@ def unconnected_signals(board_path):
         if not any("[GND]" in d for d in descs):
             bad.append(" / ".join(descs))
     return bad
+
+
+def gnd_preview(board_path):
+    """Pour, stitch and join a copy of the routed board as zones.py will,
+    and return the GND islands left (zones.gnd_islands). Freerouting never
+    sees GND, so it can box a fan-out via or a B.Cu GND pad into a pocket
+    of signal tracks; zones.py joins such a pocket to the main ground with a
+    track (gnd_repair), and a routing where even that finds no legal path is
+    retried rather than accepted."""
+    import zones
+    b = pcbnew.LoadBoard(board_path)
+    zones.split_at_t_joins(b)
+    zones.prune_dangling_locked(b)
+    zones.add_pours(b)
+    zones.pour_and_join(b)
+    return zones.gnd_islands(b)
 
 
 def _clone_spec(t):
@@ -217,97 +266,131 @@ def _restore(board, spec):
         board.Add(t)
 
 
-def run_freerouting(args, dsn_text):
-    """One Freerouting run in a fresh WORK dir. Returns the SES path, or
-    None (with the reason printed) when it wrote no usable session."""
-    shutil.rmtree(WORK, ignore_errors=True)
-    os.makedirs(WORK)
-    with open(os.path.join(WORK, "board.dsn"), "w") as fh:
-        fh.write(dsn_text)
-    ses = os.path.join(WORK, "board.ses")
-    fr_args = ["-de", "{w}/board.dsn", "-do", "{w}/board.ses",
-               "--gui.enabled=false", "-mp", str(args.passes)]
-    container = docker = None
-    if shutil.which("java"):
-        cmd = ["java", "-jar", args.jar] + [a.format(w=WORK) for a in fr_args]
-    else:
-        docker = shutil.which("docker") or shutil.which("podman")
-        if not docker:
-            sys.exit("need java 21+ or docker/podman to run Freerouting")
-        container = f"pilink-freerouting-{os.getpid()}"
-        cmd = [docker, "run", "--rm", "--name", container,
-               "-u", f"{os.getuid()}:{os.getgid()}",
-               "-e", "HOME=/work",
-               "-v", f"{WORK}:/work", "-v", f"{args.jar}:/app/freerouting.jar:ro",
-               "eclipse-temurin:21-jre", "java", "-jar", "/app/freerouting.jar"
-               ] + [a.format(w="/work") for a in fr_args]
-    print("running:", " ".join(cmd), flush=True)
-    logpath = os.path.join(WORK, "freerouting.log")
+class FreeroutingJob:
+    """One Freerouting run on one DSN text in its own work dir under WORK
+    (several can run at once: route.py --jobs)."""
 
-    def kill(proc):
-        proc.kill()
+    def __init__(self, args, dsn_text, seed):
+        self.args, self.seed = args, seed
+        self.work = os.path.join(WORK, f"seed{seed}")
+        shutil.rmtree(self.work, ignore_errors=True)
+        os.makedirs(self.work)
+        with open(os.path.join(self.work, "board.dsn"), "w") as fh:
+            fh.write(dsn_text)
+        self.ses = os.path.join(self.work, "board.ses")
+        self.logpath = os.path.join(self.work, "freerouting.log")
+        fr_args = ["-de", "{w}/board.dsn", "-do", "{w}/board.ses",
+                   "--gui.enabled=false", "-mp", str(args.passes)]
+        self.container = self.docker = None
+        if shutil.which("java"):
+            cmd = ["java", "-jar", args.jar] + [a.format(w=self.work) for a in fr_args]
+        else:
+            self.docker = shutil.which("docker") or shutil.which("podman")
+            if not self.docker:
+                sys.exit("need java 21+ or docker/podman to run Freerouting")
+            self.container = f"pilink-freerouting-{os.getpid()}-{seed}"
+            cmd = [self.docker, "run", "--rm", "--name", self.container,
+                   "-u", f"{os.getuid()}:{os.getgid()}",
+                   "-e", "HOME=/work",
+                   "-v", f"{self.work}:/work", "-v", f"{args.jar}:/app/freerouting.jar:ro",
+                   "eclipse-temurin:21-jre", "java", "-jar", "/app/freerouting.jar"
+                   ] + [a.format(w="/work") for a in fr_args]
+        print(f"[seed {seed}] running:", " ".join(cmd), flush=True)
+        self.log = open(self.logpath, "w")
+        self.proc = subprocess.Popen(cmd, stdout=self.log, stderr=subprocess.STDOUT)
+        self.t0 = time.time()
+
+    def kill(self):
+        self.proc.kill()
         # killing the docker CLI leaves the container running (and holding
         # the CPU): remove it explicitly
-        if container:
-            subprocess.run([docker, "rm", "-f", container],
+        if self.container:
+            subprocess.run([self.docker, "rm", "-f", self.container],
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        proc.wait()
+        self.proc.wait()
+        self.log.close()
 
-    with open(logpath, "w") as log:
-        proc = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT)
-        t0 = time.time()
-        while proc.poll() is None:
-            time.sleep(5)
-            # Freerouting can die in a worker thread and leave the JVM up
-            # (e.g. a DSN it could not read: "board is null"); stop waiting
-            with open(logpath) as fh:
+    def poll(self):
+        """None while running; else (ses path or None, message)."""
+        if self.proc.poll() is None:
+            with open(self.logpath) as fh:
                 logtext = fh.read()
+            # Freerouting can die in a worker thread and leave the JVM up
+            # (e.g. a DSN it could not read: "board is null")
             if any(s in logtext for s in FATAL_LOG):
-                kill(proc)
-                print("Freerouting crashed (see its log)")
-                return None
-            # v2.0.1 does not stop at -mp while a connection is unrouted (it
-            # stops by itself once everything is routed, normally within
-            # ~15 passes here): give up well past the limit instead of
-            # waiting for ROUTE_TIMEOUT
+                self.kill()
+                return None, "Freerouting crashed (see its log)"
+            # v2.0.1 does not stop at -mp while a connection is unrouted
             passes = logtext.count("Auto-router pass #")
-            if passes > args.passes + 10:
-                kill(proc)
-                print(f"Freerouting ran {passes} passes without finishing "
-                      "(a connection it cannot route)")
-                return None
-            if time.time() - t0 > ROUTE_TIMEOUT:
-                kill(proc)
-                print(f"Freerouting did not finish within {ROUTE_TIMEOUT}s "
-                      "(it can loop past -mp when a connection is unroutable)")
-                return None
-    if not os.path.isfile(ses) or os.path.getsize(ses) == 0:
-        print("Freerouting wrote no session file")
+            if passes > self.args.passes + OVERRUN_PASSES:
+                self.kill()
+                return None, f"ran {passes} passes without finishing"
+            if time.time() - self.t0 > ROUTE_TIMEOUT:
+                self.kill()
+                return None, f"did not finish within {ROUTE_TIMEOUT}s"
+            return None
+        self.log.close()
+        if not os.path.isfile(self.ses) or os.path.getsize(self.ses) == 0:
+            return None, "Freerouting wrote no session file"
+        # ImportSpecctraSES aborts the whole import if any reference in the
+        # session's (placement ...) block fails its lookup. A headless run
+        # never moves parts, so drop the block.
+        text = open(self.ses).read()
+        start = text.find("(placement")
+        if start >= 0:
+            depth = 0
+            for i in range(start, len(text)):
+                depth += {"(": 1, ")": -1}.get(text[i], 0)
+                if depth == 0:
+                    text = text[:start] + text[i + 1:]
+                    break
+            with open(self.ses, "w") as fh:
+                fh.write(text)
+        passes = open(self.logpath).read().count("Auto-router pass #")
+        return self.ses, f"finished after {passes} passes"
+
+
+def accept(ses, seed):
+    """Import a session into the stripped board; returns the board if it has
+    no unconnected signal and no unjoinable GND island, else None."""
+    board = pcbnew.LoadBoard(BOARD)
+    # the session has no GND (it was not in the DSN's netlist), and the
+    # import replaces all tracks: put the locked GND copper back
+    gnd = [_clone_spec(t) for t in board.GetTracks()
+           if t.GetNetname() == "GND" and t.IsLocked()]
+    if not pcbnew.ImportSpecctraSES(board, ses):
+        print(f"[seed {seed}] SES import failed")
         return None
-    # ImportSpecctraSES aborts the whole import if any reference in the
-    # session's (placement ...) block fails its lookup. A headless run never
-    # moves parts, so drop the block.
-    text = open(ses).read()
-    start = text.find("(placement")
-    if start >= 0:
-        depth = 0
-        for i in range(start, len(text)):
-            depth += {"(": 1, ")": -1}.get(text[i], 0)
-            if depth == 0:
-                text = text[:start] + text[i + 1:]
-                break
-        with open(ses, "w") as fh:
-            fh.write(text)
-    return ses
+    for t in [t for t in board.GetTracks() if t.GetNetname() == "GND"]:
+        board.Remove(t)
+    for spec in gnd:
+        _restore(board, spec)
+    out = os.path.join(os.path.dirname(ses), "routed.kicad_pcb")
+    pcbnew.SaveBoard(out, board)
+    bad = unconnected_signals(out)
+    if bad:
+        print(f"[seed {seed}] {len(bad)} unconnected non-GND item(s) after routing:")
+        for b in bad[:10]:
+            print("   ", b)
+        return None
+    islands = gnd_preview(out)
+    if islands:
+        print(f"[seed {seed}] {len(islands)} GND island(s) left after a trial pour:")
+        for s in islands:
+            print("   ", s)
+        return None
+    return board
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--passes", type=int, default=30)
-    ap.add_argument("--tries", type=int, default=4,
-                    help="Freerouting attempts before giving up (pilink-dbu)")
-    ap.add_argument("--b-cost", type=float, default=B_COST)
-    ap.add_argument("--via-cost", type=int, default=VIA_COST)
+    ap.add_argument("--tries", type=int, default=8,
+                    help="Freerouting attempts (net order seeds) before giving up")
+    ap.add_argument("--seed", type=int, default=0,
+                    help="net order seed of the first attempt (shuffle_nets)")
+    ap.add_argument("--jobs", type=int, default=4,
+                    help="Freerouting runs at once (each on its own seed)")
     ap.add_argument("--jar", default=os.environ.get(
         "FREEROUTING_JAR", os.path.expanduser("~/.kicad-mcp/freerouting.jar")))
     ap.add_argument("--keep", action="store_true", help="keep the DSN/SES work dir")
@@ -340,56 +423,59 @@ def main():
     # Ground-plane areas (pilink-r1h): no B.Cu tracks there.
     add_plane_keepouts(board)
 
-    os.makedirs(WORK, exist_ok=True)
+    shutil.rmtree(WORK, ignore_errors=True)
+    os.makedirs(WORK)
     dsn = os.path.join(WORK, "board.dsn")
     if not pcbnew.ExportSpecctraDSN(board, dsn):
         sys.exit("DSN export failed")
     with open(dsn) as fh:
-        dsn_text = edit_dsn(fh.read(), args.b_cost, args.via_cost)
+        dsn_text = edit_dsn(fh.read())
     remove_route_keepout(board)
     remove_l101_route_keepout(board)
     remove_plane_keepouts(board)
     pcbnew.SaveBoard(BOARD, board)      # the stripped, pre-routed board
 
-    for attempt in range(1, args.tries + 1):
-        print(f"-- Freerouting attempt {attempt}/{args.tries}", flush=True)
-        ses = run_freerouting(args, dsn_text)
-        if ses is None:
-            continue
-        board = pcbnew.LoadBoard(BOARD)
-        # the session has no GND (it was not in the DSN's netlist), and the
-        # import replaces all tracks: put the locked GND copper back
-        gnd = [_clone_spec(t) for t in board.GetTracks()
-               if t.GetNetname() == "GND" and t.IsLocked()]
-        if not pcbnew.ImportSpecctraSES(board, ses):
-            print("SES import failed")
-            continue
-        for t in [t for t in board.GetTracks() if t.GetNetname() == "GND"]:
-            board.Remove(t)
-        for spec in gnd:
-            _restore(board, spec)
-        out = os.path.join(WORK, "routed.kicad_pcb")
-        pcbnew.SaveBoard(out, board)
-        bad = unconnected_signals(out)
-        if bad:
-            print(f"{len(bad)} unconnected non-GND item(s) after routing:")
-            for b in bad[:10]:
-                print("   ", b)
-            continue
-        pcbnew.SaveBoard(BOARD, board)
-        tracks = list(board.GetTracks())
-        vias = sum(1 for t in tracks if t.Type() == pcbnew.PCB_VIA_T)
-        length = {L: sum(t.GetLength() for t in tracks
-                         if t.Type() == pcbnew.PCB_TRACE_T and t.GetLayer() == L) / 1e6
-                  for L in (pcbnew.F_Cu, pcbnew.B_Cu)}
-        print(f"imported {len(tracks) - vias} track segments, {vias} vias; "
-              f"F.Cu {length[pcbnew.F_Cu]:.0f}mm, B.Cu {length[pcbnew.B_Cu]:.0f}mm "
-              f"of track (attempt {attempt})")
-        if not args.keep:
-            shutil.rmtree(WORK, ignore_errors=True)
-        return
-    sys.exit(f"route.py: no clean Freerouting result in {args.tries} attempts; "
-             f"see {WORK}/freerouting.log")
+    # Freerouting is deterministic per DSN, so each attempt gets its own net
+    # order (shuffle_nets); `--seed N --tries 1` reproduces attempt N.
+    seeds = list(range(args.seed, args.seed + args.tries))
+    running, result = [], None
+    try:
+        while (seeds or running) and result is None:
+            while seeds and len(running) < args.jobs:
+                s = seeds.pop(0)
+                running.append(FreeroutingJob(args, shuffle_nets(dsn_text, s), s))
+            time.sleep(5)
+            for job in list(running):
+                r = job.poll()
+                if r is None:
+                    continue
+                running.remove(job)
+                ses, msg = r
+                print(f"[seed {job.seed}] {msg}", flush=True)
+                if ses is None:
+                    continue
+                b = accept(ses, job.seed)
+                if b is not None:
+                    result = (b, job.seed)
+                    break
+    finally:
+        for job in running:
+            job.kill()
+    if result is None:
+        sys.exit(f"route.py: no clean Freerouting result for seeds "
+                 f"{args.seed}..{args.seed + args.tries - 1}; see {WORK}/seed*/freerouting.log")
+    board, seed = result
+    pcbnew.SaveBoard(BOARD, board)
+    tracks = list(board.GetTracks())
+    vias = sum(1 for t in tracks if t.Type() == pcbnew.PCB_VIA_T)
+    length = {L: sum(t.GetLength() for t in tracks
+                     if t.Type() == pcbnew.PCB_TRACE_T and t.GetLayer() == L) / 1e6
+              for L in (pcbnew.F_Cu, pcbnew.B_Cu)}
+    print(f"imported {len(tracks) - vias} track segments, {vias} vias; "
+          f"F.Cu {length[pcbnew.F_Cu]:.0f}mm, B.Cu {length[pcbnew.B_Cu]:.0f}mm "
+          f"of track (net order seed {seed}; reproduce with --seed {seed} --tries 1)")
+    if not args.keep:
+        shutil.rmtree(WORK, ignore_errors=True)
 
 
 if __name__ == "__main__":

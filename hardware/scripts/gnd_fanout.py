@@ -1,10 +1,10 @@
-"""GND fan-out: a locked via next to every F.Cu GND pad (pilink-r1h).
+"""GND fan-out: a locked via next to every SMD GND pad (pilink-r1h).
 
 Library, called by preroute.py (after its own pre-routes, before route.py).
 Not run on its own.
 
 B.Cu is the board's ground plane. Freerouting no longer routes GND at all
-(route.py puts GND in an ignored net class), so every F.Cu GND pad gets its
+(route.py takes GND out of the DSN netlist), so every F.Cu GND pad gets its
 own short F.Cu stub to a via here, before routing, and the router routes
 the signals around those vias. Every decoupling capacitor's GND pad thus has
 its own via to the plane beside the pad, not a 0.2mm trace through the
@@ -27,8 +27,11 @@ Not fanned out here:
     the pad in).
   * J501: its GND pins come in runs at 0.5mm pitch; each run is tied by a
     bar along the pads' outer ends with vias beyond it (fan_j501).
-  * Through-hole GND pads (already on both layers) and B.Cu pads (on the
-    plane).
+  * Through-hole GND pads (already on both layers).
+  * U201's exposed pad (pad 39, its own thermal vias).
+B.Cu SMD GND pads (U201's, C201-C203, the test pads) get a B.Cu stub and a
+via the same way: B.Cu also carries signals, so a B.Cu pad is not on the
+plane by itself (a trial routing boxed U201.15 into a 2.7 mm^2 pocket).
 """
 import math
 
@@ -47,7 +50,8 @@ GAP_MIN, GAP_MAX = 0.15, 1.0   # via edge to its own pad's edge
 HOLE_CLEAR = 0.25              # via copper to an NPTH hole edge
 EDGE = 0.5                     # via copper to the board edge
 SKIP = {("U101", "62"), ("U101", "81"), ("C103", "2"), ("C104", "2"),
-        ("SW101", "2"), ("SW102", "2")}
+        ("SW101", "2"), ("SW102", "2"),
+        ("U201", "39")}     # U201's exposed pad: its own 9 thermal vias
 SKIP_REFS = {"J501"}
 # high-current / switching returns: (ref, pad) -> number of vias
 EXTRA = {("U1", "1"): 3, ("C2", "1"): 2, ("C1", "1"): 2,
@@ -56,6 +60,10 @@ EXTRA = {("U1", "1"): 3, ("C2", "1"): 2, ("C1", "1"): 2,
 # warning, not an error. Everything else (every capacitor, every IC) must
 # get its via or the script fails.
 OPTIONAL_REFS = ("SW30",)
+# B.Cu pads with no legal spot that are tied in another way: U201.38 sits
+# against the antenna strip (no vias there) in the B.Cu pour; U401.2 (ESD
+# GND) already has its own via from preroute.py.
+OPTIONAL_PADS = ("U201.38", "U401.2")
 
 
 def _pt(x, y):
@@ -159,23 +167,24 @@ class Obstacles:
                 return False
         return True
 
-    def stub_ok(self, a, b, hw, own_pad):
-        """F.Cu GND stub a->b clears foreign pads and tracks."""
+    def stub_ok(self, a, b, hw, own_pad, on=pcbnew.F_Cu):
+        """GND stub a->b on layer `on` clears foreign pads and tracks."""
         clear = MM(CLEAR)
         n = max(2, int((b - a).EuclideanNorm() / MM(0.05)))
         for i in range(n + 1):
             p = pcbnew.VECTOR2I(int(a.x + (b.x - a.x) * i / n), int(a.y + (b.y - a.y) * i / n))
             reach = hw + clear
             for pf, pb, net, uid, (bl, bt, br, bb) in self.pads:
-                if net == "GND" or pf is None:
+                ps = pf if on == pcbnew.F_Cu else pb
+                if net == "GND" or ps is None:
                     continue
                 if (p.x < bl - reach or p.x > br + reach
                         or p.y < bt - reach or p.y > bb + reach):
                     continue
-                if pf.SquaredDistance(p) < (hw + clear) ** 2:
+                if ps.SquaredDistance(p) < (hw + clear) ** 2:
                     return False
             for layer, s, e, thw, net in self.tracks:
-                if net == "GND" or layer != pcbnew.F_Cu:
+                if net == "GND" or layer != on:
                     continue
                 if self._seg_dist(p, s, e) < hw + thw + clear:
                     return False
@@ -281,6 +290,7 @@ def fan_pad(board, obs, fp, pad, n_vias):
     """Place n_vias GND vias beside pad; returns how many were placed."""
     r = MM(VIA_D / 2)
     hw = MM(min(0.4, 0.8 * pcbnew.ToMM(min(pad.GetSize().x, pad.GetSize().y))) / 2)
+    on = pcbnew.F_Cu if pad.IsOnLayer(pcbnew.F_Cu) else pcbnew.B_Cu
     placed = []
     for score, pos in _candidates(pad, fp):
         if len(placed) >= n_vias:
@@ -289,12 +299,12 @@ def fan_pad(board, obs, fp, pad, n_vias):
             continue
         if not obs.via_ok(pos, r, pad, fp.GetReference()):
             continue
-        if not obs.stub_ok(pad.GetPosition(), pos, hw, pad):
+        if not obs.stub_ok(pad.GetPosition(), pos, hw, pad, on):
             continue
         _add_via(board, pos)
-        _add_track(board, pad.GetPosition(), pos, pcbnew.ToMM(hw * 2))
+        _add_track(board, pad.GetPosition(), pos, pcbnew.ToMM(hw * 2), on)
         obs.add_via(pos, r)
-        obs.add_track(pcbnew.F_Cu, pad.GetPosition(), pos, hw)
+        obs.add_track(on, pad.GetPosition(), pos, hw)
         placed.append(pos)
     return len(placed)
 
@@ -367,8 +377,11 @@ def fan_out(board):
         if ref in SKIP_REFS:
             continue
         for p in fp.Pads():
+            # pilink-r1h: B.Cu GND pads too (U201's, the test pads, ...):
+            # B.Cu also carries signals, so a B.Cu pad is not on the plane by
+            # itself (U201.15 ended up in a 2.7 mm^2 sliver boxed in by tracks)
             if (p.GetNetname() != "GND" or p.GetAttribute() != pcbnew.PAD_ATTRIB_SMD
-                    or not p.IsOnLayer(pcbnew.F_Cu) or (ref, p.GetNumber()) in SKIP):
+                    or (ref, p.GetNumber()) in SKIP):
                 continue
             n = EXTRA.get((ref, p.GetNumber()), 1)
             pads.append((-n, ref, p.GetNumber(), fp, p))
@@ -383,7 +396,7 @@ def fan_out(board):
 
 
 def check_misses(misses):
-    fatal = [m for m in misses if not m.startswith(OPTIONAL_REFS)]
+    fatal = [m for m in misses if not m.startswith(OPTIONAL_REFS) and m not in OPTIONAL_PADS]
     if misses:
         print("GND fan-out: no via spot for " + ", ".join(misses))
     if fatal:
