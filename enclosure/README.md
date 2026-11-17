@@ -223,7 +223,7 @@ Covers the back half of the enclosure: PCB-mounting bosses (heat-set
 inserts), the 7mm (was 3mm, `pilink-9i4`) clearance cavity behind the PCB for the encoder's
 through-hole leads, the rear USB-C cutout (no boss since `pilink-9i4`: the 7mm cavity
 holds the connector), a horizontal
-base strip with feet pockets, and the fixed two-leg A-frame that screws to
+base strip with feet pockets, and the fixed two-leg A-frame that is glued to
 this shell. The front shell (face, display window, button/knob openings)
 is `pilink-8hx.2`'s separate file; the antenna mount is `pilink-8hx.4`'s.
 
@@ -279,12 +279,18 @@ the "U201 back-side relief", "J401 boss" and "leg boss" descriptions below
    overmould with 6.65mm of plug past it, so a max-spec plug seats with ~0.4mm
    FDM clearance per side (wall around it: >30mm to the nearest boss, spool
    lug 7mm above). The 6.3mm Anker boot fits.
-3. **Leg mounts.** The original attachment scheme is kept (tilted boss with a
-   heat-set insert in its tip; leg screwed on from the foot through a hidden
-   channel). The boss is extended back along its axis by 8mm and clipped at the
-   plate's inner side, so it runs into the rear surface and no flat base face
-   is exposed. Strut and boss are solid apart from the Ø2.6 screw channel and
-   the insert pocket. No fillet (oblique cylinder-to-plane blend not modelled).
+3. **Leg mounts.** Glued, not screwed (`pilink-8jy`, supersedes the original
+   screw-from-the-foot scheme). Tilted boss, extended back along its axis by
+   8mm and clipped at the plate's inner side, so it runs into the rear surface
+   and no flat base face is exposed. Each leg has a short keyed peg (double-flat
+   D profile, Ø4.4 / 3.4 across flats, 4.3 long) that fits a blind socket in
+   the boss tip (4.5 deep) with 0.175mm glue clearance per side. The flats fix
+   the leg's angle about the boss axis. Peg on the leg, socket in the boss: the
+   leg prints the peg support-free and the boss keeps ~1mm of wall around a
+   plain blind hole. Legs and bosses are otherwise solid: no screw channel,
+   foot counterbore or heat-set insert. Use CA/epoxy; the 0.175mm gap and 0.2mm
+   bottom pocket are untested on a real print. No fillet (oblique
+   cylinder-to-plane blend not modelled).
 4. **Feet pockets.** The shell's rear-bottom corner dips into the strip's
    y 0..1 band over z ~0..3.7, filling about half of each pocket. The pocket
    cutters (`feet_recess_cutters()`) are now subtracted from the shell too
