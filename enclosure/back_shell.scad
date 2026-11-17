@@ -84,8 +84,14 @@ FOOT_RECESS_DEPTH = 0.6; // [0:0.1:1.5]
 FOOT_RECESS_CLEARANCE = 0.4; // [0:0.1:1]
 // Pad rim width outside the recess, mm.
 FOOT_PAD_RIM = 1.2; // [0.8:0.1:4]
-// Pad disc thickness, mm (a concave fillet above it flares the pad into the fin's end).
-FOOT_PAD_T = 1.6; // [1:0.1:4]
+// How each foot pad grows out of its fin. boss: a round bun on the foot axis; flare: the fin's bottom edge widens over FOOT_FLARE_LEN into the pad; runner: the fin's whole bottom edge is a pad-wide rail, both feet recessed in it.
+FOOT_STYLE = "runner"; // [boss, flare, runner]
+// Height of the pad's short upright outer side, mm; above it the section rolls over a convex round (FOOT_PAD_ROUND) and a concave fillet into the fin.
+FOOT_PAD_T = 0.8; // [0.4:0.1:3]
+// Convex round on the pad's top outer edge, mm. The concave fillet into the fin takes the rest of the pad's overhang beyond the fin, (pad d - FIN_T)/2.
+FOOT_PAD_ROUND = 1.6; // [0.5:0.1:3]
+// flare: how far along the fin the flare runs from each foot centre, mm.
+FOOT_FLARE_LEN = 14; // [6:0.5:30]
 // Front foot pad: position of the pad disc's FRONT edge relative to the body's rear-bottom edge, mm (+ = forward, under the body). 0 = flush behind that edge, the whole pad under the fin (user decision 2026-11-17), at any LEAN_DEG / FOOT_DIA. Each +1 adds ~1mm of forward tip-over margin.
 FRONT_FOOT_OFFSET = 0; // [-10:0.5:15]
 // Rubber foot height, mm -- DISPLAY ONLY (assembly view); no printed geometry uses it.
@@ -486,12 +492,14 @@ module back_shell_local() {
 //   - Its bottom edge runs from the rear foot's centre forward to the front
 //     foot's centre. Both ends are upright half-rounds of radius FIN_T/2
 //     centred on the foot axes.
-//   - Each foot pad is a Ø FOOT_PAD_D disc, FOOT_PAD_T thick, with a concave
-//     quarter-round fillet (radius FOOT_FLARE_H) up to a FIN_T neck on the
-//     same axis: the fin's half-round end continues that neck, so pad and fin
-//     are one turned-and-swept form, not a disc stuck under a plate.
+//   - The foot pads grow out of the fin's bottom edge as one form (user
+//     review 2026-11-17: the disc-and-neck pads read as stuck-on knobs). The
+//     section is an ogee -- short upright side, convex round, concave fillet
+//     tangent into the fin face -- with no flat disc lip; FOOT_STYLE picks the
+//     plan shape (round boss / flare along the fin / full-length runner), see
+//     foot_form() below.
 //   - Rear: the fin rises from the pad as a short upright heel (HEEL_H, the
-//     pad + fillet height), then rolls over an arc of radius FIN_TIP_R into
+//     pad height), then rolls over an arc of radius FIN_TIP_R into
 //     the hypotenuse (no acute tip, no step at the pad's edge).
 //   - Front (user decision 2026-11-17, LEAN 25): the front pads sit wholly
 //     behind the body's rear-bottom edge, under the fins, their discs' front
@@ -515,8 +523,9 @@ module back_shell_local() {
 FIN_EMBED   = (FIN_T/2) / cos(LEAN_DEG) + 0.05;  // ~1.6: the disc rounding's reach along the wall normal, + 0.05
 FOOT_RECESS_D = FOOT_DIA + FOOT_RECESS_CLEARANCE;          // centring recess diameter
 FOOT_PAD_D  = FOOT_RECESS_D + 2*FOOT_PAD_RIM;              // pad disc diameter
-FOOT_FLARE_H = (FOOT_PAD_D - FIN_T) / 2;                   // fillet radius = height, pad rim -> FIN_T neck
-HEEL_H      = FOOT_PAD_T + FOOT_FLARE_H;                   // pad + fillet: where the neck meets the fin end
+FOOT_PAD_E  = (FOOT_PAD_D - FIN_T) / 2;                    // pad overhang beyond each fin face
+FOOT_FILLET_R = FOOT_PAD_E - FOOT_PAD_ROUND;               // concave fillet radius, convex round -> fin face
+HEEL_H      = FOOT_PAD_T + FOOT_PAD_E;                     // pad height where its fillet meets the fin
 FRONT_FOOT_Z = FRONT_FOOT_OFFSET - FOOT_PAD_D/2;           // front foot centre, world Z (datum = rear-bottom edge; 0 offset = pad flush behind it)
 REAR_FOOT_Z  = -FIN_REACH;                                 // rear foot centre, world Z
 FIN_BOTTOM_Y = -FLOAT_GAP;                                 // fin bottom / pad underside, world Y
@@ -545,7 +554,13 @@ HEEL_D = [FIN_TOP_Z, FIN_TOP_Y] - HEEL_C;
 HEEL_TANGENT_A = atan2(HEEL_D[1], HEEL_D[0]) + acos(FIN_TIP_R / norm(HEEL_D));  // arc runs 180 -> this
 HEEL_ARC_N = 12;
 
-assert(FOOT_PAD_T >= FOOT_RECESS_DEPTH + 0.8, "foot pad too thin over its centring recess");
+// thinnest pad over the recess: at the recess edge, on the convex round (or the upright side if the round is outside the recess)
+FOOT_PAD_OVER_RECESS = FOOT_PAD_T + (FOOT_RECESS_D/2 > FOOT_PAD_D/2 - FOOT_PAD_ROUND
+    ? sqrt(pow(FOOT_PAD_ROUND, 2) - pow(FOOT_RECESS_D/2 - (FOOT_PAD_D/2 - FOOT_PAD_ROUND), 2))
+    : FOOT_PAD_ROUND) - FOOT_RECESS_DEPTH;
+assert(FOOT_PAD_OVER_RECESS >= 0.8, "foot pad too thin over its centring recess");
+assert(FOOT_FILLET_R > 0, "FOOT_PAD_ROUND leaves no room for the fillet into the fin");
+assert(FOOT_STYLE != "flare" || REAR_FOOT_Z + 2*FOOT_FLARE_LEN < FRONT_FOOT_Z, "flares from the two feet overlap");
 assert(FOOT_PAD_D > FIN_T, "foot pad narrower than the fin");
 assert(FIN_TOP_Q <= FACE_H - WALL_T, "fin top corner above the top wall");
 assert(FIN_TOP_Y < BODY_TOP_Y, "fin top would show above the body in the front view");
@@ -577,19 +592,80 @@ module fin_plate(x) {
     hull() for (p = fin_vertices()) fin_disc(x, p[0], p[1]);
 }
 
-// Pad disc + concave fillet up to a FIN_T neck (prints support-free upright:
-// every layer is inside the one below). Profile in (r, height).
-function foot_pad_profile() = concat(
-    [[0, 0], [FOOT_PAD_D/2, 0]],
-    [ for (i = [0 : 12]) let(t = i * 90 / 12)
-        [FOOT_PAD_D/2 - FOOT_FLARE_H * sin(t), FOOT_PAD_T + FOOT_FLARE_H * (1 - cos(t))] ],
-    [[0, HEEL_H]]
+// ---------------------------------------------------------------------
+// Foot pads (pilink-s98 foot-form exploration)
+// ---------------------------------------------------------------------
+// One section language for every style: a short upright outer side
+// (FOOT_PAD_T), a convex round (FOOT_PAD_ROUND) and a concave fillet that runs
+// tangent into the fin's face -- an ogee, no flat disc lip. Each pad is one
+// polyhedron of stacked horizontal rings; ring k is the convex outline (hull)
+// of a few circles on the fin's line, grown by the section's overhang at that
+// height, so the pad's plan shape sets the style:
+//   boss   -- one circle on the foot axis: a round bun.
+//   flare  -- the foot circle plus a FIN_T circle FOOT_FLARE_LEN along the fin,
+//             that distance shrinking with the overhang: the fin's bottom edge
+//             widens into the pad, its ridge on the fin face the same ogee
+//             stretched lengthwise.
+//   runner -- the two foot circles: a pad-wide rail along the whole bottom.
+// Every ring is inside the one below (the overhang only shrinks going up), so
+// it prints upright on the fin bottoms without support. The top ring sits
+// FOOT_HIDE inside the fin faces and so is buried in the fin plate.
+FOOT_HIDE = 0.05;
+FOOT_RING_N = 48;   // = the fin discs' $fn
+// Section samples [overhang beyond the fin face, height above the fin bottom].
+function foot_section() = concat(
+    [[FOOT_PAD_E, 0], [FOOT_PAD_E, FOOT_PAD_T]],
+    [ for (i = [1 : 8]) let(t = i * 90 / 8)
+        [FOOT_PAD_E - FOOT_PAD_ROUND * (1 - cos(t)), FOOT_PAD_T + FOOT_PAD_ROUND * sin(t)] ],
+    [ for (i = [1 : 10]) let(t = i * 90 / 10)
+        [FOOT_FILLET_R * (1 - sin(t)) - FOOT_HIDE * i / 10, HEEL_H - FOOT_FILLET_R * cos(t)] ]
 );
+// (the fillet's last few hundredths lean into the fin, so the pad's top ring
+// never shares an edge with the fin's own Ø FIN_T end discs)
 
-module foot_pad(x, z) {
-    translate([x, FIN_BOTTOM_Y, z])
-        rotate([-90, 0, 0])
-            rotate_extrude($fn = 48) polygon(foot_pad_profile());
+// Support point of hull(circles [[z, r], ...]) on the line x, direction a (in X-Z).
+function hull_pt(x, circles, a) =
+    let(s = [ for (c = circles) c[0] * sin(a) + c[1] ], m = max(s),
+        c = circles[search(m, s)[0]])
+    [x + c[1] * cos(a), c[0] + c[1] * sin(a)];
+
+// Plan circles of one ring, for overhang e (beyond the fin face) at foot z.
+// dir = which way along the fin is "inward" (+1 = forward, for the rear foot).
+// The front pad's rings slide forward as they shrink, keeping its front edge
+// upright at the pad's front (FRONT_FOOT_Z + FOOT_PAD_D/2): above the fin
+// bottom that edge is inside the body's rear-bottom corner, so the pad runs
+// up into the corner instead of ending in a rim and a neck in front of it.
+function foot_c(z, e) = z == FRONT_FOOT_Z ? z + FOOT_PAD_E - max(e, 0) : z;
+function foot_circles(z, dir, e) =
+    let(r = FIN_T/2 + e)
+    FOOT_STYLE == "runner" ? [[REAR_FOOT_Z, r], [foot_c(FRONT_FOOT_Z, e), r]]
+  : FOOT_STYLE == "flare"  ? [[foot_c(z, e), r], [z + dir * FOOT_FLARE_LEN * max(e, 0) / FOOT_PAD_E, FIN_T/2 - FOOT_HIDE]]
+  :                          [[foot_c(z, e), r]];
+
+module foot_form(x, z, dir) {
+    sec = foot_section();
+    K = len(sec);
+    N = FOOT_RING_N;
+    pts = [ for (k = [0 : K - 1]) for (j = [0 : N - 1])
+        let(p = hull_pt(x, foot_circles(z, dir, sec[k][0]), (j + 0.5) * 360 / N))  // half a step off the fin discs' vertices
+        [p[0], FIN_BOTTOM_Y + sec[k][1], p[1]] ];
+    faces = concat(
+        [[ for (j = [N - 1 : -1 : 0]) j ]],                              // bottom
+        [[ for (j = [0 : N - 1]) (K - 1) * N + j ]],                     // top
+        // sides as triangles: the quads between rings are not planar
+        [ for (k = [0 : K - 2]) for (j = [0 : N - 1]) for (t = [0, 1])
+            t == 0 ? [k*N + j, k*N + (j + 1) % N, (k + 1)*N + (j + 1) % N]
+                   : [k*N + j, (k + 1)*N + (j + 1) % N, (k + 1)*N + j] ]
+    );
+    polyhedron(points = pts, faces = faces, convexity = 4);
+}
+
+module foot_pads(x) {
+    if (FOOT_STYLE == "runner") foot_form(x, FRONT_FOOT_Z, 1);
+    else {
+        foot_form(x, FRONT_FOOT_Z, -1);
+        foot_form(x, REAR_FOOT_Z, 1);
+    }
 }
 
 module foot_recess(x, z) {
@@ -623,8 +699,7 @@ module fins() {
         union() {
             for (x = FIN_X) {
                 fin_plate(x);
-                foot_pad(x, FRONT_FOOT_Z);
-                foot_pad(x, REAR_FOOT_Z);
+                foot_pads(x);
             }
         }
         rotate([-LEAN_DEG, 0, 0]) {
