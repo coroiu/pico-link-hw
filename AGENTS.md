@@ -144,6 +144,10 @@ roles below exist for when a task genuinely benefits from a narrower pass:
   dependencies, acceptance criteria and design notes. Read-only on
   `hardware/`/`enclosure/`; only writes design docs and beads. Run it on an
   epic before implementation starts.
+- **`cad-worker`** (Opus, effort high, `isolation: worktree`): like
+  `bead-worker`, but for any bead that changes CAD geometry: OpenSCAD
+  enclosure modelling or the KiCad schematic/PCB. Use it instead of
+  `bead-worker` for that work.
 - **`bead-worker`** (Sonnet, `isolation: worktree`): implements one claimed
   bead end to end and opens a PR.
 - **`code-reviewer`** (Opus): reviews one PR — re-verifies every claimed
