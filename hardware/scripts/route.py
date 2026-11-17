@@ -38,6 +38,9 @@ BOARD = os.path.join(HW, "pico-link-hw.kicad_pcb")
 WORK = os.path.join(HW, ".autoroute")
 
 
+ROUTE_TIMEOUT = 900   # seconds; a normal run takes 1.5-3 minutes
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--passes", type=int, default=30)
@@ -98,7 +101,13 @@ def main():
                ] + [a.format(w="/work") for a in fr_args]
     print("running:", " ".join(cmd), flush=True)
     with open(os.path.join(WORK, "freerouting.log"), "w") as log:
-        subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, check=False)
+        try:
+            subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT,
+                           check=False, timeout=ROUTE_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            sys.exit(f"Freerouting did not finish within {ROUTE_TIMEOUT}s "
+                     "(it can loop past -mp when a connection is unroutable); "
+                     f"see {WORK}/freerouting.log")
     if not os.path.isfile(ses):
         sys.exit(f"Freerouting produced no SES; see {WORK}/freerouting.log")
 
