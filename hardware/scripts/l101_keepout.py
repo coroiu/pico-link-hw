@@ -22,9 +22,11 @@ REF = "L101"
 X0, X1, Y0, Y1 = -2.4, 2.4, -2.1, 2.1   # pads +/-2.375 x 1.25, body 4.4 x 4.2
 MARGIN = 0.1
 NAME_RT = "KO_L101_RT_B"
-# B.Cu region (board-local mm, x0,y0,x1,y1) kept free of routed copper so the
-# GND_B plane under L101 joins U101 pin 62 / C103 / C104 (pilink-2wq).
-PLANE_B = [(47.0, 13.0, 53.0, 20.5)]
+# B.Cu region (board-local mm, x0,y0,x1,y1) kept free of routed copper.
+# pilink-2wq had one box here so the GND_B plane under L101 joined the VREG
+# GND vias; since pilink-2x7 the whole VREG block is plane_keepout.py's
+# VREG_B, so nothing is added here.
+PLANE_B = []
 NAME_RT_F = "KO_L101_RT_F"
 NAME_F = "KO_L101_F"
 

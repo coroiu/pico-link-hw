@@ -34,6 +34,16 @@
 	(constraint clearance (min 0.15mm))
 	(condition "A.memberOfFootprint('J401') && B.memberOfFootprint('J401')"))
 
+# pilink-2x7: RP2350 DS 6.3.8.1 wants C_IN between VREG_VIN and VREG_PGND,
+# as close to the pins as possible. C103 (C_IN) and C104 (C_OUT) straddle
+# the VREG_LX pin (between VIN and PGND), so the LX trace runs up between
+# each cap's two 0402 pads (0.40mm gap) as a 0.15mm neck, 0.125mm from each
+# pad. JLCPCB's minimum trace spacing is 0.10mm (1oz, 2-layer), so 0.12mm
+# is allowed here, for VREG_LX against those two caps' pads only.
+(rule vreg_lx_neck
+	(constraint clearance (min 0.12mm))
+	(condition "A.NetName == '/RP2350B + Memory/VREG_LX' && (B.memberOfFootprint('C103') || B.memberOfFootprint('C104'))"))
+
 (rule pth_pad_annular_ring
 	(constraint annular_width (min 0.18mm))
 	(condition "A.Type == 'Pad' && A.Pad_Type == 'Through-hole' && !A.memberOfFootprint('U101')"))

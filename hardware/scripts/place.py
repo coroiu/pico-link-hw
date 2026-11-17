@@ -129,14 +129,23 @@ P = {
     "C113": (CX + RING, CY - 3.6, "chip"),
     "C114": (CX - 2.4, CY - RING, "chip"),
     "C115": (CX + 0.7, CY - RING, "chip"),
-    "C103": (CX + 2.85, CY - RING, "chip"),
-    "C105": (CX + 9.6, CY - 5.4, "chip"),
-    "R104": (CX + 9.6, CY - 6.7, 0),
-    # pilink-2wq: L101 (DMBJ CXP0420, 4.4x4.2, pads along its 4.75mm terminal
-    # axis, stood vertical) sits right above VREG_LX (pin 63); C104 (VREG
-    # output cap, +1V1) beside its far pad; C103 (VREG_VIN cap) stays at pin 64.
-    "L101": (CX + 5.9, CY - 8.6, 90),
-    "C104": (CX + 2.1, CY - 10.2, 180),
+    # pilink-2x7 (RP2350 DS 6.3.8.1 / Fig. 26): the VREG stack above pins
+    # 65..61 (FB, VIN, LX, PGND, AVDD, x 46.2..47.8). C103 (C_IN) right above
+    # the pins and C104 (C_OUT) above it both straddle the VREG_LX column
+    # (pin 63, x 47.0): west pad (+3V3 / +1V1) over VIN/FB, east pad (GND)
+    # over PGND, so the VIN -> C_IN -> PGND loop is ~1mm and LX runs up
+    # between the pads. L101 (DMBJ CXP0420, stood vertical, LX pad at the
+    # bottom) right above C104, its LX pad still over pin 63; x 47.95 leaves
+    # room west of it for the +1V1 link and C115's GND via between that link
+    # and the QSPI_SCLK run. C105 (C_FILT) and R104 (AVDD filter) east of
+    # the stack, C105 next to AVDD (pin 61). Every y is the tightest the
+    # courtyards allow (U101's top edge at y 18.41, 0402 courtyard +/-0.505,
+    # L101's +/-2.695 along its pads). preroute.py lays the copper.
+    "C103": (CX + 3.0, CY - 6.1, 0),
+    "C104": (CX + 3.0, CY - 7.12, 0),
+    "L101": (CX + 3.95, CY - 10.36, 90),
+    "C105": (CX + 5.6, CY - 6.11, 0),
+    "R104": (CX + 5.6, CY - 7.14, 180),
     "Y101": (CX, CY + 11.5, 0),
     "C101": (CX - 3.5, CY + 11.5, 90),
     "C102": (CX + 3.5, CY + 11.5, 90),
@@ -213,7 +222,10 @@ P = {
     "C1": (4.0, 10.0, 0),
     "U1": (14.0, 10.0, 0),
     "C2": (14.0, 15.5, 0),
-    "C3": (20.0, 10.0, 0),
+    # pilink-r1h: rot 180 puts C3's GND pad on the east, outside U1's +3V3
+    # heat spreader (zones.py notches the spreader there), and its +3V3 pad
+    # next to the tab.
+    "C3": (20.0, 10.0, 180),
     # --- ESP32: relocated to the BACK side (B.Cu) (pilink-hdl) --------------
     # pilink-2yw (2026-11-16) moved U201 from upper-left (14,12.5) to a
     # front-side pocket above the A/B/X/Y diamond at (99,11.6), to free the
@@ -417,13 +429,15 @@ P = {
     "J101": (20.0, 46.0, 180),
 }
 
-REF_TEXT = {"C103": (CX + 1.69, CY - 7.2, 90), "C104": (CX + 2.9, CY - 12.0), "L101": (CX + 6.5, CY - 13.0),
-            "R104": (CX + 12.6, CY - 6.7), "C105": (CX + 12.6, CY - 5.4),
+REF_TEXT = {"L101": (CX + 3.95, CY - 14.8),
+            "R104": (CX + 7.4, CY - 7.14), "C105": (CX + 7.4, CY - 6.11),
             "U401": (65.0, 31.6)}
 # B.Cu parts packed too tightly for a readable reference on B.SilkS (every
 # spot overlaps a neighbour's pad or silk): reference hidden on silk, it is
 # still on B.Fab and in the CPL.
-HIDE_REF = {"R106", "R107", "C201", "C202", "C203", "R201"}
+HIDE_REF = {"R106", "R107", "C201", "C202", "C203", "R201",
+            # pilink-2x7: the stacked VREG caps, no free silk spot
+            "C103", "C104"}
 
 FACE = {"chip": (CX, CY), "l101": (CX + 6.5, CY - 10.6)}
 

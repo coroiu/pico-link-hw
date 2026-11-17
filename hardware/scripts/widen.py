@@ -53,8 +53,11 @@ def main():
     board = pcbnew.LoadBoard(BOARD)
     for z in list(board.Zones()):
         board.Remove(z)
+    # pilink-2x7: locked (pre-routed) segments keep the width preroute.py
+    # gave them (the VREG_LX neck, the +1V1/DVDD runs, the +3V3 trunk)
     segs = {t.m_Uuid.AsString(): t for t in board.GetTracks()
-            if t.Type() == pcbnew.PCB_TRACE_T and t.GetNetname() in TIERS}
+            if t.Type() == pcbnew.PCB_TRACE_T and t.GetNetname() in TIERS
+            and not t.IsLocked()}
     start = {u: t.GetWidth() for u, t in segs.items()}
     levels = sorted({w for ws in TIERS.values() for w in ws}, reverse=True)
     rounds = 0
