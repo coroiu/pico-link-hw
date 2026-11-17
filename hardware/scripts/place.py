@@ -51,7 +51,12 @@ POWER_CLASS = {"clearance": 0.2, "track_width": 0.5,
 # 0.5mm VBUS_RAW connection there in any tested placement. Routed at the
 # default 0.2mm width instead and widened post-route wherever DRC allows
 # (scripts/widen.py), same as the QFN power-rail necking problem below.
-POWER_NETS = ["+5V", "Net-(D501-A)"]
+POWER_NETS = ["Net-(D501-A)"]
+# pilink-yt5: +5V (F401 -> U1, the whole board's input current, ~0.65A peak)
+# gets its own 0.8mm class; it never touches a fine-pitch pad.
+SUPPLY_CLASS = {"clearance": 0.2, "track_width": 0.8,
+                "via_diameter": 0.8, "via_drill": 0.4}
+SUPPLY_NETS = ["+5V"]
 
 ORIGIN = (100.0, 100.0)
 # NOTE: comments below that quote x:[28,87] y:[5,47], 59.4, (59,37), 118 etc. describe the
@@ -171,13 +176,25 @@ P = {
     # either way, so J401's front-side THT leg protrusion flag is NOT
     # resolved by moving it up (only moving it past x=87 would).
     "J401": (61.25, 37.0, 0),  # pilink-4qc: x re-centred on the wider board (BOARD_W/2)
-    # F401/R401-404 (USB-C ESD/CC pocket), right of the backlight cluster.
-    # pilink-hdl: restored to their pre-pilink-2yw coordinates (undoing the
-    # +9mm-in-Y rigid-group shift pilink-2yw applied to keep clear of
-    # U201's old front-side pocket above the diamond) now that U201 has
-    # left the front side of the board entirely (see U201 below) -- nothing
-    # forces this pocket to stay shifted any more.
-    "F401": (90.12, 36.0, 0),
+    # --- USB-C protection and termination (pilink-audit-a) -------------------
+    # pilink-e63: U401 (USBLC6-2SC6) on B.Cu right above J401 (courtyards
+    # touch, no overlap), rot 90 so D-/D+ flow straight through it north-south:
+    # west column pins 3/4 = USB_DM (from J401 B7), east column 1/6 = USB_DP
+    # (from B6), GND (pin 2) on the J401 side, VBUS (pin 5) away from it.
+    "U401": (61.25, 32.2, 90),
+    # pilink-8rz: 27R series resistors on B.Cu under U101, next to the vias
+    # that take pins 67 (DP) / 66 (DM) down from F.Cu; pad 1 (MCU side) west.
+    # preroute.py lays the copper; the via/pad geometry is derived there.
+    "R107": (46.85, 21.2, 0),
+    "R106": (47.6, 22.3, 0),
+    # pilink-yt5: F401 moved from the CC pocket (x 90) to J401's west side so
+    # the unfused VBUS_RAW run is ~2mm instead of ~28mm; pad 2 (VBUS_RAW) east
+    # toward J401's VBUS column, pad 1 (+5V) west toward U1.
+    "F401": (55.0, 37.0, 0),
+    # pilink-e63: D401 (SMF5.0A TVS) on +5V directly below F401 pad 1,
+    # cathode (pad 1) north.
+    "D401": (54.06, 40.6, 270),
+    # R401-404 (CC Rd pull-downs / ADC taps) stay in their old pocket.
     "R401": (90.12, 32.0, 0),
     "R402": (90.12, 30.0, 0),
     "R403": (94.12, 32.0, 0),
@@ -265,19 +282,41 @@ P = {
     # column) is pilink-8hx.4's own geometry to re-check, not re-derived
     # here -- flagged as a follow-up, same as pilink-2yw flagged its own
     # front-side move.
-    "U201": (99.0, 11.6, 0),
-    # Decoupling/strap passives moved to B.Cu with U201 (pilink-hdl) --
-    # same XY pilink-2yw already placed them at (kept, not re-derived: the
-    # panel-shadow clearance concern that drove R202's old "2.2mm is too
-    # tight" placement decision was a FRONT-side height rule and no longer
-    # applies to any of these now that they're on B.Cu), just following
-    # U201 to the back side so EN/strap/decoupling traces to its pads stay
-    # direct (no via) rather than crossing to the front.
-    "C201": (87.2, 4.1, 0),
-    "C202": (87.2, 7.1, 0),
-    "R201": (87.3, 10.1, 0),
-    "C203": (87.3, 13.1, 0),
-    "R202": (111.0, 11.1, 0),
+    # rot column for B.Cu parts (BACK_SIDE) = the orientation the board
+    # STORES after the flip (U201: 180, what Flip gives a rot-0 module).
+    "U201": (99.0, 11.6, 180),
+    # Decoupling/strap passives on B.Cu with U201 (pilink-hdl).
+    # pilink-fvz: moved from the far (left) side of the module, ~20mm of
+    # copper away, to its right edge next to pin 2 (3V3) / pin 3 (EN) /
+    # pin 1 (GND), clear of H2 (116.5,6). C202 100nF 0.8mm from pin 2,
+    # C201 10uF just above it, C203 1uF on EN next to pin 3, R201
+    # 10k (3V3 -> EN) below it. preroute.py lays these short links and the
+    # GND via; all courtyards stay outside U201's (x <= 108.8).
+    "C202": (109.75, 4.46, 0),     # pad 1 (+3V3) west, toward pin 2
+    # C201 horizontal above C202: a vertical C201 right of C202 put its
+    # courtyard 0.22mm from the back shell's H2 boss (OD 7.0, check_fit.sh);
+    # here it keeps ~1.1mm.
+    "C201": (111.2, 2.0, 0),       # pad 1 (+3V3) west
+    "C203": (110.4, 6.2, 0),       # pad 1 (EN) west, toward pin 3
+    "R201": (110.4, 7.85, 180),    # pad 2 (EN) west, pad 1 (+3V3) east
+    "R202": (111.0, 11.1, 180),
+    # --- bring-up test pads (pilink-brf), bare B.Cu pads, no assembly -------
+    # ESP32 UART0 flashing row, 2.54mm pitch, in the column the old C201-C203
+    # spot left free, beside U201's pins 34/35 (RXD0/TXD0) and 25 (IO0).
+    # Order top-down: GND, 3V3, TXD0, RXD0, EN, IO0 (see esp32_bt.kicad_sch).
+    "TP201": (86.5, 5.5, 0),
+    "TP202": (86.5, 8.04, 0),
+    "TP203": (86.5, 10.58, 0),
+    "TP204": (86.5, 13.12, 0),
+    "TP205": (86.5, 15.66, 0),
+    "TP206": (86.5, 18.2, 0),
+    # rails: +5V / +3V3 / GND below U1, +1V1 / GND east of the VREG block
+    # (outside l101_keepout PLANE_B and away from the QSPI/USB copper).
+    "TP1": (9.0, 17.0, 0),
+    "TP2": (11.54, 17.0, 0),
+    "TP3": (14.08, 17.0, 0),
+    "TP101": (56.0, 12.0, 0),
+    "TP102": (56.0, 14.54, 0),
     # --- display FPC + backlight boost, under the panel (all <=2.5mm) ----
     # J501 rotated 270 deg: puts the 40-pin row (local y=-9.75..9.75) along
     # board Y (long axis vertical, per the ADR) and the pad-row/insertion
@@ -379,7 +418,12 @@ P = {
 }
 
 REF_TEXT = {"C103": (CX + 1.69, CY - 7.2, 90), "C104": (CX + 2.9, CY - 12.0), "L101": (CX + 6.5, CY - 13.0),
-            "R104": (CX + 12.6, CY - 6.7), "C105": (CX + 12.6, CY - 5.4)}
+            "R104": (CX + 12.6, CY - 6.7), "C105": (CX + 12.6, CY - 5.4),
+            "U401": (65.0, 31.6)}
+# B.Cu parts packed too tightly for a readable reference on B.SilkS (every
+# spot overlaps a neighbour's pad or silk): reference hidden on silk, it is
+# still on B.Fab and in the CPL.
+HIDE_REF = {"R106", "R107", "C201", "C202", "C203", "R201"}
 
 FACE = {"chip": (CX, CY), "l101": (CX + 6.5, CY - 10.6)}
 
@@ -390,7 +434,19 @@ FACE = {"chip": (CX, CY), "l101": (CX + 6.5, CY - 10.6)}
 # once, see U201's own placement comment above) and its decoupling/strap
 # network (C201/C202/R201/C203/R202), moved with it so their traces to
 # U201's pads stay direct rather than crossing layers.
-BACK_SIDE = {"J401", "U201", "C201", "C202", "R201", "C203", "R202"}
+BACK_SIDE = {"J401", "U201", "C201", "C202", "R201", "C203", "R202",
+             # pilink-audit-a: USB ESD/termination on J401's side, test pads
+             "U401", "R106", "R107",
+             "TP1", "TP2", "TP3", "TP101", "TP102",
+             "TP201", "TP202", "TP203", "TP204", "TP205", "TP206"}
+
+# pilink-brf: B.SilkS signal names beside the test pads (board-level text,
+# removed and re-added on every run). (ref, label, dx, dy) from the pad.
+TP_LABELS = [("TP201", "GND", -2.0, 0), ("TP202", "3V3", -2.0, 0),
+             ("TP203", "TX", -2.0, 0), ("TP204", "RX", -2.0, 0),
+             ("TP205", "EN", -2.0, 0), ("TP206", "IO0", -2.0, 0),
+             ("TP1", "5V", 0, -1.5), ("TP2", "3V3", 0, -1.5), ("TP3", "GND", 0, -1.5),
+             ("TP101", "1V1", 2.0, 0), ("TP102", "GND", 2.0, 0)]
 
 
 def auto_orient(fp, target):
@@ -405,32 +461,51 @@ def auto_orient(fp, target):
     fp.SetOrientationDegrees(best[1])
 
 
-def resync_l101(board):
-    """Reload L101 from the project footprint library when the board's copy
-    has drifted from it (pilink-2wq: pad geometry corrected after review;
-    place.py otherwise only moves footprints, never refreshes their pads).
-    Keeps reference, value, position, rotation, side and every pad's net."""
-    old = board.FindFootprintByReference("L101")
-    lib = os.path.join(HERE, "..", "footprints", "Inductor_SMD_Custom.pretty")
-    new = pcbnew.FootprintLoad(lib, "L_DMBJ_CXP0420")
-    sig = lambda f: sorted((p.GetNumber(), p.GetFPRelativePosition().x,
-                            p.GetFPRelativePosition().y, p.GetSize().x,
-                            p.GetSize().y) for p in f.Pads())
-    if old is None or (sig(old) == sig(new)
-                       and str(old.GetFPID().GetLibNickname())):
+# Project-library footprints whose pad geometry has been corrected after the
+# board was created: place.py reloads them when the board's copy drifts
+# (it otherwise only moves footprints, never refreshes their pads).
+# pilink-2wq: L101 land pattern. pilink-912: J401 signal drill 0.7 -> 0.5mm.
+RESYNC = {"L101": ("Inductor_SMD_Custom", "L_DMBJ_CXP0420"),
+          "J401": ("Connector_USB_Custom", "USB_C_Receptacle_HRO_TYPE-C-31-D-09")}
+
+
+def resync(board, ref, libname, fpname):
+    """Reload `ref` from the project footprint library when the board's copy
+    has drifted from it. Keeps reference, value, position, rotation, side,
+    the schematic link and every pad's net."""
+    old = board.FindFootprintByReference(ref)
+    if old is None:
         return
+    lib = os.path.join(HERE, "..", "footprints", libname + ".pretty")
+    new = pcbnew.FootprintLoad(lib, fpname)
+    # Place the library copy exactly like the board copy, then compare the
+    # pads in board coordinates (pad-relative positions of a flipped part are
+    # mirrored, so comparing those would reload a B.Cu part on every run).
+    # Flip first, then orientation and position: Flip() changes the
+    # orientation, so setting it afterwards reproduces the old part exactly.
+    # (Flip() on a footprint that is not on a board segfaults: add it first.)
+    board.Add(new)
+    if old.GetLayer() != new.GetLayer():
+        new.Flip(new.GetPosition(), pcbnew.FLIP_DIRECTION_LEFT_RIGHT)
+    new.SetOrientation(old.GetOrientation())
+    new.SetPosition(old.GetPosition())
+    sig = lambda f: sorted((p.GetNumber(), round(p.GetPosition().x, -3),
+                            round(p.GetPosition().y, -3), p.GetSize().x,
+                            p.GetSize().y, p.GetDrillSize().x,
+                            p.GetDrillSize().y) for p in f.Pads())
+    if sig(old) == sig(new) and str(old.GetFPID().GetLibNickname()):
+        board.Remove(new)
+        return
+    if sorted(p.GetNumber() for p in old.Pads()) != sorted(p.GetNumber() for p in new.Pads()):
+        sys.exit(f"resync {ref}: library footprint has different pad numbers")
     # keep the schematic link (path + sheet) so Update-PCB-from-Schematic
     # still pairs this footprint with its symbol
     new.SetPath(old.GetPath())
     new.SetSheetname(old.GetSheetname())
     new.SetSheetfile(old.GetSheetfile())
-    new.SetFPID(pcbnew.LIB_ID("Inductor_SMD_Custom", "L_DMBJ_CXP0420"))
-    new.SetReference("L101")
+    new.SetFPID(pcbnew.LIB_ID(libname, fpname))
+    new.SetReference(ref)
     new.SetValue(old.GetValue())
-    new.SetPosition(old.GetPosition())
-    new.SetOrientation(old.GetOrientation())
-    if old.GetLayer() != new.GetLayer():
-        new.Flip(old.GetPosition(), False)
     for p in new.Pads():
         op = old.FindPadByNumber(p.GetNumber())
         if op is not None:
@@ -439,12 +514,13 @@ def resync_l101(board):
         if old.HasField(name):
             new.GetField(name).SetText(old.GetField(name).GetText())
     board.Remove(old)
-    board.Add(new)
+    print(f"{ref}: reloaded from {libname}:{fpname}")
 
 
 def main():
     board = pcbnew.LoadBoard(BOARD)
-    resync_l101(board)
+    for ref, (libname, fpname) in RESYNC.items():
+        resync(board, ref, libname, fpname)
 
     # -- design-rule minimums (JLCPCB, checked 2026-11-15; see README) -----
     ds = board.GetDesignSettings()
@@ -525,27 +601,42 @@ def main():
 
     for ref, (x, y, rot) in P.items():
         fp = board.FindFootprintByReference(ref)
-        fp.SetPosition(pt(x, y))
-        if ref in BACK_SIDE and fp.GetLayer() == pcbnew.B_Cu:
-            # Already flipped on an earlier run: only the position is
-            # re-applied. Re-running SetOrientationDegrees(rot) on a
-            # B.Cu footprint rotates it 180 deg relative to what Flip()
-            # produced (found when U201's antenna end silently turned
-            # round on a second run, pilink-hdl) -- keep it idempotent.
-            # NOTE: this means the `rot` column of BACK_SIDE parts is only
-            # honoured on the FIRST (F.Cu -> B.Cu) run; editing it later is
-            # a no-op. To change a back-side part's orientation, flip it
-            # back to F.Cu in the board first. The board stores U201 at
-            # 180 (what Flip(LEFT_RIGHT) gives a rot-0 part), not 0.
-            print(f"{ref}: already on B.Cu, position only (rot column skipped)")
+        if ref in BACK_SIDE:
+            # Flip once (F.Cu -> B.Cu), then set the orientation the board
+            # stores for the flipped part. The `rot` column of a BACK_SIDE
+            # part IS that stored B.Cu orientation (pilink-audit-a; before,
+            # the column meant the pre-flip F.Cu rotation and was skipped on
+            # re-runs, because re-applying it turned U201 round 180 deg,
+            # pilink-hdl). Setting the absolute stored value is idempotent.
+            if fp.GetLayer() == pcbnew.F_Cu:
+                fp.Flip(fp.GetPosition(), pcbnew.FLIP_DIRECTION_LEFT_RIGHT)
+            fp.SetOrientationDegrees(rot)
+            fp.SetPosition(pt(x, y))
             continue
+        fp.SetPosition(pt(x, y))
         if isinstance(rot, str):
             fx, fy = FACE[rot]
             auto_orient(fp, pt(fx, fy))
         else:
             fp.SetOrientationDegrees(rot)
-        if ref in BACK_SIDE and fp.GetLayer() == pcbnew.F_Cu:
-            fp.Flip(fp.GetPosition(), pcbnew.FLIP_DIRECTION_LEFT_RIGHT)
+
+    # pilink-brf: test pads carry their signal name on B.SilkS instead of
+    # the TPnnn reference (which would only add silk clutter on the pads).
+    for d in list(board.GetDrawings()):
+        if isinstance(d, pcbnew.PCB_TEXT) and d.GetLayer() == pcbnew.B_SilkS:
+            board.Remove(d)
+    for ref, label, dx, dy in TP_LABELS:
+        fp = board.FindFootprintByReference(ref)
+        fp.Reference().SetVisible(False)
+        t = pcbnew.PCB_TEXT(board)
+        t.SetText(label)
+        t.SetLayer(pcbnew.B_SilkS)
+        t.SetMirrored(True)
+        t.SetTextSize(pcbnew.VECTOR2I(MM(0.8), MM(0.8)))
+        t.SetTextThickness(MM(0.12))
+        c = fp.GetPosition()
+        t.SetPosition(pcbnew.VECTOR2I(c.x + MM(dx), c.y + MM(dy)))
+        board.Add(t)
 
     # pilink-2wq: reference-designator silk around the VREG block, set
     # absolutely so it clears L101's silk/outline and the neighbours' refs.
@@ -553,6 +644,8 @@ def main():
         t = board.FindFootprintByReference(ref).Reference()
         t.SetTextAngleDegrees(ang[0] if ang else 0)
         t.SetPosition(pt(x, y))
+    for ref in HIDE_REF:
+        board.FindFootprintByReference(ref).Reference().SetVisible(False)
 
     pcbnew.SaveBoard(BOARD, board)
 
@@ -563,8 +656,10 @@ def main():
     default = next(c for c in ns["classes"] if c["name"] == "Default")
     default.update(DEFAULT_CLASS)
     power = dict(default, name="Power", **POWER_CLASS)
-    ns["classes"] = [default, power]
-    ns["netclass_patterns"] = [{"netclass": "Power", "pattern": n} for n in POWER_NETS]
+    supply = dict(default, name="Supply", **SUPPLY_CLASS)
+    ns["classes"] = [default, power, supply]
+    ns["netclass_patterns"] = ([{"netclass": "Power", "pattern": n} for n in POWER_NETS]
+                               + [{"netclass": "Supply", "pattern": n} for n in SUPPLY_NETS])
     with open(PROJECT, "w") as fh:
         json.dump(pro, fh, indent=2)
         fh.write("\n")

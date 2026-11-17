@@ -764,6 +764,11 @@ sheet's border with margin to spare after this amendment's edits.
 
 ### USB-C connector subsystem (pilink-7el.7)
 
+**Update (2026-11-17 audit fixes):** the sheet now also has U401
+(USBLC6-2SC6 ESD array on D+/D-/VBUS) and D401 (SMF5.0A TVS on +5V after
+F401), the RP2350B sheet has the 27R series resistors R106/R107, and J401's
+signal drill is 0.5mm. See "2026-11-17 audit fixes" at the end of this file.
+
 `usb_c.kicad_sch` now has J401, a device-only (UFP), USB-2.0-only USB-C
 receptacle wired per the bead's own investigation comment (pin table read
 directly off the connector's own datasheet drawing, not guessed). Rear-exit
@@ -960,12 +965,13 @@ The board is generated, not hand-drawn. From `hardware/`, in this order:
 | 1 | `scripts/place.py` | Outline, 4 M2 mounting holes, design-rule minimums, net classes, every footprint position |
 | 1b | `scripts/antenna_reroute.py` | (library) antenna-strip track/via keepout for `route.py`, and `check_strip()` which `zones.py` runs: exits non-zero if any track/via is under the antenna element other than the documented +3V3 B.Cu run (`pilink-kiw`; it replaced the old position-matching GPIO25/HCI_TXD reroute that silently no-oped after a re-route) |
 | 1c | `scripts/sw_keepout.py` | (library, not run directly) Alps SKRTLAE010 no-copper rule areas; called by `route.py` and `zones.py` |
-| 1d | `scripts/preroute.py` | Locked hand pre-route of USB D+/D-, the crystal, the backlight feedback pair and the SW101/SW102 BOOTSEL/RESET + GND escapes (`pilink-a8i`: the SKRTLAE010 keepout boxes those pads in, so Freerouting leaves them unconnected; run after `place.py`, before `route.py`; idempotent, also on a routed board: it removes and re-adds only its own *locked* items on its nets, never the router's unlocked copper) |
+| 1d | `scripts/preroute.py` | Locked hand pre-route of USB D+/D- (J401 -> U401 ESD -> R106/R107 27R -> U101, since the 2026-11-17 audit fixes), the crystal, the backlight feedback pair, the SW101/SW102 BOOTSEL/RESET + GND escapes (`pilink-a8i`: the SKRTLAE010 keepout boxes those pads in, so Freerouting leaves them unconnected), the QSPI/VREG cluster (`pilink-2wq`), U201's decoupling/EN links and the 0.8mm +3V3 trunk U1 -> U201 (`pilink-fvz`/`yt5`). Run after `place.py`, before `route.py`; idempotent, also on a routed board: it removes and re-adds only its own *locked* items on its nets, never the router's unlocked copper |
 | 2 | `scripts/route.py` | Freerouting autoroute of every net except the pre-routed ones (Specctra DSN/SES round-trip); exports the SW101/102 no-copper areas and the antenna strip (board x 54..106, y 0..3) as track/via keepouts |
-| 3 | `scripts/widen.py` | Widens +3V3/+1V1/VREG_LX/VBUS_RAW to 0.4mm wherever DRC allows |
-| 4 | `scripts/zones.py` | GND pours on both layers, +3V3 heat spreader and stitching vias at U1 (grid points nudged to stay legal), USB stub cleanup |
+| 3 | `scripts/widen.py` | Widens +3V3/VBUS_RAW (0.8 -> 0.6 -> 0.4 -> 0.3mm tiers) and +1V1/VREG_LX (0.4 -> 0.3mm) wherever DRC allows (`+5V` is routed at 0.8mm by its own `Supply` net class) |
+| 4 | `scripts/zones.py` | GND pours on both layers, +3V3 heat spreader and stitching vias at U1 (grid points nudged to stay legal), USB stub cleanup; splits locked segments at router T-joins and prunes redundant locked tails; GND via beside C502 and GND stitching vias in every non-main GND polygon, then a per-polygon GND report (PR #102 review) |
 | check | `scripts/drc_summary.py -v` | `kicad-cli pcb drc` with schematic parity, summarised |
 | check | `scripts/netlist_check.py` | Pin-for-pin diff of board nets against a fresh schematic netlist |
+| check | `scripts/net_resistance.py` | DC resistance of the routed power paths (VBUS_RAW, +5V, +3V3 trunk, U201 decoupling/EN) from the track/via copper; pours ignored, so an upper bound (`pilink-yt5`) |
 
 Each script is safe to re-run (each removes what it added before adding it
 again), but a later step's output is discarded by re-running an earlier
@@ -1023,7 +1029,7 @@ not re-derived here.
 | A/B/X/Y diamond on the right, caps Ø8mm at +/-8mm centres, clear of the FPC bend strip | **Restored (`pilink-hdl`, 2026-11-16):** centre **(102, 25)** -- exactly board-vertical-centre, same target as the knob above, now that U201 has moved to B.Cu (see U201's row above) and no longer needs any front-side room above or beside this diamond. Y top (102,17), X left (94,25), B right (110,25), A bottom (102,33). SW305-308 <-> physical position is still a layout choice (not schematic-constrained; firmware maps GPIO24-27 separately, `pilink-otf`), documented, not inferred. The diamond's own pull-up resistors (R305-308) restored too, to their pre-`pilink-2yw` spot, anchors **(90, 6.0/7.6/9.2/10.8)** -- the sliver U201's old front-side footprint used to occupy there is free again. Both the knob and the diamond now sit on board y=25 at once, which is what this bead was asked to achieve -- flagged for `pilink-8hx.2` (front shell) and `pilink-8hx.4` (antenna mount) to re-check their own geometry against this restored position, same as `pilink-2yw`'s own move had to be flagged when it shifted the diamond away from here |
 | ~~A/B/X/Y diamond shifted down 9mm to centre (102, 34) to clear U201's front-side pocket (`pilink-2yw`)~~ (superseded above by `pilink-hdl`'s restore) | ~~Y top (102,26), X left (94,34), B right (110,34), A bottom (102,42); pull-ups at (115.5, 5/7/9/11)~~ -- real, visible side effect Andreas rejected once he saw it; see the U201 row above |
 | J401 vertical receptacle on the back side, centred between the rear legs (+/-40mm), plug exiting ~15mm up the back (proposal 6c) | **Raised (`pilink-hdl`, user decision 2026-11-16):** anchor **(59, 37)**, B.Cu (flipped via `FOOTPRINT.Flip`), was (59, 45.5). With the *then-current* face mapping Qface = 52 - board_y (**superseded by `pilink-6lz`: the mapping is now Q = 53 - board_y, `QTOP` in `enclosure/common.scad`, which is authoritative; at board y=37 that gives Q = 16, and the board anchor x is now 61.25 per `pilink-4qc`**), the plug centreline goes from Qface 6.5 to **15.0** -- the proposal's ~15mm. Board centre is x=59, so legs stay at x=19/99. Real clearance probe (every footprint's bounding box, 1mm margin around J401's 9.05x5.35mm courtyard, x:[54.47,63.53] y:[34.32,39.68] at the new anchor): nothing within 1mm on either layer; the nearest neighbour is J501 (courtyard bottom y=31.53), 2.8mm above J401's courtyard -- deliberately not pushed higher (y=35 would give Qface 17 but only 0.8mm to J501, and the FPC fold/bend lives there). U201's B.Cu footprint (x>=89) and all 4 mounting holes are nowhere near. **Not resolved by the move: the front-side THT-leg flag** (see the panel-shadow row above and Known gap 6) -- x=59, y=37 is still inside the panel shadow x:[28,87] y:[5,47]; only moving J401 past x=87 or below y=47 would take its legs out from under the glass, and neither fits the "centred between the legs" intent. USB D+/D- got *better*: 34.8/34.6mm track (2 vias each, 0.2mm skew) vs 48.9/38.0mm (3/2 vias, 10.9mm skew) before the move |
-| F401/R401-404 (USB-C ESD/CC pocket), right of the backlight cluster | **Restored (`pilink-hdl`):** back to the pre-`pilink-2yw` coordinates (undoing the +9mm-in-Y rigid-group shift, now that U201 no longer occupies any front-side pocket near here) -- F401 **(84, 36)**, R401 **(84, 32)**, R402 **(84, 30)**, R403 **(88, 32)**, R404 **(88, 30)** |
+| F401/R401-404 (USB-C ESD/CC pocket), right of the backlight cluster | **Superseded for F401 (`pilink-yt5`, 2026-11-17): F401 is at (55.0, 37.0), on J401's west side, with D401 below it and U401 on B.Cu above J401; R401-R404 stay put. See "2026-11-17 audit fixes" below.** **Restored (`pilink-hdl`):** back to the pre-`pilink-2yw` coordinates (undoing the +9mm-in-Y rigid-group shift, now that U201 no longer occupies any front-side pocket near here) -- F401 **(84, 36)**, R401 **(84, 32)**, R402 **(84, 30)**, R403 **(88, 32)**, R404 **(88, 30)** |
 | SW101/SW102 side-actuated, top edge, above the panel centre, clear of ESP32 and the button zone | SW101 **(42, 2.7)**, SW102 **(52, 2.7)** -- in the 5mm strip above the panel (y<5), laterally over the RP2350B/flash cluster |
 | Mounting holes for back-shell bosses | 4 holes: **(10,44), (116.5,6), (116.5,44), (29,2.5) after `pilink-4qc`** (was (10,44), (112,6), (112,44), (59,2.5); H4 moved from (59,4) by `pilink-8ag`, see below) -- not at the bare board corners; placed in the genuinely free pockets instead. *(Historical rationale, kept for history rather than deleted: this was originally "since the ESP32 and encoder courtyards already claim the whole left edge," which was true before `pilink-2yw` moved U201 out to a pocket above the A/B/X/Y diamond and put the 3V3 LDO cluster in its old column -- the left edge is no longer claimed by ESP32+encoder courtyards specifically, though the holes themselves weren't re-derived and still land in free pockets.)* **H4 (59,4) is worth a clearance flag:** its centre sits only 1mm above the panel-shadow's own top edge (y=5); an M2 screw head of a typical ~3.8mm diameter (1.9mm radius) would reach y=5.9, i.e. about **0.9mm under the panel's top edge** -- not itself a DRC-visible problem (the hole is on the board, the panel line is a drawing on User.Comments), but worth the enclosure bead checking it doesn't foul the display window or its bezel. **Resolved by `pilink-8ag`:** the CAD fit check (`enclosure/scripts/check_fit.sh`) confirmed the overlap (M2 pan head d4.0 x 1.6 vs the panel envelope, y>=5), so H4 moved from (59,4) to **(59,2.5)** -- head edge now reaches y=4.5, 0.5mm clear of the panel. The hole edge is 1.4mm from the board edge (the 0.8mm figure is the pad/courtyard, not the hole); the `GPIO27` B.Cu run that hugged y=1.7 got a 0.8mm jog up to y=0.9 around x=55-63 to keep >=0.2mm hole clearance; `zones.py` re-run. DRC after: 78 violations / 0 errors / 0 unconnected / 0 parity (same as before the move). `back_shell.scad` boss moved to match. **Superseded by `pilink-4qc` (current state): H4 is at (29, 2.5)**, left of the display panel (which now starts at x=34.12), not (59, 2.5); hole edge still 1.4mm from the board edge, head reaches x=31, 3.1mm clear of the panel. The (59, 2.5) description above is history. |
 | ~3mm clearance behind the board for the encoder's leads | Enclosure-side (Z-axis) concern, not a PCB XY placement; carried forward as a note for `pilink-8hx.1`/`.2`, not re-verified here |
@@ -1463,3 +1469,166 @@ joined on B.Cu, not F.Cu.
 
 After: 78 violations (0 errors, all warnings), 0 unconnected, 0 parity
 (master: 86 / 8 errors).
+
+### 2026-11-17 audit fixes (`pilink-8rz`, `e63`, `912`, `brf`, `fvz`, `yt5`)
+
+Six findings from the 2026-11-17 whole-board audit, done in one pipeline
+re-run. The ground-plane strategy (`pilink-r1h`) and the VREG topology
+(`pilink-2x7`) are a separate PR. Coordinates are board-local mm.
+
+- **USB series termination (`pilink-8rz`).** R106 (D-) / R107 (D+), 27R
+  0402 (`C25100`), required by RP2350 datasheet 1.2.2 and the hardware
+  design guide 5.1. They sit on **B.Cu under U101**: each pin drops through
+  a via inside the pin ring, and the resistor is next to that via. F.Cu has
+  no room: C114/C115/C103, the locked VREG_FB run (pin 65) and the VREG GND
+  via at pin 62 fill the strip above pins 66/67. Measured copper from pin to
+  resistor pad: D+ 2.47mm, D- 4.19mm (D- jogs right under the body on F.Cu
+  so that D+ stays the north-east track of the pair).
+- **USB ESD (`pilink-e63`).** U401 USBLC6-2SC6 (`C7519`, ST) on B.Cu 3mm
+  above J401's B-row, rot 90 so D-/D+ run straight through its pad pairs
+  (pins 3->4 and 1->6) with no stubs; its GND pin has its own via between
+  J401's shell slots, its VBUS pin goes by via to VBUS_RAW. D401 SMF5.0A
+  (`C193402`) on +5V directly after F401: a TVS behind the PTC means a
+  sustained overvoltage trips F401 rather than burning the TVS. Neither part
+  can hold +5V under U1's 6.5V absolute maximum in a large surge (SMF5.0A:
+  Vbr 6.4-7.0V, Vc 9.2V at 21.7A); they handle ESD and hot-plug ringing.
+  The whole connector-to-resistor run is now B.Cu with one via per line at
+  U101 (was two): D+ 27.4 + 2.5mm, D- 23.9 + 4.2mm, ~1.8mm skew (FS USB).
+- **J401 annular ring (`pilink-912`).** The 16 signal PTHs go from 0.90/0.70
+  (0.10mm ring) to 0.95/0.55mm (0.20mm ring, JLCPCB minimum 0.18). That is
+  the largest hole the 0.18mm ring allows at the 1.10mm pitch; the in-row
+  pad gap is 0.15mm, JLCPCB's listed pad-to-pad minimum (`.kicad_dru` rule
+  `j401_pad_gap`). **No authoritative contact cross-section was found** (the
+  HRO drawing has none; EasyEDA's library footprint, 0.50mm hole, is not a
+  manufacturer source). With JLCPCB's -0.08mm hole tolerance the hole can
+  finish at 0.47mm, enough for a ~0.30 x 0.28mm contact with ~0.06mm to
+  spare. **Caliper a real J401 contact before ordering**; if its diagonal
+  is over ~0.40mm, go back to the datasheet's 0.70mm and accept a DFM query
+  (details in the footprint's `descr`). The rows now sit 0.5mm from the
+  shell slots, too tight for Freerouting, so `preroute.py` lays VBUS_RAW
+  through those strips by hand: 0.18mm F.Cu bars north and south of the
+  rows joining both VBUS columns and running on to F401 at 0.4mm, plus a
+  B.Cu bar on the south side. `place.py` now
+  reloads J401 (and L101) from the project library when the board copy
+  drifts, comparing pads in board coordinates. A new `.kicad_dru` rule holds
+  every through-hole pad except U101's EP thermal vias to a 0.18mm ring:
+  with the old 0.7mm drill it reports 16 `annular_width` errors.
+- **Test pads (`pilink-brf`).** 11 bare 1.0mm SMD pads on B.Cu (reachable on
+  the bench and with the back shell off; nothing to assemble, `in_bom no`,
+  footprints excluded from BOM and CPL). TP201-TP206 in one 2.54mm column at
+  x 86.5 beside U201's UART0/IO0 pins, top to bottom GND, 3V3, TXD0, RXD0,
+  EN, IO0, for flashing U201 with esptool directly (hold the RP2350 in reset
+  so GPIO0/1/20/21 float). TP1/TP2/TP3 (+5V/+3V3/GND) below U1 at y 17;
+  TP101/TP102 (+1V1/GND) at (56, 12/14.5), east of the VREG block and clear
+  of the QSPI/USB copper. B.SilkS carries the signal name beside each pad.
+- **U201 decoupling and EN (`pilink-fvz`).** C202 (100nF), C201 (10uF),
+  C203 (1uF) and R201 (10k) moved from the far side of the module to its
+  right edge on B.Cu, next to pins 2 (3V3), 3 (EN) and 1 (GND), with two
+  GND vias. Measured: U201.2 -> C202 0.9 mOhm, -> C201 3.6 mOhm (were 35.9
+  and 44.9), U201.3 -> C203 3.2 mOhm (was 74.5). C201 lies above C202
+  rather than beside it: beside it, its courtyard came within 0.22mm of the
+  back shell's H2 boss (OD 7.0). These parts were already on B.Cu, so the
+  order stays double-sided as before; their silk references are hidden (no
+  free spot; still on B.Fab and in the CPL). Not done: no extra 22uF bulk
+  (the bead's "consider"); C201 stays 10uF.
+- **Power paths (`pilink-yt5`).** F401 moved from x 90 to J401's west side
+  (55, 37), so the unfused VBUS_RAW run is millimetres instead of ~28mm.
+  `+5V` has its own `Supply` net class (0.8mm, routed at that width). A
+  locked 0.8mm F.Cu +3V3 trunk runs from U1's tab along the empty strip
+  above the panel (y 6, then y 4 past the SW101/SW102 vias and under the
+  antenna keepout) to two vias at C202. `widen.py` now steps 0.8 -> 0.6 ->
+  0.4 -> 0.3mm, so segments that cannot take 0.4 still gain width. U1 was
+  not moved: next to J401 it would put the LDO and its +3V3 heat-spreader
+  pour under the display and into the B.Cu ground area, for a shorter +5V
+  but an equally long +3V3 run to the ESP32.
+
+`scripts/net_resistance.py` (new) measured the routed copper, master ->
+this PR (tracks and vias only, pours ignored, so upper bounds):
+
+| Path | master | now |
+|---|---|---|
+| VBUS_RAW J401.B9 -> F401 | 88.4 mOhm | 4.1 mOhm |
+| VBUS_RAW J401.A9 -> F401 | 72.0 mOhm | 21.6 mOhm |
+| +5V F401 -> U1 VIN | 107.1 mOhm | 48.6 mOhm |
+| +3V3 U1 -> U201.2 | 208.5 mOhm | 61.6 mOhm |
+| +3V3 U1 -> U501.6 (backlight boost) | 187.0 mOhm | 98.5 mOhm |
+| +3V3 U1 -> U101.64 | 112.7 mOhm | 73.2 mOhm |
+
+(A9 reaches F401 through the 0.18mm north bar, the only way past J401's
+shell slots on that side; the plug ties all four VBUS contacts together, so
+most of the current takes the 4.1 mOhm west column.)
+
+At the 0.65A peak the input side (VBUS_RAW + F401 -> U1) drops ~35mV; the
+`power.kicad_sch` U1 note now cites these figures in place of its
+"unquantified, well under 100mV" assumption. The boost feed still has a
+~17mm 0.3mm segment beside J501's pin row (`pilink-e4b`). The two +5V
+layer changes are single 0.8/0.4mm router vias (~1.2 mOhm each), not
+doubled. +5V still runs mostly on B.Cu, as on master (65mm at 0.8mm vs
+81mm at 0.5mm), something for `pilink-r1h` to look at.
+
+**Ground, compared with master** (`zones.py` prints this per-polygon report
+on every run; "mm^2/n" = polygon area / GND vias + PTH pads in it):
+
+| | master | this PR |
+|---|---|---|
+| GND_F total / largest polygon | 4413 / 3962 mm^2 | 4303 / 3867 mm^2 |
+| GND_F polygons / with no via or PTH | 16 / 8 (all <= 2 mm^2) | 16 / 6 (7.6 mm^2 + five <= 1.3 mm^2) |
+| GND_B total / largest polygon | 3929 / 3497 mm^2 | 4353 / 3188 mm^2 |
+| GND_B polygons / with no via or PTH | 5 / 0 | 9 / 0 |
+| GND vias | 13 | 32 (17 of them `zones.py` stitching vias) |
+
+The locked +3V3 trunk (y 4-6) cuts a 351 mm^2 GND_F fragment off the main
+F.Cu plane (board x 52-76, y 5-37, beside J501). On the first version of
+this PR it had no via at all and C502.1, the AP3031 boost's output-cap
+return, reached ground only through two 0.2mm traces (PR #102 review).
+`zones.py` now puts a GND via 1.5mm from C502.1 whatever the fill does
+(C502.1 now sits in the main F.Cu polygon), and stitches every GND polygon
+other than each layer's main plane to the other layer, at one via per
+40 mm^2: that fragment has 12, and the B.Cu fragments of 525, 409 and
+156 mm^2 have 14, 16 and 12. Still unstitched (no legal via spot): the
+7.6 mm^2 pocket round R401/R402's GND pads (the CC pull-downs, no current)
+and five slivers of 1.3 mm^2 or less round pads. The largest B.Cu polygon is
+smaller than master's because this routing splits B.Cu into more, but
+stitched, pieces; the B.Cu ground strategy is `pilink-r1h`'s. The VREG
+return vias (pin 62, C103, C104, the two L101 anchors) are still in one
+GND_B fill polygon.
+
+**Verification, final committed run** (place -> preroute -> route -> widen
+-> zones). Freerouting is not deterministic, so several runs were needed.
+The first PR version was its third run. This revision took 11 more runs:
+- the first seven found and fixed bugs in the new `zones.py` code (a T-join
+  split that broke chains, a missing C502 via spot, CC1/CC2 escapes, and
+  doubled stitching vias);
+- then four runs with the final scripts: one clean, two with one router
+  unconnected item each, one Freerouting timeout.
+
+The clean one is committed:
+
+- `kicad-cli pcb drc --severity-all --schematic-parity --refill-zones`:
+  **71 violations, 0 errors, 0 unconnected, 0 parity**; all silkscreen
+  (39 `silk_over_copper`, 30 `silk_overlap`, 2 `silk_edge_clearance`),
+  the same counts as master (master also shows 1 `lib_footprint_mismatch`
+  for its J401 copy; gone now that `place.py` reloads J401).
+- `kicad-cli sch erc --severity-all`: **0 errors, 24 warnings**, the same
+  24 `isolated_pin_label` spare-GPIO labels as before.
+- `netlist_check.py`: **357 pins, 0 mismatches** (334 + 23 new pads).
+  Footprints with a schematic path: **83** (68 + 15).
+- Antenna strip clean (`check_strip`), SW101/SW102 keepouts and the
+  `backlight_sw_vs_fb` 1.2mm rule pass in DRC, and the locked QSPI, VREG
+  (FB/LX/+1V1), crystal and backlight pre-routes have the same geometry as
+  on master (compared after merging collinear pieces: 150 vs 152 merged
+  segments, the 2 extra being sub-micron stubs left where a router T-join
+  lands within ~1um of a locked segment's end; vias identical).
+- `zones.py` T-join split now handles every T-join on a locked segment
+  (18 this run) and leaves no `track_dangling`; one redundant locked
+  pre-route item was pruned.
+- `enclosure/scripts/check_fit.sh`: **55 OK, 0 FAIL, 0 WARN, 6 INFO**
+  (same as master); B-side component to back shell minimum ~1.07mm (was
+  ~2.16; C201 near the H2 boss, and the test pads, modelled at the 1.0mm
+  default height).
+
+Still needs a human: a KiCad GUI look at the new B.Cu clusters (U401 by
+J401, R106/R107 under U101, the U201 decoupling block) and at the silk; a
+caliper measurement of a real J401 signal contact against the 0.55mm hole (0.47mm worst case finished) before ordering; scope/meter
+checks at bring-up (VBUS ringing at hot-plug with D401 fitted, the +3V3
+droop at U201 during TX bursts, and ESP32 flashing through TP201-TP206).

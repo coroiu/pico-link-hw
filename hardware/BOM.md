@@ -128,6 +128,7 @@ guarantee than this BOM's first draft claimed.
 | C1 | 1 | 10uF, X5R, 25V | 0805 | C15850 | CL21A106KAYNNNE | **Basic (confirmed via JLCPCB API)** | 1,999,860 |
 | C2 | 1 | 22uF, X5R, 10V | 0805 | C7432777 | HGC0805R5226K100NSLJ | Extended† | 111,910 |
 | C3 | 1 | 100nF, X7R, 16V | 0402 | C880604 | TCC0402X7R104M160AT | Extended† | 4,086,850 |
+| TP1, TP2, TP3 | 3 | Test pads, +5V / +3V3 / GND (`pilink-brf`) | 1.0mm round SMD pad, B.Cu | — (bare copper, no part) | — | — | — |
 
 ## RP2350B + Memory (`rp2350b_memory.kicad_sch`, refs 100-199)
 
@@ -148,6 +149,8 @@ guarantee than this BOM's first draft claimed.
 | U103 | 1 | APS6404L-3SQR-ZR (8MB QSPI PSRAM) | USON-8L | C3040877 | APS6404L-3SQR-ZR | Extended (confirmed via JLCPCB's own API + partdetail page — see flag 2 note) | 1,268 |
 | C121 | 1 | 2.2uF, X5R, 50V | 0603 | C7432769 | HGC0603R5225K500NTHJ | Extended† | 417,960 |
 | R105 | 1 | 100k | 0402 | C25530 | 0402WGJ0104TCE | Extended† | 9,817,600 |
+| R106, R107 | 2 | 27R 1%, USB D-/D+ series termination (`pilink-8rz`), **B.Cu** | 0402 | C25100 | 0402WGF270JTCE (UNI-ROYAL) | Extended (JLCPCB API, 2026-11-17; no Basic 27R exists, the nearest Basic value is 22R C25092, which the RP2350 datasheet does not allow) | 640,581 (JLCPCB API, 2026-11-17) |
+| TP101, TP102 | 2 | Test pads, +1V1 and GND (`pilink-brf`) | 1.0mm round SMD pad, B.Cu | — (bare copper, no part) | — | — | — |
 | J101 | 1 | **DNP (pilink-cto: do not assemble; footprint/pads only)** SWD debug header, 3-pin, 2.54mm pitch (`pilink-2ar` — SWCLK/GND/SWDIO; pitch corrected in PR #43 review — 1.27mm doesn't match any cable Raspberry Pi's Debug Probe actually ships with) | THT vertical, 1x3P | C32713269 | Hanxia HX PZ2.54-1x3P ZZ | Extended | 59,160 (single snapshot: `jlcpcb-search` MCP, 2026-11-16; earlier 60,450 / 59,380 figures superseded; not re-checked against the rest of this BOM's 2026-11-15 13:12 snapshot) |
 
 ## ESP32 BT coprocessor (`esp32_bt.kicad_sch`, refs 200-299)
@@ -159,6 +162,7 @@ guarantee than this BOM's first draft claimed.
 | C203 | 1 | 1uF, X5R, 16V | 0603 | C696901 | TCC0603X5R105K160CT | Extended† | 837,750 |
 | C201 | 1 | 10uF, X5R, 25V | 0805 | C15850 | CL21A106KAYNNNE | **Basic (confirmed via JLCPCB API)** | 1,999,860 |
 | C202 | 1 | 100nF, X7R, 16V | 0402 | C880604 | TCC0402X7R104M160AT | Extended† | 4,086,850 |
+| TP201-TP206 | 6 | Bring-up test pads, ESP32 UART0 flashing row: GND, 3V3, TXD0, RXD0, EN, IO0 (`pilink-brf`) | 1.0mm round SMD pad, B.Cu, 2.54mm pitch | — (bare copper, no part; `in_bom no`, footprint excluded from BOM and CPL) | — | — | — |
 
 ## Display (`display.kicad_sch`, refs 500-599)
 
@@ -190,6 +194,8 @@ guarantee than this BOM's first draft claimed.
 | F401 | 1 | SMD0805B100TFT (1A hold PTC fuse) | 0805 | C269106 | SMD0805B100TFT | Extended† | 5,460 |
 | R401, R402 | 2 | 5.1k | 0402 | C25905 | 0402WGF5101TCE | Extended† | 704,500 |
 | R403, R404 | 2 | 10k (CC1/CC2 ADC voltage-sense series-protection, `pilink-1sj` — merged, commit `5fef711`) | 0402 | C60489 | RC0402JR-0710KL | Extended† | 21,253,700 |
+| U401 | 1 | USBLC6-2SC6, 2-line USB ESD array with VBUS rail clamp (`pilink-e63`), **B.Cu** | SOT-23-6 | C7519 | USBLC6-2SC6 (STMicroelectronics) | Extended (JLCPCB API, 2026-11-17; no Basic USB ESD array found) | 38,121 (JLCPCB API, 2026-11-17) |
+| D401 | 1 | SMF5.0A, 200W unidirectional TVS on +5V after F401 (`pilink-e63`), Vrwm 5.0V, Vbr 6.4-7.0V, Vc 9.2V | SOD-123FL (JLCPCB listing; PCB land is KiCad `Diode_SMD:D_SMF`, which fits this body) | C193402 | SMF5.0A (MDD Microdiode) | Extended (JLCPCB API, 2026-11-17; the only Basic TVS hit, SMBJ6.5CA C7420377, clamps higher) | 456,188 (JLCPCB API, 2026-11-17) |
 
 † See "Known limitation of this stock check" above — this tool reported
 every generic 0402/0603/0805 R/C jellybean part as `Extended`, which
@@ -263,6 +269,20 @@ hand-solder a 3-pin header (or three wires) into J101's holes before
 closing the shell; leave DNP in the JLCPCB assembly order. A
 face-plate/bottom-wall access cutout is an enclosure call for a later
 bead. "Populated parts" count stays 69 on the schematic, 68 assembled.
+
+**Update (2026-11-17 audit fixes, `pilink-8rz`/`e63`/`912`/`brf`/`fvz`/`yt5`):**
+four new assembled parts, R106/R107 (27R, `C25100`), U401 (USBLC6-2SC6,
+`C7519`) and D401 (SMF5.0A, `C193402`), plus 11 bare test pads (TP1-TP3,
+TP101-TP102, TP201-TP206) that are schematic symbols with `in_bom no` and
+footprints excluded from the BOM and CPL, so nothing is ordered or placed
+for them. **84 schematic symbols with footprints, 72 assembled** (J101 DNP,
+11 test pads). The PCB carries 83 footprints with a schematic path (68 + 15;
+J501 still has no stored path, as before, and the 4 mounting holes are
+board-only). Bottom side: U401, R106 and R107 are new B.Cu SMT parts, next
+to U201 and C201-C203/R201/R202 which were already on B.Cu, so the JLCPCB
+order was already double-sided; no new assembly side. Stock and
+Basic/Extended for the three new LCSC numbers were read from JLCPCB's own
+component API on 2026-11-17 (control: `C25744` reads `base`), all Extended.
 
 ## Not verified by this bead
 
