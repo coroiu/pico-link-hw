@@ -21,7 +21,7 @@ uses them):
   back-shell local frame: same X/Q, bz = BODY_T - Z (0 at the back wall's
       outer surface), so face -> local is a mirror in Z.
   world frame: rotate([-LEAN_DEG, 0, 0]) applied to the local frame
-      (back_shell.scad's PART="back_shell"/"leg_*" output is already world).
+      (back_shell.scad's PART="back_shell" output, shell + fins, is already world).
 
 The antenna mount has no real placement in the .scad files; like
 check_fit.py it is put against the inner top wall at X = MOUNT_X_MIN,
@@ -48,9 +48,7 @@ from trimesh.visual.material import PBRMaterial
 # (key, label, colour RGBA 0-255). Order = order in the page's picker.
 PARTS = [
     ("front_shell", "Front shell", (226, 226, 222, 255)),
-    ("back_shell", "Back shell + base strip", (88, 96, 110, 255)),
-    ("leg_left", "Leg (left)", (196, 120, 60, 255)),
-    ("leg_right", "Leg (right)", (196, 120, 60, 255)),
+    ("back_shell", "Back shell + fins", (88, 96, 110, 255)),
     ("knob", "Knob", (200, 48, 48, 255)),
     ("button_plunger", "Button plunger (x4)", (60, 130, 200, 255)),
     ("antenna_mount", "Antenna mount", (90, 170, 90, 255)),
@@ -104,9 +102,7 @@ def run_openscad(scad, out, defs=()):
 
 PRINT_NOTES = {
     "front_shell": "outer face on the bed, open side up (as modelled, face frame Z = 0 at the face).",
-    "back_shell": "base strip flat on the bed, as assembled on a desk (the shell body leans 15 degrees; no print orientation is documented for this part, this is the chosen one).",
-    "leg_left": "foot pad on the bed (README: print each leg foot-pad down).",
-    "leg_right": "foot pad on the bed (README: print each leg foot-pad down).",
+    "back_shell": "upright on the fin bottoms, as it stands on a desk (pilink-s98). Needs support under the bottom wall (it slopes up at LEAN_DEG, 15 deg by default) and inside under the top wall; see enclosure/README.md.",
     "knob": "upright as modelled, underside on the bed (knob.scad: print upright, dish up).",
     "button_plunger": "as modelled, flat on the bed.",
     "antenna_mount": "as modelled (own frame, land face on the bed).",
@@ -115,14 +111,14 @@ PRINT_NOTES = {
 
 def write_print_stl(key, mesh, stl_dir, lean):
     """Write <stl_dir>/<key>.stl in a print orientation (min Z on the bed, XY
-    centred). Most parts are modelled in their own print frame; back_shell and
-    the legs are output by back_shell.scad in the assembled world frame
-    (Y up, resting on the base strip / foot pads), so Y-up is mapped to Z-up
-    and the flat strip / foot pad lands on the bed. Parts without an entry
+    centred). Most parts are modelled in their own print frame; back_shell is
+    output by back_shell.scad in the assembled world frame (Y up, its fins'
+    bottoms at the lowest Y), so Y-up is mapped to Z-up and the fin bottoms
+    land on the bed. Parts without an entry
     are written as rendered. Also records the orientation in orientation.json."""
     os.makedirs(stl_dir, exist_ok=True)
     m = mesh.copy()
-    if key == "back_shell" or key.startswith("leg_"):
+    if key == "back_shell":
         m.apply_transform(mat3([[1, 0, 0], [0, 0, -1], [0, 1, 0]]))
     lo, hi = m.bounds
     m.apply_translation([-(lo[0] + hi[0]) / 2, -(lo[1] + hi[1]) / 2, -lo[2]])
@@ -213,8 +209,6 @@ def main():
     jobs = {
         "front_shell": (src("front_shell"), []),
         "back_shell": (src("back_shell"), ['PART="back_shell"']),
-        "leg_left": (src("back_shell"), ['PART="leg_left"']),
-        "leg_right": (src("back_shell"), ['PART="leg_right"']),
         "knob": (src("knob"), []),
         "button_plunger": (wrapper("plunger", "button_plunger", ["button_plungers_x4"], "button_plunger();"), []),
         "antenna_mount": (wrapper("antenna", "antenna_mount", ["demo_assembly"], "antenna_mount();"), []),
@@ -242,8 +236,6 @@ def main():
     place = {
         "front_shell": [face_to_world],
         "back_shell": [np.eye(4)],
-        "leg_left": [np.eye(4)],
-        "leg_right": [np.eye(4)],
     }
     kx = fv["ENCODER_BOARD_CX"] + MARGIN_X
     kq = QTOP - fv["ENCODER_BOARD_CY"]

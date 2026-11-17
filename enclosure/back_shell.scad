@@ -1,21 +1,21 @@
-// Pico Link enclosure -- back shell + rear legs (pilink-8hx.1)
+// Pico Link enclosure -- back shell + rear fin stand (pilink-8hx.1, pilink-s98)
 //
-// Scope of THIS file: the back shell (PCB-mounting bosses, the 3mm
-// clearance cavity behind the PCB, the rear USB-C cutout + local boss, the
-// horizontal base strip with feet, and the two leg-mounting bosses) plus
-// the fixed two-leg A-frame itself. The front shell (face, display window,
-// button/knob openings -- pilink-8hx.2) and the antenna mount
-// (pilink-8hx.4) are separate beads/files worked in parallel; this file
-// does not model them and only touches enclosure/README.md besides itself.
+// Scope of THIS file: the back shell (PCB-mounting bosses, the clearance
+// cavity behind the PCB, the rear USB-C cutout, the pigtail spool and the
+// top-wall pigtail notch) plus the stand: two flat triangular fins off the
+// back wall, each carrying two rubber-foot pads, printed in one piece with
+// the shell (pilink-s98, replaces the glued two-leg A-frame and the base
+// strip with feet). The front shell, knob, plungers and antenna mount are
+// their own files.
 //
-// *** OpenSCAD is NOT installed in this environment (confirmed in
-// AGENTS.md) -- this file has never been opened, rendered, or
-// dimension-checked. Every numeric constant below cites where it comes
-// from; render + fit-check is pilink-8hx.5's job, on a machine that has
-// OpenSCAD. The echo() statements at the bottom print the handful of
-// numbers this bead's own NOTE asked to verify (USB-C vs. leg clearance)
-// so a human can see them even via a headless `openscad -o /dev/null
-// back_shell.scad` run, without a GUI. ***
+// The user-tunable parameters come first, with OpenSCAD Customizer
+// annotations (/* [Section] */ headers, `// [min:step:max]` ranges, a
+// description comment on the line above each). They are literals placed
+// BEFORE `include <common.scad>` so the Customizer lists them; everything
+// after /* [Hidden] */ is derived. Every fin, pad and recess dimension below
+// follows from these, from LEAN_DEG and from the shell constants -- no fin
+// geometry is hard-coded. Rendered and checked with OpenSCAD 2021.01 and
+// enclosure/scripts/check_fit.sh; see enclosure/README.md (pilink-s98).
 //
 // ---------------------------------------------------------------------
 // Coordinate frames used in this file
@@ -34,18 +34,17 @@
 //    This frame is NOT tilted -- it's the shell "unfolded" flat, which is
 //    the natural frame for anything that has to line up with the PCB
 //    (bosses, the USB-C cutout) since the PCB itself is flat.
-// 2. "World" frame (base_strip(), leg(), and the top-level assembly):
+// 2. "World" frame (the fins, the feet and the top-level assembly):
 //      X unchanged (lateral position is unaffected by the body's lean).
-//      Y = height above an assumed table-level datum.
-//      Z = how far forward (+) / back (-) of that same datum.
-//    The two frames are related by the ADR's 15 degree lean, applied as
-//    rotate([-LEAN_DEG, 0, 0]) to the local frame. The datum (world
-//    Y=0, Z=0) is THIS file's own choice: the back wall's own
-//    bottom-outer corner (local Qface=0, bz=0). That point is NOT
-//    necessarily table height in the real assembled product -- the real
-//    table contact comes from the base strip and the leg feet, whose own
-//    exact height depends on the front shell's base profile, which
-//    doesn't exist yet (pilink-8hx.2). Flagged wherever it matters below.
+//      Y = height, Z = forward (+) / back (-).
+//    World = rotate([-LEAN_DEG, 0, 0]) applied to the local frame, so the
+//    datum (world Y = 0, Z = 0) is the back wall's bottom-outer edge (local
+//    Qface = 0, bz = 0). With the body leaning back, that edge is the
+//    body's LOWEST point (the bottom face rises toward the front at
+//    LEAN_DEG), so "the body's bottom edge" below always means this edge.
+//    The fin bottoms sit at world Y = -FLOAT_GAP; the table is a further
+//    FOOT_H - FOOT_RECESS_DEPTH lower (rubber feet, not modelled in the
+//    printed part).
 //
 // ---------------------------------------------------------------------
 // Source documents (every dimension below cites one of these)
@@ -58,6 +57,45 @@
 //   ENC   = .research/findings/2026-11-15-encoder-ec11e18244au-specs.md
 //   AES   = .planning/decisions/2026-11-15-enclosure-aesthetic-direction.md
 
+/* [Stand] */
+// Body lean back from vertical, degrees (ADR: ~15, face ~75 deg to the table). Fins, pads and the tip-over estimate all follow it.
+LEAN_DEG = 15; // [5:1:25]
+// How far the fin bottoms reach below the body's lowest (rear-bottom) edge, mm. 0 = flush: the float then comes from the rubber feet only.
+FLOAT_GAP = 0; // [0:0.5:15]
+
+/* [Fins] */
+// Fin thickness, mm (lateral). The fins stay this thin except at the foot pads.
+FIN_T = 3.0; // [2:0.5:6]
+// Lateral offset of each fin from the face centreline, mm (+/-30 = the removed base strip's foot positions).
+FIN_OFFSET_X = 30; // [12:1:58]
+// Height of each fin's top corner up the back, measured along the face from its bottom edge, mm.
+FIN_TOP_Q = 40; // [10:1:52]
+// Rear foot centre, horizontal distance behind the body's rear-bottom edge, mm (37 = the removed legs' foot setback).
+FIN_REACH = 37; // [15:1:70]
+
+/* [Feet] */
+// Rubber foot diameter, mm.
+FOOT_DIA = 6.5; // [3:0.5:15]
+// Depth of the centring recess in each foot pad, mm.
+FOOT_RECESS_DEPTH = 0.6; // [0:0.1:1.5]
+// Diametral clearance of the recess around the foot, mm.
+FOOT_RECESS_CLEARANCE = 0.4; // [0:0.1:1]
+// Pad rim width outside the recess, mm.
+FOOT_PAD_RIM = 1.2; // [0.8:0.1:4]
+// Pad disc thickness, mm (a 45 deg taper above it blends the pad into the fin).
+FOOT_PAD_T = 1.6; // [1:0.1:4]
+// Front foot: position of its REAR edge relative to the body's rear-bottom edge, mm (+ = forward, under the body). 0 puts the whole front foot just ahead of that edge.
+FRONT_FOOT_OFFSET = 0; // [-5:0.5:10]
+// Rubber foot height, mm -- DISPLAY ONLY (assembly view); no printed geometry uses it.
+FOOT_H = 2.0; // [0.5:0.1:8]
+// Show the rubber feet in the assembly view.
+SHOW_FEET = true;
+
+/* [Render] */
+// What to render: the assembly view, or the printable back shell (with its fins) alone.
+PART = "assembly"; // [assembly, back_shell]
+
+/* [Hidden] */
 // =====================================================================
 // Constants
 // =====================================================================
@@ -69,10 +107,10 @@
 // front shell and every other part. The board is centred in this shell's
 // cavity with BOARD_CLEARANCE_X (0.5mm) / BOARD_CLEARANCE_Y (1.0mm) per side
 // (supersedes pilink-mav's 0.00mm bottom gap and the old 0.00/0.4mm side
-// gaps).
+// gaps). Customizer note: this include makes the file depend on
+// common.scad; a single-file upload (e.g. an online configurator) needs it
+// inlined first.
 include <common.scad>
-
-LEAN_DEG    = 15;      // ADR: body leans back ~15 deg (face ~75 deg to table)
 
 WALL_T      = WALL;    // = 2.0mm side/top/bottom wall, same as the back wall
 
@@ -83,10 +121,8 @@ WALL_T      = WALL;    // = 2.0mm side/top/bottom wall, same as the back wall
 // (face wall + front cavity) are pilink-8hx.2's (front shell) to build.
 FACE_T          = 2.0;   // front shell's own face wall -- not built here,
 FRONT_CAVITY    = 5.5;   // ...nor the front cavity -- both only used here
-                           // for the BODY_T sanity check below and for
-                           // the base-strip/leg "front edge" reference
-                           // further down, so the two shells can be
-                           // designed to meet correctly later.
+                           // for the BODY_T sanity check below, so the
+                           // two shells meet correctly.
 PCB_T           = 1.6;   // PCB thickness, matches hardware/README.md
 // pilink-9i4: was 3.0 (ADR "3mm for the encoder's leads"). Deepened to 7.0 so
 // the WHOLE rear cavity clears every B.Cu envelope with no local relief or
@@ -106,7 +142,7 @@ PCB_T           = 1.6;   // PCB thickness, matches hardware/README.md
 REAR_CLEARANCE  = 7.0;
 BACK_WALL_T     = 2.0;   // ADR: "a 2.0mm back wall"
 
-BACK_SHELL_DEPTH = PCB_T + REAR_CLEARANCE + BACK_WALL_T;  // = 6.6mm --
+BACK_SHELL_DEPTH = PCB_T + REAR_CLEARANCE + BACK_WALL_T;  // = 10.6mm --
                     // this file's own depth, back-wall-outer (bz=0) to
                     // open front rim (bz=BACK_SHELL_DEPTH), where the PCB
                     // front surface / front shell's rim meets it.
@@ -299,182 +335,6 @@ module pigtail_spool() {
 echo(str("U201 headroom behind PCB: ", U201_HEADROOM, "mm; REAR_CLEARANCE ", REAR_CLEARANCE, ", BODY_T ", BODY_T));
 
 // =====================================================================
-// Rear legs / A-frame mounting bosses
-// =====================================================================
-// ADR: "fixed (non-hinged) printed two-leg A-frame (legs ~+/-40mm from
-// centre, feet ~45-50mm behind the front edge) screwed to back-shell
-// bosses ~40mm up the face" (superseded by pilink-8jy: glued, below).
-LEG_OFFSET      = 40;   // +/- from face centre (FACE_W/2), lateral
-LEG_MOUNT_Q     = 40;   // "~40mm up the face" -- directly a Qface value
-LEG_FOOT_SETBACK = 47;  // midpoint of the ADR's "45-50mm behind the
-                         // front edge" range
-
-// Cross-check against the PCB: leg lateral positions (Pface 23.75, 103.75)
-// map back to board-local X = 21.25 and 101.25 (x = Pface - MARGIN_X), i.e.
-// board centre / J401 at x 61.25 +/- 40 -- the legs stay symmetric about the
-// J401 / face centreline (FACE_W/2 = 63.75).
-LEG_PFACE_LEFT  = FACE_W/2 - LEG_OFFSET;   // = 23.75
-LEG_PFACE_RIGHT = FACE_W/2 + LEG_OFFSET;   // = 103.75
-
-// pilink-8jy: legs are GLUED to the back shell, not screwed. Each leg's
-// mount end carries a short keyed peg that fits a blind socket in the
-// back-shell leg boss. No screw, insert, through-bore or counterbore: the
-// boss and the leg are solid and no hole is visible once glued.
-//
-// Peg on the leg, socket in the boss (rather than the reverse): the boss is
-// a 7mm-OD cylinder whose wall must stay thick around a hole, so a socket
-// there is a plain blind hole with ~1mm of wall; a peg on the boss would
-// instead be a thin free-standing stub on a part that is printed
-// back-plate-down, and the mating socket would then have to sit in the leg's
-// 8mm strut end. A peg on the leg prints with the leg (axis-aligned
-// stub, no support), and the socket is a simple blind hole in the boss.
-LEG_PEG_D          = 4.4;   // peg round dimension (before the flats)
-LEG_PEG_FLAT_W     = 3.4;   // across the two flats; the D-profile keys the
-                            // leg so it cannot rotate about the boss axis
-                            // (flats face +/-X, the leg's splay direction)
-LEG_PEG_LEN        = 4.3;   // peg length along the boss axis
-LEG_SOCKET_DEPTH   = 4.5;   // socket depth from the boss tip (0.2 glue
-                            // pocket at the bottom)
-LEG_GLUE_CLEARANCE = 0.175; // radial/flat glue gap per side (0.15-0.2)
-LEG_MOUNT_BOSS_LEN = 6.0;  // boss protrudes this far behind the back
-                            // wall's outer surface -- own choice.
-
-// ---------------------------------------------------------------------
-// Leg axis geometry (world frame) -- PR #52 review findings #2, #3, #6.
-// Computed here, early, so both the back-shell boss/insert modules
-// below (which need the tilt, in LOCAL frame) and the leg() module
-// further down (which needs the mount/foot points, in WORLD frame)
-// read from one single derivation instead of two that can disagree.
-// ---------------------------------------------------------------------
-// This file's own front-edge stand-in (see the Base strip section
-// below for why it's a stand-in, not the real front-shell edge) and
-// the leg mount/foot points, in WORLD (y = height above table datum,
-// z = forward(+)/back(-)) coordinates -- the header's own
-// rotate([-LEAN_DEG,0,0]) transform: world y = Q*cos(LEAN)+bz*sin(LEAN),
-// world z = -Q*sin(LEAN)+bz*cos(LEAN).
-front_edge_y = 0*cos(LEAN_DEG) + BACK_SHELL_DEPTH*sin(LEAN_DEG);
-front_edge_z = -0*sin(LEAN_DEG) + BACK_SHELL_DEPTH*cos(LEAN_DEG);
-
-// Original mount point: the back wall's own OUTER surface (bz=0),
-// Qface=LEG_MOUNT_Q -- i.e. where the leg-mount boss's BASE sits (the
-// boss itself then protrudes LEG_MOUNT_BOSS_LEN further outward, along
-// the tilted axis derived below, not straight out along local Z).
-leg_mount_y = LEG_MOUNT_Q*cos(LEAN_DEG);
-leg_mount_z = -LEG_MOUNT_Q*sin(LEAN_DEG);
-
-// Foot point: table level (world Y=0, flagged assumption -- see header),
-// LEG_FOOT_SETBACK behind this file's own front-edge stand-in.
-leg_foot_y = 0;
-leg_foot_z = front_edge_z - LEG_FOOT_SETBACK;
-
-LEG_DY = leg_foot_y - leg_mount_y;  // world Y, wall-mount point -> foot
-LEG_DZ = leg_foot_z - leg_mount_z;  // world Z, wall-mount point -> foot
-leg_length = sqrt(LEG_DY*LEG_DY + LEG_DZ*LEG_DZ);
-
-// Review finding #2: the leg is now glued on (pilink-8jy: keyed peg in
-// a blind socket; the full-length screw channel and insert are gone),
-// but the boss is still tilted to point along this same mount->foot
-// line, so the leg continues the boss axis instead of kinking away
-// from the (near-vertical) back wall (the original bug, from the
-// screw days: those two axes were ~37 deg apart, so the channel
-// stopped at the boss's base instead of reaching the insert at its
-// tip). Deriving the LOCAL (pre-lean-rotation) tilt that achieves this:
-// rotating a cylinder (default +Z) by angle theta about local X, then
-// applying this shell's own global rotate([-LEAN_DEG,0,0]), composes
-// to one net rotation of (theta - LEAN_DEG) about world X (both share
-// the X axis). Solving for the local theta whose net rotation points
-// along the world mount->foot direction (LEG_DY, LEG_DZ) -- i.e.
-// (-sin(theta-LEAN_DEG), cos(theta-LEAN_DEG)) proportional to
-// (LEG_DY, LEG_DZ) -- gives:
-LEG_BOSS_TILT = atan2(-LEG_DY, LEG_DZ) + LEAN_DEG;
-
-// The boss's tip (where the leg attaches) then lies exactly on the
-// mount->foot line, LEG_MOUNT_BOSS_LEN out from the wall -- used as the
-// leg's own mount point below. Review finding #6 (round 2): sitting AT
-// this point isn't by itself enough for the strut to mate flush --
-// see the mount-point comment above leg()'s p_mount for why the strut
-// also needs a flat (disc) end here, not a sphere.
-leg_mount_tip_y = leg_mount_y + LEG_MOUNT_BOSS_LEN * LEG_DY/leg_length;
-leg_mount_tip_z = leg_mount_z + LEG_MOUNT_BOSS_LEN * LEG_DZ/leg_length;
-
-echo(str("Leg mount boss tilt (local frame, deg): ", LEG_BOSS_TILT));
-
-// Leg structural cross-section: no bead/finding sizes this -- own
-// choice, sized generously for a small printed PETG/PLA strut under the
-// ADR's own ~110g body weight and knob-torque reaction loads (ADR,
-// PROP 6c stability section), but NOT load-calculated. Flagged for a
-// human to verify once a real print exists.
-LEG_STRUT_D      = 8.0;
-FOOT_PAD_D       = 12.0; // flat pad the rubber foot sticks to
-FOOT_PAD_T       = 2.5;
-FOOT_RECESS_D    = 10.4; // registration pocket for the rubber foot,
-FOOT_RECESS_T    = 1.0;  // sized for the chosen foot product (below)
-
-// PR #52 review (46647da, finding #6 carried over): the strut's mount
-// end must be a flat disc, not a sphere -- see the leg() comment below.
-// A true zero-height disc is a degenerate (non-solid) cylinder in
-// OpenSCAD, so this uses a near-zero but nonzero height instead; half
-// of it (0.005mm) sits on the boss side of the tip, which is two
-// orders of magnitude under typical FDM dimensional tolerance
-// (+/-0.1-0.2mm) -- negligible next to the ~4mm intrusion it replaces.
-MOUNT_CAP_T      = 0.01;
-
-// =====================================================================
-// Base strip + feet (front contact patch, separate from the leg feet)
-// =====================================================================
-// ADR / PROP 6c: "The body's own bottom is a horizontal strip about
-// 14.5mm deep with feet, so it doesn't stand on its front edge." This is
-// a SEPARATE ground-contact patch from the rear leg feet (confirmed by
-// the proposal's own side-profile ASCII diagram, which draws two
-// distinct "o" foot regions with a gap between them -- one long strip
-// under the main body, one short cluster under each leg).
-BASE_STRIP_DEPTH = 14.5;  // ADR figure
-BASE_STRIP_T     = WALL_T;  // = 2.0mm, matches the shell's own wall
-BASE_STRIP_FOOT_OFFSET_X = 30;  // lateral spacing of the strip's own 2
-                                  // feet -- own choice, not a cited
-                                  // figure (chosen to sit well inside
-                                  // FACE_W/2=63.75 on each side).
-
-// Ballast reserve (PR #52 review finding #5): the bead description
-// says to "leave room for a later ballast insert (weighted-base
-// fallback, not committed)" -- this was missing entirely from the
-// first version of this file. This is a shallow pocket cut into the
-// base strip's TOP face (the side facing into the assembled interior,
-// not the table-facing underside), reserving genuine volume without
-// committing to any specific ballast part/shape -- NOT a finished
-// ballast design, just reserved space, consistent with the bead's own
-// "not committed" wording.
-BALLAST_RESERVE_W = 40.0;  // own choice -- centred, comfortably inside
-                            // the two foot recesses (at FACE_W/2 +/-30
-                            // = 31/91, each FOOT_RECESS_D=10.4mm wide,
-                            // so their outer edges sit at ~25.8/96.2 --
-                            // this leaves >4mm clearance on each side).
-BALLAST_RESERVE_D = 10.0;  // own choice -- leaves >2mm margin on the
-                            // strip's own 14.5mm depth, front and back.
-BALLAST_RESERVE_T = 1.0;   // shallow -- half of the strip's own 2.0mm
-                            // thickness (BASE_STRIP_T), leaving a 1.0mm
-                            // floor so the table-facing underside is
-                            // never breached.
-
-// Foot product (bead: "feet pockets sized for a NAMED rubber/gel pad
-// product"): picked a 10mm (diameter) x 3mm (thick) self-adhesive
-// round rubber/polyurethane foot. This is not one single SKU but a size
-// that recurs, essentially unchanged, across multiple distributors'
-// catalogues -- Delock 18309 (10 x 3mm self-adhesive round feet),
-// Essentra RBS-10 (9.9mm dia x 3mm), Multicomp Pro MP2010-CL1-48 (10mm
-// dia x 3.1mm -- the same-size listed replacement for Multicomp's own
-// PD.2010C, which element14 lists as no longer manufactured; PR #52
-// review minor item), Ettinger 17-52-108 (10mm dia x 3.2mm) -- which is itself good
-// evidence this is a genuinely standard, widely-stocked size rather than
-// one vendor's quirk, satisfying "high-friction rubber/gel feet" (ADR)
-// without betting on a single hard-to-source part. FOOT_RECESS_D above
-// (10.4mm) gives the 10mm pad a shallow registration pocket with 0.4mm
-// clearance; FOOT_RECESS_T (1.0mm) is intentionally shallow relative to
-// the pad's own ~3mm thickness so most of the compliant material stays
-// proud of the shell and actually grips the table, per the ADR's
-// friction/shear argument.
-
-// =====================================================================
 // Helper modules
 // =====================================================================
 
@@ -526,8 +386,7 @@ module back_shell_shell() {
         // (2.0, 2.0) is sqrt(1^2 + 1^2) = 1.41mm from that centre, so the wall
         // at the diagonal is 3.0 - 1.41 = 1.59mm: thinner than the 2.0mm walls
         // elsewhere, but still >= 3 perimeters of a 0.4mm nozzle.
-        translate([WALL_T, WALL_T, WALL_T])
-            cube([FACE_W - 2*WALL_T, FACE_H - 2*WALL_T, BACK_SHELL_DEPTH]);
+        back_shell_cavity();
     }
 }
 
@@ -572,43 +431,6 @@ module usbc_cutout() {
             rounded_rect(USBC_CUTOUT_W, USBC_CUTOUT_H, USBC_CUTOUT_R);
 }
 
-// pilink-9i4 (rev 2): the leg-mount boss (pilink-8jy: now a glue-peg socket,
-// no insert). Its flat base
-// face used to sit proud of the plate (the tilted cylinder's base disc is only
-// cut by the rear plane, leaving half of it exposed), so the boss is extended
-// back along its own axis and clipped at the plate's inner side (bz = 1.0):
-// the cylinder runs into the rear surface with no exposed flat face.
-LEG_BOSS_EXTEND = 8.0;   // extension behind the base along the boss axis
-
-module leg_mount_boss_solids() {
-    for (x = [LEG_PFACE_LEFT, LEG_PFACE_RIGHT])
-        translate([x, LEG_MOUNT_Q, 0])
-            intersection() {
-                rotate([LEG_BOSS_TILT, 0, 0])
-                    translate([0, 0, -LEG_BOSS_EXTEND])
-                        boss_solid(height = LEG_MOUNT_BOSS_LEN + LEG_BOSS_EXTEND);
-                translate([-50, -50, -50]) cube([100, 100, 51.0]);
-            }
-}
-
-// Keyed (double-flat) profile; c = per-side offset (glue clearance).
-module leg_peg_profile(c = 0) {
-    intersection() {
-        circle(d = LEG_PEG_D + 2*c, $fn = 40);
-        square([LEG_PEG_FLAT_W + 2*c, LEG_PEG_D + 2*c + 1], center = true);
-    }
-}
-
-// Blind socket in the boss tip for the leg's glue peg (pilink-8jy).
-module leg_mount_sockets() {
-    for (x = [LEG_PFACE_LEFT, LEG_PFACE_RIGHT])
-        translate([x, LEG_MOUNT_Q, 0])
-            rotate([LEG_BOSS_TILT, 0, 0])
-                translate([0, 0, LEG_MOUNT_BOSS_LEN - LEG_SOCKET_DEPTH])
-                    linear_extrude(height = LEG_SOCKET_DEPTH + 0.1)
-                        leg_peg_profile(LEG_GLUE_CLEARANCE);
-}
-
 // pilink-6lz: relief in the top wall so the Ø1.13 pigtail can cross the PCB
 // plane above the board's (now 1.0mm) top-edge gap; see common.scad. Face-frame
 // Z maps to local bz = BODY_T - Z.
@@ -618,238 +440,233 @@ module pigtail_notch_cutout() {
               BACK_SHELL_DEPTH + 1 - (BODY_T - PIGTAIL_NOTCH_Z1)]);
 }
 
+// The open cavity, as its own module so the fins can be clipped against it
+// (same box back_shell_shell() subtracts).
+module back_shell_cavity() {
+    translate([WALL_T, WALL_T, WALL_T])
+        cube([FACE_W - 2*WALL_T, FACE_H - 2*WALL_T, BACK_SHELL_DEPTH]);
+}
+
 module back_shell_local() {
     difference() {
         union() {
             back_shell_shell();
             pigtail_spool();
             pcb_mount_boss_solids();
-            leg_mount_boss_solids();
         }
         usbc_cutout();
         pigtail_notch_cutout();
         pcb_mount_insert_pockets();
-        leg_mount_sockets();
     }
 }
 
 // =====================================================================
-// Base strip (world frame -- built flat/level directly, see header note)
+// Rear fin stand (pilink-s98, world frame)
 // =====================================================================
-// Reference point: this file's own open-rim bottom edge (local Qface=0,
-// bz=BACK_SHELL_DEPTH) is treated as a stand-in for the ADR's "front
-// edge" (the real front edge is the front shell's own face surface,
-// further forward still by FACE_T+FRONT_CAVITY=7.5mm -- that's
-// pilink-8hx.2's geometry, not built here). Using this file's own edge
-// is a conservative, explicitly-flagged simplification; a human should
-// re-check leg/strip placement once the front shell exists. (PR #52
-// review: left as-is, not re-derived against BODY_T, since doing so
-// here risks drifting out of sync with the leg-axis geometry above,
-// which was computed and hand-verified against THIS same stand-in --
-// a human re-deriving one should re-check the other.)
-// front_edge_y/z, leg_mount_y/z and leg_foot_y/z are now computed once,
-// earlier in the file (the "Leg axis geometry" block, Rear legs
-// section) so this module and leg() below read the same values.
-
-// pilink-9i4: feet pockets as a cutter, applied to the strip AND the shell.
-// The shell's rear-bottom corner dips into the strip's y 0..1 band over
-// z ~0..3.7, so cutting the pockets only from the strip left the back plate
-// filling half of each one.
-module feet_recess_cutters() {
-    z0 = front_edge_z;
-    z1 = front_edge_z - BASE_STRIP_DEPTH;
-    for (side = [-1, 1])
-        translate([FACE_W/2 + side*BASE_STRIP_FOOT_OFFSET_X, -0.1, (z0 + z1)/2])
-            rotate([-90, 0, 0])
-                cylinder(h = FOOT_RECESS_T + 0.1, d = FOOT_RECESS_D, $fn = 32);
-}
-
-module shell_world() {
-    difference() {
-        rotate([-LEAN_DEG, 0, 0]) back_shell_local();
-        feet_recess_cutters();
-    }
-}
-
-module base_strip() {
-    z0 = front_edge_z;
-    z1 = front_edge_z - BASE_STRIP_DEPTH;
-    difference() {
-        // cube([x,y,z]) = [FACE_W, BASE_STRIP_T, z0-z1]: lateral width,
-        // then the strip's own small vertical thickness (Y, sitting on
-        // the table at Y=0..BASE_STRIP_T), then its 14.5mm depth (Z,
-        // from z1 up to z0).
-        translate([0, 0, z1])
-            cube([FACE_W, BASE_STRIP_T, z0 - z1]);
-        // feet recesses, cut from the strip's bottom (table-facing) face
-        feet_recess_cutters();
-        // Ballast reserve (review finding #5): shallow pocket cut from
-        // the strip's TOP (interior-facing) face, centred, well clear
-        // of both foot recesses -- see BALLAST_RESERVE_* above. Not a
-        // committed ballast design, just reserved room.
-        translate([FACE_W/2 - BALLAST_RESERVE_W/2,
-                   BASE_STRIP_T - BALLAST_RESERVE_T,
-                   (z0 + z1)/2 - BALLAST_RESERVE_D/2])
-            cube([BALLAST_RESERVE_W, BALLAST_RESERVE_T + 0.1, BALLAST_RESERVE_D]);
-    }
-}
-
-// =====================================================================
-// Leg (world frame)
-// =====================================================================
-// Mount point: PR #52 review finding #6 -- previously this was the back
-// wall's own outer surface (bz=0), which made the leg's mount-end
-// sphere (r=4) overlap the boss/shell by ~4mm since the capsule started
-// AT the wall rather than at the boss's own tip. Now uses
-// leg_mount_tip_y/z (derived above, in the "Leg axis geometry" block),
-// the point LEG_MOUNT_BOSS_LEN out from the wall ALONG THE SAME tilted
-// axis the boss itself now uses (LEG_BOSS_TILT).
+// Replaces the glued two-leg A-frame (pilink-8jy) and the base strip with
+// its feet and ballast pocket. User design, 2026-11-17: two flat triangular
+// fins behind the body at the old base-strip feet positions (FACE_W/2 +/-
+// FIN_OFFSET_X), hidden behind the body in the straight-on front view, each
+// with rubber-foot pads; fin bottoms FLOAT_GAP below the body's lowest edge.
 //
-// Still-blocking re-review on 46647da (finding #6, round 2): moving the
-// capsule's mount-end SPHERE to that tip point did not actually make it
-// flush -- a sphere of radius LEG_STRUT_D/2 (4mm) centred ON the boss's
-// tip still reaches 4mm back INTO the boss along the axis (the boss is
-// only LEG_MOUNT_BOSS_LEN=6mm long), filling the boss's last 4mm --
-// which is exactly where the leg-mount socket (formerly an insert pocket)
-// sits (axis distance 2..6.1 from the wall). "Mates flush"
-// was true of the POINT the capsule started at, not of the capsule's
-// actual solid, so the leg and back-shell STLs still intersected.
-// Fixed below: the mount end is now a flat disc (MOUNT_CAP_T thick,
-// same LEG_STRUT_D diameter), rotated to the boss's own net world axis
-// angle (LEG_BOSS_TILT - LEAN_DEG) and centred at p_mount, so the
-// strut's solid stops at the boss's own tip FACE instead of wrapping
-// around and past it. This still leaves the exact mounting lug/socket
-// interface geometry (where the leg physically registers onto the
-// boss, beyond the glued peg and socket) unmodelled -- a human should add that
-// once this is actually rendered and fitted.
+// Fin outline, in the world Y-Z plane (side view), FIN_T thick in X:
+//   - front edge: along the back wall's outer face, from the bottom edge up
+//     to FIN_TOP_Q (embedded FIN_EMBED into the 2mm wall so it fuses),
+//     then straight down FLOAT_GAP to the fin bottom;
+//   - bottom edge: flat at world Y = -FLOAT_GAP, back to the rear pad's far
+//     edge;
+//   - back edge: a short vertical step (pad height) at the rear, then the
+//     hypotenuse up to the top corner on the back face.
+//
+// TWO pads per fin, front and rear. The brief said "a foot pad per fin";
+// one pad per fin is two contact points in total, i.e. a line, and the
+// body tips over it front-to-back (statically unstable at any lean). The
+// minimum stable stance on two fins is a pad at each end of each fin's
+// bottom edge, giving a FOOT_DIA-wide rectangle of contact under the four
+// feet. Flagged in the PR / README for the user to confirm.
+//
+// Front pad position: the body's centre of gravity sits just AHEAD of the
+// rear-bottom edge at LEAN 15 (see the tip-over estimate below), so the
+// front feet must reach forward of that edge, i.e. a little under the body.
+// FRONT_FOOT_OFFSET = 0 puts each front foot's rear edge on that edge. The
+// cost is visibility: the forward half of each front pad (and the foot
+// itself) shows as a short lip under the body's bottom edge in the front
+// view; the fins themselves stay hidden.
 
-module leg(side) {
-    x = FACE_W/2 + side*LEG_OFFSET;
-    p_mount = [x, leg_mount_tip_y, leg_mount_tip_z];
-    p_foot  = [x, leg_foot_y,      leg_foot_z];
-    // PR #52 review finding #3(b): the strut capsule's own foot-end
-    // sphere (r = LEG_STRUT_D/2) was centred AT p_foot (world Y=0, the
-    // table datum), so it reached 4mm BELOW the table -- the leg would
-    // have stood on this sphere, not on the modelled rubber foot. A
-    // sphere's lowest point is simply (centre Y - radius) regardless of
-    // its other coordinates, so raising the centre to Y=LEG_STRUT_D/2
-    // puts its lowest point exactly at Y=0; the flat foot pad below
-    // (still built at the true p_foot) fills the small remaining gap
-    // down to the table, and is what actually contacts it.
-    p_foot_strut = [p_foot[0], LEG_STRUT_D/2, p_foot[2]];
+FIN_EMBED   = BACK_WALL_T - 1.2;   // 0.8mm into the 2.0mm back wall (fuses; stays clear of the 1.0mm insert-pocket floor)
+FOOT_RECESS_D = FOOT_DIA + FOOT_RECESS_CLEARANCE;          // centring recess diameter
+FOOT_PAD_D  = FOOT_RECESS_D + 2*FOOT_PAD_RIM;              // pad disc diameter
+FOOT_PAD_TAPER_H = (FOOT_PAD_D - FIN_T) / 2;               // 45 deg taper, pad -> fin thickness
+FRONT_FOOT_Z = FRONT_FOOT_OFFSET + FOOT_DIA/2;             // front foot centre, world Z (datum = rear-bottom edge)
+REAR_FOOT_Z  = -FIN_REACH;                                 // rear foot centre, world Z
+FIN_BOTTOM_Y = -FLOAT_GAP;                                 // fin bottom / pad underside, world Y
+FIN_X = [FACE_W/2 - FIN_OFFSET_X, FACE_W/2 + FIN_OFFSET_X]; // fin mid-planes, world X
+
+// local (Qface, bz) -> world (Y, Z): the rotate([-LEAN_DEG,0,0]) above.
+function w_y(q, bz) = q*cos(LEAN_DEG) + bz*sin(LEAN_DEG);
+function w_z(q, bz) = -q*sin(LEAN_DEG) + bz*cos(LEAN_DEG);
+
+FIN_TOP_Y = w_y(FIN_TOP_Q, 0);   // top corner on the back face
+FIN_TOP_Z = w_z(FIN_TOP_Q, 0);
+FIN_REAR_Z = REAR_FOOT_Z - FOOT_PAD_D/2;   // fin's rear end = rear pad's far edge
+BODY_TOP_Y = w_y(FACE_H, 0);               // back-top edge: lowest point of the top of the silhouette
+
+assert(FOOT_PAD_T >= FOOT_RECESS_DEPTH + 0.8, "foot pad too thin over its centring recess");
+assert(FIN_TOP_Q <= FACE_H - WALL_T, "fin top corner above the top wall");
+assert(FIN_TOP_Y < BODY_TOP_Y, "fin top would show above the body in the front view");
+assert(FIN_OFFSET_X + FOOT_PAD_D/2 <= FACE_W/2 - CORNER_R, "fin/pad would show beside the body in the front view");
+assert(FIN_REAR_Z < FIN_TOP_Z, "fin reach too short for its height: not a triangle");
+assert(REAR_FOOT_Z + FOOT_PAD_D/2 < FRONT_FOOT_Z - FOOT_PAD_D/2, "front and rear pads overlap");
+
+// Side-view outline as [Z, Y] pairs.
+function fin_outline() = [
+    [w_z(FIN_TOP_Q, FIN_EMBED), w_y(FIN_TOP_Q, FIN_EMBED)],   // top corner, inside the wall
+    [w_z(0, FIN_EMBED),         w_y(0, FIN_EMBED)],           // bottom edge, inside the bottom wall
+    [w_z(0, FIN_EMBED),         FIN_BOTTOM_Y],                // straight down to the fin bottom
+    [FIN_REAR_Z,                FIN_BOTTOM_Y],                // flat bottom to the rear pad's far edge
+    [FIN_REAR_Z,                FIN_BOTTOM_Y + FOOT_PAD_T],   // short vertical rear step
+    [FIN_TOP_Z,                 FIN_TOP_Y]                    // hypotenuse back up to the top corner
+];
+
+// rotate([0,90,0]) maps 2D (u, v, extrude w) -> world (X = w, Y = v, Z = -u).
+module fin_plate(x) {
+    translate([x, 0, 0])
+        rotate([0, 90, 0])
+            linear_extrude(height = FIN_T, center = true)
+                polygon([ for (p = fin_outline()) [-p[0], p[1]] ]);
+}
+
+// Pad disc + 45 deg taper up into the fin (prints support-free upright).
+module foot_pad(x, z) {
+    translate([x, FIN_BOTTOM_Y, z])
+        rotate([-90, 0, 0]) {
+            cylinder(h = FOOT_PAD_T, d = FOOT_PAD_D, $fn = 48);
+            translate([0, 0, FOOT_PAD_T - 0.01])
+                cylinder(h = FOOT_PAD_TAPER_H + 0.01, d1 = FOOT_PAD_D, d2 = FIN_T, $fn = 48);
+        }
+}
+
+module foot_recess(x, z) {
+    translate([x, FIN_BOTTOM_Y - 0.1, z])
+        rotate([-90, 0, 0])
+            cylinder(h = FOOT_RECESS_DEPTH + 0.1, d = FOOT_RECESS_D, $fn = 48);
+}
+
+module foot_recesses() {
+    for (x = FIN_X, z = [FRONT_FOOT_Z, REAR_FOOT_Z]) foot_recess(x, z);
+}
+
+// Fins + pads, clipped so nothing reaches into the cavity or the USB-C
+// opening, whatever the parameters (e.g. a thick pad at FLOAT_GAP 0 under
+// the bottom wall, or a fin moved onto the cutout).
+module fins() {
     difference() {
         union() {
-            // Strut: hull of a flat disc at the mount end and a sphere
-            // at the (raised) foot end. The foot end stays a sphere --
-            // direction-agnostic is fine there, since only its lowest
-            // point matters (review finding #3(b), above). The mount
-            // end is a disc, not a sphere (review finding #6, round 2,
-            // see the comment above p_mount): a sphere centred on the
-            // boss tip reaches back along the axis and fills part of
-            // the boss, including its own insert pocket, with solid
-            // strut material -- not actually flush. A disc perpendicular
-            // to the mount->foot axis, rotated by that same net world
-            // angle (LEG_BOSS_TILT - LEAN_DEG -- the boss's own axis,
-            // see the "Leg axis geometry" block) and centred AT p_mount,
-            // caps the strut at the boss's own tip face instead of past
-            // it. This does use an arbitrary-axis rotation; the old
-            // reason for avoiding one here ("can't test-render to
-            // verify") no longer applies now that the glue
-            // peg below relies on the same rotation.
-            hull() {
-                translate(p_mount)
-                    rotate([LEG_BOSS_TILT - LEAN_DEG, 0, 0])
-                        cylinder(h = MOUNT_CAP_T, d = LEG_STRUT_D, $fn = 24, center = true);
-                translate(p_foot_strut) sphere(d = LEG_STRUT_D, $fn = 24);
+            for (x = FIN_X) {
+                fin_plate(x);
+                foot_pad(x, FRONT_FOOT_Z);
+                foot_pad(x, REAR_FOOT_Z);
             }
-            // Glue peg (pilink-8jy): keyed stub from the mount-end disc back
-            // into the boss socket, along the boss axis (net world tilt
-            // LEG_BOSS_TILT - LEAN_DEG).
-            translate(p_mount)
-                rotate([LEG_BOSS_TILT - LEAN_DEG, 0, 0])
-                    translate([0, 0, -LEG_PEG_LEN])
-                        linear_extrude(height = LEG_PEG_LEN + 0.05)
-                            leg_peg_profile(0);
-            // Flat pad at the foot end for the rubber foot to stick to.
-            // Genuinely vertical (unlike the boss axis): this
-            // is the part that must sit flat against the horizontal
-            // table regardless of the leg's own angle.
-            // (cylinder() is already centred in X/Z by the rotate below,
-            // so the translate only needs the foot's own X/Z position,
-            // same pattern as the foot recess below.)
-            translate([p_foot[0], p_foot[1] - 0.1, p_foot[2]])
-                rotate([-90, 0, 0])
-                    cylinder(h = FOOT_PAD_T, d = FOOT_PAD_D, $fn = 32);
         }
-        // Foot-pad registration recess: genuinely vertical (same axis
-        // as the pad above, not the boss axis) -- PR #52 review finding
-        // #3(a): previously cut in a wrong frame, landing inside the strut
-        // above the pad instead of at the bottom. Now cut first, directly from
-        // the bottom (y ~ -0.1..0.9), where the rubber foot actually
-        // sits, within the FOOT_PAD_D=12mm pad (FOOT_RECESS_D=10.4mm
-        // fits inside it with margin).
-        translate([p_foot[0], p_foot[1] - 0.1, p_foot[2]])
-            rotate([-90, 0, 0])
-                cylinder(h = FOOT_RECESS_T + 0.1, d = FOOT_RECESS_D, $fn = 32);
+        rotate([-LEAN_DEG, 0, 0]) {
+            back_shell_cavity();
+            usbc_cutout();
+        }
     }
 }
 
+// The printed part: shell + fins. The foot recesses are cut from the shell
+// too: at FLOAT_GAP 0 the front recess clips the body's rear-bottom edge by
+// up to FOOT_RECESS_DEPTH (the old feet pockets did the same, pilink-9i4).
+module shell_world() {
+    difference() {
+        union() {
+            rotate([-LEAN_DEG, 0, 0]) back_shell_local();
+            fins();
+        }
+        foot_recesses();
+    }
+}
+
+// Rubber feet, display only (FOOT_H is not used by any printed geometry).
+module feet_display() {
+    for (x = FIN_X, z = [FRONT_FOOT_Z, REAR_FOOT_Z])
+        translate([x, FIN_BOTTOM_Y + FOOT_RECESS_DEPTH - FOOT_H, z])
+            rotate([-90, 0, 0])
+                cylinder(h = FOOT_H, d = FOOT_DIA, $fn = 32);
+}
+
 // =====================================================================
-// USB-C vs. rear-leg clearance check (this bead's own NOTE)
+// Tip-over estimate (pilink-s98)
+// =====================================================================
+// Centre of gravity of the assembled body WITHOUT the fins, in the local
+// frame, from check_fit.py's mass model (rendered shells, knob, plungers and
+// antenna mount at 1.24 g/cm3 solid; PCB slab FR4 1.85; component envelope
+// boxes 1.0; display stack box 0.9, ~7.4 g; M2 screws steel -- see check_fit.py
+// "tip-over"). Body ~81 g, fins ~7 g at the defaults. Leaving the
+// fins out moves the CoG forward, i.e. it is conservative for forward
+// tipping (the critical side). Re-measure (check_fit.sh prints it) if the
+// shells or the PCB stack change.
+COG_Q  = 28.4;    // mm up the face (check_fit.sh, pilink-s98: 28.35)
+COG_BZ = 10.2;    // mm forward of the back wall's outer face (check_fit.sh: 10.23)
+COG_Y = w_y(COG_Q, COG_BZ);
+COG_Z = w_z(COG_Q, COG_BZ);
+TIP_MARGIN_FRONT = (FRONT_FOOT_Z + FOOT_DIA/2) - COG_Z;   // CoG to the front feet's front edge
+TIP_MARGIN_BACK  = COG_Z - (REAR_FOOT_Z - FOOT_DIA/2);    // CoG to the rear feet's back edge
+echo(str("Tip-over (feet contact, world Z): CoG Z ", COG_Z, ", front feet edge ", FRONT_FOOT_Z + FOOT_DIA/2,
+         ", rear feet edge ", REAR_FOOT_Z - FOOT_DIA/2, " -> margin front ", TIP_MARGIN_FRONT,
+         " mm, back ", TIP_MARGIN_BACK, " mm"));
+assert(TIP_MARGIN_FRONT > 0, "CoG ahead of the front feet: tips forward (raise FRONT_FOOT_OFFSET or LEAN_DEG)");
+
+// =====================================================================
+// Clearances: USB-C cable and antenna pigtail notch vs. the fins
 // =====================================================================
 // J401's shell long axis is horizontal (board/face X) -- confirmed
 // against the real footprint instance in hardware/pico-link-hw.kicad_pcb
 // (rot 0, pad geometry), see the USBC_HEIGHT_ABOVE_PCB comment above.
-usbc_edge_left  = USBC_PFACE - USBC_SHELL_W/2;
-usbc_edge_right = USBC_PFACE + USBC_SHELL_W/2;
-leg_surface_left  = LEG_PFACE_LEFT  + LEG_STRUT_D/2;
-leg_surface_right = LEG_PFACE_RIGHT - LEG_STRUT_D/2;
-clearance_left  = usbc_edge_left  - leg_surface_left;
-clearance_right = leg_surface_right - usbc_edge_right;
-
+// The fins run at a constant X, so the lateral gap between the cutout
+// (which passes a max-spec 12.35mm-wide plug overmould) and each fin's /
+// pad's inner face holds along the cable's whole run back and down.
+fin_inner_left  = FIN_X[0] + max(FIN_T, FOOT_PAD_D)/2;
+fin_inner_right = FIN_X[1] - max(FIN_T, FOOT_PAD_D)/2;
+usbc_open_left  = USBC_PFACE - USBC_CUTOUT_W/2;
+usbc_open_right = USBC_PFACE + USBC_CUTOUT_W/2;
+echo(str("USB-C opening to fin/pad inner faces: left ", usbc_open_left - fin_inner_left,
+         " mm, right ", fin_inner_right - usbc_open_right, " mm (fin plates alone: ",
+         usbc_open_left - (FIN_X[0] + FIN_T/2), " mm)"));
+assert(usbc_open_left - fin_inner_left >= 5 && fin_inner_right - usbc_open_right >= 5,
+       "fins/pads crowd the USB-C opening / cable");
+// Pigtail notch: an internal relief in the TOP wall (face X 107..114, Q 54..55).
+echo(str("Pigtail notch to nearest fin: ", PIGTAIL_NOTCH_X0 - (FIN_X[1] + FOOT_PAD_D/2), " mm in X, ",
+         FACE_H - WALL_T - FIN_TOP_Q, " mm in Q below the top wall's inner face"));
 echo(str("BODY_T (sanity check vs. ADR ~14mm): ", BODY_T));
-echo(str("Leg length (mount to foot, derived): ", leg_length, " mm"));
-echo(str("Leg mount point (world y,z): (", leg_mount_y, ", ", leg_mount_z, ")"));
-echo(str("Leg foot point (world y,z): (", leg_foot_y, ", ", leg_foot_z, ")"));
-echo(str("USB-C port lateral centre (Pface): ", USBC_PFACE,
-         " -- legs at Pface ", LEG_PFACE_LEFT, " / ", LEG_PFACE_RIGHT));
-echo(str("USB-C-to-leg clearance, left: ", clearance_left, " mm"));
-echo(str("USB-C-to-leg clearance, right: ", clearance_right, " mm"));
-// pilink-3ym: USB-C cable-vs-table numbers at the raised J401 (Qface 15),
+echo(str("Fins: X ", FIN_X, ", top corner Q ", FIN_TOP_Q, " (world Y ", FIN_TOP_Y, ", Z ", FIN_TOP_Z,
+         "), bottom Y ", FIN_BOTTOM_Y, ", feet Z ", FRONT_FOOT_Z, " / ", REAR_FOOT_Z, ", pad d ", FOOT_PAD_D));
+// pilink-3ym: USB-C cable-vs-table numbers at the raised J401 (Qface 16),
 // same method as enclosure/README.md's pilink-8ry section (boot = 2D offset
-// of the mating axis by D/2, axis 15 deg below horizontal heading -bz,
-// mating face at bz = +2.5 after pilink-9i4: recessed 2.5mm behind the outer face). Mating-face world position:
-usbc_face_y = USBC_QFACE*cos(LEAN_DEG) + USBC_MATING_BZ*sin(LEAN_DEG);   // pilink-9i4: bz +2.5 (recessed)
+// of the mating axis by D/2, axis LEAN_DEG below horizontal heading -bz,
+// mating face at bz = +2.5 after pilink-9i4: recessed 2.5mm behind the outer
+// face). pilink-s98: the table is now FLOAT_GAP + FOOT_H - FOOT_RECESS_DEPTH
+// below the datum; the echo uses FLOAT_GAP only (feet ignored), i.e. the
+// worst case.
+usbc_face_y = USBC_QFACE*cos(LEAN_DEG) + USBC_MATING_BZ*sin(LEAN_DEG);
 usbc_face_z = -USBC_QFACE*sin(LEAN_DEG) + USBC_MATING_BZ*cos(LEAN_DEG);
 // along-axis distance to table contact for a boot of diameter D:
-function usbc_table_s(D) = (usbc_face_y - (D/2)*cos(LEAN_DEG)) / sin(LEAN_DEG);
+function usbc_table_s(D) = (usbc_face_y + FLOAT_GAP - (D/2)*cos(LEAN_DEG)) / sin(LEAN_DEG);
 echo(str("USB-C mating face world (Y,Z): (", usbc_face_y, ", ", usbc_face_z,
-         "); 6.3mm boot reaches the table ", usbc_table_s(6.3), "mm along the axis (was 11.0mm at Qface 6.5)"));
-// Both come out to ~31.5mm in this model (40mm leg offset minus the
-// connector's own 4.5mm shell half-width minus the leg's own 4mm strut
-// half-width) -- the legs run at a constant lateral (Pface) position
-// top to bottom in this model, so this clearance holds at every height
-// along the leg, not just at one cross-section. No clearance conflict
-// found between J401 and the rear legs.
+         "); 6.3mm boot reaches the table ", usbc_table_s(6.3), "mm along the axis (feet ignored)"));
 
 // =====================================================================
 // Top-level assembly / render selection
 // =====================================================================
-// PART: "assembly" (default, for visual review once OpenSCAD is
-// available), "back_shell" or "leg_left" / "leg_right" (for individual
-// STL export -- these are 3 separately-printed parts).
-PART = "assembly";
-
+// PART (Customizer [Render] section): "assembly" (shell + fins, plus the
+// rubber feet for display) or "back_shell" (the single printed part: shell
+// with its fins, world frame; export_enclosure.py turns it upright onto the
+// fin bottoms for printing). Any other value (check_fit.py uses "none")
+// renders nothing, so the file can be included as a library.
 if (PART == "assembly") {
     color("dimgray") shell_world();
-    color("gray") base_strip();
-    color("slategray") leg(-1);
-    color("slategray") leg(1);
+    if (SHOW_FEET) color("black") feet_display();
 } else if (PART == "back_shell") {
     shell_world();
-    base_strip();
-} else if (PART == "leg_left") {
-    leg(-1);
-} else if (PART == "leg_right") {
-    leg(1);
 }

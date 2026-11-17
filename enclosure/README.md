@@ -217,14 +217,15 @@ nominal / 0.3mm worst case) and the 8mm diamond pitch (11.31mm diagonal,
 ledge's y span 2..50). Only a stale `(94,34)` comment in
 `button_plunger.scad` was updated.
 
-## Back shell + rear legs (`back_shell.scad`, pilink-8hx.1)
+## Back shell + rear fin stand (`back_shell.scad`, pilink-8hx.1, pilink-s98)
 
 Covers the back half of the enclosure: PCB-mounting bosses (heat-set
 inserts), the 7mm (was 3mm, `pilink-9i4`) clearance cavity behind the PCB for the encoder's
 through-hole leads, the rear USB-C cutout (no boss since `pilink-9i4`: the 7mm cavity
-holds the connector), a horizontal
-base strip with feet pockets, and the fixed two-leg A-frame that is glued to
-this shell. The front shell (face, display window, button/knob openings)
+holds the connector), and (since `pilink-s98`) two triangular fins with
+rubber-foot pads, printed in one piece with the shell. The base strip with
+feet pockets and the glued two-leg A-frame described further down are gone
+(history). The front shell (face, display window, button/knob openings)
 is `pilink-8hx.2`'s separate file; the antenna mount is `pilink-8hx.4`'s.
 
 Every dimension is pulled from, and cites, one of: the upright
@@ -244,15 +245,133 @@ treating this shell's own open rim as a stand-in "front edge" reference
 for leg/base-strip placement, since the front shell's real base profile
 doesn't exist yet).
 
-**Not verified**: OpenSCAD isn't installed in the agent environment this
-was authored in, so this file has never been rendered or dimension-checked
-— that's `pilink-8hx.5`'s job on a machine that has OpenSCAD. It does
-include `echo()` statements with the clearance numbers this bead's own
-NOTE asked for (whether the rear USB-C port and its mating plug clear the
-two rear legs), computed analytically rather than rendered; see the
-file's own comments for the numbers and reasoning.
+The file now renders headlessly (OpenSCAD 2021.01) and is covered by
+`scripts/check_fit.sh`; the printed fit check is still `pilink-8hx.5`.
 
-### Deeper rear cavity, flush leg mounts, solid legs (`pilink-9i4`)
+### Rear fin stand (`pilink-s98`)
+
+User design, 2026-11-17. Replaces the two glued splayed legs (and their
+bosses/peg/socket) and the base strip (with its feet pockets and ballast
+reserve). Two flat triangular fins stand off the back wall at the old
+base-strip feet positions (face X = FACE_W/2 +/- 30 = 33.75 / 93.75), each
+running from the back wall's bottom edge up to `FIN_TOP_Q` = 40mm up the
+back and back to a rear foot `FIN_REACH` = 37mm behind the body's
+rear-bottom edge (the old legs' foot setback). Fins are `FIN_T` = 3mm thick;
+each foot pad is a Ø9.3 disc (`FOOT_DIA` 6.5 + 0.4 recess clearance + 2 x
+1.2 rim), 1.6 thick with a 0.6mm centring recess, blended into the fin by a
+45° taper. The fins are embedded 0.8mm into the 2mm back wall and clipped
+against the cavity and the USB-C opening, so nothing reaches inside
+whatever the parameters.
+
+**Two pads per fin, not one.** The brief said "a foot pad per fin". One pad
+per fin is two contact points, i.e. a line: the body would rock front to
+back over it at any lean. A pad at each end of each fin's bottom edge is the
+minimum stable stance (a rectangle of four feet). **Needs the user's
+confirmation.**
+
+**Parameters.** All user-tunables are at the top of `back_shell.scad`,
+before `include <common.scad>`, with OpenSCAD Customizer annotations
+(`/* [Stand] */`, `/* [Fins] */`, `/* [Feet] */`, `/* [Render] */`,
+`// [min:step:max]` ranges, a description line above each; derived values
+live under `/* [Hidden] */`): `LEAN_DEG` (15, the single lean variable),
+`FLOAT_GAP` (0 = fin bottoms flush with the body's lowest edge, which with
+the body leaning back is the back wall's bottom-outer edge; the float then
+comes from the feet alone), `FIN_T`, `FIN_OFFSET_X`, `FIN_TOP_Q`,
+`FIN_REACH`, `FOOT_DIA` (6.5, the user's feet), `FOOT_RECESS_DEPTH`,
+`FOOT_RECESS_CLEARANCE`, `FOOT_PAD_RIM`, `FOOT_PAD_T`, `FRONT_FOOT_OFFSET`
+(front foot's rear edge relative to the rear-bottom edge; 0 by default),
+`FOOT_H` (display only: the assembly view's rubber feet; no printed geometry
+uses it), `SHOW_FEET`, `PART`. Asserts stop a render that would put a fin
+above or beside the body in the front view, crowd the USB-C opening (< 5mm),
+leave the pads too thin over their recesses, or put the CoG ahead of the
+front feet. A Customizer parameter set applied from the CLI (`-p/-P`) takes
+effect. For a single-file online configurator (MakerWorld Parametric Model
+Maker), `common.scad` has to be inlined first (`pilink-c6z`).
+
+**Regenerates from LEAN_DEG / FLOAT_GAP.** `check_fit.sh` renders the
+printable part at LEAN 10/15/20 x FLOAT 0/5: all six are watertight, the
+fin bottoms land at Y = -FLOAT_GAP and the rear end at Z = -41.65 in every
+case (side- and front-view PNGs were also looked at).
+
+**Front view.** The fins themselves are hidden behind the body. What a
+straight-on (horizontal) front view can see, per `check_fit.sh` (body box
+swept back, subtracted from the part):
+
+| LEAN | FLOAT 0 | FLOAT 5 |
+|---|---|---|
+| 10 | front pads only, up to 1.84mm above the fin bottom | fin bottoms + pads below the body, up to 6.84mm above the fin bottom |
+| 15 | front pads only, up to 2.47mm | up to 5.72mm (the 5mm gap + 0.72) |
+| 20 | front pads only, up to 3.63mm | up to 8.63mm |
+
+The front pads must reach forward of the body's rear-bottom edge (next
+paragraph), so their front halves and the rubber feet show as a short lip
+under the bottom edge. Seen from above the face normal (a seated user
+looking down) the lip is behind the body.
+
+**Tip-over margin (default config).** Mass model in `check_fit.py`:
+rendered shells, knob, plungers and antenna mount at 1.24 g/cm³ solid, PCB
+slab FR4 1.85, component envelope boxes 1.0, display stack box 0.9 (~7.4 g),
+M2 screws steel: body ~81 g, fins ~7 g. Body CoG (no fins) at Q 28.35 / bz
+10.23 (local) = world Z +2.55, i.e. 2.6mm **ahead** of the rear-bottom edge;
+31.4mm above the table (FOOT_H 2.0). Feet contact runs Z -40.25 .. +6.50.
+
+- **Front: 3.95mm** (CoG without fins, the conservative case): the body tips
+  forward after ~7.2° of forward tilt. Thin. It scales with the lean: about
+  1.4mm at LEAN 10, 6.6mm at LEAN 20 (same model). `FRONT_FOOT_OFFSET` buys
+  more, at the price of a bigger visible lip.
+- **Back: 41.2mm** (CoG with fins, Z +0.98): ~52.7° before it tips back.
+- **Button press:** a press along the face normal at the A/B/X/Y diamond
+  tips it back over the rear feet at ~1.87 N (if the feet don't slide
+  first), under the ADR's ~2.5 N press estimate. A longer reach helps:
+  roughly 2.5 N at `FIN_REACH` ≈ 45 and 3 N at ≈ 50 (estimate, same model).
+  The ADR's physical feet test still decides.
+
+`back_shell.scad` carries the body CoG as `COG_Q`/`COG_BZ` and echoes both
+margins for whatever LEAN/feet are chosen; `check_fit.sh` WARNs if those
+constants drift >0.5mm from the mass model.
+
+**Clearances.** USB-C (J401 exits the rear at face X 63.75, Q 16): a
+max-spec 12.35 x 6.5 plug overmould run 60mm straight back clears the fins
+by ~19.3mm; a 12.35mm-wide cable corridor from the exit down to the table
+and 100mm back clears them by ~19.2mm (opening edge to fin plate 21.9mm,
+to pad 18.75mm, per the scad echo). The fins run at a constant X, so this
+holds along the whole cable run. Antenna pigtail notch (internal, top wall,
+face X 107..114): ~19.5mm to the nearest fin. Fins vs front shell 2.6mm, vs
+PCB + every envelope body 2.6mm, vs the back cavity: outside (clipped flush
+where a pad taper reaches the bottom wall at FLOAT 0). With FLOAT 0 the
+table sits `FOOT_H - FOOT_RECESS_DEPTH` (1.4mm with 2mm feet) below the
+body's lowest edge; the USB-C cable-vs-table figures only get better.
+
+**Printing.** One part, upright on the fin bottoms, as it stands on a desk
+(`export_enclosure.py` writes `stl/back_shell.stl` that way: fin bottoms on
+the bed, 56.8mm tall at the defaults). The fins (bottom on the bed,
+hypotenuse facing up), the 45° pad tapers and the recesses (a Ø6.9 bridge
+0.6mm above the bed) need no support. What does, in both cases:
+
+- **Top wall (inside):** its underside rises toward the open rim at
+  `LEAN_DEG` (15°) from horizontal, cantilevered ~8.6mm off the back wall
+  and spanning 123.5mm between the side walls. Needs support. Because the
+  back wall leans back under it, the supports stand on the back wall's
+  inner face (up to ~33mm tall at the rim), not on the bed: use
+  "everywhere" supports, not "build plate only". They come out through the
+  open front.
+- **Bottom wall (outside):** its underside rises from the rear-bottom edge to
+  10.6 x sin(LEAN) = 2.7mm at the rim (15° from horizontal).
+  - **FLOAT_GAP = 0:** the rear-bottom edge sits on the bed (a line), and the
+    supports under the bottom wall are a 0..2.7mm wedge.
+  - **FLOAT_GAP > 0:** the whole body hangs on the fins; the bottom wall needs
+    supports FLOAT_GAP .. FLOAT_GAP + 2.7mm tall from the bed, and the fins'
+    front edges drop vertically below the body (no support).
+- **Minor:** the PCB bosses and spool post are short near-horizontal
+  cylinders off the back wall (usually fine unsupported); the USB-C opening's
+  top edge is a 13.2mm bridge.
+- A brim is advisable: a ~57mm-tall part standing on two 3mm fins and four
+  small pads.
+
+Not verified: real feet, a printed fit, actual print quality with these
+supports, and the mass model (estimated densities, not a weighed part).
+
+### Deeper rear cavity, flush leg mounts, solid legs (`pilink-9i4`) (legs, strip and feet pockets superseded by `pilink-s98` above)
 
 User review of the rendered back shell found the U201 relief showing as a
 bump on the outside, tacked-on cylinder tops at the leg mounts, hollow legs,
@@ -798,8 +917,12 @@ everything in the shells' shared face frame (`common.scad`: `X = board_x +
 2.5`, `Q = 53 - board_y`, `Z = 0` at the outer face), and reports interference
 volumes and approximate minimum distances (trimesh/manifold). It also checks
 board clearance and centring on all four sides, window / knob / diamond
-centring on the face, and a Ø1.13 pigtail probe through the top-wall notch. It
-exits non-zero if any pair overlaps.
+centring on the face, and a Ø1.13 pigtail probe through the top-wall notch.
+Since `pilink-s98` it also re-renders the back shell at LEAN 10/15/20 x
+FLOAT 0/5, checks the fins against the cavity, front shell, PCB envelope,
+USB-C plug/cable corridor and pigtail notch, reports what a front view can
+see of the fins, and runs the tip-over mass model. It exits non-zero if any
+pair overlaps.
 
 ```bash
 enclosure/scripts/check_fit.sh                 # full run (~5 min via docker)

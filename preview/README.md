@@ -32,7 +32,7 @@ few seconds -- no restart needed.
 - `scripts/export.sh` finds the first `*.kicad_pcb` under `hardware/` and
   exports it straight to GLB (and a 2D SVG render) via `kicad-cli`. It then
   runs `scripts/export_enclosure.py`, which renders every enclosure part
-  (front shell, back shell + base strip, both legs, knob, button plunger,
+  (front shell, back shell + fins, knob, button plunger,
   antenna mount) to STL via `openscad` (in parallel), converts them with
   `trimesh` into one coloured GLB per part plus `assembly.glb` -- every part
   in its assembled position, with the PCB placed using the .scad files' own

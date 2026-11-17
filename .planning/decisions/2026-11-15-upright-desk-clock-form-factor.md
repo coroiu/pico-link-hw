@@ -46,6 +46,32 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
   "screwed" wording above is kept for history and is superseded by this
   amendment. The rest of the Support decision (two legs, +/-40 mm, fixed
   A-frame) is unchanged.
+  **Amended 2026-11-17 (`pilink-s98`), supersedes the legs and the base
+  strip:** the body is held by **two flat triangular fins** off the back
+  wall, printed in one piece with the back shell, at the old base-strip feet
+  positions (+/-30 mm from the centre, not +/-40). They stay hidden behind
+  the body in the straight-on front view. Each fin carries a rubber-foot pad
+  at both ends of its bottom edge (four feet, `FOOT_DIA` 6.5 mm, shallow
+  centring recesses). One pad per fin, as first briefed, would be two
+  contact points, which is not a stable stance; the user still has to
+  confirm the four-pad version. The base strip (and the ballast pocket it
+  reserved) is gone: the body floats above the table on the feet, with
+  `FLOAT_GAP` (default 0) extending the fins below the body's lowest edge
+  for more float. The lean stays a single parameter, `LEAN_DEG` (15), and
+  the fin/foot geometry is derived from it. Print orientation: upright on
+  the fin bottoms. This was a user decision on 2026-11-17. Consequences:
+  - The front feet have to sit just forward of the body's rear-bottom edge
+    because the CoG is about 2.6 mm ahead of it at 15°. That leaves a short
+    visible lip under the bottom edge.
+  - Static tip-over margin at the defaults is 3.95 mm front and 41 mm back
+    (`enclosure/README.md`, `pilink-s98`).
+  - A button press tips the body back at about 1.9 N, below the ~2.5 N
+    estimate under Rationale, unless the rear feet move back
+    (`FIN_REACH` ~45 mm). The feet-first physical test below still decides.
+  - The weighted-base fallback no longer has a reserved pocket.
+
+  The leg wording above, and "between the legs", "leg bosses", "two-leg
+  A-frame" and "feet pockets" below, are kept for history.
 - **PCB:** a single flat main board **standing parallel to the face**, about
   118 x 50 mm. All front-side placement rules from the proposal apply:
   - a panel-shadow keep-out with only low parts under the display;
