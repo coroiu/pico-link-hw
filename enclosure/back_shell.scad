@@ -58,8 +58,8 @@
 //   AES   = .planning/decisions/2026-11-15-enclosure-aesthetic-direction.md
 
 /* [Stand] */
-// Body lean back from vertical, degrees (ADR: ~15, face ~75 deg to the table). Fins, pads and the tip-over estimate all follow it.
-LEAN_DEG = 15; // [5:1:25]
+// Body lean back from vertical, degrees (ADR: ~15, face ~75 deg to the table). Fins, pads and the tip-over estimate all follow it. Below ~8 the CoG moves too far forward for a useful front tip-over margin.
+LEAN_DEG = 15; // [8:1:25]
 // How far the fin bottoms reach below the body's lowest (rear-bottom) edge, mm. 0 = flush: the float then comes from the rubber feet only.
 FLOAT_GAP = 0; // [0:0.5:15]
 
@@ -70,8 +70,8 @@ FIN_T = 3.0; // [2:0.5:6]
 FIN_OFFSET_X = 30; // [12:1:58]
 // Height of each fin's top corner up the back, measured along the face from its bottom edge, mm.
 FIN_TOP_Q = 40; // [10:1:52]
-// Rear foot centre, horizontal distance behind the body's rear-bottom edge, mm (37 = the removed legs' foot setback).
-FIN_REACH = 37; // [15:1:70]
+// Rear foot centre, horizontal distance behind the body's rear-bottom edge, mm (45: user decision 2026-11-17; a button press tips it back at ~2.5 N, about where the feet would slide anyway).
+FIN_REACH = 45; // [15:1:70]
 
 /* [Feet] */
 // Rubber foot diameter, mm.
@@ -84,8 +84,8 @@ FOOT_RECESS_CLEARANCE = 0.4; // [0:0.1:1]
 FOOT_PAD_RIM = 1.2; // [0.8:0.1:4]
 // Pad disc thickness, mm (a 45 deg taper above it blends the pad into the fin).
 FOOT_PAD_T = 1.6; // [1:0.1:4]
-// Front foot: position of its REAR edge relative to the body's rear-bottom edge, mm (+ = forward, under the body). 0 puts the whole front foot just ahead of that edge.
-FRONT_FOOT_OFFSET = 0; // [-5:0.5:10]
+// Front foot: position of its REAR edge relative to the body's rear-bottom edge, mm (+ = forward, under the body). 3.5 gives ~7.5mm of forward tip-over margin; more = the front pads sit further under the body (taller where they show against its sloped underside).
+FRONT_FOOT_OFFSET = 3.5; // [-5:0.5:10]
 // Rubber foot height, mm -- DISPLAY ONLY (assembly view); no printed geometry uses it.
 FOOT_H = 2.0; // [0.5:0.1:8]
 // Show the rubber feet in the assembly view.
@@ -478,20 +478,21 @@ module back_shell_local() {
 //   - back edge: a short vertical step (pad height) at the rear, then the
 //     hypotenuse up to the top corner on the back face.
 //
-// TWO pads per fin, front and rear. The brief said "a foot pad per fin";
-// one pad per fin is two contact points in total, i.e. a line, and the
-// body tips over it front-to-back (statically unstable at any lean). The
-// minimum stable stance on two fins is a pad at each end of each fin's
-// bottom edge, giving a FOOT_DIA-wide rectangle of contact under the four
-// feet. Flagged in the PR / README for the user to confirm.
+// TWO pads per fin, front and rear (four feet; user decision 2026-11-17).
+// The brief said "a foot pad per fin"; one pad per fin is two contact points
+// in total, i.e. a line, and the body tips over it front-to-back
+// (statically unstable at any lean). The minimum stable stance on two fins
+// is a pad at each end of each fin's bottom edge, giving a FOOT_DIA-wide
+// rectangle of contact under the four feet.
 //
 // Front pad position: the body's centre of gravity sits just AHEAD of the
 // rear-bottom edge at LEAN 15 (see the tip-over estimate below), so the
-// front feet must reach forward of that edge, i.e. a little under the body.
-// FRONT_FOOT_OFFSET = 0 puts each front foot's rear edge on that edge. The
-// cost is visibility: the forward half of each front pad (and the foot
-// itself) shows as a short lip under the body's bottom edge in the front
-// view; the fins themselves stay hidden.
+// front feet must reach forward of that edge, i.e. under the body.
+// FRONT_FOOT_OFFSET puts each front foot's rear edge that far ahead of it
+// (3.5 by default, ~7.5mm forward margin, more than the mass model's likely
+// error). The cost is visibility: in a dead-level front view the front pads
+// show against the body's sloped underside (2.6mm tall at LEAN 15) and the
+// rubber feet below its outline; the fins themselves stay hidden.
 
 FIN_EMBED   = BACK_WALL_T - 1.2;   // 0.8mm into the 2.0mm back wall (fuses; stays clear of the 1.0mm insert-pocket floor)
 FOOT_RECESS_D = FOOT_DIA + FOOT_RECESS_CLEARANCE;          // centring recess diameter
@@ -556,9 +557,21 @@ module foot_recesses() {
     for (x = FIN_X, z = [FRONT_FOOT_Z, REAR_FOOT_Z]) foot_recess(x, z);
 }
 
-// Fins + pads, clipped so nothing reaches into the cavity or the USB-C
-// opening, whatever the parameters (e.g. a thick pad at FLOAT_GAP 0 under
-// the bottom wall, or a fin moved onto the cutout).
+// The front shell's zone (local bz >= BACK_SHELL_DEPTH), grown by
+// FRONT_SHELL_CLEARANCE down below its bottom face and back past the joint
+// plane. A front pad pushed far forward (FRONT_FOOT_OFFSET >~ 3 at LEAN 15)
+// puts its taper under the front shell; this keeps a gap between the pad and
+// the front shell instead of a near-touch or an edge contact at the joint.
+// Only fin/pad material is removed: the shell itself is unioned separately.
+FRONT_SHELL_CLEARANCE = 0.4;
+module front_shell_zone() {
+    translate([-1, -FRONT_SHELL_CLEARANCE, BACK_SHELL_DEPTH - FRONT_SHELL_CLEARANCE])
+        cube([FACE_W + 2, FACE_H + FRONT_SHELL_CLEARANCE + 1, BODY_T]);
+}
+
+// Fins + pads, clipped so nothing reaches into the cavity, the USB-C
+// opening or the front shell, whatever the parameters (e.g. a thick pad at
+// FLOAT_GAP 0 under the bottom wall, or a fin moved onto the cutout).
 module fins() {
     difference() {
         union() {
@@ -571,13 +584,15 @@ module fins() {
         rotate([-LEAN_DEG, 0, 0]) {
             back_shell_cavity();
             usbc_cutout();
+            front_shell_zone();
         }
     }
 }
 
 // The printed part: shell + fins. The foot recesses are cut from the shell
-// too: at FLOAT_GAP 0 the front recess clips the body's rear-bottom edge by
-// up to FOOT_RECESS_DEPTH (the old feet pockets did the same, pilink-9i4).
+// too: at FLOAT_GAP 0 with a small FRONT_FOOT_OFFSET the front recess clips
+// the body's rear-bottom edge by up to FOOT_RECESS_DEPTH (the old feet
+// pockets did the same, pilink-9i4); at the default 3.5 it stays clear.
 module shell_world() {
     difference() {
         union() {
@@ -603,7 +618,7 @@ module feet_display() {
 // frame, from check_fit.py's mass model (rendered shells, knob, plungers and
 // antenna mount at 1.24 g/cm3 solid; PCB slab FR4 1.85; component envelope
 // boxes 1.0; display stack box 0.9, ~7.4 g; M2 screws steel -- see check_fit.py
-// "tip-over"). Body ~81 g, fins ~7 g at the defaults. Leaving the
+// "tip-over"). Body ~81 g, fins ~8.4 g at the defaults (FIN_REACH 45). Leaving the
 // fins out moves the CoG forward, i.e. it is conservative for forward
 // tipping (the critical side). Re-measure (check_fit.sh prints it) if the
 // shells or the PCB stack change.

@@ -108,6 +108,27 @@ def union(meshes):
     return trimesh.boolean.union(meshes, engine="manifold")
 
 
+def mesh_volume(m):
+    """|signed volume| from the divergence theorem, without trimesh's
+    mass_properties: that also divides by the volume for center_mass, which
+    raises a numpy divide-by-zero RuntimeWarning on a zero-volume mesh (e.g. an
+    intersection that is only coincident faces on two perpendicular planes, so
+    its bounding box is not flat)."""
+    t = m.triangles
+    return abs(float(np.einsum("ij,ij->i", t[:, 0], np.cross(t[:, 1], t[:, 2])).sum()) / 6.0)
+
+
+def solid_bounds(m, min_vol=1e-3):
+    """Bounds of the pieces of m that enclose real volume (boolean results can
+    carry zero-volume coplanar-face sheets), or None if there are none."""
+    if m is None or len(m.faces) == 0:
+        return None
+    pieces = [c for c in m.split(only_watertight=False) if mesh_volume(c) >= min_vol]
+    if not pieces:
+        return None
+    return (np.min([c.bounds[0] for c in pieces], axis=0), np.max([c.bounds[1] for c in pieces], axis=0))
+
+
 last_thickness = [0.0]
 SLIVER_DEPTH_TOL = 0.02  # mm
 
@@ -126,7 +147,7 @@ def inter(a, b):
     # slivers thinner than 20 um are coincident-face / STL rounding contact, not overlap
     if np.min(r.bounds[1] - r.bounds[0]) < TOUCH_TOL:
         return 0.0, None
-    v = abs(r.volume)
+    v = mesh_volume(r)
     if v < 1e-6:
         return 0.0, None
     # penetration depth = smallest extent of the overlap's oriented bounding
@@ -196,6 +217,9 @@ DENSITY_FR4 = 1.85        # PCB slab
 DENSITY_COMPONENT = 1.0   # courtyard x height boxes (mostly air around small parts)
 DENSITY_DISPLAY = 0.9     # 59 x 42 x 3.3 stack box -> ~7.4 g, a 2.4" TFT module class figure (assumed)
 DENSITY_SCREW = 7.8       # M2 steel
+# EC11E18244AU detent torque, N.mm: 10 +/- 7 mN.m (Alps datasheet, pilink-g8a;
+# .research/findings/2026-11-15-encoder-ec11e18244au-specs.md) -> nominal, worst.
+KNOB_DETENT_TORQUE_NMM = (10.0, 17.0)
 
 
 def rot_x(deg):
@@ -220,7 +244,12 @@ def body_shadow(bv, lean):
     because the body is in front of it: the body box (local [0,FACE_W] x
     [0,FACE_H] x [0,BODY_T], rounded corners ignored), leaned, swept 300mm
     back. Fin/pad material outside it is visible from the front."""
-    corners = np.array([[x, q, bz] for x in (0, bv["FACE_W"]) for q in (0, bv["FACE_H"]) for bz in (0, bv["BODY_T"])])
+    # Grown by TOUCH_TOL so the shell's own outer faces sit strictly inside
+    # it: coplanar faces otherwise leave zero-volume slivers in the difference
+    # that spoil its bounds.
+    t = TOUCH_TOL
+    corners = np.array([[x, q, bz] for x in (-t, bv["FACE_W"] + t) for q in (-t, bv["FACE_H"] + t)
+                        for bz in (-t, bv["BODY_T"] + t)])
     a = math.radians(lean)
     w = np.column_stack([corners[:, 0],
                          corners[:, 1] * math.cos(a) + corners[:, 2] * math.sin(a),
@@ -751,14 +780,23 @@ def main():
         rear_z = bv["REAR_FOOT_Z"] - pad_r
         geo_ok = abs(lo[1] + gap) < 0.02 and abs(lo[2] - rear_z) < 0.05 and lo[0] > -1e-6 and hi[0] < bv["FACE_W"] + 1e-6
         vis = trimesh.boolean.difference([m, body_shadow(bv, lean)], engine="manifold")
-        if vis is None or len(vis.faces) == 0 or abs(vis.volume) < 1e-3:
+        vb = solid_bounds(vis)
+        if vb is None:
             vdesc, vis_ok = "nothing visible from the front", True
         else:
-            vlo, vhi = vis.bounds
-            in_front_pads = vlo[2] > bv["FRONT_FOOT_Z"] - pad_r - 0.05
+            vlo, vhi = vb
+            # The front pads' discs also hide what is directly behind them
+            # (e.g. the fin's front tip under the bottom edge when the front
+            # pad sits forward of it): remove each disc's front-view shadow,
+            # pad_d wide x FOOT_PAD_T tall, from its widest point back.
+            occl = union([box(x - pad_r, x + pad_r, -gap - 0.01, -gap + bv["FOOT_PAD_T"],
+                              -300, bv["FRONT_FOOT_Z"]) for x in bv["FIN_X"]])
+            resid = trimesh.boolean.difference([vis, occl], engine="manifold")
+            rb = solid_bounds(resid)
+            in_front_pads = rb is None or rb[0][2] > bv["FRONT_FOOT_Z"] - pad_r - 0.05
             vis_ok = in_front_pads if gap == 0 else True
             vdesc = "visible from the front: %.1f mm3, Y %.2f..%.2f (%.2f above the fin bottom), Z %.2f..%.2f%s" % (
-                abs(vis.volume), vlo[1], vhi[1], vhi[1] + gap, vlo[2], vhi[2],
+                mesh_volume(vis), vlo[1], vhi[1], vhi[1] + gap, vlo[2], vhi[2],
                 " (front pads only)" if in_front_pads else " (includes fin/rear pad: float gap)")
         ok = geo_ok and vis_ok and m.is_watertight
         rec("fin stand LEAN %g FLOAT %g" % (lean, gap), "OK" if ok else "FAIL",
@@ -813,6 +851,21 @@ def main():
         rec("tip-over: button press force to tip back over the rear feet", "INFO",
             "%.2f N (weight %.2f N x %.1f mm / %.1f mm arm; ADR estimates a ~2.5 N press, friction permitting)" % (
                 w_n * m_back / tip_arm, w_n, m_back, tip_arm))
+        # Knob detent torque rolling it sideways over one fin's feet (ADR
+        # Rationale, "Two legs, not one strut"). The torque acts about the
+        # shaft (face normal, LEAN_DEG above horizontal); its component about
+        # the fore-aft roll axis through a fin's feet is T cos(LEAN). Restoring
+        # moment = weight x lateral CoG-to-feet-outer-edge distance.
+        cx = (F2W @ np.append(cog_all, 1.0))[0]
+        feet_l = bv["FACE_W"] / 2 - bv["FIN_OFFSET_X"] - bv["FOOT_DIA"] / 2
+        feet_r = bv["FACE_W"] / 2 + bv["FIN_OFFSET_X"] + bv["FOOT_DIA"] / 2
+        roll_arm = min(cx - feet_l, feet_r - cx)
+        restoring = w_n * roll_arm
+        t_nom, t_max = KNOB_DETENT_TORQUE_NMM
+        rec("tip-over: knob detent torque roll margin over one fin's feet", "INFO",
+            "%.1f N.mm restoring (%.2f N x %.2f mm, CoG X %.2f vs face centre %.2f) vs detent T cos(LEAN): %.1f N.mm nominal / %.1f worst -> %.2fx / %.2fx" % (
+                restoring, w_n, roll_arm, cx, bv["FACE_W"] / 2, t_nom * math.cos(a_), t_max * math.cos(a_),
+                restoring / (t_nom * math.cos(a_)), restoring / (t_max * math.cos(a_))))
     # --- rim profile mismatch
     if front is not None and back is not None:
         rec("shell corner radii front vs back", "INFO" if fv.get("CORNER_RADIUS") == bv.get("CORNER_R") else "WARN",

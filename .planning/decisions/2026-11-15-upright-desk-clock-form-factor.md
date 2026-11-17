@@ -53,21 +53,31 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
   the body in the straight-on front view. Each fin carries a rubber-foot pad
   at both ends of its bottom edge (four feet, `FOOT_DIA` 6.5 mm, shallow
   centring recesses). One pad per fin, as first briefed, would be two
-  contact points, which is not a stable stance; the user still has to
-  confirm the four-pad version. The base strip (and the ballast pocket it
+  contact points, which is not a stable stance; the user confirmed the
+  four-pad version on 2026-11-17, together with `FIN_REACH` = 45 mm (rear
+  feet 45 mm behind the body's rear-bottom edge). The base strip (and the ballast pocket it
   reserved) is gone: the body floats above the table on the feet, with
   `FLOAT_GAP` (default 0) extending the fins below the body's lowest edge
   for more float. The lean stays a single parameter, `LEAN_DEG` (15), and
   the fin/foot geometry is derived from it. Print orientation: upright on
   the fin bottoms. This was a user decision on 2026-11-17. Consequences:
-  - The front feet have to sit just forward of the body's rear-bottom edge
-    because the CoG is about 2.6 mm ahead of it at 15°. That leaves a short
-    visible lip under the bottom edge.
-  - Static tip-over margin at the defaults is 3.95 mm front and 41 mm back
+  - The front feet have to sit forward of the body's rear-bottom edge
+    because the CoG is about 2.6 mm ahead of it at 15°. They sit 3.5 mm
+    forward of it (`FRONT_FOOT_OFFSET`), under the body; the pads show
+    against the sloped underside and the rubber feet below it in a dead-level
+    front view.
+  - Static tip-over margin at the defaults is about 7.5 mm front (more than
+    the mass model's likely CoG error) and 49 mm back
     (`enclosure/README.md`, `pilink-s98`).
-  - A button press tips the body back at about 1.9 N, below the ~2.5 N
-    estimate under Rationale, unless the rear feet move back
-    (`FIN_REACH` ~45 mm). The feet-first physical test below still decides.
+  - A button press tips the body back at about 2.5 N, about the ~2.5 N
+    estimate under Rationale and about where the feet would slide anyway.
+    The feet-first physical test below still decides.
+  - **Knob-torque roll margin is lower than with the legs:** about 1.7x
+    worst case (17 mN·m detent) and 2.8x nominal (10 mN·m), from
+    `check_fit.sh`'s mass model (89 g with fins, CoG 2 mm towards the knob,
+    feet outer edges at +/-33.25 mm). The "about 3x" under Rationale
+    assumed 110 g on legs at +/-40 mm. Still stable; the physical test
+    covers it.
   - The weighted-base fallback no longer has a reserved pocket.
 
   The leg wording above, and "between the legs", "leg bosses", "two-leg

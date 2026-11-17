@@ -255,31 +255,38 @@ bosses/peg/socket) and the base strip (with its feet pockets and ballast
 reserve). Two flat triangular fins stand off the back wall at the old
 base-strip feet positions (face X = FACE_W/2 +/- 30 = 33.75 / 93.75), each
 running from the back wall's bottom edge up to `FIN_TOP_Q` = 40mm up the
-back and back to a rear foot `FIN_REACH` = 37mm behind the body's
-rear-bottom edge (the old legs' foot setback). Fins are `FIN_T` = 3mm thick;
+back and back to a rear foot `FIN_REACH` = 45mm behind the body's
+rear-bottom edge (user decision 2026-11-17; the first cut used 37, the old
+legs' foot setback). Fins are `FIN_T` = 3mm thick;
 each foot pad is a Ø9.3 disc (`FOOT_DIA` 6.5 + 0.4 recess clearance + 2 x
 1.2 rim), 1.6 thick with a 0.6mm centring recess, blended into the fin by a
 45° taper. The fins are embedded 0.8mm into the 2mm back wall and clipped
 against the cavity and the USB-C opening, so nothing reaches inside
-whatever the parameters.
+whatever the parameters. They are also kept `FRONT_SHELL_CLEARANCE` (0.4mm)
+clear of the front shell: with the front pads pushed forward, their tapers
+reach under the front shell's bottom edge, and without the clip they would
+touch it at the joint line.
 
 **Two pads per fin, not one.** The brief said "a foot pad per fin". One pad
 per fin is two contact points, i.e. a line: the body would rock front to
 back over it at any lean. A pad at each end of each fin's bottom edge is the
-minimum stable stance (a rectangle of four feet). **Needs the user's
-confirmation.**
+minimum stable stance (a rectangle of four feet). **Confirmed by the user
+2026-11-17.**
 
 **Parameters.** All user-tunables are at the top of `back_shell.scad`,
 before `include <common.scad>`, with OpenSCAD Customizer annotations
 (`/* [Stand] */`, `/* [Fins] */`, `/* [Feet] */`, `/* [Render] */`,
 `// [min:step:max]` ranges, a description line above each; derived values
-live under `/* [Hidden] */`): `LEAN_DEG` (15, the single lean variable),
+live under `/* [Hidden] */`): `LEAN_DEG` (15, the single lean variable;
+slider 8..25, since below ~8 the CoG moves far enough forward that the front
+tip-over margin gets thin),
 `FLOAT_GAP` (0 = fin bottoms flush with the body's lowest edge, which with
 the body leaning back is the back wall's bottom-outer edge; the float then
 comes from the feet alone), `FIN_T`, `FIN_OFFSET_X`, `FIN_TOP_Q`,
 `FIN_REACH`, `FOOT_DIA` (6.5, the user's feet), `FOOT_RECESS_DEPTH`,
 `FOOT_RECESS_CLEARANCE`, `FOOT_PAD_RIM`, `FOOT_PAD_T`, `FRONT_FOOT_OFFSET`
-(front foot's rear edge relative to the rear-bottom edge; 0 by default),
+(front foot's rear edge relative to the rear-bottom edge, + = forward under
+the body; 3.5 by default for ~7.5mm of forward tip-over margin),
 `FOOT_H` (display only: the assembly view's rubber feet; no printed geometry
 uses it), `SHOW_FEET`, `PART`. Asserts stop a render that would put a fin
 above or beside the body in the front view, crowd the USB-C opening (< 5mm),
@@ -290,41 +297,58 @@ Maker), `common.scad` has to be inlined first (`pilink-c6z`).
 
 **Regenerates from LEAN_DEG / FLOAT_GAP.** `check_fit.sh` renders the
 printable part at LEAN 10/15/20 x FLOAT 0/5: all six are watertight, the
-fin bottoms land at Y = -FLOAT_GAP and the rear end at Z = -41.65 in every
+fin bottoms land at Y = -FLOAT_GAP and the rear end at Z = -49.65 in every
 case (side- and front-view PNGs were also looked at).
 
 **Front view.** The fins themselves are hidden behind the body. What a
 straight-on (horizontal) front view can see, per `check_fit.sh` (body box
-swept back, subtracted from the part):
+swept back and subtracted from the part; what sits directly behind a front
+pad's disc is counted as hidden by it; the earlier figures here also counted
+zero-volume coplanar slivers along the bottom face, now filtered out):
 
 | LEAN | FLOAT 0 | FLOAT 5 |
 |---|---|---|
-| 10 | front pads only, up to 1.84mm above the fin bottom | fin bottoms + pads below the body, up to 6.84mm above the fin bottom |
-| 15 | front pads only, up to 2.47mm | up to 5.72mm (the 5mm gap + 0.72) |
-| 20 | front pads only, up to 3.63mm | up to 8.63mm |
+| 10 | front pads only, up to 1.75mm above the fin bottom | fin bottoms + pads below the body, up to 5.12mm above the fin bottom |
+| 15 | front pads only, up to 2.62mm | up to 5.19mm (the 5mm gap + the fin tip's 0.19) |
+| 20 | front pads only, up to 3.45mm | up to 5.25mm |
 
 The front pads must reach forward of the body's rear-bottom edge (next
-paragraph), so their front halves and the rubber feet show as a short lip
-under the bottom edge. Seen from above the face normal (a seated user
-looking down) the lip is behind the body.
+paragraph); at the default `FRONT_FOOT_OFFSET` 3.5 each pad spans Z
+2.1..11.4, i.e. it sits entirely under the body, in front of its sloped
+underside. Seen dead level, the body's outline reaches down to the
+rear-bottom edge, so the pads (up to 2.62mm tall at LEAN 15) show against
+the underside, inside that outline; what hangs *below* the outline is only
+the rubber feet, `FOOT_H - FOOT_RECESS_DEPTH` (1.4mm with 2mm feet, 2.4mm
+with 3mm feet). The front pad's thin fin tip (3 x 0.2mm, Z 0.1..0.8) is
+behind the pad. Seen from above the face normal (a seated user looking
+down) all of it is behind the body.
 
 **Tip-over margin (default config).** Mass model in `check_fit.py`:
 rendered shells, knob, plungers and antenna mount at 1.24 g/cm³ solid, PCB
 slab FR4 1.85, component envelope boxes 1.0, display stack box 0.9 (~7.4 g),
-M2 screws steel: body ~81 g, fins ~7 g. Body CoG (no fins) at Q 28.35 / bz
-10.23 (local) = world Z +2.55, i.e. 2.6mm **ahead** of the rear-bottom edge;
-31.4mm above the table (FOOT_H 2.0). Feet contact runs Z -40.25 .. +6.50.
+M2 screws steel: body ~81 g, fins ~8.4 g. Body CoG (no fins) at Q 28.35 /
+bz 10.23 (local) = world Z +2.55, i.e. 2.6mm **ahead** of the rear-bottom
+edge; 31.4mm above the table (FOOT_H 2.0). Feet contact runs Z -48.25 ..
++10.00 (`FIN_REACH` 45, `FRONT_FOOT_OFFSET` 3.5).
 
-- **Front: 3.95mm** (CoG without fins, the conservative case): the body tips
-  forward after ~7.2° of forward tilt. Thin. It scales with the lean: about
-  1.4mm at LEAN 10, 6.6mm at LEAN 20 (same model). `FRONT_FOOT_OFFSET` buys
-  more, at the price of a bigger visible lip.
-- **Back: 41.2mm** (CoG with fins, Z +0.98): ~52.7° before it tips back.
+- **Front: 7.45mm** (CoG without fins, the conservative case): the body tips
+  forward after ~13.3° of forward tilt. That is more than a few mm of error
+  in the mass model's CoG. It scales with the lean: about 4.9mm at LEAN 10,
+  10.1mm at LEAN 20 (same model), 3.8mm at the slider minimum LEAN 8.
+- **Back: 48.7mm** (CoG with fins, Z +0.49): ~57° before it tips back.
 - **Button press:** a press along the face normal at the A/B/X/Y diamond
-  tips it back over the rear feet at ~1.87 N (if the feet don't slide
-  first), under the ADR's ~2.5 N press estimate. A longer reach helps:
-  roughly 2.5 N at `FIN_REACH` ≈ 45 and 3 N at ≈ 50 (estimate, same model).
-  The ADR's physical feet test still decides.
+  tips it back over the rear feet at ~2.5 N (if the feet don't slide
+  first), about the ADR's ~2.5 N press estimate, and about where the ADR's
+  own friction figure (~1.75 N on 110 g, mu ~1.6) says it would slide
+  anyway. More reach stops helping past this point (37mm gave ~1.9 N). The
+  ADR's physical feet test still decides.
+- **Knob detent torque (roll sideways over one fin's feet):** restoring
+  moment 0.87 N x 31.2mm = 27.2 N.mm (the CoG sits 2.05mm left of the face
+  centre, towards the knob, so the left feet are the near side) against the
+  detent torque's roll component T cos(15°): 9.7 N.mm nominal (10 mN.m),
+  16.4 N.mm worst case (17 mN.m). **~2.8x nominal, ~1.7x worst case.** The
+  ADR's two legs at +/-40mm gave about 3x; the fins' feet are at +/-33.25mm
+  (outer edges) on a lighter body.
 
 `back_shell.scad` carries the body CoG as `COG_Q`/`COG_BZ` and echoes both
 margins for whatever LEAN/feet are chosen; `check_fit.sh` WARNs if those
@@ -332,13 +356,15 @@ constants drift >0.5mm from the mass model.
 
 **Clearances.** USB-C (J401 exits the rear at face X 63.75, Q 16): a
 max-spec 12.35 x 6.5 plug overmould run 60mm straight back clears the fins
-by ~19.3mm; a 12.35mm-wide cable corridor from the exit down to the table
+by ~19.2mm; a 12.35mm-wide cable corridor from the exit down to the table
 and 100mm back clears them by ~19.2mm (opening edge to fin plate 21.9mm,
 to pad 18.75mm, per the scad echo). The fins run at a constant X, so this
 holds along the whole cable run. Antenna pigtail notch (internal, top wall,
-face X 107..114): ~19.5mm to the nearest fin. Fins vs front shell 2.6mm, vs
-PCB + every envelope body 2.6mm, vs the back cavity: outside (clipped flush
-where a pad taper reaches the bottom wall at FLOAT 0). With FLOAT 0 the
+face X 107..114): ~19.5mm to the nearest fin. Fins vs the front shell
+0.4mm (`FRONT_SHELL_CLEARANCE`); vs PCB + every envelope body 1.0mm (the
+front pad tapers, fused into the bottom wall, sit the same 1.0mm from the
+board's bottom edge as the wall itself); vs the back cavity: outside
+(clipped flush where a pad taper reaches the bottom wall). With FLOAT 0 the
 table sits `FOOT_H - FOOT_RECESS_DEPTH` (1.4mm with 2mm feet) below the
 body's lowest edge; the USB-C cable-vs-table figures only get better.
 
