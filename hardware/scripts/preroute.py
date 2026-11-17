@@ -186,7 +186,7 @@ def main():
     # courtyard (east side) give the isolated B.Cu pocket under L101 a GND
     # connection so GND_B fills there. L101 pad 2 -> C104 pad 1 is a locked
     # 0.4mm F.Cu link (+1V1; widen.py could not widen the router's 0.2mm one).
-    # route.py keeps B.Cu routing out of x 45.9..53, y 13..20.5 (l101_keepout.py
+    # route.py keeps B.Cu routing out of x 47..53, y 13..20.5 (l101_keepout.py
     # PLANE_B) so these vias land on one connected GND_B region.
     x62, y62 = pad("U101", "62")
     path("GND", F, [(x62, y62), (x62, y62 + 1.2)])
@@ -195,6 +195,9 @@ def main():
     path("GND", F, [(xc3, yc3), (xc3, yc3 - 0.9)])
     via("GND", xc3, yc3 - 0.9)
     xc4, yc4 = pad("C104", "2")
+    # locked B.Cu GND link C103 via <-> C104 via (merges into GND_B): keeps
+    # the router from linking them on F.Cu across the FB column below.
+    path("GND", B, [(xc4, yc4 + 0.9), (xc3, yc3 - 0.9)])
     path("GND", F, [(xc4, yc4), (xc4, yc4 + 0.9)])
     via("GND", xc4, yc4 + 0.9)
     lx, ly = pad("L101", "2")
@@ -202,6 +205,12 @@ def main():
         via("GND", lx + 3.3, ly + 1.6 + dy + 0.0)
     c1x, c1y = pad("C104", "1")
     path("+1V1", F, [(c1x, c1y), (lx, ly)], width=0.4)
+    # VREG_FB (U101 pin 65) -> C104 pad 1: locked straight F.Cu run up its own
+    # column, ~6mm, so the router cannot send it the long way round (it did
+    # once PLANE_B blocked the B.Cu exit). Stays between the C104 GND via
+    # and C103's pads.
+    x65, y65 = pad("U101", "65")
+    path("+1V1", F, [(x65, y65), (x65, c1y + 0.8), (c1x, c1y)])
 
     pcbnew.SaveBoard(BOARD, board)
     print("pre-routed USB D+/D-, XIN/XOUT, backlight, SW101/SW102 BOOTSEL/RESET + GND escapes (locked)")

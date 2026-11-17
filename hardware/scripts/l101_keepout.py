@@ -24,7 +24,7 @@ MARGIN = 0.1
 NAME_RT = "KO_L101_RT_B"
 # B.Cu region (board-local mm, x0,y0,x1,y1) kept free of routed copper so the
 # GND_B plane under L101 joins U101 pin 62 / C103 / C104 (pilink-2wq).
-PLANE_B = [(47.0, 13.0, 53.0, 20.5), (45.9, 13.0, 47.0, 16.5)]
+PLANE_B = [(47.0, 13.0, 53.0, 20.5)]
 NAME_RT_F = "KO_L101_RT_F"
 NAME_F = "KO_L101_F"
 
