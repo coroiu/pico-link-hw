@@ -20,6 +20,7 @@ import csv
 import datetime
 import glob
 import json
+import math
 import os
 import re
 import shutil
@@ -31,9 +32,29 @@ import zipfile
 # Footprint libraries that are project-local (hand-authored or vendor-copied),
 # as opposed to KiCad's stock libraries -- see hardware/fp-lib-table.
 CUSTOM_LIBS = {"RP2350_80QFN", "Connector_FPC", "Connector_USB_Custom"}
-# Designator prefixes whose JLCPCB rotation convention commonly differs from
-# KiCad's (polarised / orientation-dependent parts). Plain R/C are symmetric.
-ROT_SENSITIVE = ("U", "Y", "J", "SW", "L", "D", "Q", "F")
+# JLCPCB package rotation offsets (degrees, added after the bottom-side
+# conversion), first regex match on the footprint name wins. Transcribed from
+# bennymeg/Fabrication-Toolkit plugins/transformations.csv (duplicates
+# removed; its Delta X/Y columns are all 0).
+ROT_TABLE = [
+    ("^Bosch_LGA-", 90), ("^CP_EIA-", 180), ("^CP_Elec_", 180), ("^C_Elec_", 180),
+    ("^DFN-", 270), ("^D_SOT-23", 180), ("^HTSSOP-", 270), ("^JST_GH_SM", 180),
+    ("^JST_PH_S", 180), ("^LQFP-", 270), ("^MSOP-", 270), ("^PowerPAK_SO-8_Single", 270),
+    ("^QFN-", 90), ("^R_Array_Concave_", 90), ("^R_Array_Convex_", 90), ("^SC-74-6", 180),
+    ("^SOIC-", 270), ("^SOIC127P798X216-8N", -90), ("^SOP-(?!18_)", 270), ("^SOP-18_", 0),
+    ("^SOP-4_", 0), ("^SOT-143", 180), ("^SOT-223", 180), ("^SOT-23", 180),
+    ("^SOT-353", 180), ("^SOT-363", 180), ("^SOT-89", 180), ("^SSOP-", 270),
+    ("^SW_SPST_B3", 90), ("^TDSON-8-1", 270), ("^TO-277", 90), ("^TQFP-", 270),
+    ("^TSOT-23", 180), ("^TSSOP-", 270), ("^UDFN-10", 270), ("^USON-10", 270),
+    ("^VSON-8_", 270), ("^VSSOP-10_-", 270), ("^VSSOP-8_", 180), ("^qfn-", 90),
+]
+
+
+def rot_delta(name):
+    for pat, deg in ROT_TABLE:
+        if re.search(pat, name):
+            return float(deg)
+    return 0.0
 GERBER_LAYERS = "F.Cu,B.Cu,F.Paste,B.Paste,F.SilkS,B.SilkS,F.Mask,B.Mask,Edge.Cuts"
 
 
@@ -141,41 +162,92 @@ def main():
         "%d placed parts in %d lines; DNP excluded. Columns: Comment, Designator, "
         "Footprint, LCSC Part #. LCSC numbers come from hardware/BOM.md." % (len(placed), len(order)))
 
-    # ---- CPL, top and bottom in one file.
+    # ---- CPL, top and bottom in one file. kicad-cli's pos export gives the
+    # footprint ANCHOR and KiCad's rotation; JLCPCB wants the part CENTRE and
+    # its own rotation convention, so positions/rotations are recomputed with
+    # pcbnew the way bennymeg/Fabrication-Toolkit (plugins/process.py,
+    # _get_footprint_position + generate_tables) does it:
+    #   centre   = centre of the bounding box of all the footprint's pads
+    #   Y        = -Y (KiCad's Y points down)
+    #   bottom   = rotation 180 - rot ("JLC expect Rotation as viewed from
+    #              above"; same in Bouni/kicad-jlcpcb-tools fabrication.py)
+    #   package offset = ROT_TABLE (Fabrication-Toolkit transformations.csv)
+    #   rotation normalised to [0, 360)
+    # kicad-cli's pos export stays as the reference for the set of placed
+    # parts and the raw anchor/rotation (cross-checked below).
+    import pcbnew
     raw_pos = os.path.join(tmp, "pos.csv")
     run(["kicad-cli", "pcb", "export", "pos", "--exclude-dnp", "--format", "csv",
          "--units", "mm", "--side", "both", "-o", raw_pos, pcb])
     with open(raw_pos, newline="", encoding="utf-8") as f:
-        pos = list(csv.DictReader(f))
+        ref_pos = {r["Ref"]: r for r in csv.DictReader(f)}
+    board = pcbnew.LoadBoard(pcb)
+    cpl = []
+    for fp in board.GetFootprints():
+        if fp.GetAttributes() & pcbnew.FP_EXCLUDE_FROM_POS_FILES or fp.IsDNP():
+            continue
+        ax, ay = fp.GetPosition().x / 1e6, -fp.GetPosition().y / 1e6
+        rot = fp.GetOrientation().AsDegrees()
+        bottom = fp.GetLayer() != pcbnew.F_Cu
+        pads = list(fp.Pads())
+        cx, cy = ax, ay
+        if pads and rot % 90 == 0:
+            bb = pads[0].GetBoundingBox()
+            for pd in pads:
+                bb.Merge(pd.GetBoundingBox())
+            cx, cy = bb.GetCenter().x / 1e6, -bb.GetCenter().y / 1e6
+        fname = str(fp.GetFPID().GetLibItemName())
+        delta = rot_delta(fname)
+        cpl.append(dict(ref=fp.GetReference(), x=cx, y=cy, ax=ax, ay=ay,
+                        side="bottom" if bottom else "top",
+                        rot=(((180.0 - rot) if bottom else rot) + delta) % 360.0,
+                        kicad_rot=rot, delta=delta,
+                        fp=str(fp.GetFPID().GetLibNickname()) + ":" + fname))
+    cpl.sort(key=lambda r: natkey(r["ref"]))
+    if {r["ref"] for r in cpl} != set(ref_pos):
+        raise RuntimeError("pcbnew/kicad-cli placed-part mismatch: %s"
+                           % sorted({r["ref"] for r in cpl} ^ set(ref_pos)))
+    for r in cpl:
+        k = ref_pos[r["ref"]]
+        drot = (float(k["Rot"]) - r["kicad_rot"] + 180) % 360 - 180
+        if abs(float(k["PosX"]) - r["ax"]) > 1e-3 or abs(float(k["PosY"]) - r["ay"]) > 1e-3 \
+                or abs(drot) > 1e-3:
+            raise RuntimeError("pcbnew anchor/rotation disagrees with kicad-cli for " + r["ref"])
     cpath = os.path.join(out, name + "-cpl-jlcpcb.csv")
     with open(cpath, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f, quoting=csv.QUOTE_ALL)
         w.writerow(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
-        for r in sorted(pos, key=lambda r: natkey(r["Ref"])):
-            w.writerow([r["Ref"], "%.4f" % float(r["PosX"]), "%.4f" % float(r["PosY"]),
-                        "Top" if r["Side"] == "top" else "Bottom", "%g" % float(r["Rot"])])
-    nbot = sum(1 for r in pos if r["Side"] != "top")
+        for r in cpl:
+            w.writerow([r["ref"], "%.4f" % r["x"], "%.4f" % r["y"],
+                        "Top" if r["side"] == "top" else "Bottom", "%g" % round(r["rot"], 4)])
+    nbot = sum(1 for r in cpl if r["side"] == "bottom")
     add(cpath, "CPL / pick-and-place (JLCPCB CSV)",
-        "%d parts (%d top, %d bottom); DNP excluded. Columns: Designator, Mid X, "
-        "Mid Y, Layer, Rotation." % (len(pos), len(pos) - nbot, nbot))
+        "%d parts (%d top, %d bottom); DNP excluded. Mid X/Y = pad-bbox centre; bottom "
+        "rotation = 180 - KiCad rotation; package offsets applied; rotation in [0,360)."
+        % (len(cpl), len(cpl) - nbot, nbot))
 
-    # ---- Parts worth a second look in JLCPCB's placement preview.
-    fp_of = {r["Designator"]: r["Footprint"] for r in placed}
-    side_of = {r["Ref"]: r["Side"] for r in pos}
+    # ---- Parts to double-check in JLCPCB's placement preview, by name.
     flagged = []
-    for d in sorted(fp_of, key=natkey):
-        sensitive = d.startswith(ROT_SENSITIVE)
-        why = []
-        if fp_of[d].split(":")[0] in CUSTOM_LIBS:
-            why.append("custom/project-local footprint (pad geometry and 3D origin not from KiCad's stock library)")
+    for r in cpl:
+        d, why = r["ref"], []
+        shift = math.hypot(r["x"] - r["ax"], r["y"] - r["ay"])
+        custom = r["fp"].split(":")[0] in CUSTOM_LIBS
+        if r["delta"]:
+            why.append("package rotation offset %+g applied (Fabrication-Toolkit table)" % r["delta"])
+        if r["side"] == "bottom" and not re.match(r"[RC]\d", d):
+            why.append("bottom side: rotation converted with 180 - rot")
+        if shift > 0.1:
+            why.append("CPL centre is %.2f mm from the footprint anchor" % shift)
+            print("[fab] %s: anchor (%.4f, %.4f) -> centre (%.4f, %.4f), %.2f mm; rot KiCad %g -> JLCPCB %g"
+                  % (d, r["ax"], r["ay"], r["x"], r["y"], shift, r["kicad_rot"], r["rot"]))
+        if custom:
+            why.append("custom/project-local footprint: JLCPCB's part model may be oriented differently")
         if d not in lcsc:
             why.append("no LCSC number (BOM.md lists it as not in JLCPCB's catalog)")
-        if sensitive:
-            why.append("orientation-dependent part: JLCPCB's reference rotation may differ from KiCad's")
-            if side_of.get(d, "top") != "top":
-                why.append("bottom side: mirrored rotation convention")
+        if not r["delta"] and not custom and re.match(r"(U|J|SW|Y|D)\d", d):
+            why.append("no known JLCPCB rotation offset for this package; verify orientation in the preview")
         if why:
-            flagged.append(dict(ref=d, footprint=fp_of[d], reasons=why))
+            flagged.append(dict(ref=d, footprint=r["fp"], reasons=why))
 
     # ---- Enclosure STLs, one per printed part: whatever export_enclosure.py
     # rendered (the part list is not duplicated here).
@@ -184,23 +256,30 @@ def main():
     if os.path.exists(parts_json):
         with open(parts_json) as f:
             labels = {p["key"]: p["label"] for p in json.load(f).get("parts", [])}
+    notes = {}
+    notes_json = os.path.join(stl_dir, "stl", "orientation.json")
+    if os.path.exists(notes_json):
+        with open(notes_json) as f:
+            notes = json.load(f)
     os.makedirs(os.path.join(out, "stl"), exist_ok=True)
     for src in sorted(glob.glob(os.path.join(stl_dir, "stl", "*.stl"))):
         key = os.path.splitext(os.path.basename(src))[0]
         dst = os.path.join(out, "stl", key + ".stl")
         shutil.copyfile(src, dst)
         add(dst, "STL: " + labels.get(key, key),
-            "OpenSCAD render in the part's own frame (not the assembled pose).", group="stl")
+            "Print orientation: " + notes.get(key, "as rendered by OpenSCAD (no print "
+                                                  "orientation defined for this part)."),
+            group="stl")
 
     manifest = dict(
         generated=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         commit=os.environ.get("FAB_SOURCE_COMMIT", "unknown"), files=files,
-        missing_lcsc=missing, flagged=flagged, placed=len(placed), cpl_rows=len(pos))
+        missing_lcsc=missing, flagged=flagged, placed=len(placed), cpl_rows=len(cpl))
     with open(os.path.join(out, "fab.json"), "w") as f:
         json.dump(manifest, f, indent=1)
     shutil.rmtree(tmp, ignore_errors=True)
     print("[fab] %d files; BOM %d parts (%d without LCSC), CPL %d rows, %d flagged"
-          % (len(files), len(placed), len(missing), len(pos), len(flagged)))
+          % (len(files), len(placed), len(missing), len(cpl), len(flagged)))
 
 
 if __name__ == "__main__":

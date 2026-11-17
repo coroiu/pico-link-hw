@@ -50,13 +50,19 @@ few seconds -- no restart needed.
   section under `site/fab/`: a JLCPCB Gerber+drill zip (Protel extensions,
   Excellon PTH/NPTH), a BOM CSV (Comment, Designator, Footprint, LCSC Part #)
   and a CPL CSV (Designator, Mid X, Mid Y, Layer, Rotation), all via
-  `kicad-cli` with `--exclude-dnp`, plus one STL per enclosure part (the raw
-  OpenSCAD renders `export_enclosure.py` already makes, so the part list is
-  never duplicated) and `fab.json` (names, sizes, generation time, source git
+  `kicad-cli` with `--exclude-dnp` (CPL positions/rotations recomputed with
+  `pcbnew` as Fabrication-Toolkit does: pad-bbox centre, bottom rotation
+  `180 - rot`, package offset table, `[0,360)`), plus one print-oriented STL
+  per enclosure part (rendered by `export_enclosure.py`, which owns the part
+  list and each part's print orientation) and `fab.json` (names, sizes, generation time, source git
   commit, parts without LCSC, parts to double-check). The schematic has no
   LCSC field, so LCSC numbers are parsed from `hardware/BOM.md`. The source
   commit comes from `../.git` mounted read-only; in a git worktree `.git` is
-  a file and the commit shows as "unknown".
+  a file and the commit shows as "unknown" (override the mount with
+  `GIT_DIR_MOUNT`). `site/fab` is a symlink into `site/fab.d/<timestamp>`,
+  swapped atomically; a failed fab export keeps the previous files but sets
+  `fab_status` in `status.json`, which the page shows as STALE. BOM.md edits
+  and git commits (reflog) also trigger a re-export.
 - The PCB GLB (copper tracks, pads, vias and zones/GND pours included) is
   post-processed with `gltf-transform optimize` (meshopt compression, no
   simplification): the raw `kicad-cli` export is ~13.5MB in ~17k separate

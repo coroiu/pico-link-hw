@@ -27,12 +27,20 @@ echo "[watch] watching $HARDWARE_DIR and $ENCLOSURE_DIR for changes"
 # -r: recurse (hardware/enclosure may gain subdirectories later).
 # close_write/create/delete/move: covers editors that write-in-place and
 # ones that write-then-rename.
+# Also watched: the mounted repo's reflog (when ../.git is a real directory),
+# so a commit/checkout refreshes the "source commit" label on the Files
+# section (hardware/BOM.md edits are covered by the hardware/ watch).
+WATCH=("$HARDWARE_DIR" "$ENCLOSURE_DIR")
+[[ -d /work/gitdir/logs ]] && WATCH+=(/work/gitdir/logs)
 inotifywait -m -r -e close_write,create,delete,move --format '%w%f' \
-    "$HARDWARE_DIR" "$ENCLOSURE_DIR" 2>&1 |
+    "${WATCH[@]}" 2>&1 |
 while read -r changed_path; do
   case "$changed_path" in
-    *.kicad_pcb | *.scad | *.kicad_sch)
+    *.kicad_pcb | *.scad | *.kicad_sch | */BOM.md | */logs/HEAD)
       echo "[watch] change detected: $changed_path"
+      # Coalesce bursts (editor saves, rebases writing many reflog lines):
+      # wait until the stream has been quiet for 3s, then export once.
+      while read -r -t 3 _; do :; done
       /preview/scripts/export.sh
       ;;
     *)

@@ -182,11 +182,15 @@
     <h2>Files (JLCPCB fab files + enclosure STLs)</h2>
     <div id="files-meta" class="meta">loading...</div>
     <table id="files-table"><tbody></tbody></table>
-    <p class="note">JLCPCB's CPL rotation offsets differ from KiCad's for some
-      packages (typically ICs, connectors, polarised parts): check each part's
-      orientation in JLCPCB's placement preview and correct it there before
-      ordering. The BOM's LCSC numbers come from <code>hardware/BOM.md</code>
-      (the schematic has no LCSC field).</p>
+    <p class="note">CPL positions are pad-bounding-box centres and bottom-side
+      rotations are converted (180 - KiCad rotation), with package rotation
+      offsets from Fabrication-Toolkit's table applied. JLCPCB's offsets can
+      still be wrong for packages not in that table (custom footprints,
+      connectors, modules): check the parts listed below in JLCPCB's placement
+      preview and correct them there before ordering. LCSC numbers come from
+      <code>hardware/BOM.md</code> (the schematic has no LCSC field). STLs are
+      in a print orientation (see each file's description), not the assembled
+      pose.</p>
     <div id="files-warn"></div>
   </div>
 </div>
@@ -266,7 +270,7 @@
   function fmtSize(n) {
     return n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(2) + ' MB';
   }
-  async function loadFiles(ts) {
+  async function loadFiles(ts, fabStatus) {
     const meta = document.getElementById('files-meta');
     const tbody = document.querySelector('#files-table tbody');
     const warn = document.getElementById('files-warn');
@@ -274,7 +278,19 @@
       const res = await fetch('/fab/fab.json?t=' + encodeURIComponent(ts), { cache: 'no-store' });
       if (!res.ok) throw new Error('status ' + res.status);
       const m = await res.json();
-      meta.textContent = 'Generated ' + m.generated + ' from git commit ' + m.commit;
+      meta.textContent = 'Generated ' + m.generated + ' from git commit ' + m.commit +
+        ' (the commit and uncommitted-changes state are read at export time)';
+      if (fabStatus && fabStatus !== 'ok') {
+        const why = fabStatus === 'failed'
+          ? 'The latest fab export FAILED (see the container log). The files below are from the previous successful export at ' + m.generated + ' and do NOT match the current source.'
+          : 'The latest export skipped the fab files; the files below are from ' + m.generated + ' and may not match the current source.';
+        meta.textContent = 'STALE: ' + why;
+        meta.style.color = '#c0392b';
+        meta.style.fontWeight = '600';
+      } else {
+        meta.style.color = '';
+        meta.style.fontWeight = '';
+      }
       tbody.innerHTML = '';
       for (const f of m.files) {
         const tr = el('tr');
@@ -299,7 +315,7 @@
         warn.appendChild(d);
       }
     } catch (err) {
-      meta.textContent = 'no fab export yet';
+      meta.textContent = fabStatus === 'failed' ? 'Fab export FAILED and no earlier files exist (see the container log).' : 'no fab export yet';
       tbody.innerHTML = '';
     }
   }
@@ -313,7 +329,7 @@
         lastExport = data.last_export;
         bust(document.getElementById('pcb-model'), 'src', '/models/pcb.glb', lastExport);
         loadEnclosureParts(lastExport);
-        loadFiles(lastExport);
+        loadFiles(lastExport, data.fab_status);
         bust(document.getElementById('pcb-render-front'), 'src', '/renders/pcb-front.svg', lastExport);
         bust(document.getElementById('pcb-render-back'), 'src', '/renders/pcb-back.svg', lastExport);
         bust(document.getElementById('schematic-pdf'), 'src', '/renders/schematic.pdf', lastExport);
