@@ -371,11 +371,12 @@ LEG_DY = leg_foot_y - leg_mount_y;  // world Y, wall-mount point -> foot
 LEG_DZ = leg_foot_z - leg_mount_z;  // world Z, wall-mount point -> foot
 leg_length = sqrt(LEG_DY*LEG_DY + LEG_DZ*LEG_DZ);
 
-// Review finding #2: a single straight screw has to run the leg's full
-// length, from the foot into the mount boss's own insert -- so the
-// boss itself must be tilted to point along this same mount->foot
-// line, not straight out from the (near-vertical) back wall (the
-// original bug: those two axes were ~37 deg apart, and the channel
+// Review finding #2: the leg is now glued on (pilink-8jy: keyed peg in
+// a blind socket; the full-length screw channel and insert are gone),
+// but the boss is still tilted to point along this same mount->foot
+// line, so the leg continues the boss axis instead of kinking away
+// from the (near-vertical) back wall (the original bug, from the
+// screw days: those two axes were ~37 deg apart, so the channel
 // stopped at the boss's base instead of reaching the insert at its
 // tip). Deriving the LOCAL (pre-lean-rotation) tilt that achieves this:
 // rotating a cylinder (default +Z) by angle theta about local X, then
@@ -719,7 +720,7 @@ module base_strip() {
 // strut's solid stops at the boss's own tip FACE instead of wrapping
 // around and past it. This still leaves the exact mounting lug/socket
 // interface geometry (where the leg physically registers onto the
-// boss, beyond just the screw) unmodelled -- a human should add that
+// boss, beyond the glued peg and socket) unmodelled -- a human should add that
 // once this is actually rendered and fitted.
 
 module leg(side) {

@@ -39,6 +39,13 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
 - **Support:** **two splayed rear legs** (about +/-40 mm, feet about
   45-50 mm behind the front edge) as a fixed, non-hinged printed A-frame
   screwed to the back shell. Not a single strut.
+  **Amended 2026-11-17 (`pilink-8jy`):** the legs are glued, not screwed. Each
+  leg has a keyed peg (double-flat D profile) that fits a blind socket in the
+  back-shell boss, secured with CA/epoxy; the screw, heat-set insert and
+  screw channel are gone. This was a user decision on 2026-11-17. The
+  "screwed" wording above is kept for history and is superseded by this
+  amendment. The rest of the Support decision (two legs, +/-40 mm, fixed
+  A-frame) is unchanged.
 - **PCB:** a single flat main board **standing parallel to the face**, about
   118 x 50 mm. All front-side placement rules from the proposal apply:
   - a panel-shadow keep-out with only low parts under the display;
