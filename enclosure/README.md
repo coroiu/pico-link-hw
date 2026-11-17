@@ -291,6 +291,12 @@ the "U201 back-side relief", "J401 boss" and "leg boss" descriptions below
    foot counterbore or heat-set insert. Use CA/epoxy; the 0.175mm gap and 0.2mm
    bottom pocket are untested on a real print. No fillet (oblique
    cylinder-to-plane blend not modelled).
+   Print and assembly notes: print each leg foot-pad down (flat foot on the
+   bed) so the peg is printed overhanging-free and the foot is flat. Let the
+   glue cure with the assembled device standing on its feet on a flat table,
+   not lying down or held in a jig: the double-flat key still allows about
+   +/-7.8 degrees of rotation play about the boss axis, and the table sets
+   both legs to the same height and angle.
 4. **Feet pockets.** The shell's rear-bottom corner dips into the strip's
    y 0..1 band over z ~0..3.7, filling about half of each pocket. The pocket
    cutters (`feet_recess_cutters()`) are now subtracted from the shell too
