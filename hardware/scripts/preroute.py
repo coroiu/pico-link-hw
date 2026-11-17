@@ -14,9 +14,15 @@ stitching vias are untouched (pilink-ggt).
 
   * USB_DP / USB_DM: J401's data pads alternate DP/DM/DP/DM and are plated
     through, so DM is linked A7->B7 on F.Cu and DP A6->B6 on B.Cu (the two
-    links cross on different layers). Each net then rises from B7/B6 on
-    F.Cu to a via, runs B.Cu as a 45-degree parallel pair under U101's
-    body to a via just inside pins 66/67, and returns to the pin on F.Cu.
+    links cross on different layers). Since pilink-8rz/e63 each net runs on
+    B.Cu from B7/B6 through U401's flow-through pad pair (ESD), north and
+    then as a 45-degree parallel pair to R106/R107 (27R, B.Cu under U101),
+    and from the resistor to a via at pin 66/67 (the MCU-side nets
+    USB_DM_MCU / USB_DP_MCU). U401's GND and VBUS pins get their own vias.
+  * U201 decoupling / EN (pilink-fvz): pin 2 -> C202 -> C201, pin 3 ->
+    C203 -> R201, two GND vias, all B.Cu.
+  * +3V3 trunk (pilink-yt5): 0.8mm F.Cu from U1's tab to two vias at C202,
+    along the empty strip above the panel.
   * XIN / XOUT: out of U101's bottom edge between decoupling caps C110/C117,
     then to Y101 pad 1 / R101 pad 2 (F.Cu), ending at each pad's centre
     (pilink-xzs: XIN used to stop 0.57mm short of Y101 pad 1 and leave the
@@ -57,8 +63,16 @@ RESET_NET = "/RP2350B + Memory/RESET_NODE"
 LX_NET = "/RP2350B + Memory/VREG_LX"
 QSPI_NETS = ["/RP2350B + Memory/" + n for n in
              ("QSPI_SCLK", "QSPI_SD0", "QSPI_SD1", "QSPI_SD2", "QSPI_SD3", "QSPI_SS")]
-PREROUTE_NETS = ["USB_DP", "USB_DM", XIN, XOUT, LED_K, LED_A,
-                 BOOT_NET, RESET_NET, "GND", "+1V1", LX_NET] + QSPI_NETS
+# pilink-audit-a: USB MCU-side nets (U101 <-> R106/R107), the U401 VBUS via,
+# the ESP32 EN/decoupling links and the +3V3 trunk. zones.py owns the locked
+# +3V3 stitching vias inside its SPREADER box and re-creates them itself.
+DP_MCU = "/RP2350B + Memory/USB_DP_MCU"
+DM_MCU = "/RP2350B + Memory/USB_DM_MCU"
+VBUS = "/USB-C/VBUS_RAW"
+ORIGIN = 100.0   # board-local (0,0) on the KiCad page; keep in sync with place.py
+PREROUTE_NETS = ["USB_DP", "USB_DM", DP_MCU, DM_MCU, VBUS, XIN, XOUT, LED_K, LED_A,
+                 BOOT_NET, RESET_NET, "GND", "+1V1", "+3V3", "ESP32_EN",
+                 LX_NET] + QSPI_NETS
 
 
 def main():
@@ -98,33 +112,99 @@ def main():
 
     F, B = pcbnew.F_Cu, pcbnew.B_Cu
 
-    # ---- USB ------------------------------------------------------------
-    a6, a7 = pad("J401", "A6"), pad("J401", "A7")   # row nearer the board
-    b6, b7 = pad("J401", "B6"), pad("J401", "B7")   # row nearer the shell
+    # ---- USB (pilink-8rz / pilink-e63) ----------------------------------
+    # J401 -> U401 (USBLC6-2SC6, B.Cu, flow-through) -> B.Cu pair -> R106/R107
+    # (27R, B.Cu under U101) -> via -> U101 pins 66/67 on F.Cu. Everything
+    # between the connector and the resistors is on B.Cu, one via per line.
+    a6, a7 = pad("J401", "A6"), pad("J401", "A7")   # row nearer the board edge
+    b6, b7 = pad("J401", "B6"), pad("J401", "B7")   # row nearer U401
     u_dp, u_dm = pad("U101", "67"), pad("U101", "66")
+    e_dp_s, e_dp_n = pad("U401", "1"), pad("U401", "6")   # I/O1 = D+
+    e_dm_s, e_dm_n = pad("U401", "3"), pad("U401", "4")   # I/O2 = D-
+    e_gnd, e_vbus = pad("U401", "2"), pad("U401", "5")
+    r_dp1, r_dp2 = pad("R107", "1"), pad("R107", "2")
+    r_dm1, r_dm2 = pad("R106", "1"), pad("R106", "2")
     assert a6[0] < a7[0] and b7[0] < b6[0] and u_dp[0] < u_dm[0], \
         "USB pre-route assumes the current J401/U101 orientation"
-    k = 0.25   # short stub that makes the pad-to-pad link 45 degrees
-    dp_v = (b6[0], b6[1] - 4.5)     # J401-end vias (B.Cu pair starts here)
-    dm_v = (b7[0], b7[1] - 3.3)
-    up_v = (u_dp[0], u_dp[1] + 1.1)  # U101-end vias, staggered in the body
-    um_v = (u_dm[0] + 0.5, u_dm[1] + 2.9)  # DM jogs right of the DP via
-
-    path("USB_DM", F, [a7, (b7[0], b7[1] + k), b7, dm_v])
-    path("USB_DM", F, [um_v, (um_v[0], u_dm[1] + 1.1),
-                       (u_dm[0], u_dm[1] + 0.6), u_dm])
-    d = dm_v[1] - um_v[1]
-    path("USB_DM", B, [um_v, (um_v[0] + d, dm_v[1]), dm_v])
-    via("USB_DM", *dm_v)
-    via("USB_DM", *um_v)
-
+    assert e_dm_s[0] < e_dp_s[0] and e_dp_n[1] < e_dp_s[1] and e_gnd[1] > e_vbus[1], \
+        "USB pre-route assumes U401 rot 90 on B.Cu (D- west, GND toward J401)"
+    assert r_dp1[0] < r_dp2[0] and r_dm1[0] < r_dm2[0], "R106/R107 pad 1 must face west"
+    k = 0.25   # short stub that makes the J401 pad-to-pad link 45 degrees
+    # J401's A/B rows: DM linked A7 -> B7 on F.Cu, DP A6 -> B6 on B.Cu.
+    path("USB_DM", F, [a7, (b7[0], b7[1] + k), b7])
     path("USB_DP", B, [a6, (b6[0], b6[1] + k), b6])
-    path("USB_DP", F, [b6, dp_v])
-    path("USB_DP", F, [up_v, u_dp])
-    d = dp_v[1] - up_v[1]
-    path("USB_DP", B, [up_v, (up_v[0] + d, dp_v[1]), dp_v])
-    via("USB_DP", *dp_v)
-    via("USB_DP", *up_v)
+    # J401 B-row -> U401 south pads, straight up the I/O columns, then
+    # through each pad pair (pins 3->4, 1->6 are the same internal line).
+    for b_pad, s_pad, n_pad, net in ((b7, e_dm_s, e_dm_n, "USB_DM"),
+                                     (b6, e_dp_s, e_dp_n, "USB_DP")):
+        jog = (s_pad[0], b_pad[1] - 1.025)
+        path(net, B, [b_pad, (b_pad[0], b_pad[1] - 0.625), jog, s_pad, n_pad])
+    # U401 GND (pin 2) -> via between the J401 shell slots; VBUS (pin 5) ->
+    # via to F.Cu (the router takes it on to VBUS_RAW from there).
+    g = (e_gnd[0], e_gnd[1] + 1.21)
+    path("GND", B, [e_gnd, g])
+    via("GND", *g)
+    vb = (e_vbus[0], e_vbus[1] - 1.11)
+    path(VBUS, B, [e_vbus, vb])
+    via(VBUS, *vb)
+    # U401 north pads -> R106/R107: north, west along two lanes 0.8mm apart,
+    # then the 45-degree run NW to the resistors. D- (west at U401) is the
+    # inner track of every turn, so the pair never crosses.
+    dm_lane, dp_lane = e_dm_n[1] - 1.86, e_dm_n[1] - 2.66
+    dp_e = (r_dp2[0] + 1.44, r_dp2[1])            # east end of R107's stub
+    dm_e = (r_dm2[0] + 0.94, r_dm2[1])
+    path("USB_DP", B, [e_dp_n, (e_dp_n[0], dp_lane + 0.5), (e_dp_n[0] - 0.5, dp_lane),
+                       (dp_e[0] + (dp_lane - dp_e[1]), dp_lane), dp_e, r_dp2])
+    path("USB_DM", B, [e_dm_n, (e_dm_n[0], dm_lane + 0.5), (e_dm_n[0] - 0.5, dm_lane),
+                       (dm_e[0] + (dm_lane - dm_e[1]), dm_lane), dm_e, r_dm2])
+    # U101 end: DP drops through a via right below pin 67 and runs B.Cu to
+    # R107; DM jogs right under the body on F.Cu (crossing over DP's B.Cu
+    # stub) to a via beside R106, so DP stays the north-east track.
+    v_dp = (u_dp[0], u_dp[1] + 1.1)
+    path(DP_MCU, F, [u_dp, v_dp])
+    via(DP_MCU, *v_dp)
+    path(DP_MCU, B, [v_dp, r_dp1])
+    v_dm = (u_dm[0] + 0.5, r_dm1[1])
+    path(DM_MCU, F, [u_dm, (u_dm[0], u_dm[1] + 0.6), (u_dm[0] + 0.5, u_dm[1] + 1.1), v_dm])
+    via(DM_MCU, *v_dm)
+    path(DM_MCU, B, [v_dm, r_dm1])
+
+    # ---- ESP32 decoupling / EN (pilink-fvz) --------------------------------
+    # B.Cu, right edge of U201: pin 2 -> C202 -> C201, pin 3 -> C203 -> R201,
+    # two GND vias. R201/R202's +3V3 ends (pull-up current only) are left to
+    # the router.
+    p2, p3 = pad("U201", "2"), pad("U201", "3")
+    c202_1, c202_2 = pad("C202", "1"), pad("C202", "2")
+    c201_1, c201_2 = pad("C201", "1"), pad("C201", "2")
+    c203_1, c203_2 = pad("C203", "1"), pad("C203", "2")
+    r201_2 = pad("R201", "2")
+    assert c201_1[0] < c201_2[0] and abs(c201_1[1] - c201_2[1]) < 0.01, \
+        "C201 expected horizontal, pad 1 west"
+    path("+3V3", B, [p2, c202_1, (c202_1[0], c201_1[1]), c201_1], width=0.5)
+    path("ESP32_EN", B, [p3, c203_1, r201_2], width=0.3)
+    g1 = (c202_2[0] + 0.52, c202_2[1] + 0.79)
+    g2 = (c201_2[0], c201_2[1] + 1.35)
+    path("GND", B, [c202_2, g1, c203_2], width=0.4)
+    path("GND", B, [c201_2, g2], width=0.4)
+    via("GND", *g1)
+    via("GND", *g2)
+
+    # ---- +3V3 trunk U1 -> U201 (pilink-yt5) -------------------------------
+    # 0.8mm F.Cu along the empty strip above the panel/RP2350B cluster (under
+    # the SW101/SW102 strip, over the antenna keepout's lower edge), from U1's
+    # tab to two vias beside C202/C201. Replaces the router's ~200 mOhm
+    # 0.2mm path; the router still feeds every other +3V3 load.
+    # U1 has two pads numbered "2" (leg and tab): use the tab (the larger)
+    tab = max((p for p in board.FindFootprintByReference("U1").Pads()
+               if p.GetNumber() == "2"), key=lambda p: p.GetSize().x * p.GetSize().y)
+    tx, ty = tab.GetPosition().x / 1e6, tab.GetPosition().y / 1e6
+    v3a = (c202_1[0], c202_1[1] - 1.01)       # both on C202 pad 1's vertical
+    v3b = (c202_1[0], c202_1[1] - 1.91)       # +3V3 link to C201
+    y1, y2 = ORIGIN + 6.0, ORIGIN + 4.0     # corridor y, board-local 6.0 / 4.0
+    path("+3V3", F, [(tx, ty - 1.4), (tx, y1), (ORIGIN + 55.0, y1), (ORIGIN + 57.0, y2),
+                     (v3a[0] - 0.55, y2), v3a, v3b], width=0.8)
+    via("+3V3", *v3a)
+    via("+3V3", *v3b)
 
     # ---- crystal --------------------------------------------------------
     xin, xout = pad("U101", "30"), pad("U101", "31")
@@ -241,8 +321,9 @@ def main():
             via(net, x + 100.0, y + 100.0)
 
     pcbnew.SaveBoard(BOARD, board)
-    print("pre-routed USB D+/D-, XIN/XOUT, backlight, SW101/SW102 BOOTSEL/RESET + GND escapes (locked)")
-    for n in ("USB_DP", "USB_DM"):
+    print("pre-routed USB D+/D- (J401 -> U401 -> R106/R107 -> U101), XIN/XOUT, backlight, "
+          "SW101/SW102 BOOTSEL/RESET + GND escapes, ESP32 decoupling/EN, +3V3 trunk (locked)")
+    for n in ("USB_DP", "USB_DM", DP_MCU, DM_MCU):
         print(n, round(sum(t.GetLength() / 1e6 for t in board.GetTracks()
                            if t.GetNetname() == n and t.GetClass() == "PCB_TRACK"), 2), "mm")
 

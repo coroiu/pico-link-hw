@@ -28,7 +28,7 @@ import os
 
 import pcbnew
 
-from preroute import PREROUTE_NETS
+from preroute import PREROUTE_NETS, DP_MCU, DM_MCU
 from antenna_reroute import check_strip as check_antenna_strip
 from sw_keepout import add_sw_keepouts
 from l101_keepout import add_l101_pour_keepout
@@ -108,6 +108,49 @@ def add_zone(board, net, layer, box, priority, solid=False, name=""):
     return z
 
 
+def split_at_t_joins(board):
+    """Freerouting sometimes ends a track on the middle of a locked
+    pre-route segment (a T-join). The copper touches, but KiCad only joins
+    track ends, so DRC reports `track_dangling` there (pilink-audit-a: an
+    ESP32_EN stub onto the C203 -> R201 link). Split the locked segment at
+    that point so both tracks share an end."""
+    tol = MM(0.005)
+    tracks = [t for t in board.GetTracks() if t.Type() == pcbnew.PCB_TRACE_T]
+    ends = [(t.GetNetCode(), t.GetLayer(), p) for t in tracks if not t.IsLocked()
+            for p in (t.GetStart(), t.GetEnd())]
+    n = 0
+    for t in tracks:
+        if not t.IsLocked():
+            continue
+        a, e = t.GetStart(), t.GetEnd()
+        d = e - a
+        L2 = d.x * d.x + d.y * d.y
+        if L2 == 0:
+            continue
+        for net, layer, p in ends:
+            if net != t.GetNetCode() or layer != t.GetLayer() or p in (a, e):
+                continue
+            u = ((p.x - a.x) * d.x + (p.y - a.y) * d.y) / L2
+            if not 0 < u < 1:
+                continue
+            q = pcbnew.VECTOR2I(int(a.x + u * d.x), int(a.y + u * d.y))
+            if (q - p).EuclideanNorm() > tol:
+                continue
+            t2 = pcbnew.PCB_TRACK(board)
+            t2.SetStart(p)
+            t2.SetEnd(e)
+            t2.SetWidth(t.GetWidth())
+            t2.SetLayer(t.GetLayer())
+            t2.SetNetCode(t.GetNetCode())
+            t2.SetLocked(True)
+            board.Add(t2)
+            t.SetEnd(p)
+            n += 1
+            break
+    if n:
+        print(f"split {n} locked segment(s) at router T-joins")
+
+
 def via_ok(board, pos, net):
     """True if a via at pos clears every pad/track/via not on `net`,
     and every pad on any net (no via-in-pad)."""
@@ -133,10 +176,18 @@ def main():
     board = pcbnew.LoadBoard(BOARD)
     for z in list(board.Zones()):
         board.Remove(z)
+    sx0, sy0, sx1, sy1 = SPREADER
+    in_spreader = lambda p: (sx0 <= pcbnew.ToMM(p.x) - ORIGIN[0] <= sx1
+                             and sy0 <= pcbnew.ToMM(p.y) - ORIGIN[1] <= sy1)
     for t in list(board.GetTracks()):
-        # keep scripts/preroute.py's locked vias (every PREROUTE_NETS net)
-        if (t.Type() == pcbnew.PCB_VIA_T and t.IsLocked()
-                and t.GetNetname() not in PREROUTE_NETS):
+        if t.Type() != pcbnew.PCB_VIA_T or not t.IsLocked():
+            continue
+        # keep scripts/preroute.py's locked vias (every PREROUTE_NETS net),
+        # except this script's own +3V3 stitching vias: +3V3 is a pre-routed
+        # net too since pilink-yt5 (the trunk), and preroute.py never puts a
+        # via inside the SPREADER box.
+        if (t.GetNetname() not in PREROUTE_NETS
+                or (t.GetNetname() == "+3V3" and in_spreader(t.GetPosition()))):
             board.Remove(t)
 
     # J401's end GND pads (A1/B12, A12/B1 share a land) sit against the
@@ -158,9 +209,10 @@ def main():
 
     # pilink-xzs: the router leaves sub-5um stubs at U101 pins 66/67 (USB
     # D-/D+) where its grid snap misses the pad centre by 0.5um; drop them.
+    # (pilink-8rz: those pins are on the MCU-side nets of R106/R107 now.)
     for t in list(board.GetTracks()):
         if (t.GetClass() == "PCB_TRACK" and not t.IsLocked()
-                and t.GetNetname() in ("USB_DP", "USB_DM")
+                and t.GetNetname() in ("USB_DP", "USB_DM", DP_MCU, DM_MCU)
                 and t.GetLength() < 5000):   # 5um, in nm
             board.Remove(t)
 
@@ -186,6 +238,7 @@ def main():
             if pad.GetNetname() == "GND" and pad.GetNumber() == "2":
                 pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
 
+    split_at_t_joins(board)
     check_antenna_strip(board)
     add_antenna_keepout(board)
     add_l101_pour_keepout(board)   # no F.Cu pour under L101 (pilink-2wq)
