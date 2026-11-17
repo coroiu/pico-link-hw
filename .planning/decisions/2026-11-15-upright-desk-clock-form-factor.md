@@ -46,6 +46,15 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
   "screwed" wording above is kept for history and is superseded by this
   amendment. The rest of the Support decision (two legs, +/-40 mm, fixed
   A-frame) is unchanged.
+  **Amended again 2026-11-17 (`pilink-ok8`):** the legs are now one solid
+  with the back shell, not separate glued parts. The peg, socket and the
+  separate leg parts are removed; leg geometry, splay, angles and foot
+  positions are unchanged. This was a user decision (assembly-free, nothing
+  to glue or misalign), made knowing the print-orientation cost: the
+  integrated shell must print rim down with the back plate up, which needs
+  support or bridging under the cavity ceiling that the plate-down shell did
+  not (see `enclosure/README.md`). This supersedes the glue amendment above;
+  that text is kept for history.
 - **PCB:** a single flat main board **standing parallel to the face**, about
   118 x 50 mm. All front-side placement rules from the proposal apply:
   - a panel-shadow keep-out with only low parts under the display;

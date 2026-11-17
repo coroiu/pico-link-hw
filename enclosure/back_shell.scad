@@ -303,7 +303,8 @@ echo(str("U201 headroom behind PCB: ", U201_HEADROOM, "mm; REAR_CLEARANCE ", REA
 // =====================================================================
 // ADR: "fixed (non-hinged) printed two-leg A-frame (legs ~+/-40mm from
 // centre, feet ~45-50mm behind the front edge) screwed to back-shell
-// bosses ~40mm up the face" (superseded by pilink-8jy: glued, below).
+// bosses ~40mm up the face" (superseded: pilink-8jy glued them, then pilink-ok8
+// made them one piece with the back shell).
 LEG_OFFSET      = 40;   // +/- from face centre (FACE_W/2), lateral
 LEG_MOUNT_Q     = 40;   // "~40mm up the face" -- directly a Qface value
 LEG_FOOT_SETBACK = 47;  // midpoint of the ADR's "45-50mm behind the
@@ -316,26 +317,13 @@ LEG_FOOT_SETBACK = 47;  // midpoint of the ADR's "45-50mm behind the
 LEG_PFACE_LEFT  = FACE_W/2 - LEG_OFFSET;   // = 23.75
 LEG_PFACE_RIGHT = FACE_W/2 + LEG_OFFSET;   // = 103.75
 
-// pilink-8jy: legs are GLUED to the back shell, not screwed. Each leg's
-// mount end carries a short keyed peg that fits a blind socket in the
-// back-shell leg boss. No screw, insert, through-bore or counterbore: the
-// boss and the leg are solid and no hole is visible once glued.
-//
-// Peg on the leg, socket in the boss (rather than the reverse): the boss is
-// a 7mm-OD cylinder whose wall must stay thick around a hole, so a socket
-// there is a plain blind hole with ~1mm of wall; a peg on the boss would
-// instead be a thin free-standing stub on a part that is printed
-// back-plate-down, and the mating socket would then have to sit in the leg's
-// 8mm strut end. A peg on the leg prints with the leg (axis-aligned
-// stub, no support), and the socket is a simple blind hole in the boss.
-LEG_PEG_D          = 4.4;   // peg round dimension (before the flats)
-LEG_PEG_FLAT_W     = 3.4;   // across the two flats; the D-profile keys the
-                            // leg so it cannot rotate about the boss axis
-                            // (flats face +/-X, the leg's splay direction)
-LEG_PEG_LEN        = 4.3;   // peg length along the boss axis
-LEG_SOCKET_DEPTH   = 4.5;   // socket depth from the boss tip (0.2 glue
-                            // pocket at the bottom)
-LEG_GLUE_CLEARANCE = 0.175; // radial/flat glue gap per side (0.15-0.2)
+// pilink-ok8: the legs are part of the back shell (one printed solid, no
+// joint of any kind). pilink-8jy's glued peg-and-socket scheme and the
+// separate leg parts are gone; leg geometry, splay, angles and feet are
+// unchanged. The strut starts INSIDE the back plate (see leg()) and the
+// clipped solid merges with the plate and the leg boss, so there is no
+// seam. Print orientation: see enclosure/README.md (rim down, back plate up).
+LEG_ROOT_DEPTH     = 3.5;   // leg hull root, back along the axis from the wall point
 LEG_MOUNT_BOSS_LEN = 6.0;  // boss protrudes this far behind the back
                             // wall's outer surface -- own choice.
 
@@ -371,9 +359,8 @@ LEG_DY = leg_foot_y - leg_mount_y;  // world Y, wall-mount point -> foot
 LEG_DZ = leg_foot_z - leg_mount_z;  // world Z, wall-mount point -> foot
 leg_length = sqrt(LEG_DY*LEG_DY + LEG_DZ*LEG_DZ);
 
-// Review finding #2: the leg is now glued on (pilink-8jy: keyed peg in
-// a blind socket; the full-length screw channel and insert are gone),
-// but the boss is still tilted to point along this same mount->foot
+// Review finding #2: the leg is integral (pilink-ok8; the screw channel and
+// insert are long gone), and the boss is still tilted to point along this same mount->foot
 // line, so the leg continues the boss axis instead of kinking away
 // from the (near-vertical) back wall (the original bug, from the
 // screw days: those two axes were ~37 deg apart, so the channel
@@ -572,8 +559,8 @@ module usbc_cutout() {
             rounded_rect(USBC_CUTOUT_W, USBC_CUTOUT_H, USBC_CUTOUT_R);
 }
 
-// pilink-9i4 (rev 2): the leg-mount boss (pilink-8jy: now a glue-peg socket,
-// no insert). Its flat base
+// pilink-9i4 (rev 2): the leg-mount boss (pilink-ok8: now simply the root of
+// the integrated leg, solid). Its flat base
 // face used to sit proud of the plate (the tilted cylinder's base disc is only
 // cut by the rear plane, leaving half of it exposed), so the boss is extended
 // back along its own axis and clipped at the plate's inner side (bz = 1.0):
@@ -589,24 +576,6 @@ module leg_mount_boss_solids() {
                         boss_solid(height = LEG_MOUNT_BOSS_LEN + LEG_BOSS_EXTEND);
                 translate([-50, -50, -50]) cube([100, 100, 51.0]);
             }
-}
-
-// Keyed (double-flat) profile; c = per-side offset (glue clearance).
-module leg_peg_profile(c = 0) {
-    intersection() {
-        circle(d = LEG_PEG_D + 2*c, $fn = 40);
-        square([LEG_PEG_FLAT_W + 2*c, LEG_PEG_D + 2*c + 1], center = true);
-    }
-}
-
-// Blind socket in the boss tip for the leg's glue peg (pilink-8jy).
-module leg_mount_sockets() {
-    for (x = [LEG_PFACE_LEFT, LEG_PFACE_RIGHT])
-        translate([x, LEG_MOUNT_Q, 0])
-            rotate([LEG_BOSS_TILT, 0, 0])
-                translate([0, 0, LEG_MOUNT_BOSS_LEN - LEG_SOCKET_DEPTH])
-                    linear_extrude(height = LEG_SOCKET_DEPTH + 0.1)
-                        leg_peg_profile(LEG_GLUE_CLEARANCE);
 }
 
 // pilink-6lz: relief in the top wall so the Ø1.13 pigtail can cross the PCB
@@ -629,7 +598,6 @@ module back_shell_local() {
         usbc_cutout();
         pigtail_notch_cutout();
         pcb_mount_insert_pockets();
-        leg_mount_sockets();
     }
 }
 
@@ -665,9 +633,13 @@ module feet_recess_cutters() {
 }
 
 module shell_world() {
-    difference() {
-        rotate([-LEAN_DEG, 0, 0]) back_shell_local();
-        feet_recess_cutters();
+    union() {
+        difference() {
+            rotate([-LEAN_DEG, 0, 0]) back_shell_local();
+            feet_recess_cutters();
+        }
+        leg(-1);   // pilink-ok8: legs are integral to the shell
+        leg(1);
     }
 }
 
@@ -697,97 +669,47 @@ module base_strip() {
 // =====================================================================
 // Leg (world frame)
 // =====================================================================
-// Mount point: PR #52 review finding #6 -- previously this was the back
-// wall's own outer surface (bz=0), which made the leg's mount-end
-// sphere (r=4) overlap the boss/shell by ~4mm since the capsule started
-// AT the wall rather than at the boss's own tip. Now uses
-// leg_mount_tip_y/z (derived above, in the "Leg axis geometry" block),
-// the point LEG_MOUNT_BOSS_LEN out from the wall ALONG THE SAME tilted
-// axis the boss itself now uses (LEG_BOSS_TILT).
-//
-// Still-blocking re-review on 46647da (finding #6, round 2): moving the
-// capsule's mount-end SPHERE to that tip point did not actually make it
-// flush -- a sphere of radius LEG_STRUT_D/2 (4mm) centred ON the boss's
-// tip still reaches 4mm back INTO the boss along the axis (the boss is
-// only LEG_MOUNT_BOSS_LEN=6mm long), filling the boss's last 4mm --
-// which is exactly where the leg-mount socket (formerly an insert pocket)
-// sits (axis distance 2..6.1 from the wall). "Mates flush"
-// was true of the POINT the capsule started at, not of the capsule's
-// actual solid, so the leg and back-shell STLs still intersected.
-// Fixed below: the mount end is now a flat disc (MOUNT_CAP_T thick,
-// same LEG_STRUT_D diameter), rotated to the boss's own net world axis
-// angle (LEG_BOSS_TILT - LEAN_DEG) and centred at p_mount, so the
-// strut's solid stops at the boss's own tip FACE instead of wrapping
-// around and past it. This still leaves the exact mounting lug/socket
-// interface geometry (where the leg physically registers onto the
-// boss, beyond the glued peg and socket) unmodelled -- a human should add that
-// once this is actually rendered and fitted.
+// History: the leg used to be a separate part meeting the boss tip (PR #52
+// finding #6, pilink-8jy peg and socket). Since pilink-ok8 it is a single
+// solid with the back shell: same axis (the boss axis), same foot position,
+// but the strut root is buried in the back plate instead of ending at the
+// boss tip, so the plate-to-leg junction has no joint and no flat face.
 
 module leg(side) {
     x = FACE_W/2 + side*LEG_OFFSET;
-    p_mount = [x, leg_mount_tip_y, leg_mount_tip_z];
-    p_foot  = [x, leg_foot_y,      leg_foot_z];
-    // PR #52 review finding #3(b): the strut capsule's own foot-end
-    // sphere (r = LEG_STRUT_D/2) was centred AT p_foot (world Y=0, the
-    // table datum), so it reached 4mm BELOW the table -- the leg would
-    // have stood on this sphere, not on the modelled rubber foot. A
-    // sphere's lowest point is simply (centre Y - radius) regardless of
-    // its other coordinates, so raising the centre to Y=LEG_STRUT_D/2
-    // puts its lowest point exactly at Y=0; the flat foot pad below
-    // (still built at the true p_foot) fills the small remaining gap
-    // down to the table, and is what actually contacts it.
+    p_foot  = [x, leg_foot_y, leg_foot_z];
+    // Root: a flat disc on the leg axis, LEG_ROOT_DEPTH back along the axis
+    // from the wall point so the WHOLE disc lies inside the back plate
+    // (disc half-extent perpendicular to the plate = r*sin(angle between the
+    // axis and the plate normal) = ~2.6mm < 0.76*LEG_ROOT_DEPTH). No flat
+    // end face is exposed; the strut's side surface simply emerges from the
+    // plate. The part of the hull that would poke into the cavity (local
+    // bz > 1.0, same clip as the boss) is cut off below.
+    ax = [0, LEG_DY/leg_length, LEG_DZ/leg_length];       // world axis, mount->foot
+    p_root = [x, leg_mount_y - LEG_ROOT_DEPTH*ax[1], leg_mount_z - LEG_ROOT_DEPTH*ax[2]];
+    // Foot sphere centre raised to Y=r so its lowest point is the table datum
+    // (PR #52 finding #3(b)); the flat foot pad below is what contacts it.
     p_foot_strut = [p_foot[0], LEG_STRUT_D/2, p_foot[2]];
     difference() {
         union() {
-            // Strut: hull of a flat disc at the mount end and a sphere
-            // at the (raised) foot end. The foot end stays a sphere --
-            // direction-agnostic is fine there, since only its lowest
-            // point matters (review finding #3(b), above). The mount
-            // end is a disc, not a sphere (review finding #6, round 2,
-            // see the comment above p_mount): a sphere centred on the
-            // boss tip reaches back along the axis and fills part of
-            // the boss, including its own insert pocket, with solid
-            // strut material -- not actually flush. A disc perpendicular
-            // to the mount->foot axis, rotated by that same net world
-            // angle (LEG_BOSS_TILT - LEAN_DEG -- the boss's own axis,
-            // see the "Leg axis geometry" block) and centred AT p_mount,
-            // caps the strut at the boss's own tip face instead of past
-            // it. This does use an arbitrary-axis rotation; the old
-            // reason for avoiding one here ("can't test-render to
-            // verify") no longer applies now that the glue
-            // peg below relies on the same rotation.
-            hull() {
-                translate(p_mount)
-                    rotate([LEG_BOSS_TILT - LEAN_DEG, 0, 0])
-                        cylinder(h = MOUNT_CAP_T, d = LEG_STRUT_D, $fn = 24, center = true);
-                translate(p_foot_strut) sphere(d = LEG_STRUT_D, $fn = 24);
+            intersection() {
+                hull() {
+                    translate(p_root)
+                        rotate([LEG_BOSS_TILT - LEAN_DEG, 0, 0])
+                            cylinder(h = MOUNT_CAP_T, d = LEG_STRUT_D, $fn = 24, center = true);
+                    translate(p_foot_strut) sphere(d = LEG_STRUT_D, $fn = 24);
+                }
+                // half-space local bz <= 1.0 (inside the back plate or behind)
+                rotate([-LEAN_DEG, 0, 0])
+                    translate([-50, -50, -50]) cube([200, 200, 51.0]);
             }
-            // Glue peg (pilink-8jy): keyed stub from the mount-end disc back
-            // into the boss socket, along the boss axis (net world tilt
-            // LEG_BOSS_TILT - LEAN_DEG).
-            translate(p_mount)
-                rotate([LEG_BOSS_TILT - LEAN_DEG, 0, 0])
-                    translate([0, 0, -LEG_PEG_LEN])
-                        linear_extrude(height = LEG_PEG_LEN + 0.05)
-                            leg_peg_profile(0);
-            // Flat pad at the foot end for the rubber foot to stick to.
-            // Genuinely vertical (unlike the boss axis): this
-            // is the part that must sit flat against the horizontal
-            // table regardless of the leg's own angle.
-            // (cylinder() is already centred in X/Z by the rotate below,
-            // so the translate only needs the foot's own X/Z position,
-            // same pattern as the foot recess below.)
+            // Flat pad at the foot end for the rubber foot (vertical axis:
+            // sits flat on the table regardless of the leg angle).
             translate([p_foot[0], p_foot[1] - 0.1, p_foot[2]])
                 rotate([-90, 0, 0])
                     cylinder(h = FOOT_PAD_T, d = FOOT_PAD_D, $fn = 32);
         }
-        // Foot-pad registration recess: genuinely vertical (same axis
-        // as the pad above, not the boss axis) -- PR #52 review finding
-        // #3(a): previously cut in a wrong frame, landing inside the strut
-        // above the pad instead of at the bottom. Now cut first, directly from
-        // the bottom (y ~ -0.1..0.9), where the rubber foot actually
-        // sits, within the FOOT_PAD_D=12mm pad (FOOT_RECESS_D=10.4mm
-        // fits inside it with margin).
+        // Foot-pad registration recess (vertical, from the bottom).
         translate([p_foot[0], p_foot[1] - 0.1, p_foot[2]])
             rotate([-90, 0, 0])
                 cylinder(h = FOOT_RECESS_T + 0.1, d = FOOT_RECESS_D, $fn = 32);
@@ -835,21 +757,15 @@ echo(str("USB-C mating face world (Y,Z): (", usbc_face_y, ", ", usbc_face_z,
 // =====================================================================
 // Top-level assembly / render selection
 // =====================================================================
-// PART: "assembly" (default, for visual review once OpenSCAD is
-// available), "back_shell" or "leg_left" / "leg_right" (for individual
-// STL export -- these are 3 separately-printed parts).
+// PART: "assembly" (default, for visual review), or "back_shell" for the
+// STL export: the back shell WITH both legs as one solid, plus the separate
+// base strip (pilink-ok8: no leg_left/leg_right parts any more).
 PART = "assembly";
 
 if (PART == "assembly") {
     color("dimgray") shell_world();
     color("gray") base_strip();
-    color("slategray") leg(-1);
-    color("slategray") leg(1);
 } else if (PART == "back_shell") {
     shell_world();
     base_strip();
-} else if (PART == "leg_left") {
-    leg(-1);
-} else if (PART == "leg_right") {
-    leg(1);
 }

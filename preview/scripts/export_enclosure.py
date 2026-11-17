@@ -21,7 +21,7 @@ uses them):
   back-shell local frame: same X/Q, bz = BODY_T - Z (0 at the back wall's
       outer surface), so face -> local is a mirror in Z.
   world frame: rotate([-LEAN_DEG, 0, 0]) applied to the local frame
-      (back_shell.scad's PART="back_shell"/"leg_*" output is already world).
+      (back_shell.scad's PART="back_shell" output is already world).
 
 The antenna mount has no real placement in the .scad files; like
 check_fit.py it is put against the inner top wall at X = MOUNT_X_MIN,
@@ -48,9 +48,7 @@ from trimesh.visual.material import PBRMaterial
 # (key, label, colour RGBA 0-255). Order = order in the page's picker.
 PARTS = [
     ("front_shell", "Front shell", (226, 226, 222, 255)),
-    ("back_shell", "Back shell + base strip", (88, 96, 110, 255)),
-    ("leg_left", "Leg (left)", (196, 120, 60, 255)),
-    ("leg_right", "Leg (right)", (196, 120, 60, 255)),
+    ("back_shell", "Back shell + legs + base strip", (88, 96, 110, 255)),
     ("knob", "Knob", (200, 48, 48, 255)),
     ("button_plunger", "Button plunger (x4)", (60, 130, 200, 255)),
     ("antenna_mount", "Antenna mount", (90, 170, 90, 255)),
@@ -178,8 +176,6 @@ def main():
     jobs = {
         "front_shell": (src("front_shell"), []),
         "back_shell": (src("back_shell"), ['PART="back_shell"']),
-        "leg_left": (src("back_shell"), ['PART="leg_left"']),
-        "leg_right": (src("back_shell"), ['PART="leg_right"']),
         "knob": (src("knob"), []),
         "button_plunger": (wrapper("plunger", "button_plunger", ["button_plungers_x4"], "button_plunger();"), []),
         "antenna_mount": (wrapper("antenna", "antenna_mount", ["demo_assembly"], "antenna_mount();"), []),
@@ -206,8 +202,6 @@ def main():
     place = {
         "front_shell": [face_to_world],
         "back_shell": [np.eye(4)],
-        "leg_left": [np.eye(4)],
-        "leg_right": [np.eye(4)],
     }
     kx = fv["ENCODER_BOARD_CX"] + MARGIN_X
     kq = QTOP - fv["ENCODER_BOARD_CY"]

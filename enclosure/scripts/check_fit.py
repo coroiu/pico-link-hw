@@ -357,9 +357,7 @@ def main():
             continue
         if n == "back_shell":
             jobs += [("back_shell[assembly]", scad, [], "bs_asm"),
-                     ("back_shell[PART=back_shell]", scad, ['PART="back_shell"'], "bs_back"),
-                     ("back_shell[PART=leg_left]", scad, ['PART="leg_left"'], "bs_legl"),
-                     ("back_shell[PART=leg_right]", scad, ['PART="leg_right"'], "bs_legr")]
+                     ("back_shell[PART=back_shell]", scad, ['PART="back_shell"'], "bs_back")]
         else:
             jobs.append((n, scad, [], n))
     render_fail = False
@@ -660,12 +658,14 @@ def main():
             "gap %.2f mm vs lip %.1f + element %.1f + coax %.2f = %.2f mm" % (
                 gap_plain, av["LIP_HEIGHT"], av["ANTENNA_ELEMENT_THICKNESS_NOMINAL"], cable_d,
                 av["LIP_HEIGHT"] + av["ANTENNA_ELEMENT_THICKNESS_NOMINAL"] + cable_d))
-    # --- legs
-    lt, lb = renders.get("bs_legl"), renders.get("bs_back")
-    if lt is not None and lb is not None:
-        check("left leg vs back shell + base strip (world frame)", lt, lb, dist=True, contact_ok=True)
-        if renders.get("bs_legr") is not None:
-            check("right leg vs back shell + base strip (world frame)", renders["bs_legr"], lb, dist=True, contact_ok=True)
+    # --- legs (pilink-ok8: integral to the back shell, no separate leg parts)
+    lb = renders.get("bs_back")
+    if lb is not None:
+        nbody = len(lb.split(only_watertight=False))
+        rec("back shell + legs + base strip are one connected solid",
+            "OK" if nbody == 1 else "FAIL", "%d connected component(s)" % nbody)
+        if nbody != 1:
+            failed.append("back shell legs not one solid")
     # --- rim profile mismatch
     if front is not None and back is not None:
         rec("shell corner radii front vs back", "INFO" if fv.get("CORNER_RADIUS") == bv.get("CORNER_R") else "WARN",

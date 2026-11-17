@@ -223,8 +223,8 @@ Covers the back half of the enclosure: PCB-mounting bosses (heat-set
 inserts), the 7mm (was 3mm, `pilink-9i4`) clearance cavity behind the PCB for the encoder's
 through-hole leads, the rear USB-C cutout (no boss since `pilink-9i4`: the 7mm cavity
 holds the connector), a horizontal
-base strip with feet pockets, and the fixed two-leg A-frame that is glued to
-this shell. The front shell (face, display window, button/knob openings)
+base strip with feet pockets, and the fixed two-leg A-frame, which is one solid
+with this shell (`pilink-ok8`). The front shell (face, display window, button/knob openings)
 is `pilink-8hx.2`'s separate file; the antenna mount is `pilink-8hx.4`'s.
 
 Every dimension is pulled from, and cites, one of: the upright
@@ -279,30 +279,64 @@ the "U201 back-side relief", "J401 boss" and "leg boss" descriptions below
    overmould with 6.65mm of plug past it, so a max-spec plug seats with ~0.4mm
    FDM clearance per side (wall around it: >30mm to the nearest boss, spool
    lug 7mm above). The 6.3mm Anker boot fits.
-3. **Leg mounts.** Glued, not screwed (`pilink-8jy`, supersedes the original
-   screw-from-the-foot scheme). Tilted boss, extended back along its axis by
-   8mm and clipped at the plate's inner side, so it runs into the rear surface
-   and no flat base face is exposed. Each leg has a short keyed peg (double-flat
-   D profile, Ø4.4 / 3.4 across flats, 4.3 long) that fits a blind socket in
-   the boss tip (4.5 deep) with 0.175mm glue clearance per side. The flats fix
-   the leg's angle about the boss axis. Peg on the leg, socket in the boss: the
-   leg prints the peg support-free and the boss keeps ~1mm of wall around a
-   plain blind hole. Legs and bosses are otherwise solid: no screw channel,
-   foot counterbore or heat-set insert. Use CA/epoxy; the 0.175mm gap and 0.2mm
-   bottom pocket are untested on a real print. No fillet (oblique
-   cylinder-to-plane blend not modelled).
-   Print and assembly notes: print each leg foot-pad down (flat foot on the
-   bed) so the peg is printed overhanging-free and the foot is flat. Let the
-   glue cure with the assembled device standing on its feet on a flat table,
-   not lying down or held in a jig: the double-flat key still allows about
-   +/-7.8 degrees of rotation play about the boss axis, and the table sets
-   both legs to the same height and angle.
+3. **Legs: integral to the shell** (`pilink-ok8`; before that glued with a
+   peg and socket, `pilink-8jy`, and before that screwed). Same legs as
+   before: 8mm struts at +/-40mm, same axis (the tilted boss axis, 40.6
+   degrees from the plate normal in the shell frame, 55.6 degrees below
+   horizontal in world), same foot position (47mm behind the stand-in front
+   edge), same 12mm foot pads with the 10.4mm rubber-foot recess. The strut's
+   root is buried 3.5mm back along the axis inside the back plate and clipped
+   at the plate's inner side (bz 1.0, same as the boss), so the leg emerges
+   from the plate with no seam and no flat face; the leg boss is now just the
+   solid core of the leg root. Peg, socket, glue clearance and the two
+   separate leg parts are gone (`PART="leg_left"`/`"leg_right"` no longer
+   exist; `PART="back_shell"` is shell + legs + base strip as one solid).
+   No fillet at the plate junction (oblique cylinder-to-plane blend not
+   modelled); the strut is 8mm vs the old 7mm boss, so the junction is a
+   plain cylinder-into-plate corner.
+
+   **Print orientation: rim down, back plate up, no support for the legs.**
+   The legs sit on the outer (back) side of the plate, so the old
+   plate-down orientation is impossible (the legs would point into the
+   bed). Standing the shell on its open rim puts the legs rising from the
+   top face at 40.6 degrees from vertical, under the usual 45 degree
+   overhang limit, so the struts need no support (it is marginal: the
+   underside of each strut is a 40.6 degree overhang; a slicer set to
+   45 degrees will not support it, a stricter one will). The foot pads
+   face almost sideways (about 15 degrees from horizontal in this
+   orientation) and protrude 2.5mm, so expect slight sagging on the pad
+   top edge and the 1mm recess; clean up with a knife.
+   **What does need support or bridging:** the
+   back plate becomes the cavity ceiling, a roughly 120 x 50mm flat span
+   6.6mm above the bed, interrupted only by the PCB bosses, spool and
+   pigtail post (which hang from it and are fine). Either enable support
+   under the ceiling (touching the build plate only, interior, hard to
+   reach and it roughens the ceiling the PCB parts face) or print without
+   it and accept bridge sag on the ceiling (6.6mm gap: a normal slicer
+   bridge setting handles it for a 2.0mm plate but the underside will
+   be rough). The USB-C slot, bosses and insert pockets print fine in
+   this orientation (their axes are vertical).
+   **Compared with separate legs, the integrated part is clearly worse to
+   print:** the old shell printed plate-down with no support, and each
+   leg printed foot-down with no support. Now the shell needs ceiling
+   support or bridging, and the legs are one print failure away from
+   losing the whole shell. In exchange there is nothing to glue or
+   align. Printing the shell in the assembled stance (feet on the bed)
+   is the alternative: the legs are 55.6 degrees from vertical there,
+   past the overhang limit, so they and the leaning plate need support
+   instead; not recommended. Print orientation is analysed from the
+   geometry, not test-printed.
 4. **Feet pockets.** The shell's rear-bottom corner dips into the strip's
    y 0..1 band over z ~0..3.7, filling about half of each pocket. The pocket
    cutters (`feet_recess_cutters()`) are now subtracted from the shell too
    (`shell_world()`), so both pockets are complete circles. That thins the
    shell's bottom rear corner where the pockets pass (not checked in
    detail).
+
+**After `pilink-ok8`:** `check_fit.sh` 54 OK / 0 FAIL / 0 WARN (was 55: the
+two leg-vs-shell overlap checks are replaced by one "shell + legs + base strip
+are one connected solid" check). Every part renders watertight with no
+OpenSCAD warnings or asserts. Leg clearance unchanged (31.5mm).
 
 **USB-C cable-vs-table, recomputed.** Mating face world (Y, Z) = (16.10,
 -1.73) (was (14.10, -5.33)). Table contact along the mating axis from the
@@ -312,7 +346,7 @@ strip back edge is now at Z -4.26 (stand-in front edge moved with the deeper
 shell); a 6.3mm boot clears the strip top by ~10mm there. The concern stays
 retired. Leg clearance is unchanged (31.5mm).
 
-Checks: `check_fit.sh` 55 OK / 0 FAIL / 0 WARN; every part renders
+Checks (as of `pilink-9i4`; see `pilink-ok8` below): `check_fit.sh` 55 OK / 0 FAIL / 0 WARN; every part renders
 watertight; `preview/scripts/export_enclosure.py` still exports the
 assembly with the PCB placed.
 
