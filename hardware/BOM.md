@@ -53,17 +53,7 @@ guarantee than this BOM's first draft claimed.
    `.planning/decisions/2026-11-13-esp32-bt-coprocessor-not-rm2.md`. Do
    not substitute RM2 or hand-place it; order U201 as a normal JLCPCB SMT
    line item.
-2. **One part, L101, is NOT in JLCPCB's SMT parts catalog at all** (not
-   just low stock — a `jlcpcb-search` lookup returns no match): Coilcraft
-   `LPS4018-332xxx` (3.3uH), the RP2350B internal-VREG inductor. The exact
-   Coilcraft `LPS4018` family is in JLCPCB's catalog, but only in other
-   inductance values (1mH, 68uH, 180uH, 470uH, 18uH checked) — 3.3uH is not
-   stocked by JLCPCB in this footprint. Source directly (Coilcraft/Digikey)
-   and hand-place, or substitute a JLCPCB-catalog part at PCB-layout time
-   (see flag 5 below). This is a bigger "don't hand-solder it by mistake"
-   risk than the RM2/ESP32 question the bead named, since it's easy to miss
-   when a BOM is skimmed for Basic/Extended status rather than catalog
-   presence at all. Filed as follow-up `pilink-2wq`.
+2. **L101 (VREG inductor): DMBJ `CXP0420-3R3M-AG` (`C7461339`, Extended, 2,417 units live 2026-11-16)** (`pilink-2wq`). The original Coilcraft LPS4018-3.3uH is not stocked by JLCPCB. RP2350 datasheet section 6.3.8.2 requires 3.3uH +/-20%, DCR <= 250mOhm, Isat >= 1.5A, fully shielded, polarity-marked. The DMBJ part (3.3uH, DCR 87mOhm, Isat 4A, Irms 3A, integrated molded = fully shielded, 4.4x4.2mm) meets the electrical and shielding requirements but **has NO polarity mark -- a deviation accepted by the user**; orientation of L101 is therefore arbitrary. If core-supply noise shows up on the prototype, rework = rotate L101 180 degrees. The fully compliant alternative is Abracon `AOTA-B201610S3R3-101-T` (`C42411119`, 2.0x1.6mm, DCR 115mOhm, Isat 2.4A), but JLCPCB stock is ~1 unit (2026-11-16); use it (via JLCPCB global sourcing/consignment) if stock returns. An earlier try with Cenker CKCS4018-3.3uH (`C354572`) was rejected: resin-shielded only, no polarity mark. The project-local footprint `Inductor_SMD_Custom:L_DMBJ_CXP0420` follows the vendor datasheet (LCSC datasheet for C7461339, section 3 Structure and Dimensions: row CX0420 A=4.4, B=4.2, C=1.8, D=2.0, E=1.0 mm; RECOMMENDED LAND PATTERNS: G=1.75 pad gap, I=1.5 pad size along the terminal axis, H=2.5 pad size across it; pads at +/-1.625mm, 1.5 x 2.5mm, covering the 2.0mm-wide terminal and staying inside the 4.4mm body span). The G/H/I letter meaning was first assumed (pads rotated 90 degrees) and corrected in the PR #94 review, which read it off the vector land-pattern drawing; a human should still glance at the drawing before fab. Per RP2350 datasheet 6.3.8.1 the F.Cu GND pour is cut away under L101 (`zones.py` rule area `KO_L101_F`) and B.Cu tracks/vias are kept out of the L101 footprint (`l101_keepout.py`, exported to Freerouting by `route.py`). Layout (`pilink-2wq`): L101 sits above VREG_LX (pin 63, ~3.6mm pad-to-pin centre to centre, ~4.1mm of LX copper), C103 stays at VREG_VIN (pin 64), C104 left of L101's output pad with a locked 0.4mm +1V1 link to L101 pad 2; the VREG_FB pin 65 trace is a locked 5.39mm F.Cu run, no vias, straight up its own column to C104 pad 1 (~4.2mm from the LX pad); QSPI_SCLK, SD0-SD3 and SS are locked pre-routes replayed from master's routing (`scripts/qspi_routes.json`, identical lengths/vias to master: SCLK 19.3mm/0, SD0 16.5/2, SD1 26.4/4, SD2 33.5/2, SD3 27.8/3, SS 38.2/2); PSRAM_CS stays with the router (~35mm, 4 vias); VREG_LX is a locked pin 63 -> L101 pad 1 route; R104/C105 (AVDD filter) moved right to make room. Locked GND vias at U101 pin 62, C103 pad 2 and C104 pad 2 give a short return, and two anchor GND vias east of L101 let GND_B fill under it (`preroute.py`); `route.py` keeps B.Cu routing out of x 47..53, y 13..20.5 (`l101_keepout.py` `PLANE_B`) so those vias, C104 and the plane under L101 are one connected GND_B region (verified by a fill-polygon flood check).
 
    (**U103 was also flagged here in an earlier draft of this BOM and is
    NOT a catalog gap — see its row below.** Three rounds of disputed
@@ -148,7 +138,7 @@ guarantee than this BOM's first draft claimed.
 | C101, C102 | 2 | 15pF, C0G/NPO, 50V | 0402 | C1548 | 0402CG150J500NT | Extended† | 307,300 |
 | R101, R102, R103 | 3 | 1k | 0402 | C11702 | 0402WGF1001TCE | Extended† | 18,224,200 |
 | SW101, SW102 | 2 | Side-actuated tactile switch (`pilink-7el.10`, swapped from PTS645) | SMD, right-angle, 4.5x3.4x3.3mm | C110293 | SKRTLAE010 | Extended | 42,775 |
-| L101 | 1 | 3.3uH (RP2350B internal VREG inductor) | Coilcraft LPS4018 footprint | **not in JLCPCB catalog** | Coilcraft LPS4018-332xxx (exact suffix TBD) | n/a | n/a — see assembly flag 2 |
+| L101 | 1 | 3.3uH, DCR 87mOhm, Isat 4A (RP2350B internal VREG inductor; no polarity mark, see flag 2) | `Inductor_SMD_Custom:L_DMBJ_CXP0420`, 4.4x4.2mm | C7461339 | CXP0420-3R3M-AG | Extended | 2,417 |
 | C103, C104, C105, C118 | 4 | 4.7uF, X5R, 6.3V | 0402 | C380302 | TCC0402X5R475M6R3AT | Extended† | 1,333,700 |
 | R104 | 1 | 33R | 0402 | C25105 | 0402WGF330JTCE | Extended† | 78,400 |
 | C106-C117 | 12 | 100nF, X7R, 16V | 0402 | C880604 | TCC0402X7R104M160AT | Extended† | 4,086,850 |
@@ -232,8 +222,7 @@ reference designator, re-verified on master at commit `5fef711`,
 usb_c 6 (J401, F401, R401-R404 — `pilink-1sj`'s R403/R404 CC-sense taps,
 commit `5fef711`, are now on master) — **68 real components on current
 master**. Of those, 67 are ordinary JLCPCB SMT line items (U103 included —
-it's a normal catalog part, not a gap, see flag 2) and L101 is the one
-catalog-gap part. The display panel itself is a 69th physical part that
+it's a normal catalog part, not a gap, see flag 2) and L101 (now C7461339) is likewise a normal catalog part, so there are no catalog gaps. The display panel itself is a 69th physical part that
 was never a schematic symbol (it connects via J501, which *is* counted
 above) and is sourced outside LCSC/JLCPCB entirely (flag 4).
 

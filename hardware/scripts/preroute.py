@@ -27,6 +27,7 @@ Geometry is derived from the pads' actual positions, so it follows the
 parts if place.py moves them, but clearances to neighbours were only
 checked for the current placement. DRC is the judge.
 """
+import json
 import os
 
 import pcbnew
@@ -47,8 +48,17 @@ RESET_NET = "/RP2350B + Memory/RESET_NODE"
 # GND is listed only for the SW101/SW102 pad-2 escape vias (below); route.py
 # keeps locked GND wiring. preroute.py removes only LOCKED items on these
 # nets (its own); unlocked router GND copper is never touched.
+# pilink-2wq: the QSPI cluster (SCLK, SD0-3, SS) is locked, replayed from the
+# master-branch Freerouting result (scripts/qspi_routes.json, board-local mm):
+# the same placement of U101/U102/U103/R102/R105, so the same copper, and no
+# more run-to-run variance on these nets. PSRAM_CS stays with the router:
+# master's copper for it runs under U101's body, where the VREG/DVDD escapes
+# now need the room.
+LX_NET = "/RP2350B + Memory/VREG_LX"
+QSPI_NETS = ["/RP2350B + Memory/" + n for n in
+             ("QSPI_SCLK", "QSPI_SD0", "QSPI_SD1", "QSPI_SD2", "QSPI_SD3", "QSPI_SS")]
 PREROUTE_NETS = ["USB_DP", "USB_DM", XIN, XOUT, LED_K, LED_A,
-                 BOOT_NET, RESET_NET, "GND"]
+                 BOOT_NET, RESET_NET, "GND", "+1V1", LX_NET] + QSPI_NETS
 
 
 def main():
@@ -62,7 +72,7 @@ def main():
         p = next(p for p in fp.Pads() if p.GetNumber() == num)
         return p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
 
-    def path(net, layer, pts):
+    def path(net, layer, pts, width=W):
         code = board.FindNet(net).GetNetCode()
         for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
             if (x0, y0) == (x1, y1):
@@ -70,7 +80,7 @@ def main():
             t = pcbnew.PCB_TRACK(board)
             t.SetStart(pcbnew.VECTOR2I(MM(x0), MM(y0)))
             t.SetEnd(pcbnew.VECTOR2I(MM(x1), MM(y1)))
-            t.SetWidth(MM(W))
+            t.SetWidth(MM(width))
             t.SetLayer(layer)
             t.SetNetCode(code)
             t.SetLocked(True)
@@ -178,6 +188,57 @@ def main():
         path(net, B, [(cx, v_l[1]), v_low])
         via(net, *v_low)
         path(net, F, [v_low, (rx, ry)])
+
+    # ---- VREG ground return + L101 output (pilink-2wq) ---------------------
+    # RP2350 DS 6.3.8.1: short ground return, ground plane under the
+    # regulator. GND vias beside U101 pin 62, C103 pad 2 and C104 pad 2 put
+    # the loop's return on B.Cu, and two anchor vias just outside L101's
+    # courtyard (east side) give the isolated B.Cu pocket under L101 a GND
+    # connection so GND_B fills there. L101 pad 2 -> C104 pad 1 is a locked
+    # 0.4mm F.Cu link (+1V1; widen.py could not widen the router's 0.2mm one).
+    # route.py keeps B.Cu routing out of x 47..53, y 13..20.5 (l101_keepout.py
+    # PLANE_B) so these vias land on one connected GND_B region.
+    x62, y62 = pad("U101", "62")
+    path("GND", F, [(x62, y62), (x62, y62 + 1.2)])
+    via("GND", x62, y62 + 1.2)
+    xc3, yc3 = pad("C103", "2")
+    path("GND", F, [(xc3, yc3), (xc3, yc3 - 0.9)])
+    via("GND", xc3, yc3 - 0.9)
+    xc4, yc4 = pad("C104", "2")
+    # locked B.Cu GND link C103 via <-> C104 via (merges into GND_B): keeps
+    # the router from linking them on F.Cu across the FB column below.
+    path("GND", B, [(xc4, yc4 + 0.9), (xc3, yc3 - 0.9)])
+    path("GND", F, [(xc4, yc4), (xc4, yc4 + 0.9)])
+    via("GND", xc4, yc4 + 0.9)
+    lx, ly = pad("L101", "2")
+    for dy in (-1.0, 0.7):
+        via("GND", lx + 3.3, ly + 1.6 + dy + 0.0)
+    c1x, c1y = pad("C104", "1")
+    path("+1V1", F, [(c1x, c1y), (lx, ly)], width=0.4)
+    # VREG_FB (U101 pin 65) -> C104 pad 1: locked straight F.Cu run up its own
+    # column, ~6mm, so the router cannot send it the long way round (it did
+    # once PLANE_B blocked the B.Cu exit). Stays between the C104 GND via
+    # and C103's pads.
+    x65, y65 = pad("U101", "65")
+    path("+1V1", F, [(x65, y65), (x65, c1y + 0.8), (c1x, c1y)])
+
+    # ---- VREG_LX U101 pin 63 -> L101 pad 1 (pilink-2wq) ---------------------
+    # Locked, short, no vias: otherwise the router's +3V3 run can box pin 63
+    # in (seen once). widen.py takes it to 0.4mm where DRC allows.
+    x63, y63 = pad("U101", "63")
+    xl, yl = pad("L101", "1")
+    path(LX_NET, F, [(x63, y63), (x63, y63 - 0.5), (xl - 1.35, yl), (xl, yl)])
+
+    # ---- QSPI cluster replay (pilink-2wq) ----------------------------------
+    with open(os.path.join(HERE, "qspi_routes.json")) as fh:
+        qspi = json.load(fh)
+    for short, d in qspi.items():
+        net = "/RP2350B + Memory/" + short
+        for lay, x0, y0, x1, y1, w in d["tracks"]:
+            path(net, F if lay == "F" else B,
+                 [(x0 + 100.0, y0 + 100.0), (x1 + 100.0, y1 + 100.0)], width=w)
+        for x, y in d["vias"]:
+            via(net, x + 100.0, y + 100.0)
 
     pcbnew.SaveBoard(BOARD, board)
     print("pre-routed USB D+/D-, XIN/XOUT, backlight, SW101/SW102 BOOTSEL/RESET + GND escapes (locked)")

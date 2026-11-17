@@ -125,10 +125,13 @@ P = {
     "C114": (CX - 2.4, CY - RING, "chip"),
     "C115": (CX + 0.7, CY - RING, "chip"),
     "C103": (CX + 2.85, CY - RING, "chip"),
-    "C105": (CX + 6.6, CY - 5.4, "chip"),
-    "R104": (CX + 6.6, CY - 6.7, 0),
-    "L101": (CX + 6.5, CY - 10.6, "chip"),
-    "C104": (CX + 10.0, CY - 10.6, "l101"),
+    "C105": (CX + 9.6, CY - 5.4, "chip"),
+    "R104": (CX + 9.6, CY - 6.7, 0),
+    # pilink-2wq: L101 (DMBJ CXP0420, 4.4x4.2, pads along its 4.75mm terminal
+    # axis, stood vertical) sits right above VREG_LX (pin 63); C104 (VREG
+    # output cap, +1V1) beside its far pad; C103 (VREG_VIN cap) stays at pin 64.
+    "L101": (CX + 5.9, CY - 8.6, 90),
+    "C104": (CX + 2.1, CY - 10.2, 180),
     "Y101": (CX, CY + 11.5, 0),
     "C101": (CX - 3.5, CY + 11.5, 90),
     "C102": (CX + 3.5, CY + 11.5, 90),
@@ -375,6 +378,9 @@ P = {
     "J101": (20.0, 46.0, 180),
 }
 
+REF_TEXT = {"C103": (CX + 1.69, CY - 7.2, 90), "C104": (CX + 2.9, CY - 12.0), "L101": (CX + 6.5, CY - 13.0),
+            "R104": (CX + 12.6, CY - 6.7), "C105": (CX + 12.6, CY - 5.4)}
+
 FACE = {"chip": (CX, CY), "l101": (CX + 6.5, CY - 10.6)}
 
 # Footprints that must end up on the back side (B.Cu): vertical-mount J401
@@ -399,8 +405,46 @@ def auto_orient(fp, target):
     fp.SetOrientationDegrees(best[1])
 
 
+def resync_l101(board):
+    """Reload L101 from the project footprint library when the board's copy
+    has drifted from it (pilink-2wq: pad geometry corrected after review;
+    place.py otherwise only moves footprints, never refreshes their pads).
+    Keeps reference, value, position, rotation, side and every pad's net."""
+    old = board.FindFootprintByReference("L101")
+    lib = os.path.join(HERE, "..", "footprints", "Inductor_SMD_Custom.pretty")
+    new = pcbnew.FootprintLoad(lib, "L_DMBJ_CXP0420")
+    sig = lambda f: sorted((p.GetNumber(), p.GetFPRelativePosition().x,
+                            p.GetFPRelativePosition().y, p.GetSize().x,
+                            p.GetSize().y) for p in f.Pads())
+    if old is None or (sig(old) == sig(new)
+                       and str(old.GetFPID().GetLibNickname())):
+        return
+    # keep the schematic link (path + sheet) so Update-PCB-from-Schematic
+    # still pairs this footprint with its symbol
+    new.SetPath(old.GetPath())
+    new.SetSheetname(old.GetSheetname())
+    new.SetSheetfile(old.GetSheetfile())
+    new.SetFPID(pcbnew.LIB_ID("Inductor_SMD_Custom", "L_DMBJ_CXP0420"))
+    new.SetReference("L101")
+    new.SetValue(old.GetValue())
+    new.SetPosition(old.GetPosition())
+    new.SetOrientation(old.GetOrientation())
+    if old.GetLayer() != new.GetLayer():
+        new.Flip(old.GetPosition(), False)
+    for p in new.Pads():
+        op = old.FindPadByNumber(p.GetNumber())
+        if op is not None:
+            p.SetNet(op.GetNet())
+    for name in ("Description", "LCSC", "LCSC Part", "Datasheet", "Manufacturer"):
+        if old.HasField(name):
+            new.GetField(name).SetText(old.GetField(name).GetText())
+    board.Remove(old)
+    board.Add(new)
+
+
 def main():
     board = pcbnew.LoadBoard(BOARD)
+    resync_l101(board)
 
     # -- design-rule minimums (JLCPCB, checked 2026-11-15; see README) -----
     ds = board.GetDesignSettings()
@@ -502,6 +546,13 @@ def main():
             fp.SetOrientationDegrees(rot)
         if ref in BACK_SIDE and fp.GetLayer() == pcbnew.F_Cu:
             fp.Flip(fp.GetPosition(), pcbnew.FLIP_DIRECTION_LEFT_RIGHT)
+
+    # pilink-2wq: reference-designator silk around the VREG block, set
+    # absolutely so it clears L101's silk/outline and the neighbours' refs.
+    for ref, (x, y, *ang) in ((r, tuple(v)) for r, v in REF_TEXT.items()):
+        t = board.FindFootprintByReference(ref).Reference()
+        t.SetTextAngleDegrees(ang[0] if ang else 0)
+        t.SetPosition(pt(x, y))
 
     pcbnew.SaveBoard(BOARD, board)
 

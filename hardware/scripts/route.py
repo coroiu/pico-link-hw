@@ -30,11 +30,15 @@ import pcbnew
 from preroute import PREROUTE_NETS
 from antenna_reroute import add_route_keepout, remove_route_keepout
 from sw_keepout import add_sw_keepouts
+from l101_keepout import add_l101_route_keepout, remove_l101_route_keepout
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 HW = os.path.normpath(os.path.join(HERE, ".."))
 BOARD = os.path.join(HW, "pico-link-hw.kicad_pcb")
 WORK = os.path.join(HW, ".autoroute")
+
+
+ROUTE_TIMEOUT = 900   # seconds; a normal run takes 1.5-3 minutes
 
 
 def main():
@@ -64,6 +68,8 @@ def main():
     # is removed again before the board is saved (zones.py adds the pour-only
     # KO_ANT_* areas).
     add_route_keepout(board)
+    # L101 (pilink-2wq): no B.Cu track/via under the regulator inductor.
+    add_l101_route_keepout(board)
 
     shutil.rmtree(WORK, ignore_errors=True)
     os.makedirs(WORK)
@@ -95,7 +101,13 @@ def main():
                ] + [a.format(w="/work") for a in fr_args]
     print("running:", " ".join(cmd), flush=True)
     with open(os.path.join(WORK, "freerouting.log"), "w") as log:
-        subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, check=False)
+        try:
+            subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT,
+                           check=False, timeout=ROUTE_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            sys.exit(f"Freerouting did not finish within {ROUTE_TIMEOUT}s "
+                     "(it can loop past -mp when a connection is unroutable); "
+                     f"see {WORK}/freerouting.log")
     if not os.path.isfile(ses):
         sys.exit(f"Freerouting produced no SES; see {WORK}/freerouting.log")
 
@@ -117,6 +129,7 @@ def main():
     if not pcbnew.ImportSpecctraSES(board, ses):
         sys.exit("SES import failed")
     remove_route_keepout(board)
+    remove_l101_route_keepout(board)
     pcbnew.SaveBoard(BOARD, board)
     tracks = [t for t in board.GetTracks()]
     vias = sum(1 for t in tracks if t.Type() == pcbnew.PCB_VIA_T)
