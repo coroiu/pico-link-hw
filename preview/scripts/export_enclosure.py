@@ -102,7 +102,7 @@ def run_openscad(scad, out, defs=()):
 
 PRINT_NOTES = {
     "front_shell": "outer face on the bed, open side up (as modelled, face frame Z = 0 at the face).",
-    "back_shell": "upright on the fin bottoms, as it stands on a desk (pilink-s98). Needs support under the bottom wall (it slopes up at LEAN_DEG, 15 deg by default) and inside under the top wall; see enclosure/README.md.",
+    "back_shell": "upright on the fin bottoms, as it stands on a desk (pilink-s98). Needs support under the bottom wall (it slopes up at LEAN_DEG, 25 deg by default) and inside under the top wall; see enclosure/README.md.",
     "knob": "upright as modelled, underside on the bed (knob.scad: print upright, dish up).",
     "button_plunger": "as modelled, flat on the bed.",
     "antenna_mount": "as modelled (own frame, land face on the bed).",

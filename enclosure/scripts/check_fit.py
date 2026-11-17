@@ -206,8 +206,21 @@ ENCODER_LEAD_LEN = 3.5
 HEADER_TAIL_LEN = 3.0
 TOUCH_TOL = 0.02  # mm
 
-# pilink-s98: (LEAN_DEG, FLOAT_GAP) combinations the fin stand is re-rendered at.
-FIN_SWEEP = [(10, 0), (10, 5), (15, 0), (15, 5), (20, 0), (20, 5)]
+# pilink-s98: (LEAN_DEG, FLOAT_GAP, FRONT_FOOT_OFFSET) combinations the fin
+# stand is re-rendered at; None = the file's default offset (front pads flush
+# behind the rear-bottom edge). Below LEAN ~23 those pads would tip forward
+# (back_shell.scad asserts), so the lower leans move them forward, which also
+# exercises the fin toe running on under the bottom wall.
+FIN_SWEEP = [(15, 0, 6), (15, 5, 6), (20, 0, 3), (25, 0, None), (25, 5, None),
+             (30, 0, None), (30, 5, None), (40, 0, None)]
+
+
+def sweep_key(lean, gap, off):
+    return "bs_L%g_G%g" % (lean, gap) + ("" if off is None else "_F%g" % off)
+
+
+def sweep_label(lean, gap, off):
+    return "LEAN %g FLOAT %g" % (lean, gap) + ("" if off is None else " FRONT_FOOT_OFFSET %g" % off)
 
 # Mass model for the tip-over estimate (pilink-s98). Printed parts are taken
 # as solid (2mm walls are mostly perimeters); envelope boxes over-fill their
@@ -430,10 +443,12 @@ def main():
             jobs += [("back_shell[assembly]", scad, [], "bs_asm"),
                      ("back_shell[PART=back_shell]", scad, ['PART="back_shell"'], "bs_back")]
             # pilink-s98: the fin stand must regenerate from LEAN_DEG / FLOAT_GAP
-            for lean, gap in FIN_SWEEP:
-                jobs.append(("back_shell[PART=back_shell LEAN_DEG=%g FLOAT_GAP=%g]" % (lean, gap), scad,
-                             ['PART="back_shell"', "LEAN_DEG=%g" % lean, "FLOAT_GAP=%g" % gap],
-                             "bs_L%g_G%g" % (lean, gap)))
+            for lean, gap, off in FIN_SWEEP:
+                defs = ['PART="back_shell"', "LEAN_DEG=%g" % lean, "FLOAT_GAP=%g" % gap]
+                if off is not None:
+                    defs.append("FRONT_FOOT_OFFSET=%g" % off)
+                jobs.append(("back_shell[PART=back_shell %s]" % sweep_label(lean, gap, off), scad, defs,
+                             sweep_key(lean, gap, off)))
         else:
             jobs.append((n, scad, [], n))
     render_fail = False
@@ -772,8 +787,9 @@ def main():
     # LEAN_DEG x FLOAT_GAP sweep: the fin bottoms land at Y = -FLOAT_GAP, the
     # rear end at the same Z, and the only material a straight-on front view
     # can see at FLOAT_GAP 0 is the front pads' lip under the bottom edge.
-    for lean, gap in FIN_SWEEP:
-        m = renders.get("bs_L%g_G%g" % (lean, gap))
+    for lean, gap, off in FIN_SWEEP:
+        m = renders.get(sweep_key(lean, gap, off))
+        ffz = bv["FRONT_FOOT_Z"] if off is None else off - pad_r   # this render's front foot centre
         if m is None:
             continue
         lo, hi = m.bounds
@@ -790,20 +806,20 @@ def main():
             # pad sits forward of it): remove each disc's front-view shadow,
             # pad_d wide x FOOT_PAD_T tall, from its widest point back.
             occl = union([box(x - pad_r, x + pad_r, -gap - 0.01, -gap + bv["FOOT_PAD_T"],
-                              -300, bv["FRONT_FOOT_Z"]) for x in bv["FIN_X"]])
+                              -300, ffz) for x in bv["FIN_X"]])
             resid = trimesh.boolean.difference([vis, occl], engine="manifold")
             rb = solid_bounds(resid)
-            in_front_pads = rb is None or rb[0][2] > bv["FRONT_FOOT_Z"] - pad_r - 0.05
+            in_front_pads = rb is None or rb[0][2] > ffz - pad_r - 0.05
             vis_ok = in_front_pads if gap == 0 else True
             vdesc = "visible from the front: %.1f mm3, Y %.2f..%.2f (%.2f above the fin bottom), Z %.2f..%.2f%s" % (
                 mesh_volume(vis), vlo[1], vhi[1], vhi[1] + gap, vlo[2], vhi[2],
                 " (front pads only)" if in_front_pads else " (includes fin/rear pad: float gap)")
         ok = geo_ok and vis_ok and m.is_watertight
-        rec("fin stand LEAN %g FLOAT %g" % (lean, gap), "OK" if ok else "FAIL",
+        rec("fin stand " + sweep_label(lean, gap, off), "OK" if ok else "FAIL",
             "watertight=%s, bottom Y %.2f (want %.2f), rear Z %.2f (want %.2f); %s" % (
                 m.is_watertight, lo[1], -gap, lo[2], rear_z, vdesc))
         if not ok:
-            failed.append("fin stand LEAN %g FLOAT %g" % (lean, gap))
+            failed.append("fin stand " + sweep_label(lean, gap, off))
     # Tip-over (static): CoG vs the four feet's contact rectangle, front/back.
     if front is not None and back is not None and fins is not None:
         bodies = [(front, DENSITY_PRINT), (back, DENSITY_PRINT), (pcb, DENSITY_FR4)]
@@ -827,13 +843,14 @@ def main():
         front_edge = bv["FRONT_FOOT_Z"] + bv["FOOT_DIA"] / 2
         rear_edge = bv["REAR_FOOT_Z"] - bv["FOOT_DIA"] / 2
         m_front, m_back = front_edge - cz, cz_all - rear_edge
+        m_front_all = front_edge - cz_all
         h = cy + bv["FLOAT_GAP"] + bv["FOOT_H"] - bv["FOOT_RECESS_DEPTH"]   # CoG above the table (FOOT_H display value)
         ok = m_front > 0 and m_back > 0
         rec("tip-over: CoG inside the feet contact (LEAN %g, FLOAT %g)" % (LEAN, bv["FLOAT_GAP"]), "OK" if ok else "FAIL",
             "body %.0f g + fins %.1f g; CoG world Z %.2f (no fins) / %.2f (with), %.1f mm above the table; "
-            "feet contact Z %.2f..%.2f -> margin front %.2f mm (tilt %.1f deg), back %.2f mm (tilt %.1f deg)" % (
+            "feet contact Z %.2f..%.2f -> margin front %.2f mm (tilt %.1f deg; %.2f mm with fins), back %.2f mm (tilt %.1f deg)" % (
                 mass, fin_mass, cz, cz_all, h, rear_edge, front_edge, m_front,
-                math.degrees(math.atan2(m_front, h)), m_back, math.degrees(math.atan2(m_back, h))))
+                math.degrees(math.atan2(m_front, h)), m_front_all, m_back, math.degrees(math.atan2(m_back, h))))
         if not ok:
             failed.append("tip-over")
         drift = max(abs(q - bv["COG_Q"]), abs(bz - bv["COG_BZ"]))

@@ -14,4 +14,4 @@ Superseded entries are marked Deprecated, never deleted.
 | 2026-11-15 | [Swap ESP32-WROOM-32U for ESP32-WROOM-32UE before PCB layout](2026-11-15-esp32-wroom-32ue-swap.md) | Accepted |
 | 2026-11-15 | [Display panel: Crystalfontz CFAF240320A0-024SN, rotated to 320x240](2026-11-15-display-panel-crystalfontz-cfaf240320a0.md) | Accepted |
 | 2026-11-15 | [Enclosure aesthetic direction: minimalist, hidden fasteners, single color, flush controls](2026-11-15-enclosure-aesthetic-direction.md) | Accepted |
-| 2026-11-15 | [Product form factor: upright desk-clock body on two splayed rear legs](2026-11-15-upright-desk-clock-form-factor.md) | Accepted (amended 2026-11-17: legs glued, `pilink-8jy`; legs + base strip replaced by two rear fins, `pilink-s98`) |
+| 2026-11-15 | [Product form factor: upright desk-clock body on two splayed rear legs](2026-11-15-upright-desk-clock-form-factor.md) | Accepted (amended 2026-11-17: legs glued, `pilink-8jy`; legs + base strip replaced by two rear fins, lean 25°, `pilink-s98`) |

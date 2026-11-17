@@ -58,8 +58,8 @@
 //   AES   = .planning/decisions/2026-11-15-enclosure-aesthetic-direction.md
 
 /* [Stand] */
-// Body lean back from vertical, degrees (ADR: ~15, face ~75 deg to the table). Fins, pads and the tip-over estimate all follow it. A smaller lean moves the CoG forward: at the default FRONT_FOOT_OFFSET the front tip-over margin is ~4.5mm at 15, ~1.9 at 10, ~0.8 at 8 (raise FRONT_FOOT_OFFSET to compensate).
-LEAN_DEG = 15; // [8:1:25]
+// Body lean back from vertical, degrees (25: user decision 2026-11-17; the ADR started from ~15). Fins, pads and the tip-over estimate all follow it. A smaller lean moves the CoG forward: with the front pads flush behind the rear-bottom edge (FRONT_FOOT_OFFSET 0) the forward tip-over margin is ~1.4mm at 25, ~4.0 at 30, and negative below ~23 (the assert stops the render; raise FRONT_FOOT_OFFSET to compensate: ~+4 at 15).
+LEAN_DEG = 25; // [8:1:40]
 // How far the fin bottoms reach below the body's lowest (rear-bottom) edge, mm. 0 = flush: the float then comes from the rubber feet only.
 FLOAT_GAP = 0; // [0:0.5:15]
 
@@ -86,8 +86,8 @@ FOOT_RECESS_CLEARANCE = 0.4; // [0:0.1:1]
 FOOT_PAD_RIM = 1.2; // [0.8:0.1:4]
 // Pad disc thickness, mm (a concave fillet above it flares the pad into the fin's end).
 FOOT_PAD_T = 1.6; // [1:0.1:4]
-// Front foot: position of its REAR edge relative to the body's rear-bottom edge, mm (+ = forward, under the body). The fin's bottom edge runs forward to the front foot's centre, so the pad always hangs from the fin. 0.5 (user review 2026-11-17: pads out of the fins, as far back as a ~4mm forward tip-over margin allows) gives ~4.5mm; each +1 here adds ~1mm of margin but puts more of the pad under the body's bottom plate.
-FRONT_FOOT_OFFSET = 0.5; // [-1:0.5:10]
+// Front foot pad: position of the pad disc's FRONT edge relative to the body's rear-bottom edge, mm (+ = forward, under the body). 0 = flush behind that edge, the whole pad under the fin (user decision 2026-11-17), at any LEAN_DEG / FOOT_DIA. Each +1 adds ~1mm of forward tip-over margin.
+FRONT_FOOT_OFFSET = 0; // [-10:0.5:15]
 // Rubber foot height, mm -- DISPLAY ONLY (assembly view); no printed geometry uses it.
 FOOT_H = 2.0; // [0.5:0.1:8]
 // Show the rubber feet in the assembly view.
@@ -493,14 +493,21 @@ module back_shell_local() {
 //   - Rear: the fin rises from the pad as a short upright heel (HEEL_H, the
 //     pad + fillet height), then rolls over an arc of radius FIN_TIP_R into
 //     the hypotenuse (no acute tip, no step at the pad's edge).
-//   - Front: the CoG sits ~2.6mm ahead of the body's rear-bottom edge at LEAN
-//     15, so the front feet must reach forward of that edge. The fin's toe
-//     runs forward under the bottom wall (embedded in it) to the front foot's
-//     centre. With FRONT_FOOT_OFFSET 0.5 the rubber foot's rear edge is 0.5mm
-//     ahead of the edge, ~4.5mm of forward tip-over margin; the pad spans Z
-//     -0.9..8.4, so most of it still sits under the body's sloped underside.
-//     A pad wholly behind the edge would put the foot's front edge at Z
-//     -1.4, ~4mm behind the CoG: it tips forward at any LEAN <= ~22.
+//   - Front (user decision 2026-11-17, LEAN 25): the front pads sit wholly
+//     behind the body's rear-bottom edge, under the fins, their discs' front
+//     edges flush with that edge (FRONT_FOOT_OFFSET 0). At LEAN 25 the CoG is
+//     ~2.7mm behind the edge, so the rubber feet's front edges (Z -1.4) are
+//     ~1.4mm ahead of it (~3.1mm counting the fins' own mass): a thin forward
+//     tip-over margin the user accepted. At LEAN <= ~22 the same pads tip
+//     forward and the assert below stops the render; FRONT_FOOT_OFFSET > 0
+//     then pushes them forward, the fin's toe running on under the bottom
+//     wall (embedded in it) to the front foot's centre.
+//   - The fin's front edge runs SOLID from the front pad's neck up into the
+//     body (user review 2026-11-17: no notch between the neck, the fin and
+//     the back plate). Two extra hull vertices do it: one on the fin bottom
+//     whose disc's front edge reaches the rear-bottom edge (Z 0), and one at
+//     the embedded corner of the two walls, so the hull fills the wedge
+//     between the vertical neck and the back plate leaning away above it.
 //   - Fin edges against the walls are embedded FIN_EMBED, deep enough that
 //     their rounding stays inside the wall (the part outside is full FIN_T);
 //     whatever the hull puts inside the cavity is clipped away.
@@ -510,7 +517,7 @@ FOOT_RECESS_D = FOOT_DIA + FOOT_RECESS_CLEARANCE;          // centring recess di
 FOOT_PAD_D  = FOOT_RECESS_D + 2*FOOT_PAD_RIM;              // pad disc diameter
 FOOT_FLARE_H = (FOOT_PAD_D - FIN_T) / 2;                   // fillet radius = height, pad rim -> FIN_T neck
 HEEL_H      = FOOT_PAD_T + FOOT_FLARE_H;                   // pad + fillet: where the neck meets the fin end
-FRONT_FOOT_Z = FRONT_FOOT_OFFSET + FOOT_DIA/2;             // front foot centre, world Z (datum = rear-bottom edge)
+FRONT_FOOT_Z = FRONT_FOOT_OFFSET - FOOT_PAD_D/2;           // front foot centre, world Z (datum = rear-bottom edge; 0 offset = pad flush behind it)
 REAR_FOOT_Z  = -FIN_REACH;                                 // rear foot centre, world Z
 FIN_BOTTOM_Y = -FLOAT_GAP;                                 // fin bottom / pad underside, world Y
 FIN_X = [FACE_W/2 - FIN_OFFSET_X, FACE_W/2 + FIN_OFFSET_X]; // fin mid-planes, world X
@@ -527,6 +534,7 @@ BODY_TOP_Y = w_y(FACE_H, 0);             // back-top edge: lowest point of the t
 // embed line in the bottom wall -- or in the back wall, for a front foot
 // behind the corner (small/negative FRONT_FOOT_OFFSET).
 FIN_CORNER_Z = w_z(FIN_EMBED, FIN_EMBED);
+FIN_CORNER_Y = w_y(FIN_EMBED, FIN_EMBED);
 FIN_TOE_TOP = FRONT_FOOT_Z >= FIN_CORNER_Z
     ? [FRONT_FOOT_Z, w_y(FIN_EMBED, (FRONT_FOOT_Z + FIN_EMBED*sin(LEAN_DEG)) / cos(LEAN_DEG))]
     : [FRONT_FOOT_Z, w_y((FIN_EMBED*cos(LEAN_DEG) - FRONT_FOOT_Z) / sin(LEAN_DEG), FIN_EMBED)];
@@ -550,7 +558,9 @@ assert(REAR_FOOT_Z + FOOT_PAD_D/2 < FRONT_FOOT_Z - FOOT_PAD_D/2, "front and rear
 function fin_vertices() = concat(
     [[FIN_TOP_Z, FIN_TOP_Y],              // top corner, inside the back wall
      FIN_TOE_TOP,                         // toe top, inside the bottom wall above the front foot
+     [FIN_CORNER_Z, FIN_CORNER_Y],        // the walls' embedded corner: fills up to the back plate
      [FRONT_FOOT_Z, FIN_BOTTOM_Y],        // toe bottom, on the front foot's axis
+     [-FIN_T/2,     FIN_BOTTOM_Y],        // bottom, disc front edge at the rear-bottom edge (Z 0)
      [REAR_FOOT_Z,  FIN_BOTTOM_Y]],       // heel bottom, on the rear foot's axis
     [ for (i = [0 : HEEL_ARC_N]) let(a = 180 - i * (180 - HEEL_TANGENT_A) / HEEL_ARC_N)
         HEEL_C + FIN_TIP_R * [cos(a), sin(a)] ]   // heel top, rolling over into the hypotenuse
@@ -594,7 +604,7 @@ module foot_recesses() {
 
 // The front shell's zone (local bz >= BACK_SHELL_DEPTH), grown by
 // FRONT_SHELL_CLEARANCE down below its bottom face and back past the joint
-// plane. A front pad pushed far forward (FRONT_FOOT_OFFSET >~ 3 at LEAN 15)
+// plane. A front pad pushed far forward (FRONT_FOOT_OFFSET >~ 11 at LEAN 15)
 // puts its fillet under the front shell; this keeps a gap between the pad and
 // the front shell instead of a near-touch or an edge contact at the joint.
 // Only fin/pad material is removed: the shell itself is unioned separately.
@@ -627,10 +637,11 @@ module fins() {
 }
 
 // The printed part: shell + fins. The foot recesses are cut from the shell
-// too: at FLOAT_GAP 0 the front recess (Z 0.3..7.2 at the defaults) runs
-// under the body's rear-bottom corner and takes up to FOOT_RECESS_DEPTH
-// (0.6mm) off the 2mm bottom wall there, as the old feet pockets did
-// (pilink-9i4).
+// too: at the defaults the front recess (Z -8.1..-1.2) is wholly behind the
+// rear-bottom edge and misses it, but with FRONT_FOOT_OFFSET > ~1.2 at
+// FLOAT_GAP 0 it runs under the body's corner and takes up to
+// FOOT_RECESS_DEPTH (0.6mm) off the 2mm bottom wall, as the old feet pockets
+// did (pilink-9i4).
 module shell_world() {
     difference() {
         union() {
@@ -656,7 +667,7 @@ module feet_display() {
 // frame, from check_fit.py's mass model (rendered shells, knob, plungers and
 // antenna mount at 1.24 g/cm3 solid; PCB slab FR4 1.85; component envelope
 // boxes 1.0; display stack box 0.9, ~7.4 g; M2 screws steel -- see check_fit.py
-// "tip-over"). Body ~81 g, fins ~8.8 g at the defaults (FIN_REACH 45). Leaving the
+// "tip-over"). Body ~81 g, fins ~8.1 g at the defaults (FIN_REACH 45, LEAN 25). Leaving the
 // fins out moves the CoG forward, i.e. it is conservative for forward
 // tipping (the critical side). Re-measure (check_fit.sh prints it) if the
 // shells or the PCB stack change.

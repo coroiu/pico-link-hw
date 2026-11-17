@@ -272,15 +272,21 @@ quarter-round fillet (R 3.15) up to a Ø3 neck on the same axis, which the
 fin's half-round end continues, so pad and fin are one form. At the rear the
 fin rises from the pad as a short upright heel (pad + fillet, 4.75mm), then
 rolls over a `FIN_TIP_R` = 6mm arc into the hypotenuse: no acute tip, no
-step at the pad's edge. At the front the fin's toe runs forward under the
-bottom wall (embedded in it) to the front foot's centre, so the front pad
-hangs from the fin. The fins' edges against the walls are embedded ~1.6mm
+step at the pad's edge. At the front (user decision 2026-11-17, with LEAN
+25) the pad sits wholly behind the body's rear-bottom edge, under the fin,
+its disc's front edge flush with that edge, and the fin runs **solid** from
+the pad's neck up to the back plate: two extra hull points (one on the fin
+bottom whose disc reaches Z 0, one at the walls' embedded corner) fill the
+wedge between the vertical neck and the back plate leaning away above it,
+which the previous cut left as a notch. With `FRONT_FOOT_OFFSET` > 0 the
+toe instead runs forward under the bottom wall (embedded in it) to the front
+foot's centre. The fins' edges against the walls are embedded ~1.6mm
 (enough that the rounding stays inside the wall; outside it they are the
 full 3mm), and everything is clipped against the cavity, the USB-C opening
 and the insert pockets, so nothing reaches inside whatever the parameters.
 They are also kept `FRONT_SHELL_CLEARANCE` (0.4mm) clear of the front shell,
 which matters only for a front pad pushed far forward (`FRONT_FOOT_OFFSET`
->~ 3).
+>~ 11).
 
 **Two pads per fin, not one.** The brief said "a foot pad per fin". One pad
 per fin is two contact points, i.e. a line: the body would rock front to
@@ -292,17 +298,19 @@ minimum stable stance (a rectangle of four feet). **Confirmed by the user
 before `include <common.scad>`, with OpenSCAD Customizer annotations
 (`/* [Stand] */`, `/* [Fins] */`, `/* [Feet] */`, `/* [Render] */`,
 `// [min:step:max]` ranges, a description line above each; derived values
-live under `/* [Hidden] */`): `LEAN_DEG` (15, the single lean variable;
-slider 8..25, since below ~8 the CoG moves far enough forward that the front
-tip-over margin gets thin),
+live under `/* [Hidden] */`): `LEAN_DEG` (25, the single lean variable,
+user decision 2026-11-17; slider 8..40, but with the default front pads the
+CoG is ahead of them below ~23 and the assert stops the render: raise
+`FRONT_FOOT_OFFSET` for a smaller lean),
 `FLOAT_GAP` (0 = fin bottoms flush with the body's lowest edge, which with
 the body leaning back is the back wall's bottom-outer edge; the float then
 comes from the feet alone), `FIN_T`, `FIN_OFFSET_X`, `FIN_TOP_Q`,
 `FIN_REACH`, `FOOT_DIA` (6.5, the user's feet), `FOOT_RECESS_DEPTH`,
 `FOOT_RECESS_CLEARANCE`, `FOOT_PAD_RIM`, `FOOT_PAD_T`, `FRONT_FOOT_OFFSET`
-(front foot's rear edge relative to the rear-bottom edge, + = forward under
-the body; 0.5 by default for ~4.5mm of forward tip-over margin), `FIN_TIP_R`
-(6, the rear tip's round-over),
+(the front pad disc's front edge relative to the rear-bottom edge, + =
+forward under the body; 0 by default = flush behind it, derived from the pad
+diameter so it holds for any `FOOT_DIA`/rim/clearance and any lean; slider
+-10..15), `FIN_TIP_R` (6, the rear tip's round-over),
 `FOOT_H` (display only: the assembly view's rubber feet; no printed geometry
 uses it), `SHOW_FEET`, `PART`. Asserts stop a render that would put a fin
 above or beside the body in the front view, crowd the USB-C opening (< 5mm),
@@ -312,73 +320,70 @@ effect. For a single-file online configurator (MakerWorld Parametric Model
 Maker), `common.scad` has to be inlined first (`pilink-c6z`).
 
 **Regenerates from LEAN_DEG / FLOAT_GAP.** `check_fit.sh` renders the
-printable part at LEAN 10/15/20 x FLOAT 0/5: all six are watertight, the
-fin bottoms land at Y = -FLOAT_GAP and the rear end at Z = -49.65 in every
-case (side- and front-view PNGs were also looked at).
+printable part at LEAN 25 / 30 x FLOAT 0 / 5 and LEAN 40 x FLOAT 0 with the
+default front pads, and at LEAN 15 x FLOAT 0 / 5 (`FRONT_FOOT_OFFSET` 6)
+and LEAN 20 x FLOAT 0 (offset 3), where the default pads would tip forward:
+all nine are watertight, the fin bottoms land at Y = -FLOAT_GAP and the rear
+end at Z = -49.65 in every case (side- and front-view PNGs were also looked
+at).
 
 **Front view.** The fins themselves are hidden behind the body. What a
 straight-on (horizontal) front view can see, per `check_fit.sh` (body box
 swept back and subtracted from the part; what sits directly behind a front
-pad's disc is counted as hidden by it; the earlier figures here also counted
-zero-volume coplanar slivers along the bottom face, now filtered out):
+pad's disc is counted as hidden by it):
 
-| LEAN | FLOAT 0 | FLOAT 5 |
+| LEAN (front offset) | FLOAT 0 | FLOAT 5 |
 |---|---|---|
-| 10 | front pads only, up to 1.46mm above the fin bottom | fin bottoms + pads below the body, up to 5.91mm above the fin bottom |
-| 15 | front pads only, up to 1.88mm | up to 6.39mm |
-| 20 | front pads only, up to 2.31mm | up to 6.89mm |
+| 15 (6) | front pads only, up to 1.59mm above the fin bottom | fin bottoms + pads below the body, up to 5.74mm above the fin bottom |
+| 20 (3) | front pads only, up to 1.07mm | not rendered |
+| **25 (0, default)** | **nothing** | up to 5.85mm |
+| 30 (0) | nothing | up to 5.98mm |
+| 40 (0) | nothing | not rendered |
 
-The front pads must reach forward of the body's rear-bottom edge (next
-paragraph); at the default `FRONT_FOOT_OFFSET` 0.5 each pad spans Z
--0.9..8.4, i.e. it straddles that edge and most of it sits under the body,
-in front of its sloped underside. Seen dead level, the body's outline
-reaches down to the rear-bottom edge, so the pads (up to 1.88mm tall at
-LEAN 15) show against the underside, inside that outline; what hangs
-*below* the outline is only the rubber feet, `FOOT_H - FOOT_RECESS_DEPTH`
-(1.4mm with 2mm feet, 2.4mm with 3mm feet). The fin's toe under the bottom
-wall is behind the pad. Seen from above the face normal (a seated user
-looking down) all of it is behind the body. From behind, a sliver of each
-front pad (its rear ~0.9mm, under 2mm tall) shows below the back wall at the
-fin's foot.
+At the default the front pads are wholly behind the rear-bottom edge (pad Z
+-9.3..0), so nothing printed shows in a dead-level front view; below the
+body's outline hang only the rubber feet, `FOOT_H - FOOT_RECESS_DEPTH`
+(1.4mm with 2mm feet, 2.4mm with 3mm feet). Seen from above the face normal
+(a seated user looking down) all of it is behind the body.
 
-**Why the front pads are not wholly behind the body.** The user's review
-asked for each front pad to sit entirely under the fin's bottom edge, i.e.
-behind the body's rear-bottom edge. With the pad's front edge at that edge
-(Z 0), the rubber foot's front edge is at Z -1.4, ~4mm *behind* the CoG
-(Z +2.55): it tips forward on its own at LEAN 15 (and at any LEAN up to
-~22; ~30 would be needed for a 4mm margin). The closest stable version is
-the default: the fin's bottom edge extended forward under the bottom wall to
-the front foot's centre, and the foot moved back 3mm (from 3.5 to 0.5) to a
-~4.5mm forward margin. Each +1 on `FRONT_FOOT_OFFSET` buys ~1mm of margin
+**Front pads wholly behind the body: why LEAN 25.** The first review asked
+for each front pad to sit entirely under the fin, behind the rear-bottom
+edge. At LEAN 15 that tips forward (CoG 2.6mm *ahead* of the edge, the
+rubber feet's front edges 1.4mm behind it), so the previous cut pushed the
+pads forward under the body. The user then chose LEAN 25 (2026-11-17,
+compared side by side at 20/25/30), which moves the CoG 2.7mm *behind* the
+edge, and the pads went back under the fins, flush behind the edge. The
+forward margin is thin (next paragraph) and the user accepted it ("worst
+case I re-print it"). Each +1 on `FRONT_FOOT_OFFSET` buys ~1mm of margin
 and puts the pad 1mm further under the body.
 
 **Tip-over margin (default config).** Mass model in `check_fit.py`:
 rendered shells, knob, plungers and antenna mount at 1.24 g/cm³ solid, PCB
 slab FR4 1.85, component envelope boxes 1.0, display stack box 0.9 (~7.4 g),
-M2 screws steel: body ~81 g, fins ~8.8 g. Body CoG (no fins) at Q 28.35 /
-bz 10.23 (local) = world Z +2.55, i.e. 2.6mm **ahead** of the rear-bottom
-edge; 31.4mm above the table (FOOT_H 2.0). Feet contact runs Z -48.25 ..
-+7.00 (`FIN_REACH` 45, `FRONT_FOOT_OFFSET` 0.5).
+M2 screws steel: body ~81 g, fins ~8.1 g. Body CoG (no fins) at Q 28.35 /
+bz 10.23 (local) = world Z -2.70 at LEAN 25, i.e. 2.7mm **behind** the
+rear-bottom edge; 31.4mm above the table (FOOT_H 2.0). Feet contact runs Z
+-48.25 .. -1.40 (`FIN_REACH` 45, `FRONT_FOOT_OFFSET` 0).
 
-- **Front: 4.45mm** (CoG without fins, the conservative case): the body tips
-  forward after ~8.1° of forward tilt (was 7.45mm / 13.3° with the pads
-  ahead of the fins, `FRONT_FOOT_OFFSET` 3.5). That still covers a few mm
-  of error in the mass model's CoG, but less of it. It scales with the lean:
-  about 1.9mm at LEAN 10, 7.1mm at LEAN 20 (same model), 0.8mm at the
-  slider minimum LEAN 8 (still positive, so the assert passes); for a
-  smaller LEAN, raise `FRONT_FOOT_OFFSET` by the shortfall to keep ~4mm.
-- **Back: 48.6mm** (CoG with fins, Z +0.37): ~57° before it tips back.
+- **Front: 1.30mm** (CoG without fins, the conservative case; the scad's
+  rounded `COG_Q`/`COG_BZ` echo 1.36): the body tips forward after ~2.4° of
+  forward tilt. Counting the fins' own mass (CoG Z -4.46) it is **3.06mm**.
+  Either is within the mass model's likely CoG error: thin, accepted by the
+  user. It scales with the lean: ~4.0mm at LEAN 30 (no fins), negative
+  below ~23 (the assert stops the render); raise `FRONT_FOOT_OFFSET` by the
+  shortfall (about +4 at LEAN 15 for the same margin as here).
+- **Back: 43.8mm** (CoG with fins): ~54° before it tips back.
 - **Button press:** a press along the face normal at the A/B/X/Y diamond
-  tips it back over the rear feet at ~2.5 N (2.53; if the feet don't slide
-  first), about the ADR's ~2.5 N press estimate, and about where the ADR's
-  own friction figure (~1.75 N on 110 g, mu ~1.6) says it would slide
-  anyway. More reach stops helping past this point (37mm gave ~1.9 N). The
-  ADR's physical feet test still decides.
+  tips it back over the rear feet at ~4.3 N (4.29; was 2.5 N at LEAN 15,
+  since the press now points more downward), above the ADR's ~2.5 N press
+  estimate and above where the ADR's own friction figure (~1.75 N on 110 g,
+  mu ~1.6) says the feet would slide first. The ADR's physical feet test
+  still decides.
 - **Knob detent torque (roll sideways over one fin's feet):** restoring
-  moment 0.88 N x 31.2mm = 27.4 N.mm (the CoG sits 2.05mm left of the face
+  moment 0.87 N x 31.2mm = 27.1 N.mm (the CoG sits 2.05mm left of the face
   centre, towards the knob, so the left feet are the near side) against the
-  detent torque's roll component T cos(15°): 9.7 N.mm nominal (10 mN.m),
-  16.4 N.mm worst case (17 mN.m). **~2.8x nominal, ~1.7x worst case.** The
+  detent torque's roll component T cos(25°): 9.1 N.mm nominal (10 mN.m),
+  15.4 N.mm worst case (17 mN.m). **~3.0x nominal, ~1.8x worst case.** The
   ADR's two legs at +/-40mm gave about 3x; the fins' feet are at +/-33.25mm
   (outer edges) on a lighter body.
 
@@ -393,38 +398,41 @@ and 100mm back clears them by ~19.2mm (opening edge to fin plate 21.9mm,
 to pad 18.75mm, per the scad echo). The fins run at a constant X, so this
 holds along the whole cable run. Antenna pigtail notch (internal, top wall,
 face X 107..114): ~19.2mm to the nearest fin. Fins vs the front shell
-2.2mm (the 0.4mm `FRONT_SHELL_CLEARANCE` clip is not reached at the
-default); vs PCB + every envelope body 2.95mm; vs the back cavity: outside
-(clipped flush where the front pad's neck and the fin's embedded edges reach
-the cavity). With FLOAT 0 the
-table sits `FOOT_H - FOOT_RECESS_DEPTH` (1.4mm with 2mm feet) below the
-body's lowest edge; the USB-C cable-vs-table figures only get better.
+7.5mm (the 0.4mm `FRONT_SHELL_CLEARANCE` clip is not reached at the
+default); vs PCB + every envelope body 3.8mm; vs the back cavity: outside
+(clipped flush where the fin's embedded edges reach the cavity). With
+FLOAT 0 the table sits `FOOT_H - FOOT_RECESS_DEPTH` (1.4mm with 2mm feet)
+below the body's lowest edge. At LEAN 25 the USB-C axis points 25° below
+horizontal and a 6.3mm boot meets the table ~30mm along it with the feet
+ignored (scad echo; the table is lower with feet).
 
 **Printing.** One part, upright on the fin bottoms, as it stands on a desk
 (`export_enclosure.py` writes `stl/back_shell.stl` that way: fin bottoms on
-the bed, 56.8mm tall at the defaults). The fins (bottom on the bed,
-hypotenuse facing up, its rounded edges and heel arc), the pads' concave
-fillets (every layer inside the one below) and the recesses (a Ø6.9 bridge
-0.6mm above the bed) need no support. What does, in both cases:
+the bed, 55.2mm tall at the defaults). The fins (bottom on the bed, flat
+vertical sides, hypotenuse facing up, its rounded edges and heel arc; the
+filled front wedge only meets the back plate from below), the pads' concave
+fillets (every layer inside the one below), the recesses (a Ø6.9 bridge
+0.6mm above the bed) and the back wall's outer face (25° from vertical)
+need no support. What does, at LEAN 25:
 
 - **Top wall (inside):** its underside rises toward the open rim at
-  `LEAN_DEG` (15°) from horizontal, cantilevered ~8.6mm off the back wall
+  `LEAN_DEG` (25°) from horizontal, cantilevered ~8.6mm off the back wall
   and spanning 123.5mm between the side walls. Needs support. Because the
   back wall leans back under it, the supports stand on the back wall's
-  inner face (up to ~33mm tall at the rim), not on the bed: use
-  "everywhere" supports, not "build plate only". They come out through the
-  open front.
+  inner face (up to ~20mm tall at the rim; ~33mm at LEAN 15), not on the
+  bed: use "everywhere" supports, not "build plate only". They come out
+  through the open front.
 - **Bottom wall (outside):** its underside rises from the rear-bottom edge to
-  10.6 x sin(LEAN) = 2.7mm at the rim (15° from horizontal).
-  - **FLOAT_GAP = 0:** the rear-bottom edge sits on the bed (a line), and the
-    supports under the bottom wall are a 0..2.7mm wedge.
+  10.6 x sin(LEAN) = 4.5mm at the rim (25° from horizontal).
+  - **FLOAT_GAP = 0:** the rear-bottom edge sits on the bed (a line, the
+    front pads' front edges just touching it), and the supports under the
+    bottom wall are a 0..4.5mm wedge.
   - **FLOAT_GAP > 0:** the whole body hangs on the fins; the bottom wall needs
-    supports FLOAT_GAP .. FLOAT_GAP + 2.7mm tall from the bed, and the fins'
-    toes drop vertically below the body at the front feet (no support).
-- **Minor:** the PCB bosses and spool post are short near-horizontal
-  cylinders off the back wall (usually fine unsupported); the USB-C opening's
-  top edge is a 13.2mm bridge.
-- A brim is advisable: a ~57mm-tall part standing on two 3mm fins and four
+    supports FLOAT_GAP .. FLOAT_GAP + 4.5mm tall from the bed.
+- **Minor:** the PCB bosses and spool post are short cylinders off the back
+  wall, now pointing 25° above horizontal (usually fine unsupported); the
+  USB-C opening's top edge is a 13.2mm bridge.
+- A brim is advisable: a ~55mm-tall part standing on two 3mm fins and four
   small pads.
 
 Not verified: real feet, a printed fit, actual print quality with these
@@ -977,8 +985,8 @@ everything in the shells' shared face frame (`common.scad`: `X = board_x +
 volumes and approximate minimum distances (trimesh/manifold). It also checks
 board clearance and centring on all four sides, window / knob / diamond
 centring on the face, and a Ø1.13 pigtail probe through the top-wall notch.
-Since `pilink-s98` it also re-renders the back shell at LEAN 10/15/20 x
-FLOAT 0/5, checks the fins against the cavity, front shell, PCB envelope,
+Since `pilink-s98` it also re-renders the back shell at LEAN 15..40 x
+FLOAT 0/5 (the lower leans with the front pads moved forward), checks the fins against the cavity, front shell, PCB envelope,
 USB-C plug/cable corridor and pigtail notch, reports what a front view can
 see of the fins, and runs the tip-over mass model. It exits non-zero if any
 pair overlaps.

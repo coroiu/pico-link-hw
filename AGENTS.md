@@ -41,7 +41,7 @@ Current status and next steps: `.planning/roadmap.md`.
   `.planning/decisions/2026-11-15-rotary-encoder-replaces-full-dpad.md`.
 - **USB-C** exits the rear of the enclosure (vertical-mount receptacle on
   the PCB back, since the board stands upright).
-- **Form factor** — upright desk-clock body (~75° from the table) on two
+- **Form factor** — upright desk-clock body (face ~65° from the table, 25° lean) on two
   triangular rear fins printed with the back shell (`pilink-s98`; was two
   splayed glued legs); knob left, screen middle, buttons right on one face;
   PCB parallel to the face. See

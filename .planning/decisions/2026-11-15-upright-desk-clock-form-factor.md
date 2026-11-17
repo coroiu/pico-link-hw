@@ -29,7 +29,8 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
 ## Decision
 
 - **Form factor:** an **upright body leaning back about 15 degrees** (face
-  about 75 degrees from the table). One front face carries **knob left,
+  about 75 degrees from the table; amended 2026-11-17, `pilink-s98`: 25
+  degrees, see Support). One front face carries **knob left,
   screen middle, buttons right**.
   - Face about 122 W x 56 H mm.
   - Body about 14 mm thick.
@@ -58,29 +59,37 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
   feet 45 mm behind the body's rear-bottom edge). The base strip (and the ballast pocket it
   reserved) is gone: the body floats above the table on the feet, with
   `FLOAT_GAP` (default 0) extending the fins below the body's lowest edge
-  for more float. The lean stays a single parameter, `LEAN_DEG` (15), and
-  the fin/foot geometry is derived from it. Print orientation: upright on
-  the fin bottoms. This was a user decision on 2026-11-17. Consequences:
-  - The front feet have to sit forward of the body's rear-bottom edge
-    because the CoG is about 2.6 mm ahead of it at 15°. After the user's
-    render review (2026-11-17: pads should come out of the fins and read as
-    their ends), each fin's bottom edge runs forward under the bottom wall
-    to the front foot, and the foot's rear edge sits 0.5 mm forward of the
-    edge (`FRONT_FOOT_OFFSET`, was 3.5). A pad wholly behind the edge would
-    tip forward. The pads show against the sloped underside and the rubber
-    feet below it in a dead-level front view.
-  - Static tip-over margin at the defaults is about 4.5 mm front (was 7.5;
-    still above the mass model's likely CoG error, but less so) and 49 mm
-    back (`enclosure/README.md`, `pilink-s98`).
-  - A button press tips the body back at about 2.5 N, about the ~2.5 N
-    estimate under Rationale and about where the feet would slide anyway.
+  for more float. The lean stays a single parameter, `LEAN_DEG`, and the
+  fin/foot geometry is derived from it. Print orientation: upright on the
+  fin bottoms. This was a user decision on 2026-11-17.
+  **Lean changed to 25° (user decision 2026-11-17, same bead):** after a
+  side-by-side render review at 20/25/30°, `LEAN_DEG` is 25 (face about 65°
+  from the table), not the ~15 above, so the front feet can sit wholly under
+  the fins: each front pad's front edge is flush behind the body's
+  rear-bottom edge (`FRONT_FOOT_OFFSET` 0, now measured from that flush
+  position), and the fin runs solid from the pad up to the back plate.
+  Consequences (from `check_fit.sh`'s mass model, `enclosure/README.md`):
+  - At 25° the body CoG sits about 2.7 mm behind the rear-bottom edge, so
+    the forward tip-over margin is thin: about 1.3 mm without the fins'
+    mass, 3.1 mm with it (about 2.4° of forward tilt). The user accepted
+    this ("worst case I re-print it"). Below about 23° the default pads tip
+    forward and the file refuses to render until `FRONT_FOOT_OFFSET` moves
+    them forward. Back margin about 44 mm.
+  - A button press tips the body back at about 4.3 N (2.5 N at 15°), above
+    the ~2.5 N estimate under Rationale; the feet would likely slide first.
     The feet-first physical test below still decides.
-  - **Knob-torque roll margin is lower than with the legs:** about 1.7x
-    worst case (17 mN·m detent) and 2.8x nominal (10 mN·m), from
+  - **Knob-torque roll margin is lower than with the legs:** about 1.8x
+    worst case (17 mN·m detent) and 3.0x nominal (10 mN·m), from
     `check_fit.sh`'s mass model (89 g with fins, CoG 2 mm towards the knob,
     feet outer edges at +/-33.25 mm). The "about 3x" under Rationale
     assumed 110 g on legs at +/-40 mm. Still stable; the physical test
     covers it.
+  - The face is now about 65° from the table, not 75°: the viewing-angle
+    and height figures elsewhere in this ADR assume 15° and are not
+    re-derived here.
+  - Printing needs support inside under the top wall (up to about 20 mm
+    tall, standing on the back wall's inner face) and a 0..4.5 mm wedge
+    under the bottom wall.
   - The weighted-base fallback no longer has a reserved pocket.
 
   The leg wording above, and "between the legs", "leg bosses", "two-leg
