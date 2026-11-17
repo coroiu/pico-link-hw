@@ -19,3 +19,4 @@ Research lives here; the decisions it informs live in `.planning/decisions/`.
 | 2026-11-15 | [Vertical-mount USB-C receptacle for the PCB back side](2026-11-15-vertical-usb-c-receptacle-selection.md) | Current |
 | 2026-11-15 | [Encoder EC11E18244AU: confirmed detent torque, push force, body height](2026-11-15-encoder-ec11e18244au-specs.md) | Current |
 | 2026-11-15 | [U.FL/IPEX 2.4GHz antenna selection for the ESP32-WROOM-32UE](2026-11-15-ufl-antenna-selection.md) | Current |
+| 2026-11-17 | [Shorter / lower-profile encoder options for a lower knob](2026-11-17-low-profile-encoder-options.md) | Current |
