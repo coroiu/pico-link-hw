@@ -24,6 +24,16 @@
 # 0.18mm, so a part like J401's original 0.9/0.7mm pads (0.1mm ring) fails
 # DRC. U101's EP thermal vias are footprint pads but vias in function
 # (0.6/0.25mm, the same class as the board's 0.6/0.3 vias), so they are exempt.
+# pilink-912: J401's 0.95mm signal pads (0.55mm drill, 0.20mm ring) at the
+# connector's fixed 1.10mm in-row pitch leave a 0.15mm pad-to-pad gap.
+# JLCPCB lists 0.15mm as the minimum pad-to-pad clearance (SMD pads,
+# different nets) and 0.10mm pad-to-track, so the floor here is 0.15mm
+# between J401's own pads, written out explicitly so the gap is deliberate,
+# not an accident of the netclass default.
+(rule j401_pad_gap
+	(constraint clearance (min 0.15mm))
+	(condition "A.memberOfFootprint('J401') && B.memberOfFootprint('J401')"))
+
 (rule pth_pad_annular_ring
 	(constraint annular_width (min 0.18mm))
 	(condition "A.Type == 'Pad' && A.Pad_Type == 'Through-hole' && !A.memberOfFootprint('U101')"))

@@ -195,7 +195,7 @@ guarantee than this BOM's first draft claimed.
 | R401, R402 | 2 | 5.1k | 0402 | C25905 | 0402WGF5101TCE | Extended† | 704,500 |
 | R403, R404 | 2 | 10k (CC1/CC2 ADC voltage-sense series-protection, `pilink-1sj` — merged, commit `5fef711`) | 0402 | C60489 | RC0402JR-0710KL | Extended† | 21,253,700 |
 | U401 | 1 | USBLC6-2SC6, 2-line USB ESD array with VBUS rail clamp (`pilink-e63`), **B.Cu** | SOT-23-6 | C7519 | USBLC6-2SC6 (STMicroelectronics) | Extended (JLCPCB API, 2026-11-17; no Basic USB ESD array found) | 38,121 (JLCPCB API, 2026-11-17) |
-| D401 | 1 | SMF5.0A, 200W unidirectional TVS on +5V after F401 (`pilink-e63`), Vrwm 5.0V, Vbr 6.4-7.0V, Vc 9.2V | SMF (DO-219AB) | C193402 | SMF5.0A (MDD Microdiode) | Extended (JLCPCB API, 2026-11-17; the only Basic TVS hit, SMBJ6.5CA C7420377, clamps higher) | 456,188 (JLCPCB API, 2026-11-17) |
+| D401 | 1 | SMF5.0A, 200W unidirectional TVS on +5V after F401 (`pilink-e63`), Vrwm 5.0V, Vbr 6.4-7.0V, Vc 9.2V | SOD-123FL (JLCPCB listing; PCB land is KiCad `Diode_SMD:D_SMF`, which fits this body) | C193402 | SMF5.0A (MDD Microdiode) | Extended (JLCPCB API, 2026-11-17; the only Basic TVS hit, SMBJ6.5CA C7420377, clamps higher) | 456,188 (JLCPCB API, 2026-11-17) |
 
 † See "Known limitation of this stock check" above — this tool reported
 every generic 0402/0603/0805 R/C jellybean part as `Extended`, which

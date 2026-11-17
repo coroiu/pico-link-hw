@@ -70,7 +70,8 @@ DP_MCU = "/RP2350B + Memory/USB_DP_MCU"
 DM_MCU = "/RP2350B + Memory/USB_DM_MCU"
 VBUS = "/USB-C/VBUS_RAW"
 ORIGIN = 100.0   # board-local (0,0) on the KiCad page; keep in sync with place.py
-PREROUTE_NETS = ["USB_DP", "USB_DM", DP_MCU, DM_MCU, VBUS, XIN, XOUT, LED_K, LED_A,
+PREROUTE_NETS = ["USB_DP", "USB_DM", DP_MCU, DM_MCU, VBUS, "/USB-C/CC2",
+                 XIN, XOUT, LED_K, LED_A,
                  BOOT_NET, RESET_NET, "GND", "+1V1", "+3V3", "ESP32_EN",
                  LX_NET] + QSPI_NETS
 
@@ -139,6 +140,39 @@ def main():
                                      (b6, e_dp_s, e_dp_n, "USB_DP")):
         jog = (s_pad[0], b_pad[1] - 1.025)
         path(net, B, [b_pad, (b_pad[0], b_pad[1] - 0.625), jog, s_pad, n_pad])
+    # J401 VBUS_RAW (pilink-yt5, PR #102 review). J401's VBUS columns (A4/B9
+    # at the west, A9/B4 at the east) are boxed in by the GND columns, the
+    # shell slots and the 0.15mm in-row pad gaps; the only ways out are the
+    # 0.5mm strips between each pad row and its slot pair, which CC2 (B5)
+    # also needs. Freerouting cannot use those strips (it adds 10um to every
+    # clearance), so these escapes are laid by hand:
+    #  * VBUS: F.Cu bar along the north strip joining both columns and on
+    #    to F401 pad 2, a second F.Cu bar from the west column along the
+    #    south strip to F401, and 0.3mm row-to-row links in each column.
+    #  * CC2 (B5): B.Cu stub east along the north strip, past B1, to a via.
+    #  * CC1 (A5) needs no help: the B.Cu south strip stays free, and the
+    #    router leaves A5 diagonally between the two south slots.
+    # 0.18mm in the strips (0.16mm each side), 0.4mm once past the GND column.
+    b9, a4 = pad("J401", "B9"), pad("J401", "A4")
+    b4, a9 = pad("J401", "B4"), pad("J401", "A9")
+    b5, b1 = pad("J401", "B5"), pad("J401", "B1")
+    f2 = pad("F401", "2")
+    assert b9[0] == a4[0] < b4[0] == a9[0] and f2[0] < b9[0], \
+        "VBUS pre-route assumes F401 west of J401 and J401 rot 0 on B.Cu"
+    yn, ys = b9[1] - 0.725, a4[1] + 0.725     # strip centres
+    xw = b9[0] - 1.8                           # west of the GND column
+    path(VBUS, F, [b4, (b4[0], yn), (b9[0], yn), b9], width=0.18)
+    path(VBUS, F, [a4, (a4[0], ys)], width=0.18)
+    for y, toward in ((yn, -0.36), (ys, 0.36)):
+        path(VBUS, F, [(b9[0], y), (xw, y)], width=0.18)
+        path(VBUS, F, [(xw, y), (f2[0] + 0.36, y), (f2[0], f2[1] + toward), f2], width=0.4)
+    path(VBUS, F, [b9, a4], width=0.3)
+    path(VBUS, F, [b4, a9], width=0.3)
+    # ends on a via in open board so the router has a fixed point to pick up
+    # (it would not reliably reach a bare track end this close to J401)
+    cc2_v = (b1[0] + 1.4, yn - 0.6)
+    path("/USB-C/CC2", B, [b5, (b5[0] + 0.3, yn), (b1[0] + 0.8, yn), cc2_v], width=0.18)
+    via("/USB-C/CC2", *cc2_v)
     # U401 GND (pin 2) -> via between the J401 shell slots; VBUS (pin 5) ->
     # via to F.Cu (the router takes it on to VBUS_RAW from there).
     g = (e_gnd[0], e_gnd[1] + 1.21)

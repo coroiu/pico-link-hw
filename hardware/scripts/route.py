@@ -88,13 +88,16 @@ def main():
 
     fr_args = ["-de", "{w}/board.dsn", "-do", "{w}/board.ses",
                "--gui.enabled=false", "-mp", str(args.passes)]
+    container = docker = None
     if shutil.which("java"):
         cmd = ["java", "-jar", args.jar] + [a.format(w=WORK) for a in fr_args]
     else:
         docker = shutil.which("docker") or shutil.which("podman")
         if not docker:
             sys.exit("need java 21+ or docker/podman to run Freerouting")
-        cmd = [docker, "run", "--rm", "-u", f"{os.getuid()}:{os.getgid()}",
+        container = f"pilink-freerouting-{os.getpid()}"
+        cmd = [docker, "run", "--rm", "--name", container,
+               "-u", f"{os.getuid()}:{os.getgid()}",
                "-e", "HOME=/work",
                "-v", f"{WORK}:/work", "-v", f"{args.jar}:/app/freerouting.jar:ro",
                "eclipse-temurin:21-jre", "java", "-jar", "/app/freerouting.jar"
@@ -105,6 +108,11 @@ def main():
             subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT,
                            check=False, timeout=ROUTE_TIMEOUT)
         except subprocess.TimeoutExpired:
+            # killing the docker CLI leaves the container running (and
+            # holding the CPU): remove it explicitly
+            if container:
+                subprocess.run([docker, "rm", "-f", container],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             sys.exit(f"Freerouting did not finish within {ROUTE_TIMEOUT}s "
                      "(it can loop past -mp when a connection is unroutable); "
                      f"see {WORK}/freerouting.log")
