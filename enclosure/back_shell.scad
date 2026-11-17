@@ -85,7 +85,7 @@ FOOT_RECESS_CLEARANCE = 0.4; // [0:0.1:1]
 // Pad rim width outside the recess, mm.
 FOOT_PAD_RIM = 1.2; // [0.8:0.1:4]
 // How each foot pad grows out of its fin. boss: a round bun on the foot axis; flare: the fin's bottom edge widens over FOOT_FLARE_LEN into the pad; runner: the fin's whole bottom edge is a pad-wide rail, both feet recessed in it.
-FOOT_STYLE = "flare"; // [boss, flare, runner]
+FOOT_STYLE = "boss"; // [boss, flare, runner]
 // Height of the pad's short upright outer side, mm; above it the section rolls over a convex round (FOOT_PAD_ROUND) and a concave fillet into the fin.
 FOOT_PAD_T = 0.8; // [0.4:0.1:3]
 // Convex round on the pad's top outer edge, mm. The concave fillet into the fin takes the rest of the pad's overhang beyond the fin, (pad d - FIN_T)/2.
