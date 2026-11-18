@@ -82,8 +82,69 @@ BTN_A = [108.25, 33]; // bottom
 SW101_BOARD = [42, 2.7];
 SW102_BOARD = [52, 2.7];
 
-// M2 mounting holes H1..H4 for the back-shell bosses (pilink-4qc).
+// M2 mounting holes H1..H4 (pilink-4qc): NPTH 2.2mm. Each carries one shell
+// screw (pilink-8hx.7): back-shell boss -> PCB -> front-shell standoff insert.
 PCB_MOUNT_HOLES_BOARD = [[10, 44], [116.5, 6], [116.5, 44], [29, 2.5]];
+
+/* ===================== Body stack along the face normal (face-frame Z) =====================
+   Proposal 6c "Body thickness": face 2.0, 5.5mm to the PCB (5.0 switches, 3.3
+   panel stack, J501 ~2mm), PCB 1.6, then the rear cavity and a 2.0mm back wall.
+   Shared by both shells since pilink-8hx.7 (the screw stack crosses both); the
+   rear-cavity envelope table that sets REAR_CLEARANCE stays in back_shell.scad. */
+FRONT_CAVITY = 5.5;     // front shell inner face -> PCB front surface
+PCB_T = 1.6;            // PCB thickness, hardware/README.md
+REAR_CLEARANCE = 7.0;   // PCB back surface -> back wall inner face (pilink-9i4, see back_shell.scad)
+BACK_WALL_T = WALL;     // ADR: "a 2.0mm back wall"
+Z_PCB_FRONT = WALL + FRONT_CAVITY;                  // 7.5: PCB front = front-shell standoff tops
+Z_PCB_BACK = Z_PCB_FRONT + PCB_T;                   // 9.1: PCB back = back-shell boss tops
+BODY_T = Z_PCB_BACK + REAR_CLEARANCE + BACK_WALL_T; // 18.1: outer face -> back wall outer face
+
+/* ===================== Shell fasteners (pilink-8hx.7) =====================
+   User decision 2026-11-18: one M2 screw per PCB mounting hole H1..H4, driven
+   from the BACK through a counterbored back-shell boss and the PCB into a brass
+   heat-set insert in a front-shell standoff; the PCB is clamped between the
+   boss and the standoff, nothing shows on the face. Hardware is what the user
+   already has (photos 2026-11-18), not a generic assumption:
+     - inserts "M2x4x3.2": M2 thread, 4.0mm long, 3.2mm knurl OD;
+     - M2 socket head cap screws (ISO 4762 / DIN 912: head 3.80 max dia x 2.00
+       max high), lengths 4/6/8/12/16/20/25mm.
+   The axis stack (face-frame Z, measured from the outer face):
+     head bearing face  SCREW_SEAT_Z = BODY_T - counterbore depth   = 15.9
+     tip                SCREW_TIP_Z  = SCREW_SEAT_Z - SCREW_LEN       =  3.9
+     insert             Z_PCB_FRONT - INSERT_LEN .. Z_PCB_FRONT       = 3.5 .. 7.5
+     engagement         Z_PCB_FRONT - SCREW_TIP_Z                     =  3.6
+   M2x12 is the only length on hand that works: x8 ends 0.4mm short of the
+   insert (tip Z 7.9, inside the PCB), x16 would end at Z -0.1, through the
+   insert pocket floor and out of the face.
+   front_shell.scad / back_shell.scad assert each side of this. */
+SCREW_LENGTHS_ON_HAND = [4, 6, 8, 12, 16, 20, 25];
+SCREW_LEN = 12;          // M2x12 ISO 4762, length under the head
+SCREW_D = 2.0;           // M2 nominal (shank model in check_fit.py)
+SCREW_HEAD_D = 3.8;      // ISO 4762 M2 dk max
+SCREW_HEAD_H = 2.0;      // ISO 4762 M2 k max
+SCREW_HEAD_RECESS = 0.2; // head top sits this far below the back wall's outer face
+SCREW_MIN_ENGAGEMENT = 3.0; // 1.5 x d, the usual minimum thread engagement in brass
+INSERT_OD = 3.2;         // "M2x4x3.2" knurl OD (melt-in hole: front_shell.scad INSERT_HOLE_D)
+INSERT_LEN = 4.0;        // "M2x4x3.2" length
+CBORE_DEPTH = SCREW_HEAD_H + SCREW_HEAD_RECESS;     // 2.2, from the back wall's outer face
+SCREW_SEAT_Z = BODY_T - CBORE_DEPTH;                // 15.9
+SCREW_TIP_Z = SCREW_SEAT_Z - SCREW_LEN;             // 3.9
+SCREW_ENGAGEMENT = Z_PCB_FRONT - SCREW_TIP_Z;       // 3.6 (insert top flush with the standoff top)
+
+/* ===================== Seam lip (pilink-8hx.7) =====================
+   Assembly is face-down (front shell on its face -> plungers -> PCB onto the
+   standoffs -> back shell -> screws), so the FRONT shell has to locate the PCB
+   laterally before the back shell goes on. Its rim used to stop exactly at the
+   PCB front surface (Z_PCB_FRONT), i.e. it never reached the board edge. The
+   inner LIP_T of its wall now carries on past the seam as a lip, LIP_H deep,
+   flush with the cavity wall, so the board edges sit inside it with the same
+   BOARD_CLEARANCE_X/Y as the cavity, and it lifts straight out. The back shell
+   has the matching rabbet (inner LIP_T + LIP_CLEARANCE of its wall removed
+   over the lip's depth + LIP_Z_CLEARANCE), which also registers the shells. */
+LIP_T = 0.85;            // lip thickness (2 perimeters at 0.4mm)
+LIP_CLEARANCE = 0.15;    // radial gap lip -> back-shell rabbet (leaves the back rim WALL - 1.0 = 1.0mm)
+LIP_H = 2.5;             // lip depth past the seam: covers the 1.6mm PCB edge + 0.9mm lead-in
+LIP_Z_CLEARANCE = 0.2;   // lip tip -> rabbet floor
 
 /* ===================== Pigtail notch (top wall) =====================
    The gap between the board's top edge (Q = QTOP = 53) and the top wall's inner

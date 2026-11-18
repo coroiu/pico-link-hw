@@ -37,8 +37,24 @@
 // board re-placement (U201 moved off the knob column; knob -> true
 // board-vertical-centre; diamond shifted down 9mm), and the stale
 // "lower third" knob description is corrected.
+//
+// REVISION pilink-8hx.7 (2026-11-18): the shells are joined by four M2
+// screws from the back into brass heat-set inserts in standoffs here, one
+// per PCB mounting hole, clamping the PCB between the standoffs and the
+// back shell's bosses; and the inner part of the rim carries on past the
+// seam as a lip that locates the PCB laterally (assembly is face-down).
+// See "Shell fasteners" below and common.scad.
 // =================================================================
 
+/* [Fasteners] */
+// Melt-in hole for the M2x4x3.2 heat-set insert, mm: 0.2 under the 3.2 knurl OD, so the knurl cuts in. Insert hole-size charts give 3.0-3.2 for M2 (tighter in PLA, looser in harder plastics); small FDM holes also print ~0.1-0.2 small. Tune to the printer.
+INSERT_HOLE_D = 3.0; // [2.6:0.05:3.4]
+// Extra pocket depth below the insert, mm: room for displaced plastic and for the screw tip.
+INSERT_POCKET_EXTRA = 1.0; // [0.3:0.1:1.5]
+// Standoff wall around the insert's knurl OD, mm (>= 1.2: 3 perimeters at 0.4).
+STANDOFF_WALL = 1.4; // [1.2:0.1:2.5]
+
+/* [Hidden] */
 $fn = 48;
 
 // pilink-6lz: board size, wall, running clearance, FACE_W/FACE_H, the
@@ -58,17 +74,19 @@ include <common.scad>
 FACE_T = WALL;
 
 // Depth from the outer face surface to the PCB's front surface / this
-// shell's rear opening (where it meets the back shell, pilink-8hx.1,
-// with the PCB floating/screwed to the back shell's own bosses
-// between the two shells).
+// shell's rim (where it meets the back shell, pilink-8hx.1). Since
+// pilink-8hx.7 the PCB rests on this shell's insert standoffs at this depth
+// and is clamped there by the back shell's bosses; the stack terms are
+// shared in common.scad (FRONT_CAVITY = 5.5, Z_PCB_FRONT = 7.5).
 // Source: proposal 6c "Body thickness": "face 2.0, 5.5 mm to the PCB
 // (5.0 mm switches, 3.3 mm panel stack, J501 about 2 mm)" -> 2.0 + 5.5
 // = 7.5 mm. The same 7.5 mm figure is independently cited in proposal
 // section 1.2's "Conflict with the aesthetic ADR" note ("the face at
 // about 7.5 mm above the PCB") and in this bead's own comment log
 // ("the board-to-inner-face gap is only ~5.5mm").
-GAP_FACE_TO_PCB = 5.5; // mm, inner face surface to PCB front surface
-FRONT_SHELL_DEPTH = FACE_T + GAP_FACE_TO_PCB; // 7.5 mm
+GAP_FACE_TO_PCB = FRONT_CAVITY; // 5.5 mm, inner face surface to PCB front surface
+FRONT_SHELL_DEPTH = FACE_T + GAP_FACE_TO_PCB; // 7.5 mm (= Z_PCB_FRONT)
+assert(FRONT_SHELL_DEPTH == Z_PCB_FRONT, "front shell depth must match the shared stack");
 
 // Corner radius: own styling choice, NOT sourced from a doc -- the
 // aesthetic ADR (.planning/decisions/2026-11-15-enclosure-aesthetic-
@@ -336,6 +354,60 @@ PINHOLE_Z = FRONT_SHELL_DEPTH - 1.0;
 ANT_ZONE_X0 = board_to_x(SW102_BOARD[0]) + PINHOLE_DIA / 2 + 3.0;
 ANT_ZONE_X1 = ANT_ZONE_X0 + 47.8;
 
+/* ===================== Shell fasteners (pilink-8hx.7) =====================
+   One insert standoff per PCB mounting hole H1..H4 (PCB_MOUNT_HOLES_BOARD),
+   from the inner face (Z = FACE_T) to the PCB front (Z = FRONT_SHELL_DEPTH),
+   so the PCB sits on the standoff tops and the M2 screw from the back
+   (common.scad: M2x12, head in the back-shell counterbore) runs through the
+   PCB into a brass "M2x4x3.2" heat-set insert pressed flush into the top.
+   The pocket is INSERT_LEN + INSERT_POCKET_EXTRA deep, blind, and stays in the
+   standoff: its floor (Z 2.5) is above the inner face, the face plate is
+   untouched. The front of the board has no part within 6mm of any hole
+   (courtyards read off hardware/pico-link-hw.kicad_pcb), so a plain cylinder
+   clears; check_fit.py checks it against the envelope. */
+STANDOFF_OD = INSERT_OD + 2 * STANDOFF_WALL; // 6.0
+INSERT_POCKET_DEPTH = INSERT_LEN + INSERT_POCKET_EXTRA; // 5.0
+INSERT_POCKET_FLOOR_Z = FRONT_SHELL_DEPTH - INSERT_POCKET_DEPTH; // 2.5
+// A standoff that would leave a slot narrower than STANDOFF_MIN_GAP against a
+// cavity wall (unprintable, and a line contact if tangent) grows until it
+// fuses STANDOFF_FUSE into that wall instead -- H4, 3.5mm below the top wall,
+// gets 7.5 (the back shell's H4 boss is 7.5 for the same reason).
+STANDOFF_MIN_GAP = 1.0;
+STANDOFF_FUSE = 0.25;
+function wall_dist(p) = min(p[0] - WALL, FACE_W - WALL - p[0], p[1] - WALL, FACE_H - WALL - p[1]);
+function standoff_od(p) = STANDOFF_OD / 2 > wall_dist(p) - STANDOFF_MIN_GAP
+    ? max(STANDOFF_OD, 2 * (wall_dist(p) + STANDOFF_FUSE)) : STANDOFF_OD;
+STANDOFF_POSITIONS = [ for (h = PCB_MOUNT_HOLES_BOARD) [board_to_x(h[0]), board_to_y(h[1])] ];
+
+// Distance from point p to an axis-aligned w x h rectangle centred on c.
+function rect_dist(p, c, w, h) = norm([max(abs(p[0] - c[0]) - w / 2, 0), max(abs(p[1] - c[1]) - h / 2, 0)]);
+
+assert(len([ for (l = SCREW_LENGTHS_ON_HAND) if (l == SCREW_LEN) l ]) == 1, "SCREW_LEN is not a length on hand");
+assert(SCREW_ENGAGEMENT >= SCREW_MIN_ENGAGEMENT, "screw too short: thread engagement in the insert below SCREW_MIN_ENGAGEMENT");
+assert(SCREW_TIP_Z >= INSERT_POCKET_FLOOR_Z + 0.5, "screw too long: tip within 0.5mm of the insert pocket floor");
+assert(INSERT_POCKET_FLOOR_Z >= FACE_T, "insert pocket cuts into the face plate");
+assert(INSERT_HOLE_D < INSERT_OD && INSERT_HOLE_D > SCREW_D + 0.5, "insert melt-in hole vs knurl OD / screw");
+for (i = [0 : len(STANDOFF_POSITIONS) - 1]) {
+    p = STANDOFF_POSITIONS[i];
+    r = standoff_od(p) / 2;
+    // The panel ledge collar: fused into it, or a printable gap -- never a sliver.
+    ledge_gap = rect_dist(p, [PANEL_CX, PANEL_CY], PANEL_W + 2 * LEDGE_W, PANEL_H + 2 * LEDGE_W) - r;
+    assert(ledge_gap <= -0.2 || ledge_gap >= 0.8, str("H", i + 1, " standoff leaves a sliver against the panel ledge"));
+    // Never into the panel pocket, and >= 1mm from the panel itself.
+    assert(rect_dist(p, [PANEL_CX, PANEL_CY], PANEL_W + 2 * POCKET_CLEARANCE, PANEL_H + 2 * POCKET_CLEARANCE) >= r + 0.2,
+           str("H", i + 1, " standoff reaches the panel pocket"));
+    assert(rect_dist(p, [PANEL_CX, PANEL_CY], PANEL_W, PANEL_H) >= r + 1.0, str("H", i + 1, " standoff within 1mm of the panel"));
+    // Knob pocket and button bores: >= 1mm of plate between.
+    assert(norm(p - [ENCODER_CX, ENCODER_CY]) >= ENCODER_POCKET_DIA / 2 + r + 1.0, str("H", i + 1, " standoff vs encoder pocket"));
+    for (b = BUTTON_POSITIONS)
+        assert(norm(p - b) >= BUTTON_BORE_DIA / 2 + BORE_CHAMFER + r + 1.0, str("H", i + 1, " standoff vs a button bore"));
+    echo(str("[pilink-8hx.7] H", i + 1, " standoff at (", p[0], ", ", p[1], ") d", 2 * r,
+             ", panel-ledge gap ", ledge_gap, " (<0 = fused)"));
+}
+echo(str("[pilink-8hx.7] M2x", SCREW_LEN, ": head seat Z ", SCREW_SEAT_Z, ", tip Z ", SCREW_TIP_Z,
+         ", insert Z ", FRONT_SHELL_DEPTH - INSERT_LEN, "..", FRONT_SHELL_DEPTH, ", engagement ", SCREW_ENGAGEMENT,
+         ", tip to pocket floor ", SCREW_TIP_Z - INSERT_POCKET_FLOOR_Z));
+
 /* ================================ Geometry ================================ */
 
 module rounded_rect(w, h, r) {
@@ -441,10 +513,12 @@ module pinhole_cutouts() {
 
 // pilink-6lz: relief in the top wall so the Ø1.13 pigtail can cross the PCB
 // plane above the board's (now 1.0mm) top-edge gap; see common.scad.
+// (pilink-8hx.7: runs on through the seam lip, which it removes over the
+// notch's width.)
 module pigtail_notch_cutout() {
     translate([PIGTAIL_NOTCH_X0, FACE_H - WALL - 0.01, PIGTAIL_NOTCH_Z0])
         cube([PIGTAIL_NOTCH_X1 - PIGTAIL_NOTCH_X0, PIGTAIL_NOTCH_DEPTH + 0.01,
-              FRONT_SHELL_DEPTH + 1 - PIGTAIL_NOTCH_Z0]);
+              LIP_TOP_Z + 1 - PIGTAIL_NOTCH_Z0]);
 }
 
 module antenna_zone_marker() {
@@ -452,15 +526,57 @@ module antenna_zone_marker() {
         cube([ANT_ZONE_X1 - ANT_ZONE_X0, WALL, FRONT_SHELL_DEPTH]);
 }
 
+// pilink-8hx.7: insert standoffs, inner face -> PCB front (see "Shell
+// fasteners" above). Start 0.01 inside the plate so they fuse with it.
+module standoff_solids() {
+    for (p = STANDOFF_POSITIONS)
+        translate([p[0], p[1], FACE_T - 0.01])
+            cylinder(h = FRONT_SHELL_DEPTH - FACE_T + 0.01, d = standoff_od(p));
+}
+
+module insert_pockets() {
+    for (p = STANDOFF_POSITIONS)
+        translate([p[0], p[1], INSERT_POCKET_FLOOR_Z])
+            cylinder(h = INSERT_POCKET_DEPTH + 0.5, d = INSERT_HOLE_D, $fn = 32);
+}
+
+// pilink-8hx.7: seam lip (common.scad LIP_*). The inner LIP_T of the
+// perimeter wall carries on LIP_H past the PCB front surface, its inner face
+// flush with the cavity wall (so the board edges keep BOARD_CLEARANCE_X/Y to
+// it) and its outer face LIP_CLEARANCE inside the back shell's rabbet.
+// Concentric with the outer corners, like the cavity, so it is LIP_T thick
+// round them too; the board's square corners clear the cavity's 1mm inner
+// corner radius by 0.5mm.
+LIP_TOP_Z = FRONT_SHELL_DEPTH + LIP_H; // 10.0
+assert(LIP_TOP_Z >= Z_PCB_BACK + 0.5, "seam lip must cover the PCB edge over its whole thickness, plus a lead-in");
+module seam_lip() {
+    translate([0, 0, FRONT_SHELL_DEPTH - 0.01])
+        linear_extrude(height = LIP_H + 0.01)
+            translate([FACE_W / 2, FACE_H / 2])
+                difference() {
+                    rounded_rect(FACE_W - 2 * (WALL - LIP_T), FACE_H - 2 * (WALL - LIP_T),
+                                 CORNER_RADIUS - (WALL - LIP_T));
+                    rounded_rect(FACE_W - 2 * WALL, FACE_H - 2 * WALL,
+                                 max(CORNER_RADIUS - WALL, 0.1));
+                }
+}
+
 module front_shell() {
     difference() {
-        shell_solid();
-        shell_cavity();
+        union() {
+            difference() {
+                shell_solid();
+                shell_cavity();
+            }
+            standoff_solids();
+            seam_lip();
+        }
         display_cutouts();
         encoder_cutouts();
         button_cutouts();
         pinhole_cutouts();
         pigtail_notch_cutout();
+        insert_pockets();
     }
     panel_ledge();
     antenna_zone_marker();
@@ -484,10 +600,12 @@ front_shell();
       the face (WINDOW_CX == FACE_W / 2, WINDOW_CY == FACE_H / 2).
    5. This is a flat rectangular shell, not the ADR's ~15-degree-
       leaning body profile, and has no final corner/edge styling pass.
-   6. Front-to-back shell fastener bosses (hidden heat-set inserts,
-      per the aesthetic ADR) are not modeled here -- left for
-      reconciliation with pilink-8hx.1's own mating geometry once both
-      exist.
+   6. RESOLVED (pilink-8hx.7): four M2x12 socket head screws from the
+      back, through counterbored back-shell bosses and the PCB's H1..H4,
+      into M2x4x3.2 heat-set inserts in this shell's standoffs; nothing
+      shows on the face (aesthetic ADR). A seam lip locates the PCB and
+      registers the back shell's rabbet. Still needs a printed fit check
+      (insert hole, lip/rabbet clearance, screw feel): pilink-8hx.5.
    7. pilink-6lz: re-derived for the 122.5 x 50 board of pilink-4qc, face
       127.5 x 56, 0.5mm (X) / 1.0mm (Y) board clearance per side. Every
       board-local position now comes from common.scad.

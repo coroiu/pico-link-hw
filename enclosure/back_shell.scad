@@ -99,6 +99,14 @@ FOOT_H = 2.0; // [0.5:0.1:8]
 // Show the rubber feet in the assembly view.
 SHOW_FEET = true;
 
+/* [Fasteners] */
+// Screw clearance hole through each boss, mm (M2: ISO 273 medium 2.4; FDM holes print a little small).
+SCREW_CLEARANCE_D = 2.4; // [2.1:0.05:2.8]
+// Counterbore diameter for the M2 socket head (3.8 max), mm.
+CBORE_D = 4.4; // [4.0:0.1:5.2]
+// Nominal gap between the two shells' rims, mm. The PCB, not the rims, is the stop: with a gap the four screws always clamp the board (JLCPCB 1.6mm is +/-0.16), with 0 a thin board would rattle.
+SEAM_GAP = 0.2; // [0:0.05:0.4]
+
 /* [Render] */
 // What to render: the assembly view, or the printable back shell (with its fins) alone.
 PART = "assembly"; // [assembly, back_shell]
@@ -130,12 +138,10 @@ WALL_T      = WALL;    // = 2.0mm side/top/bottom wall, same as the back wall
 // 3mm behind the PCB for the encoder's leads, and a 2.0mm back wall.")
 // Only the last three terms belong to the BACK shell; the first two
 // (face wall + front cavity) are pilink-8hx.2's (front shell) to build.
-FACE_T          = 2.0;   // front shell's own face wall -- not built here,
-FRONT_CAVITY    = 5.5;   // ...nor the front cavity -- both only used here
-                           // for the BODY_T sanity check below, so the
-                           // two shells meet correctly.
-PCB_T           = 1.6;   // PCB thickness, matches hardware/README.md
-// pilink-9i4: was 3.0 (ADR "3mm for the encoder's leads"). Deepened to 7.0 so
+// pilink-8hx.7: the whole stack (FRONT_CAVITY, PCB_T, REAR_CLEARANCE,
+// BACK_WALL_T, BODY_T) now lives in common.scad, since the shell screws run
+// through all of it; the reasoning for REAR_CLEARANCE stays here.
+// pilink-9i4: REAR_CLEARANCE was 3.0 (ADR "3mm for the encoder's leads"). Deepened to 7.0 so
 // the WHOLE rear cavity clears every B.Cu envelope with no local relief or
 // raised pad on the outside of the back plate (the ESP32 relief used to show as
 // a bump). Envelopes above the PCB back surface (mm):
@@ -150,23 +156,25 @@ PCB_T           = 1.6;   // PCB thickness, matches hardware/README.md
 //   encoder/through-hole leads   <= 3.0 (original ADR need)
 // J401 sets the figure: 6.5 + 0.5 = 7.0. U201 + plug + bend then have 3.7mm
 // of headroom. +4.0mm on BODY_T (14.1 -> 18.1).
-REAR_CLEARANCE  = 7.0;
-BACK_WALL_T     = 2.0;   // ADR: "a 2.0mm back wall"
+// (REAR_CLEARANCE = 7.0 and BACK_WALL_T = WALL = 2.0: common.scad.)
 
 BACK_SHELL_DEPTH = PCB_T + REAR_CLEARANCE + BACK_WALL_T;  // = 10.6mm --
-                    // this file's own depth, back-wall-outer (bz=0) to
-                    // open front rim (bz=BACK_SHELL_DEPTH), where the PCB
-                    // front surface / front shell's rim meets it.
-BODY_T = FACE_T + FRONT_CAVITY + PCB_T + REAR_CLEARANCE + BACK_WALL_T;
-// BODY_T = 18.1mm (was 14.1 before pilink-9i4; the ADR's "about 14mm" assumed
+                    // back-wall-outer (bz=0) to the PCB's front surface
+                    // (bz=BACK_SHELL_DEPTH), where the front shell's rim is.
+                    // pilink-8hx.7: this shell's own rim stops SEAM_GAP short
+                    // of it (BACK_RIM_BZ), so the PCB clamp, not the rims,
+                    // is the stop; the front shell's lip reaches into the
+                    // rabbet below the rim.
+BACK_RIM_BZ = BACK_SHELL_DEPTH - SEAM_GAP;  // 10.4
+// BODY_T (common.scad) = 18.1mm (was 14.1 before pilink-9i4; the ADR's "about 14mm" assumed
 // a 3mm rear cavity -- the user chose a deeper cavity over any outside bump).
 
 CORNER_R = 3.0;  // style choice (AES: "deliberate but not aggressive
                   // corner radii"), not a dimensioned source figure.
 
 // =====================================================================
-// PCB mounting bosses (heat-set inserts carrying the PCB parallel to the
-// face, per the bead description)
+// PCB mounting bosses (pilink-8hx.7: counterbored screw bosses; the PCB is
+// clamped between these and the front shell's insert standoffs)
 // =====================================================================
 // Positions: hardware/README.md, "Mounting holes for back-shell bosses"
 // row -- 4 M2 holes at board-local (10,44), (116.5,6), (116.5,44), (29,2.5)
@@ -175,23 +183,20 @@ CORNER_R = 3.0;  // style choice (AES: "deliberate but not aggressive
 PCB_MOUNT_HOLES_FACE  = [ for (p = PCB_MOUNT_HOLES_BOARD) board_to_face(p[0], p[1]) ];
 // -> [[12.5,43], [119,47], [119,9], [31.5,50.5]] in (Pface, Qface).
 //
-// H4 (current position comes from PCB_MOUNT_HOLES_BOARD in common.scad,
-// board (29,2.5)): at pilink-8ag the hole sat at (59,2.5) so its screw HEAD (driven in from the FRONT, through the PCB)
-// stayed clear of the display panel envelope; pilink-4qc moved the panel to
-// y 4..46 and H4 to x 29 (left of the panel, which starts at x 34.12), head
-// radius 2.0 -> reaches x 31, 3.1mm clear. Do not hard-code face
-// coordinates here; derive them via board_to_face().
-
-// Heat-set insert sizing: no bead/finding pins an exact insert down for
-// this project, so this is this file's own reasonable-default choice,
-// NOT a cited source figure -- flagged for the human assembling the real
-// part to confirm against whatever insert is actually bought. Common M2
-// brass heat-set inserts for 3D printing run ~2.8-3.5mm OD x 3-6mm long
-// (e.g. Bambu Lab's M2x3.5x4 insert); this file uses the middle of that
-// range.
-INSERT_OD   = 3.5;
-INSERT_LEN  = 4.0;
-BOSS_OD     = 7.0;   // insert OD + ~1.75mm wall each side
+// H4 (board (29,2.5), PCB_MOUNT_HOLES_BOARD in common.scad): the old
+// "screw head on the FRONT vs the display panel" constraint (pilink-8ag,
+// pilink-4qc) is gone since pilink-8hx.7 -- the heads are on the back now,
+// and the front shell carries an insert standoff there instead (its
+// clearance to the panel is asserted in front_shell.scad). Do not hard-code
+// face coordinates here; derive them via board_to_face().
+//
+// Screw path (pilink-8hx.7; screw/insert facts and the axis stack are in
+// common.scad): a CBORE_D counterbore CBORE_DEPTH (2.2) deep from the back
+// wall's outer face, so the M2 socket head (3.8 x 2.0) sits 0.2mm below the
+// surface, bearing on the boss; then a SCREW_CLEARANCE_D hole through the
+// rest of the wall and the boss to the PCB. The pre-8hx.7 insert pockets
+// (screws from the front into back-shell inserts) are gone.
+BOSS_OD     = 7.0;   // the head (3.8) bears on the boss end; 2.3mm wall around the 2.4 hole
 // pilink-i72: H2 (index 1, board (116.5,6)) uses the same 7.0mm boss as the
 // others. Since pilink-4qc moved H2 to x 116.5 its boss left edge is at face
 // X 115.5, 4.7mm clear of the U201 relief pocket's right edge (110.8).
@@ -362,14 +367,10 @@ module rounded_box(w, h, depth, r) {
     linear_extrude(height = depth) rounded_rect(w, h, r);
 }
 
-// A plain boss cylinder (no pocket of its own). Insert pockets are cut
-// separately, in one difference() at the back_shell_local() level, not
-// inside this module -- see the comment on pcb_mount_insert_pockets()
-// below for why: INSERT_LEN (4.0mm) is deeper than the PCB bosses are
-// tall (REAR_CLEARANCE, 3.0mm) by design (the pocket is meant to dip
-// slightly into the back wall below), and subtracting a pocket that
-// deep from just the boss cylinder in isolation would delete the whole
-// boss rather than leave a blind pocket.
+// A plain boss cylinder (no hole of its own). The screw holes and
+// counterbores are cut separately, in one difference() at the
+// back_shell_local() level, because they run on through the back wall
+// (pcb_mount_screw_holes() below).
 module boss_solid(height, boss_d = BOSS_OD) {
     cylinder(h = height, d = boss_d, $fn = 32);
 }
@@ -380,7 +381,9 @@ module boss_solid(height, boss_d = BOSS_OD) {
 
 module back_shell_shell() {
     difference() {
-        rounded_box(FACE_W, FACE_H, BACK_SHELL_DEPTH, CORNER_R);
+        // pilink-8hx.7: up to the rim (BACK_RIM_BZ), SEAM_GAP short of the
+        // front shell's rim at the PCB front (BACK_SHELL_DEPTH).
+        rounded_box(FACE_W, FACE_H, BACK_RIM_BZ, CORNER_R);
         // Hollow it out: a through-cut from just above the back wall
         // (bz = WALL_T) out past the open front rim, inset by WALL_T on all
         // four sides. pilink-6lz: FACE_W/FACE_H are now BOARD_W/H plus
@@ -418,19 +421,41 @@ module pcb_mount_boss_solids() {
             // BACK_SHELL_DEPTH stack-up above).
 }
 
-module pcb_mount_insert_pockets() {
-    // Bored from the PCB-facing top (bz = BACK_WALL_T+REAR_CLEARANCE,
-    // the PCB's own back surface -- screw comes from the front, through
-    // the PCB's mounting hole, down into this insert) downward by
-    // INSERT_LEN. INSERT_LEN (4.0mm) is deeper than the boss alone
-    // (REAR_CLEARANCE, 3.0mm), so this deliberately dips ~1mm into the
-    // solid back wall below -- it stays blind (BACK_WALL_T=2.0mm, so
-    // the pocket bottom at bz=1.0 is still 1.0mm short of the back
-    // wall's own outer face at bz=0).
+// pilink-8hx.7: screw path through each boss, cut from the back. A counterbore
+// (CBORE_D x CBORE_DEPTH from the outer face; the head seats on its floor,
+// inside the boss) and a SCREW_CLEARANCE_D hole on through the boss to the
+// PCB back surface (the boss top, bz = BACK_WALL_T + REAR_CLEARANCE).
+module pcb_mount_screw_holes() {
     for (p = PCB_MOUNT_HOLES_FACE)
-        translate([p[0], p[1], BACK_WALL_T + REAR_CLEARANCE - INSERT_LEN])
-            cylinder(h = INSERT_LEN + 0.1, d = INSERT_OD, $fn = 32);
+        translate([p[0], p[1], 0]) {
+            translate([0, 0, -0.1])
+                cylinder(h = CBORE_DEPTH + 0.1, d = CBORE_D, $fn = 32);
+            translate([0, 0, -0.1])
+                cylinder(h = BACK_WALL_T + REAR_CLEARANCE + 0.2, d = SCREW_CLEARANCE_D, $fn = 32);
+        }
 }
+
+// pilink-8hx.7: rabbet for the front shell's seam lip (common.scad, LIP_*):
+// the inner LIP_T + LIP_CLEARANCE of the wall is removed from LIP_H +
+// LIP_Z_CLEARANCE below the PCB front surface up to the rim, leaving an outer
+// rim of RABBET_RIM_T (1.0mm). Concentric with the outer corners, so the rim
+// is that thick round them too. Its inner edge is LIP_CLEARANCE inside the
+// cavity wall, so anything fused to the wall there (H4's boss) keeps clear of
+// the lip's inner face.
+RABBET_RIM_T = WALL_T - LIP_T - LIP_CLEARANCE;          // 1.0
+RABBET_BZ0   = BACK_SHELL_DEPTH - LIP_H - LIP_Z_CLEARANCE; // 7.9
+module seam_rabbet() {
+    translate([0, 0, RABBET_BZ0])
+        linear_extrude(height = BACK_SHELL_DEPTH + 1 - RABBET_BZ0)
+            difference() {
+                translate([RABBET_RIM_T, RABBET_RIM_T])
+                    rounded_rect(FACE_W - 2*RABBET_RIM_T, FACE_H - 2*RABBET_RIM_T, CORNER_R - RABBET_RIM_T);
+                translate([WALL_T + LIP_CLEARANCE, WALL_T + LIP_CLEARANCE])
+                    square([FACE_W - 2*(WALL_T + LIP_CLEARANCE), FACE_H - 2*(WALL_T + LIP_CLEARANCE)]);
+            }
+}
+assert(RABBET_RIM_T >= 0.8, "seam lip + clearance leave the back shell's rim too thin");
+assert(RABBET_BZ0 > BACK_WALL_T + REAR_CLEARANCE - 1.5, "seam rabbet reaches too far down the walls");
 
 // pilink-9i4: the J401 boss pad (and its cable-vs-table clamp) is gone; the
 // 7.0mm cavity holds the connector entirely inside the shell.
@@ -467,7 +492,8 @@ module back_shell_local() {
         }
         usbc_cutout();
         pigtail_notch_cutout();
-        pcb_mount_insert_pockets();
+        pcb_mount_screw_holes();
+        seam_rabbet();
     }
 }
 
@@ -694,9 +720,9 @@ module front_shell_zone() {
 }
 
 // Fins + pads, clipped so nothing reaches into the cavity, the USB-C
-// opening, an insert pocket or the front shell, whatever the parameters
-// (the hull fills between the embed lines inside the walls, and the front
-// pad's neck rises into the bottom wall).
+// opening, a screw hole / counterbore, the seam rabbet or the front shell,
+// whatever the parameters (the hull fills between the embed lines inside the
+// walls, and the front pad's neck rises into the bottom wall).
 module fins() {
     difference() {
         union() {
@@ -708,11 +734,34 @@ module fins() {
         rotate([-LEAN_DEG, 0, 0]) {
             back_shell_cavity();
             usbc_cutout();
-            pcb_mount_insert_pockets();
+            pcb_mount_screw_holes();
+            seam_rabbet();
             front_shell_zone();
         }
     }
 }
+
+// pilink-8hx.7: the screws go in from the back, so a hex key / driver needs a
+// straight run back along each screw axis. A fin blocks that if it passes
+// within (pad half-width + CBORE_D/2 + DRIVER_MARGIN) of the axis in X while
+// reaching up to the hole: above the fin's top corner the axis is clear (the
+// hypotenuse falls away faster than the axis does, which runs LEAN_DEG down).
+// check_fit.py checks a CBORE_D corridor 60mm back against the fin mesh too.
+DRIVER_MARGIN = 1.0;
+for (i = [0 : len(PCB_MOUNT_HOLES_FACE) - 1]) {
+    p = PCB_MOUNT_HOLES_FACE[i];
+    clear_x = min([ for (x = FIN_X) abs(p[0] - x) ]) >= max(FIN_T, FOOT_PAD_D)/2 + CBORE_D/2 + DRIVER_MARGIN;
+    clear_q = p[1] - CBORE_D/2 >= FIN_TOP_Q + FIN_T/2 + DRIVER_MARGIN;
+    assert(clear_x || clear_q, str("a fin blocks screw access to mounting hole H", i + 1));
+}
+// Counterbore and clearance hole vs the boss (pilink-8hx.7).
+assert(CBORE_DEPTH > BACK_WALL_T && CBORE_DEPTH < BACK_WALL_T + REAR_CLEARANCE - 3,
+       "screw head must seat inside the boss, with >= 3mm of boss under it");
+assert(CBORE_D > SCREW_HEAD_D + 0.2 && CBORE_D <= BOSS_OD - 2*1.2, "counterbore vs head / boss wall");
+assert(SCREW_CLEARANCE_D > SCREW_D && SCREW_CLEARANCE_D < SCREW_HEAD_D - 0.6, "screw clearance hole vs shank / head bearing");
+echo(str("[pilink-8hx.7] back: counterbore d", CBORE_D, " x ", CBORE_DEPTH, " (head seat Z ", SCREW_SEAT_Z,
+         "), clearance d", SCREW_CLEARANCE_D, ", rim gap ", SEAM_GAP, ", rabbet rim ", RABBET_RIM_T,
+         " from bz ", RABBET_BZ0));
 
 // The printed part: shell + fins. The foot recesses are cut from the shell
 // too: at the defaults the front recess (Z -8.1..-1.2) is wholly behind the
@@ -745,7 +794,7 @@ module feet_display() {
 // frame, from check_fit.py's mass model (rendered shells, knob, plungers and
 // antenna mount at 1.24 g/cm3 solid; PCB slab FR4 1.85; component envelope
 // boxes 1.0; display stack box 0.9, ~7.4 g; M2 screws steel -- see check_fit.py
-// "tip-over"). Body ~81 g, fins ~9.3 g at the defaults (FIN_REACH 45, LEAN 25). Leaving the
+// "tip-over"). Body ~83 g (81 before pilink-8hx.7 added the standoffs, lip and brass inserts), fins ~9.3 g at the defaults (FIN_REACH 45, LEAN 25). Leaving the
 // fins out moves the CoG forward, i.e. it is conservative for forward
 // tipping (the critical side). Re-measure (check_fit.sh prints it) if the
 // shells or the PCB stack change.

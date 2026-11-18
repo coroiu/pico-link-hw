@@ -14,7 +14,7 @@ Face frame (the single mapping in enclosure/common.scad, read from there):
   X = board_x + MARGIN_X (2.5; left -> right)
   Q = QTOP - board_y     (QTOP 53; bottom of face = 0, top = FACE_H 56)
   Z = 0 at the outer face, increasing into the body (front shell 0..7.5,
-      PCB 7.5..9.1, back shell outer face at Z = BODY_T = 14.1)
+      PCB 7.5..9.1, back shell outer face at Z = BODY_T = 18.1)
 """
 import argparse
 import glob
@@ -230,6 +230,7 @@ DENSITY_FR4 = 1.85        # PCB slab
 DENSITY_COMPONENT = 1.0   # courtyard x height boxes (mostly air around small parts)
 DENSITY_DISPLAY = 0.9     # 59 x 42 x 3.3 stack box -> ~7.4 g, a 2.4" TFT module class figure (assumed)
 DENSITY_SCREW = 7.8       # M2 steel
+DENSITY_BRASS = 8.5       # heat-set inserts (pilink-8hx.7)
 # EC11E18244AU detent torque, N.mm: 10 +/- 7 mN.m (Alps datasheet, pilink-g8a;
 # .research/findings/2026-11-15-encoder-ec11e18244au-specs.md) -> nominal, worst.
 KNOB_DETENT_TORQUE_NMM = (10.0, 17.0)
@@ -394,11 +395,29 @@ def build_envelope(pcb_path, ev):
             unknown.append("%s %s -> default %.1f" % (ref, fpid, DEFAULT_H))
         add_box(ref, bx0, bx1, by0, by1, h, side, "courtyard x %.2fmm%s" % (h, "" if known else " (DEFAULT height)"))
 
-    # Mounting screws: M2 pan head d4.0 x 1.6 on the front, shank d2 down into
-    # the insert pocket (INSERT_LEN 4.0 below the PCB back surface). Assumed.
+    # Mounting holes as drilled (pilink-8hx.7 compares them with the shells).
+    meta["holes"] = {}
+    for f in b.GetFootprints():
+        if f.GetReference().startswith("H"):
+            drilled = [p for p in f.Pads() if p.GetDrillSize().x > 0]
+            if drilled:
+                meta["holes"][f.GetReference()] = (drilled[0].GetPosition().x / 1e6 - ox,
+                                                   drilled[0].GetPosition().y / 1e6 - oy,
+                                                   drilled[0].GetDrillSize().x / 1e6)
+
+    # Shell screws (pilink-8hx.7, common.scad): M2 socket head cap screw driven
+    # from the back. Head (ISO 4762 max 3.8 x 2.0) in the back-shell counterbore,
+    # bearing face at SCREW_SEAT_Z; shank d2 forward through the boss and the
+    # PCB to the tip at SCREW_TIP_Z inside the front-shell insert. The brass
+    # insert itself (knurl OD x length, flush with the standoff top = PCB front).
     for i, (hx, hy) in enumerate(ev["PCB_MOUNT_HOLES_BOARD"]):
-        parts["screw_H%d.head" % (i + 1)] = (cyl(fx(hx), fq(hy), ZF - 1.6, ZF, 4.0), "F", "M2 pan head d4.0x1.6 (assumed)")
-        parts["screw_H%d.shank" % (i + 1)] = (cyl(fx(hx), fq(hy), ZF, ZB + ev["INSERT_LEN"], 2.0), "S", "M2 shank into insert (assumed length)")
+        sz, tz = ev["SCREW_SEAT_Z"], ev["SCREW_TIP_Z"]
+        parts["screw_H%d.head" % (i + 1)] = (cyl(fx(hx), fq(hy), sz, sz + ev["SCREW_HEAD_H"], ev["SCREW_HEAD_D"]), "S",
+                                             "M2 socket head d%.1fx%.1f (ISO 4762 max)" % (ev["SCREW_HEAD_D"], ev["SCREW_HEAD_H"]))
+        parts["screw_H%d.shank" % (i + 1)] = (cyl(fx(hx), fq(hy), tz, sz, ev["SCREW_D"]), "S",
+                                              "M2x%g shank, tip at Z %.2f" % (ev["SCREW_LEN"], tz))
+        parts["insert_H%d" % (i + 1)] = (cyl(fx(hx), fq(hy), ZF - ev["INSERT_LEN"], ZF, ev["INSERT_OD"]), "S",
+                                         "M2 heat-set insert d%.1f x %.1f" % (ev["INSERT_OD"], ev["INSERT_LEN"]))
 
     # Display module stack: panel shadow (common.scad PANEL_BOARD_*, pilink-4qc:
     # x[34.12,93.12] y[4,46]), 3.3mm above the PCB front (proposal 6c "3.3
@@ -406,6 +425,177 @@ def build_envelope(pcb_path, ev):
     px0, px1, py0, py1 = ev["PANEL_BOX"]
     add_box("DISPLAY", px0, px1, py0, py1, 3.3, "F", "panel shadow x%.2f-%.2f y%.0f-%.0f x 3.3 stack (common.scad / proposal 6c)" % (px0, px1, py0, py1))
     return parts, meta, unknown
+
+
+# ------------------------------------------------- shell fasteners (8hx.7)
+
+
+def hole_by_rays(mesh, xy, z, r, tol_r=0.15):
+    """Centre and radius of the round hole in mesh around xy at the plane Z = z,
+    from horizontal rays cast both ways along 4 directions from xy (each
+    opposite pair gives the centre's offset along that direction; least
+    squares over the 4). None if a ray misses or the radius is not r +/- tol_r
+    (i.e. xy is not inside a hole of that size). (A section + loop traversal
+    would need networkx, which the preview image lacks.)"""
+    xy = np.asarray(xy, float)
+    U, offs, rads = [], [], []
+    for k in range(4):
+        a = math.radians(k * 45.0 + 11.25 / 2)   # between the $fn=32 vertices
+        u = np.array([math.cos(a), math.sin(a)])
+        d1 = ray_hit(mesh, [xy[0], xy[1], z], [u[0], u[1], 0])
+        d2 = ray_hit(mesh, [xy[0], xy[1], z], [-u[0], -u[1], 0])
+        if d1 is None or d2 is None:
+            return None
+        U.append(u)
+        offs.append((d1 - d2) / 2)
+        rads.append((d1 + d2) / 2)
+    c = np.linalg.lstsq(np.array(U), np.array(offs), rcond=None)[0]
+    rr = float(np.mean(rads))
+    if abs(rr - r) > tol_r:
+        return None
+    return xy + c, rr
+
+
+def ray_hit(mesh, origin, direction):
+    """Distance along a ray to its first hit on mesh, or None."""
+    origin, direction = np.asarray(origin, float), np.asarray(direction, float)
+    locs, _, _ = mesh.ray.intersects_location([origin], [direction], multiple_hits=True)
+    if len(locs) == 0:
+        return None
+    d = (locs - origin) @ direction
+    d = d[d > 1e-6]
+    return float(d.min()) if len(d) else None
+
+
+def shell_fastener_checks(rec, failed, check, fv, bv, ev, meta, front, back, fins, pcb, parts):
+    """pilink-8hx.7: screws from the back through counterbored back-shell
+    bosses and the PCB into heat-set inserts in front-shell standoffs, plus
+    the seam lip that locates the PCB. Everything measured on the rendered
+    meshes, not taken from the .scad constants, where it can be."""
+    MX, QT = ev["MARGIN_X"], ev["QTOP"]
+    ZF = fv["FRONT_SHELL_DEPTH"]
+    ZB = ZF + bv["PCB_T"]
+    BODY_T = bv["BODY_T"]
+    zf = (fv["FACE_T"] + ZF) / 2                                  # mid standoff: insert pocket
+    zb = BODY_T - (bv["BACK_WALL_T"] + bv["REAR_CLEARANCE"] / 2)  # mid boss: clearance hole
+    zc = BODY_T - bv["CBORE_DEPTH"] / 2                           # counterbore
+    r_ann = (fv["INSERT_HOLE_D"] / 2 + fv["STANDOFF_OD"] / 2) / 2   # on the standoff / boss end, off the hole
+    r_cb = (bv["SCREW_CLEARANCE_D"] / 2 + bv["CBORE_D"] / 2) / 2    # on the counterbore floor
+    for i, (hx, hy) in enumerate(ev["PCB_MOUNT_HOLES_BOARD"]):
+        name = "H%d" % (i + 1)
+        nom = np.array([hx + MX, QT - hy])
+        pts = {}
+        if name in meta["holes"]:
+            px, py, drill = meta["holes"][name]
+            pts["PCB hole d%.1f" % drill] = np.array([px + MX, QT - py])
+        for label, mesh, z, r in (("front insert pocket", front, zf, fv["INSERT_HOLE_D"] / 2),
+                                  ("back clearance hole", back, zb, bv["SCREW_CLEARANCE_D"] / 2),
+                                  ("back counterbore", back, zc, bv["CBORE_D"] / 2)):
+            hit = hole_by_rays(mesh, nom, z, r)
+            if hit is not None:
+                pts[label] = hit[0]
+        missing = [l for l in ("front insert pocket", "back clearance hole", "back counterbore") if l not in pts]
+        if not any(k.startswith("PCB hole") for k in pts):
+            missing.append("PCB hole " + name)
+        vals = list(pts.values())
+        spread = max(float(np.linalg.norm(a - b)) for a in vals for b in vals) if len(vals) > 1 else float("nan")
+        ok = not missing and spread <= 0.02
+        rec("screw axis %s coaxial: PCB hole / counterbore / clearance hole / insert pocket" % name, "OK" if ok else "FAIL",
+            "spread %.3f mm at (X,Q) (%.2f, %.2f)%s" % (spread, nom[0], nom[1],
+                                                      "; NOT FOUND: " + ", ".join(missing) if missing else ""))
+        if not ok:
+            failed.append("screw axis " + name)
+        # The clamp stack, measured along this axis on the meshes.
+        x, q = nom
+        seat = ray_hit(back, [x + r_cb, q, BODY_T + 1], [0, 0, -1])
+        boss_top = ray_hit(back, [x + r_ann, q, ZB - 0.3], [0, 0, 1])
+        stand_top = ray_hit(front, [x + r_ann, q, ZF + 0.3], [0, 0, -1])
+        floor = ray_hit(front, [x, q, ZF - 0.05], [0, 0, -1])
+        if None in (seat, boss_top, stand_top, floor):
+            rec("screw stack %s measured on the meshes" % name, "FAIL", "a ray missed (seat %s, boss %s, standoff %s, floor %s)" % (
+                seat, boss_top, stand_top, floor))
+            failed.append("screw stack " + name)
+            continue
+        seat_z, boss_z, stand_z, floor_z = BODY_T + 1 - seat, ZB - 0.3 + boss_top, ZF + 0.3 - stand_top, ZF - 0.05 - floor
+        tip_z = seat_z - bv["SCREW_LEN"]
+        eng = stand_z - tip_z           # insert pressed flush with the standoff top
+        clamp = boss_z - stand_z - bv["PCB_T"]
+        ok = (eng >= bv["SCREW_MIN_ENGAGEMENT"] and eng <= bv["INSERT_LEN"] + 1e-6 and tip_z - floor_z >= 0.5
+              and abs(clamp) < 0.01 and floor_z >= fv["FACE_T"] - 1e-6)
+        rec("screw stack %s: M2x%g engagement / clamp, measured" % (name, bv["SCREW_LEN"]), "OK" if ok else "FAIL",
+            "head seat Z %.2f, boss top %.2f, standoff top %.2f, tip %.2f, pocket floor %.2f -> engagement %.2f mm "
+            "(min %.1f, insert %.1f), tip %.2f above the floor, boss-standoff gap - PCB %.2f" % (
+                seat_z, boss_z, stand_z, tip_z, floor_z, eng, bv["SCREW_MIN_ENGAGEMENT"], bv["INSERT_LEN"],
+                tip_z - floor_z, clamp))
+        if not ok:
+            failed.append("screw stack " + name)
+        # Hex key / driver run straight back along the axis, clear of the fins.
+        if fins is not None:
+            corridor = cyl(x, q, BODY_T + 0.01, BODY_T + 60, bv["CBORE_D"])
+            check("screw %s driver corridor d%.1f x 60mm back vs fins/feet" % (name, bv["CBORE_D"]), corridor, fins, dist=True)
+        # Counterbore vs the USB-C opening (both through the back wall).
+        # (opening centred on J401, as in the fin checks: USBC_PFACE comes from a
+        # scad function scad_vars cannot evaluate)
+        jb = parts["J401"][0].bounds
+        ux, uq = (jb[0][0] + jb[1][0]) / 2, (jb[0][1] + jb[1][1]) / 2
+        uw, uh = bv["USBC_CUTOUT_W"], bv["USBC_CUTOUT_H"]
+        dd = math.hypot(max(abs(x - ux) - uw / 2, 0), max(abs(q - uq) - uh / 2, 0)) - bv["CBORE_D"] / 2
+        rec("counterbore %s vs USB-C opening" % name, "OK" if dd >= 2.0 else "FAIL", "%.1f mm of back wall between" % dd)
+        if dd < 2.0:
+            failed.append("counterbore %s vs USB-C" % name)
+    # Inserts in their melt-in holes: interference by design (knurl OD > hole).
+    ins = union([m for n, (m, s, _) in parts.items() if n.startswith("insert_")])
+    v, _ = inter(ins, front)
+    rec("heat-set inserts vs front-shell melt-in holes", "INFO",
+        "%.2f mm3 of knurl interference in total (OD %.1f in d%.2f holes, by design)" % (v, bv["INSERT_OD"], fv["INSERT_HOLE_D"]))
+    check("heat-set inserts vs back shell + PCB envelope", ins,
+          union([back] + [m for n, (m, s, _) in parts.items() if not n.startswith(("screw_", "insert_")) and n != "PCB"]))
+    # Seam: rim gap measured on the meshes, at the bottom wall's outer half.
+    xs, qs = bv["FACE_W"] / 2, bv["RABBET_RIM_T"] / 2
+    fr = ray_hit(front, [xs, qs, ZF + 1.0], [0, 0, -1])
+    br = ray_hit(back, [xs, qs, ZF - 1.0], [0, 0, 1])
+    if fr is None or br is None:
+        rec("seam rim gap measured", "FAIL", "a ray missed")
+        failed.append("seam rim gap")
+    else:
+        gap = (ZF - 1.0 + br) - (ZF + 1.0 - fr)
+        ok = abs(gap - bv["SEAM_GAP"]) < 0.01
+        rec("seam rim gap measured (PCB clamp is the stop)", "OK" if ok else "FAIL",
+            "front rim Z %.2f, back rim Z %.2f -> %.2f mm (SEAM_GAP %.2f)" % (ZF + 1.0 - fr, ZF - 1.0 + br, gap, bv["SEAM_GAP"]))
+        if not ok:
+            failed.append("seam rim gap")
+    # Lateral location: the front shell's lip must stand beside every PCB edge
+    # over the board's whole thickness (assembly is face-down, before the back
+    # shell goes on). Horizontal rays from 1mm inside each edge, at the PCB's
+    # mid-plane and just in front of its back surface, every 5mm along the
+    # edge (3mm clear of the corners; the top edge skips the pigtail notch,
+    # where the lip is cut away by design).
+    bw, bh = meta["board_w"], meta["board_h"]
+    nx0, nx1 = fv["PIGTAIL_NOTCH_X0"], fv["PIGTAIL_NOTCH_X1"]
+    sides = {
+        "left":   ([(MX + 1.0, q) for q in np.arange(QT - bh + 3, QT - 3 + 1e-6, 5.0)], [-1, 0], bv["BOARD_CLEARANCE_X"]),
+        "right":  ([(MX + bw - 1.0, q) for q in np.arange(QT - bh + 3, QT - 3 + 1e-6, 5.0)], [1, 0], bv["BOARD_CLEARANCE_X"]),
+        "bottom": ([(x, QT - bh + 1.0) for x in np.arange(MX + 3, MX + bw - 3 + 1e-6, 5.0)], [0, -1], bv["BOARD_CLEARANCE_Y"]),
+        "top":    ([(x, QT - 1.0) for x in np.arange(MX + 3, MX + bw - 3 + 1e-6, 5.0)
+                    if not (nx0 - 1 <= x <= nx1 + 1)], [0, 1], bv["BOARD_CLEARANCE_Y"]),
+    }
+    for side, (origins, d2, clear) in sides.items():
+        gaps, miss = [], 0
+        for z in (ZF + bv["PCB_T"] / 2, ZB - 0.05):
+            for (x, q) in origins:
+                h = ray_hit(front, [x, q, z], [d2[0], d2[1], 0])
+                if h is None:
+                    miss += 1
+                else:
+                    gaps.append(h - 1.0)
+        ok = miss == 0 and gaps and max(gaps) <= clear + 0.05
+        rec("front-shell lip beside the PCB edge, " + side, "OK" if ok else "FAIL",
+            "%d rays at Z %.2f / %.2f: edge-to-lip %.2f..%.2f mm (clearance %.2f)%s; lip to Z %.2f (PCB back %.2f)" % (
+                len(origins) * 2, ZF + bv["PCB_T"] / 2, ZB - 0.05, min(gaps) if gaps else float("nan"),
+                max(gaps) if gaps else float("nan"), clear, ", %d MISSED" % miss if miss else "",
+                fv["LIP_TOP_Z"], ZB))
+        if not ok:
+            failed.append("lip " + side)
 
 
 # ----------------------------------------------------------------------- main
@@ -523,8 +713,10 @@ def main():
         "U201_MODULE_H": bv["U201_MODULE_H"], "UFL_PLUG_TOP_H": bv["UFL_PLUG_TOP_H"],
         "U201_UFL": bv["U201_UFL_BOARD_ASSUMED"],
         "ENCODER_BOARD": (fv["ENCODER_BOARD_CX"], fv["ENCODER_BOARD_CY"]),
-        "PCB_MOUNT_HOLES_BOARD": bv["PCB_MOUNT_HOLES_BOARD"], "INSERT_LEN": bv["INSERT_LEN"],
+        "PCB_MOUNT_HOLES_BOARD": bv["PCB_MOUNT_HOLES_BOARD"],
     }
+    for k in ("INSERT_LEN", "INSERT_OD", "SCREW_SEAT_Z", "SCREW_TIP_Z", "SCREW_HEAD_D", "SCREW_HEAD_H", "SCREW_D", "SCREW_LEN"):
+        ev[k] = bv[k]   # common.scad, pilink-8hx.7
     parts, meta, unknown = build_envelope(os.path.abspath(args.pcb), ev)
     print("  board outline %.2f x %.2f x %.2f mm (from Edge.Cuts)" % (meta["board_w"], meta["board_h"], meta["board_t"]))
     print("  %d envelope bodies; PCB at Z %.1f..%.1f; frame: X=bx+%.1f, Q=%.1f-by" % (
@@ -542,7 +734,7 @@ def main():
     # structured sub-groups
     pcb = parts["PCB"][0]
     enc_parts = [n for n in parts if n.startswith("SW303")]
-    non_screw = lambda n: not n.startswith("screw_") and n != "PCB"
+    non_screw = lambda n: not n.startswith(("screw_", "insert_")) and n != "PCB"
     env_all = group(lambda n, s: non_screw(n))
     env_front_side = group(lambda n, s: non_screw(n) and s == "F")
     env_back_side = group(lambda n, s: non_screw(n) and s == "B")
@@ -578,11 +770,13 @@ def main():
         check("PCB slab vs front shell", pcb, front, dist=True)
         check("PCB slab vs back shell", pcb, back, dist=True,
               note="(board %.1f wide vs back cavity %.1f)" % (meta["board_w"], bv["FACE_W"] - 2 * bv["WALL_T"]))
-        check("front shell vs back shell", front, back, note="(butt joint at Z=7.5)")
+        check("front shell vs back shell", front, back, dist=True,
+              note="(seam at Z %.1f, rim gap %.2f; front lip in the back rabbet, %.2f radial clearance)" % (
+                  fv["FRONT_SHELL_DEPTH"], bv["SEAM_GAP"], bv["LIP_CLEARANCE"]))
         # per-component, only report overlaps
         bad = 0
         for n, (m, s, note) in parts.items():
-            if n == "PCB":
+            if n == "PCB" or n.startswith("insert_"):   # inserts melt into their holes by design: checked below
                 continue
             for sh_name, sh in (("front", front), ("back", back)):
                 v, loc = inter(m, sh)
@@ -606,8 +800,9 @@ def main():
         screws = {i: union([part("screw_H%d.head" % i), part("screw_H%d.shank" % i)]) for i in (1, 2, 3, 4)}
         for i in (1, 2, 3, 4):
             check("screw H%d vs front shell" % i, screws[i], front, dist=True)
-            check("screw H%d vs back shell (bosses/inserts)" % i, screws[i], back, dist=True)
+            check("screw H%d vs back shell (counterbore/clearance hole)" % i, screws[i], back, dist=True)
             check("screw H%d vs envelope components" % i, screws[i], env_all)
+        shell_fastener_checks(rec, failed, check, fv, bv, ev, meta, front, back, fins, pcb, parts)
         check("display stack vs front shell (pocket/ledge)", part("DISPLAY"), front, dist=True)
         check("U201 module+plug vs back shell (relief pocket)", union([part("U201.module"), part("U201.ufl_plug")]), back, dist=True)
         check("J401 body vs back shell (cutout/boss)", part("J401"), back, dist=True)
@@ -683,6 +878,8 @@ def main():
             failed.append("antenna mount depth span")
         check("antenna mount vs front shell", a, front, dist=True, note="(touches top-wall inner surface by design)")
         check("antenna mount vs back shell", a, back, dist=True)
+        check("antenna mount vs shell screws + inserts (pilink-8hx.7)", a,
+              union([m for n, (m, s, _) in parts.items() if n.startswith(("screw_", "insert_"))]), dist=True)
         check("antenna mount vs PCB envelope (slab+components)", a, union([pcb, env_all]), dist=True)
     # --- board clearance to the cavity walls, all four sides (pilink-6lz)
     # Edge.Cuts tolerance (JLCPCB +/-0.2mm) and the FDM wall tolerance
@@ -829,6 +1026,8 @@ def main():
                 continue
             if n.startswith("screw_"):
                 bodies.append((m, DENSITY_SCREW))
+            elif n.startswith("insert_"):
+                bodies.append((m, DENSITY_BRASS))
             else:
                 bodies.append((m, DENSITY_DISPLAY if n == "DISPLAY" else DENSITY_COMPONENT))
         mass = sum(abs(m.volume) * d for m, d in bodies) * 1e-3
