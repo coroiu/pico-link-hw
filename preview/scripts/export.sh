@@ -137,7 +137,7 @@ export_enclosure() {
     fi
   done
   # The whole directory is replaced, never merged into: a part dropped from
-  # export_enclosure.py's PARTS (e.g. the old leg_left/leg_right) leaves no
+  # export_enclosure.py's PARTS (e.g. the retired separate legs) leaves no
   # GLB behind. Same for anything an older pipeline version wrote straight
   # into models/ (models/enclosure.glb, before the per-part split): models/
   # holds only pcb.glb and enclosure/.

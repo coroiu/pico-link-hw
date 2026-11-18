@@ -142,7 +142,7 @@ def clear_outputs(out_dir):
     """Remove every output a previous run may have left in out_dir (part GLBs,
     the assembly, parts.json, the stl/ directory), so the output set is
     rebuilt from the current PARTS list and a part that was dropped from it
-    (e.g. the old leg_left/leg_right) cannot linger."""
+    (e.g. the retired separate legs) cannot linger."""
     for name in os.listdir(out_dir):
         path = os.path.join(out_dir, name)
         if name == "stl" and os.path.isdir(path):
