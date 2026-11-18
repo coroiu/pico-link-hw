@@ -108,6 +108,27 @@ def union(meshes):
     return trimesh.boolean.union(meshes, engine="manifold")
 
 
+def mesh_volume(m):
+    """|signed volume| from the divergence theorem, without trimesh's
+    mass_properties: that also divides by the volume for center_mass, which
+    raises a numpy divide-by-zero RuntimeWarning on a zero-volume mesh (e.g. an
+    intersection that is only coincident faces on two perpendicular planes, so
+    its bounding box is not flat)."""
+    t = m.triangles
+    return abs(float(np.einsum("ij,ij->i", t[:, 0], np.cross(t[:, 1], t[:, 2])).sum()) / 6.0)
+
+
+def solid_bounds(m, min_vol=1e-3):
+    """Bounds of the pieces of m that enclose real volume (boolean results can
+    carry zero-volume coplanar-face sheets), or None if there are none."""
+    if m is None or len(m.faces) == 0:
+        return None
+    pieces = [c for c in m.split(only_watertight=False) if mesh_volume(c) >= min_vol]
+    if not pieces:
+        return None
+    return (np.min([c.bounds[0] for c in pieces], axis=0), np.max([c.bounds[1] for c in pieces], axis=0))
+
+
 last_thickness = [0.0]
 SLIVER_DEPTH_TOL = 0.02  # mm
 
@@ -126,7 +147,7 @@ def inter(a, b):
     # slivers thinner than 20 um are coincident-face / STL rounding contact, not overlap
     if np.min(r.bounds[1] - r.bounds[0]) < TOUCH_TOL:
         return 0.0, None
-    v = abs(r.volume)
+    v = mesh_volume(r)
     if v < 1e-6:
         return 0.0, None
     # penetration depth = smallest extent of the overlap's oriented bounding
@@ -184,6 +205,69 @@ ENCODER_LEAD_LEN = 3.5
 # catalogue-class value, pilink-1x5; no J101 part drawing in this repo).
 HEADER_TAIL_LEN = 3.0
 TOUCH_TOL = 0.02  # mm
+
+# pilink-s98: (LEAN_DEG, FLOAT_GAP, FRONT_FOOT_OFFSET) combinations the fin
+# stand is re-rendered at; None = the file's default offset (front pads flush
+# behind the rear-bottom edge). Below LEAN ~23 those pads would tip forward
+# (back_shell.scad asserts), so the lower leans move them forward, which also
+# exercises the fin toe running on under the bottom wall.
+FIN_SWEEP = [(15, 0, 6), (15, 5, 6), (20, 0, 3), (25, 0, None), (25, 5, None),
+             (30, 0, None), (30, 5, None), (40, 0, None)]
+
+
+def sweep_key(lean, gap, off):
+    return "bs_L%g_G%g" % (lean, gap) + ("" if off is None else "_F%g" % off)
+
+
+def sweep_label(lean, gap, off):
+    return "LEAN %g FLOAT %g" % (lean, gap) + ("" if off is None else " FRONT_FOOT_OFFSET %g" % off)
+
+# Mass model for the tip-over estimate (pilink-s98). Printed parts are taken
+# as solid (2mm walls are mostly perimeters); envelope boxes over-fill their
+# components, hence the lower effective densities. g/cm3 == 1e-3 g/mm3.
+DENSITY_PRINT = 1.24      # PLA (PETG 1.27)
+DENSITY_FR4 = 1.85        # PCB slab
+DENSITY_COMPONENT = 1.0   # courtyard x height boxes (mostly air around small parts)
+DENSITY_DISPLAY = 0.9     # 59 x 42 x 3.3 stack box -> ~7.4 g, a 2.4" TFT module class figure (assumed)
+DENSITY_SCREW = 7.8       # M2 steel
+# EC11E18244AU detent torque, N.mm: 10 +/- 7 mN.m (Alps datasheet, pilink-g8a;
+# .research/findings/2026-11-15-encoder-ec11e18244au-specs.md) -> nominal, worst.
+KNOB_DETENT_TORQUE_NMM = (10.0, 17.0)
+
+
+def rot_x(deg):
+    a = math.radians(deg)
+    c, s = math.cos(a), math.sin(a)
+    m = np.eye(4)
+    m[1, 1], m[1, 2], m[2, 1], m[2, 2] = c, -s, s, c
+    return m
+
+
+def face_to_world(lean, body_t):
+    """Face frame (Z into the body from the outer face) -> back_shell.scad's
+    world frame: mirror Z into the back-shell local frame (bz = BODY_T - Z),
+    then rotate([-LEAN_DEG, 0, 0])."""
+    mz = np.eye(4)
+    mz[2, 2], mz[2, 3] = -1.0, body_t
+    return rot_x(-lean) @ mz
+
+
+def body_shadow(bv, lean):
+    """Everything a straight-on (horizontal, along -Z) front view cannot see
+    because the body is in front of it: the body box (local [0,FACE_W] x
+    [0,FACE_H] x [0,BODY_T], rounded corners ignored), leaned, swept 300mm
+    back. Fin/pad material outside it is visible from the front."""
+    # Grown by TOUCH_TOL so the shell's own outer faces sit strictly inside
+    # it: coplanar faces otherwise leave zero-volume slivers in the difference
+    # that spoil its bounds.
+    t = TOUCH_TOL
+    corners = np.array([[x, q, bz] for x in (-t, bv["FACE_W"] + t) for q in (-t, bv["FACE_H"] + t)
+                        for bz in (-t, bv["BODY_T"] + t)])
+    a = math.radians(lean)
+    w = np.column_stack([corners[:, 0],
+                         corners[:, 1] * math.cos(a) + corners[:, 2] * math.sin(a),
+                         -corners[:, 1] * math.sin(a) + corners[:, 2] * math.cos(a)])
+    return trimesh.convex.convex_hull(np.vstack([w, w - [0, 0, 300]]))
 
 
 def height_for(fpid):
@@ -357,9 +441,14 @@ def main():
             continue
         if n == "back_shell":
             jobs += [("back_shell[assembly]", scad, [], "bs_asm"),
-                     ("back_shell[PART=back_shell]", scad, ['PART="back_shell"'], "bs_back"),
-                     ("back_shell[PART=leg_left]", scad, ['PART="leg_left"'], "bs_legl"),
-                     ("back_shell[PART=leg_right]", scad, ['PART="leg_right"'], "bs_legr")]
+                     ("back_shell[PART=back_shell]", scad, ['PART="back_shell"'], "bs_back")]
+            # pilink-s98: the fin stand must regenerate from LEAN_DEG / FLOAT_GAP
+            for lean, gap, off in FIN_SWEEP:
+                defs = ['PART="back_shell"', "LEAN_DEG=%g" % lean, "FLOAT_GAP=%g" % gap]
+                if off is not None:
+                    defs.append("FRONT_FOOT_OFFSET=%g" % off)
+                jobs.append(("back_shell[PART=back_shell %s]" % sweep_label(lean, gap, off), scad, defs,
+                             sweep_key(lean, gap, off)))
         else:
             jobs.append((n, scad, [], n))
     render_fail = False
@@ -408,11 +497,15 @@ def main():
     front = renders.get("front_shell")
     back = wrapper("back", "back_shell.scad", [], "translate([0,0,BODY_T]) mirror([0,0,1]) back_shell_local();", ['PART="none"'])
     spool = wrapper("spool", "back_shell.scad", [], "translate([0,0,BODY_T]) mirror([0,0,1]) pigtail_spool();", ['PART="none"'])
+    # pilink-s98: the fins (+ pads) alone, world frame -> face frame
+    fins = wrapper("fins", "back_shell.scad", [], "translate([0,0,BODY_T]) mirror([0,0,1]) rotate([LEAN_DEG,0,0]) fins();", ['PART="none"'])
+    if fins is not None and fins.volume < 0:
+        fins.invert()
     plunger = wrapper("plunger", "button_plunger.scad", ["button_plungers_x4"], "button_plunger();")
     plunger_pr = wrapper("plunger_pressed", "button_plunger.scad", ["button_plungers_x4"], "button_plunger();", ["PREVIEW_PRESSED=true"])
     knob = wrapper("knob", "knob.scad", ["knob"], "knob();")
     ant = wrapper("antenna", "antenna_mount.scad", ["demo_assembly"], "antenna_mount();")
-    for nm, m in (("front (face frame)", front), ("back (face frame, mirrored in Z)", back), ("pigtail spool", spool),
+    for nm, m in (("front (face frame)", front), ("back (face frame, mirrored in Z)", back), ("pigtail spool", spool), ("fins (face frame)", fins),
                   ("plunger", plunger), ("knob", knob), ("antenna mount", ant)):
         if m is not None:
             print("  %-34s vol=%8.1f bbox lo=%s hi=%s" % (nm, m.volume, m.bounds[0].round(2).tolist(), m.bounds[1].round(2).tolist()))
@@ -458,7 +551,7 @@ def main():
         v, loc = inter(a, b)
         # Mating-face contact is only excused when the overlap is a real sliver:
         # < 0.25 mm3 AND a penetration depth (min oriented-bbox extent) of at
-        # most 0.02mm (STL/coincident-face noise class; real leg slivers
+        # most 0.02mm (STL/coincident-face noise class; real mating slivers
         # measure ~0.005mm). Anything deeper, however small in volume, is a
         # real interference and FAILs.
         thk = last_thickness[0]
@@ -554,6 +647,7 @@ def main():
             rec("plungers (fully pressed) vs actuators", "INFO",
                 "contact intended (overlap %.3f mm3 = actuator travel)" % inter(allp, group(lambda n, s: n.endswith(".actuator") and n.startswith("SW30")))[0])
     # --- knob
+    k = None
     if knob is not None and front is not None:
         kx, ky = fv["ENCODER_BOARD_CX"] + ev["MARGIN_X"], ev["QTOP"] - fv["ENCODER_BOARD_CY"]
         kg = kv["KNOB_GAP"]
@@ -570,6 +664,7 @@ def main():
         if plunger is not None:
             check("knob vs plungers", k, union(list(pl.values())), dist=True)
     # --- antenna mount
+    a = None
     if ant is not None and front is not None and back is not None:
         lo, hi = ant.bounds
         wall_inner_q = fv["FACE_H"] - fv["WALL"]            # 54
@@ -660,12 +755,134 @@ def main():
             "gap %.2f mm vs lip %.1f + element %.1f + coax %.2f = %.2f mm" % (
                 gap_plain, av["LIP_HEIGHT"], av["ANTENNA_ELEMENT_THICKNESS_NOMINAL"], cable_d,
                 av["LIP_HEIGHT"] + av["ANTENNA_ELEMENT_THICKNESS_NOMINAL"] + cable_d))
-    # --- legs
-    lt, lb = renders.get("bs_legl"), renders.get("bs_back")
-    if lt is not None and lb is not None:
-        check("left leg vs back shell + base strip (world frame)", lt, lb, dist=True, contact_ok=True)
-        if renders.get("bs_legr") is not None:
-            check("right leg vs back shell + base strip (world frame)", renders["bs_legr"], lb, dist=True, contact_ok=True)
+    # --- fin stand (pilink-s98)
+    LEAN = bv["LEAN_DEG"]
+    F2W = face_to_world(LEAN, BODY_T)
+    pad_r = bv["FOOT_PAD_D"] / 2
+    if fins is not None:
+        cav = box(bv["WALL_T"], bv["FACE_W"] - bv["WALL_T"], bv["WALL_T"], bv["FACE_H"] - bv["WALL_T"],
+                  BODY_T - bv["BACK_SHELL_DEPTH"], BODY_T - bv["WALL_T"])
+        check("fins vs back-shell cavity (must stay outside)", fins, cav, dist=True)
+        if front is not None:
+            check("fins vs front shell", fins, front, dist=True)
+        check("fins vs PCB slab + all envelope bodies", fins, union([pcb, env_all]), dist=True)
+        # USB-C: a max-spec plug overmould (USB-IF Type-C rev 1.2: 12.35 x 6.5)
+        # straight back out of the opening, then the cable dropping to the
+        # table between the fins (world frame). Centre from the J401 envelope.
+        jb = parts["J401"][0].bounds
+        jx, jq = (jb[0][0] + jb[1][0]) / 2, (jb[0][1] + jb[1][1]) / 2
+        plug = box(jx - 6.175, jx + 6.175, jq - 3.25, jq + 3.25, BODY_T - bv["USBC_MATING_BZ"], BODY_T + 60)
+        check("USB-C plug overmould 12.35x6.5, 60mm straight back, vs fins", plug, fins, dist=True)
+        fins_w = fins.copy()
+        fins_w.apply_transform(F2W)
+        a_ = math.radians(LEAN)
+        ey = jq * math.cos(a_) + bv["USBC_MATING_BZ"] * math.sin(a_)
+        ez = -jq * math.sin(a_) + bv["USBC_MATING_BZ"] * math.cos(a_)
+        drop = trimesh.creation.box(extents=[12.35, ey + bv["FLOAT_GAP"] + 5, 100])
+        drop.apply_translation([jx, (ey - bv["FLOAT_GAP"] - 5) / 2, ez - 50])
+        check("USB-C cable corridor 12.35 wide, exit -> table, 100mm back, vs fins (world)", drop, fins_w, dist=True)
+        notch = box(bv["PIGTAIL_NOTCH_X0"], bv["PIGTAIL_NOTCH_X1"], bv["FACE_H"] - bv["WALL_T"],
+                    bv["FACE_H"] - bv["WALL_T"] + bv["PIGTAIL_NOTCH_DEPTH"], bv["PIGTAIL_NOTCH_Z0"], bv["PIGTAIL_NOTCH_Z1"])
+        check("antenna pigtail notch (top wall) vs fins", notch, fins, dist=True)
+    # LEAN_DEG x FLOAT_GAP sweep: the fin bottoms land at Y = -FLOAT_GAP, the
+    # rear end at the same Z, and the only material a straight-on front view
+    # can see at FLOAT_GAP 0 is the front pads' lip under the bottom edge.
+    for lean, gap, off in FIN_SWEEP:
+        m = renders.get(sweep_key(lean, gap, off))
+        ffz = bv["FRONT_FOOT_Z"] if off is None else off - pad_r   # this render's front foot centre
+        if m is None:
+            continue
+        lo, hi = m.bounds
+        rear_z = bv["REAR_FOOT_Z"] - pad_r
+        geo_ok = abs(lo[1] + gap) < 0.02 and abs(lo[2] - rear_z) < 0.05 and lo[0] > -1e-6 and hi[0] < bv["FACE_W"] + 1e-6
+        vis = trimesh.boolean.difference([m, body_shadow(bv, lean)], engine="manifold")
+        vb = solid_bounds(vis)
+        if vb is None:
+            vdesc, vis_ok = "nothing visible from the front", True
+        else:
+            vlo, vhi = vb
+            # The front pads also hide what is directly behind them
+            # (e.g. the fin's front tip under the bottom edge when the front
+            # pad sits forward of it): remove each pad's front-view shadow,
+            # pad_d wide x FOOT_PAD_T (its upright side) tall, from the foot axis back.
+            occl = union([box(x - pad_r, x + pad_r, -gap - 0.01, -gap + bv["FOOT_PAD_T"],
+                              -300, ffz) for x in bv["FIN_X"]])
+            resid = trimesh.boolean.difference([vis, occl], engine="manifold")
+            rb = solid_bounds(resid)
+            in_front_pads = rb is None or rb[0][2] > ffz - pad_r - 0.05
+            vis_ok = in_front_pads if gap == 0 else True
+            vdesc = "visible from the front: %.1f mm3, Y %.2f..%.2f (%.2f above the fin bottom), Z %.2f..%.2f%s" % (
+                mesh_volume(vis), vlo[1], vhi[1], vhi[1] + gap, vlo[2], vhi[2],
+                " (front pads only)" if in_front_pads else " (includes fin/rear pad: float gap)")
+        ok = geo_ok and vis_ok and m.is_watertight
+        rec("fin stand " + sweep_label(lean, gap, off), "OK" if ok else "FAIL",
+            "watertight=%s, bottom Y %.2f (want %.2f), rear Z %.2f (want %.2f); %s" % (
+                m.is_watertight, lo[1], -gap, lo[2], rear_z, vdesc))
+        if not ok:
+            failed.append("fin stand " + sweep_label(lean, gap, off))
+    # Tip-over (static): CoG vs the four feet's contact rectangle, front/back.
+    if front is not None and back is not None and fins is not None:
+        bodies = [(front, DENSITY_PRINT), (back, DENSITY_PRINT), (pcb, DENSITY_FR4)]
+        bodies += [(m, DENSITY_PRINT) for m in [k, a] + list(pl.values()) if m is not None]
+        for n, (m, s, _) in parts.items():
+            if n == "PCB":
+                continue
+            if n.startswith("screw_"):
+                bodies.append((m, DENSITY_SCREW))
+            else:
+                bodies.append((m, DENSITY_DISPLAY if n == "DISPLAY" else DENSITY_COMPONENT))
+        mass = sum(abs(m.volume) * d for m, d in bodies) * 1e-3
+        cog = sum(abs(m.volume) * d * m.center_mass for m, d in bodies) * 1e-3 / mass
+        fin_mass = abs(fins.volume) * DENSITY_PRINT * 1e-3
+        cog_all = (cog * mass + fins.center_mass * fin_mass) / (mass + fin_mass)
+        q, bz = cog[1], BODY_T - cog[2]
+        a_ = math.radians(LEAN)
+        cz = -q * math.sin(a_) + bz * math.cos(a_)
+        cy = q * math.cos(a_) + bz * math.sin(a_)
+        cz_all = (F2W @ np.append(cog_all, 1.0))[2]
+        front_edge = bv["FRONT_FOOT_Z"] + bv["FOOT_DIA"] / 2
+        rear_edge = bv["REAR_FOOT_Z"] - bv["FOOT_DIA"] / 2
+        m_front, m_back = front_edge - cz, cz_all - rear_edge
+        m_front_all = front_edge - cz_all
+        h = cy + bv["FLOAT_GAP"] + bv["FOOT_H"] - bv["FOOT_RECESS_DEPTH"]   # CoG above the table (FOOT_H display value)
+        ok = m_front > 0 and m_back > 0
+        rec("tip-over: CoG inside the feet contact (LEAN %g, FLOAT %g)" % (LEAN, bv["FLOAT_GAP"]), "OK" if ok else "FAIL",
+            "body %.0f g + fins %.1f g; CoG world Z %.2f (no fins) / %.2f (with), %.1f mm above the table; "
+            "feet contact Z %.2f..%.2f -> margin front %.2f mm (tilt %.1f deg; %.2f mm with fins), back %.2f mm (tilt %.1f deg)" % (
+                mass, fin_mass, cz, cz_all, h, rear_edge, front_edge, m_front,
+                math.degrees(math.atan2(m_front, h)), m_front_all, m_back, math.degrees(math.atan2(m_back, h))))
+        if not ok:
+            failed.append("tip-over")
+        drift = max(abs(q - bv["COG_Q"]), abs(bz - bv["COG_BZ"]))
+        rec("tip-over: back_shell.scad COG_Q/COG_BZ vs mass model", "OK" if drift <= 0.5 else "WARN",
+            "model Q %.2f, bz %.2f (no fins) vs scad %.2f, %.2f" % (q, bz, bv["COG_Q"], bv["COG_BZ"]))
+        # Button press tipping it back over the rear feet: press at the
+        # A/B/X/Y diamond centre, along the face normal (face frame +Z).
+        bx_, by_ = fv["BTN_X"][0] + 8.0, fv["BTN_X"][1]   # diamond centre = X button + pitch
+        p = F2W @ np.array([bx_ + ev["MARGIN_X"], ev["QTOP"] - by_, 0.0, 1.0])
+        d = F2W[:3, :3] @ np.array([0.0, 0.0, 1.0])
+        piv_y = -(bv["FLOAT_GAP"] + bv["FOOT_H"] - bv["FOOT_RECESS_DEPTH"])
+        rz, ry = p[2] - rear_edge, p[1] - piv_y
+        tip_arm = abs(rz * d[1] - ry * d[2])          # moment arm of a unit press about the rear feet edge
+        w_n = (mass + fin_mass) * 1e-3 * 9.81
+        rec("tip-over: button press force to tip back over the rear feet", "INFO",
+            "%.2f N (weight %.2f N x %.1f mm / %.1f mm arm; ADR estimates a ~2.5 N press, friction permitting)" % (
+                w_n * m_back / tip_arm, w_n, m_back, tip_arm))
+        # Knob detent torque rolling it sideways over one fin's feet (ADR
+        # Rationale, "Two legs, not one strut"). The torque acts about the
+        # shaft (face normal, LEAN_DEG above horizontal); its component about
+        # the fore-aft roll axis through a fin's feet is T cos(LEAN). Restoring
+        # moment = weight x lateral CoG-to-feet-outer-edge distance.
+        cx = (F2W @ np.append(cog_all, 1.0))[0]
+        feet_l = bv["FACE_W"] / 2 - bv["FIN_OFFSET_X"] - bv["FOOT_DIA"] / 2
+        feet_r = bv["FACE_W"] / 2 + bv["FIN_OFFSET_X"] + bv["FOOT_DIA"] / 2
+        roll_arm = min(cx - feet_l, feet_r - cx)
+        restoring = w_n * roll_arm
+        t_nom, t_max = KNOB_DETENT_TORQUE_NMM
+        rec("tip-over: knob detent torque roll margin over one fin's feet", "INFO",
+            "%.1f N.mm restoring (%.2f N x %.2f mm, CoG X %.2f vs face centre %.2f) vs detent T cos(LEAN): %.1f N.mm nominal / %.1f worst -> %.2fx / %.2fx" % (
+                restoring, w_n, roll_arm, cx, bv["FACE_W"] / 2, t_nom * math.cos(a_), t_max * math.cos(a_),
+                restoring / (t_nom * math.cos(a_)), restoring / (t_max * math.cos(a_))))
     # --- rim profile mismatch
     if front is not None and back is not None:
         rec("shell corner radii front vs back", "INFO" if fv.get("CORNER_RADIUS") == bv.get("CORNER_R") else "WARN",

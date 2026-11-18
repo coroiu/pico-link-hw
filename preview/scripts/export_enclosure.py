@@ -5,6 +5,9 @@ Called by export.sh. Writes, under <out_dir>:
   <part>.glb      one per printed part, each in its assembled pose
   assembly.glb    every part in place, plus the PCB model if available
   parts.json      manifest the web page builds its part picker from
+  stl/<part>.stl  print-oriented STL per part, + stl/orientation.json
+Anything a previous run left in <out_dir> is removed first: the output set
+is rebuilt from PARTS, never added to.
 
 Everything is placed in back_shell.scad's "world" frame (X = across the
 face, left -> right seen from the front; Y = up; Z = forward, toward the
@@ -21,7 +24,7 @@ uses them):
   back-shell local frame: same X/Q, bz = BODY_T - Z (0 at the back wall's
       outer surface), so face -> local is a mirror in Z.
   world frame: rotate([-LEAN_DEG, 0, 0]) applied to the local frame
-      (back_shell.scad's PART="back_shell"/"leg_*" output is already world).
+      (back_shell.scad's PART="back_shell" output, shell + fins, is already world).
 
 The antenna mount has no real placement in the .scad files; like
 check_fit.py it is put against the inner top wall at X = MOUNT_X_MIN,
@@ -48,9 +51,7 @@ from trimesh.visual.material import PBRMaterial
 # (key, label, colour RGBA 0-255). Order = order in the page's picker.
 PARTS = [
     ("front_shell", "Front shell", (226, 226, 222, 255)),
-    ("back_shell", "Back shell + base strip", (88, 96, 110, 255)),
-    ("leg_left", "Leg (left)", (196, 120, 60, 255)),
-    ("leg_right", "Leg (right)", (196, 120, 60, 255)),
+    ("back_shell", "Back shell + fins", (88, 96, 110, 255)),
     ("knob", "Knob", (200, 48, 48, 255)),
     ("button_plunger", "Button plunger (x4)", (60, 130, 200, 255)),
     ("antenna_mount", "Antenna mount", (90, 170, 90, 255)),
@@ -104,9 +105,7 @@ def run_openscad(scad, out, defs=()):
 
 PRINT_NOTES = {
     "front_shell": "outer face on the bed, open side up (as modelled, face frame Z = 0 at the face).",
-    "back_shell": "base strip flat on the bed, as assembled on a desk (the shell body leans 15 degrees; no print orientation is documented for this part, this is the chosen one).",
-    "leg_left": "foot pad on the bed (README: print each leg foot-pad down).",
-    "leg_right": "foot pad on the bed (README: print each leg foot-pad down).",
+    "back_shell": "upright on the fin bottoms, as it stands on a desk (pilink-s98). Needs support under the bottom wall (it slopes up at LEAN_DEG, 25 deg by default) and inside under the top wall; see enclosure/README.md.",
     "knob": "upright as modelled, underside on the bed (knob.scad: print upright, dish up).",
     "button_plunger": "as modelled, flat on the bed.",
     "antenna_mount": "as modelled (own frame, land face on the bed).",
@@ -115,26 +114,41 @@ PRINT_NOTES = {
 
 def write_print_stl(key, mesh, stl_dir, lean):
     """Write <stl_dir>/<key>.stl in a print orientation (min Z on the bed, XY
-    centred). Most parts are modelled in their own print frame; back_shell and
-    the legs are output by back_shell.scad in the assembled world frame
-    (Y up, resting on the base strip / foot pads), so Y-up is mapped to Z-up
-    and the flat strip / foot pad lands on the bed. Parts without an entry
-    are written as rendered. Also records the orientation in orientation.json."""
+    centred). Most parts are modelled in their own print frame; back_shell is
+    output by back_shell.scad in the assembled world frame (Y up, its fins'
+    bottoms at the lowest Y), so Y-up is mapped to Z-up and the fin bottoms
+    land on the bed. Parts without an entry
+    are written as rendered (see write_print_notes for the notes file)."""
     os.makedirs(stl_dir, exist_ok=True)
     m = mesh.copy()
-    if key == "back_shell" or key.startswith("leg_"):
+    if key == "back_shell":
         m.apply_transform(mat3([[1, 0, 0], [0, 0, -1], [0, 1, 0]]))
     lo, hi = m.bounds
     m.apply_translation([-(lo[0] + hi[0]) / 2, -(lo[1] + hi[1]) / 2, -lo[2]])
     m.export(os.path.join(stl_dir, key + ".stl"))
-    path = os.path.join(stl_dir, "orientation.json")
-    notes = {}
-    if os.path.exists(path):
-        with open(path) as f:
-            notes = json.load(f)
-    notes[key] = PRINT_NOTES.get(key, "as rendered by OpenSCAD (no print orientation defined for this part).")
-    with open(path, "w") as f:
+
+
+def write_print_notes(stl_dir, keys):
+    """<stl_dir>/orientation.json: the print note of each part rendered this
+    run (written once, from scratch, so no note outlives its part)."""
+    os.makedirs(stl_dir, exist_ok=True)
+    notes = {k: PRINT_NOTES.get(k, "as rendered by OpenSCAD (no print orientation defined for this part).")
+             for k in keys}
+    with open(os.path.join(stl_dir, "orientation.json"), "w") as f:
         json.dump(notes, f, indent=1)
+
+
+def clear_outputs(out_dir):
+    """Remove every output a previous run may have left in out_dir (part GLBs,
+    the assembly, parts.json, the stl/ directory), so the output set is
+    rebuilt from the current PARTS list and a part that was dropped from it
+    (e.g. the retired separate legs) cannot linger."""
+    for name in os.listdir(out_dir):
+        path = os.path.join(out_dir, name)
+        if name == "stl" and os.path.isdir(path):
+            shutil.rmtree(path)
+        elif name.endswith(".glb") or name == "parts.json":
+            os.remove(path)
 
 
 def edge_cuts_origin(pcb_file):
@@ -180,6 +194,7 @@ def main():
     enc, out_dir = sys.argv[1], sys.argv[2]
     pcb_raw, pcb_file = (sys.argv[3], sys.argv[4]) if len(sys.argv) > 4 else ("", "")
     os.makedirs(out_dir, exist_ok=True)
+    clear_outputs(out_dir)
     work = tempfile.mkdtemp(prefix="encl")
 
     def src(name):
@@ -213,8 +228,6 @@ def main():
     jobs = {
         "front_shell": (src("front_shell"), []),
         "back_shell": (src("back_shell"), ['PART="back_shell"']),
-        "leg_left": (src("back_shell"), ['PART="leg_left"']),
-        "leg_right": (src("back_shell"), ['PART="leg_right"']),
         "knob": (src("knob"), []),
         "button_plunger": (wrapper("plunger", "button_plunger", ["button_plungers_x4"], "button_plunger();"), []),
         "antenna_mount": (wrapper("antenna", "antenna_mount", ["demo_assembly"], "antenna_mount();"), []),
@@ -237,13 +250,12 @@ def main():
             meshes[key] = m
             write_print_stl(key, m, os.path.join(out_dir, "stl"), LEAN)
             print("[enclosure] rendered %s (%d faces)" % (key, len(m.faces)))
+    write_print_notes(os.path.join(out_dir, "stl"), [k for k, _, _ in PARTS if k in meshes])
 
     # ---- placements in world mm: key -> list of 4x4 transforms
     place = {
         "front_shell": [face_to_world],
         "back_shell": [np.eye(4)],
-        "leg_left": [np.eye(4)],
-        "leg_right": [np.eye(4)],
     }
     kx = fv["ENCODER_BOARD_CX"] + MARGIN_X
     kq = QTOP - fv["ENCODER_BOARD_CY"]
@@ -277,7 +289,9 @@ def main():
             baseColorFactor=linear, metallicFactor=0.0, roughnessFactor=0.6))
         return m
 
-    manifest = {"assembly": None, "parts": []}
+    # "all_parts": every key in PARTS, rendered or not -- export.sh prunes
+    # served STLs of any part not in it (a part dropped from PARTS).
+    manifest = {"assembly": None, "parts": [], "all_parts": [k for k, _, _ in PARTS]}
     assembly = trimesh.Scene()
     for key, label, rgba in PARTS:
         if key not in meshes:

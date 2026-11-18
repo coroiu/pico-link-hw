@@ -2,6 +2,7 @@
 """Build the preview's "Files" downloads: JLCPCB fab files + enclosure STLs.
 
 usage: export_fab.py PCB SCH BOM_MD STL_DIR OUT_DIR
+       export_fab.py --prune-stl PARTS_JSON FAB_D_DIR
 
 Writes, under OUT_DIR (staged by the caller, then swapped in):
   <name>-gerbers.zip      Gerbers (Protel extensions) + Excellon drill (PTH/NPTH)
@@ -15,6 +16,12 @@ hardware/BOM.md's per-sheet tables, which are parsed here (ranges like
 "C106-C117" and comma lists are expanded). DNP parts are excluded from the
 BOM and CPL (kicad-cli --exclude-dnp), as hardware/BOM.md assembly flag 0
 requires.
+
+--prune-stl deletes, from every generation under FAB_D_DIR (site/fab.d), the
+STLs of parts that are no longer in export_enclosure.py's part list
+(PARTS_JSON's "all_parts") and drops them from that generation's fab.json, so
+a retired part's STL is not served from a kept older generation or from a
+stale generation left by a failed fab export.
 """
 import csv
 import datetime
@@ -127,7 +134,35 @@ def parse_bom_md(path):
     return lcsc
 
 
+def prune_stl(parts_json, fab_d):
+    with open(parts_json) as f:
+        keep = set(json.load(f).get("all_parts") or [])
+    if not keep:
+        return  # no part list to prune against; leave everything
+    for gen in sorted(glob.glob(os.path.join(fab_d, "*", ""))):
+        gone = []
+        for path in glob.glob(os.path.join(gen, "stl", "*.stl")):
+            key = os.path.splitext(os.path.basename(path))[0]
+            if key not in keep:
+                os.remove(path)
+                gone.append("stl/" + key + ".stl")
+        manifest = os.path.join(gen, "fab.json")
+        if gone and os.path.exists(manifest):
+            with open(manifest) as f:
+                m = json.load(f)
+            m["files"] = [e for e in m.get("files", []) if e.get("file") not in gone]
+            with open(manifest + ".tmp", "w") as f:
+                json.dump(m, f, indent=1)
+            os.replace(manifest + ".tmp", manifest)
+        for g in sorted(gone):
+            print("[fab] pruned %s (part no longer in the enclosure part list)"
+                  % os.path.join(os.path.relpath(gen, os.path.dirname(os.path.abspath(fab_d))), g))
+
+
 def main():
+    if sys.argv[1:2] == ["--prune-stl"]:
+        prune_stl(sys.argv[2], sys.argv[3])
+        return
     pcb, sch, bom_md, stl_dir, out = sys.argv[1:6]
     name = os.path.splitext(os.path.basename(pcb))[0]
     os.makedirs(out, exist_ok=True)

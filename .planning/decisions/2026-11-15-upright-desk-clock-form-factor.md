@@ -29,7 +29,8 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
 ## Decision
 
 - **Form factor:** an **upright body leaning back about 15 degrees** (face
-  about 75 degrees from the table). One front face carries **knob left,
+  about 75 degrees from the table; amended 2026-11-17, `pilink-s98`: 25
+  degrees, see Support). One front face carries **knob left,
   screen middle, buttons right**.
   - Face about 122 W x 56 H mm.
   - Body about 14 mm thick.
@@ -46,6 +47,65 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
   "screwed" wording above is kept for history and is superseded by this
   amendment. The rest of the Support decision (two legs, +/-40 mm, fixed
   A-frame) is unchanged.
+  **Amended 2026-11-17 (`pilink-s98`), supersedes the legs and the base
+  strip:** the body is held by **two flat triangular fins** off the back
+  wall, printed in one piece with the back shell, at the old base-strip feet
+  positions (+/-30 mm from the centre, not +/-40). They stay hidden behind
+  the body in the straight-on front view. Each fin carries a rubber-foot pad
+  at both ends of its bottom edge (four feet, `FOOT_DIA` 6.5 mm, shallow
+  centring recesses). One pad per fin, as first briefed, would be two
+  contact points, which is not a stable stance; the user confirmed the
+  four-pad version on 2026-11-17, together with `FIN_REACH` = 45 mm (rear
+  feet 45 mm behind the body's rear-bottom edge). The base strip (and the ballast pocket it
+  reserved) is gone: the body floats above the table on the feet, with
+  `FLOAT_GAP` (default 0) extending the fins below the body's lowest edge
+  for more float. The lean stays a single parameter, `LEAN_DEG`, and the
+  fin/foot geometry is derived from it. Print orientation: upright on the
+  fin bottoms. This was a user decision on 2026-11-17.
+  **Lean changed to 25° (user decision 2026-11-17, same bead):** after a
+  side-by-side render review at 20/25/30°, `LEAN_DEG` is 25 (face about 65°
+  from the table), not the ~15 above, so the front feet can sit wholly under
+  the fins: each front pad's front edge is flush behind the body's
+  rear-bottom edge (`FRONT_FOOT_OFFSET` 0, now measured from that flush
+  position), and the fin runs solid from the pad up to the back plate.
+  Consequences (from `check_fit.sh`'s mass model, `enclosure/README.md`):
+  - At 25° the body CoG sits about 2.7 mm behind the rear-bottom edge, so
+    the forward tip-over margin is thin: about 1.3 mm without the fins'
+    mass, 3.1 mm with it (about 2.4° of forward tilt). The user accepted
+    this ("worst case I re-print it"). Below about 23° the default pads tip
+    forward and the file refuses to render until `FRONT_FOOT_OFFSET` moves
+    them forward. Back margin about 44 mm.
+  - A button press tips the body back at about 4.3 N (2.5 N at 15°), above
+    the ~2.5 N estimate under Rationale; the feet would likely slide first.
+    The feet-first physical test below still decides.
+  - **Knob-torque roll margin is lower than with the legs:** about 1.8x
+    worst case (17 mN·m detent) and 3.0x nominal (10 mN·m), from
+    `check_fit.sh`'s mass model (89 g with fins, CoG 2 mm towards the knob,
+    feet outer edges at +/-33.25 mm). The "about 3x" under Rationale
+    assumed 110 g on legs at +/-40 mm. Still stable; the physical test
+    covers it.
+  - The face is now about 65° from the table, not 75°: the viewing-angle
+    and height figures elsewhere in this ADR assume 15° and are not
+    re-derived here.
+  - Printing needs support inside under the top wall (up to about 20 mm
+    tall, standing on the back wall's inner face) and a 0..4.5 mm wedge
+    under the bottom wall.
+  - The weighted-base fallback no longer has a reserved pocket.
+
+  **Foot form: runner (user decision 2026-11-18, same bead):** after a
+  side-by-side review of three foot forms (a round boss per foot, the fin
+  edge flaring into each pad, a full-length runner), each fin's whole bottom
+  edge is one pad-wide (9.3 mm) rail with both rubber feet recessed in it,
+  its section an ogee (short upright side, convex round, concave fillet into
+  the fin face) rather than a disc under a neck. Same four contact points
+  and feet positions. The rails add mass to the fins (about 9.3 g, was
+  8.1 g, 90 g in all), which moves the with-fins forward margin to about
+  3.3 mm; the no-fins margin (1.3 mm), back margin, press force and roll
+  margins above are unchanged at the stated precision. The runner is the
+  `FOOT_STYLE` default in `back_shell.scad` (the other two stay selectable).
+
+  The leg wording above, and "between the legs", "leg bosses", "two-leg
+  A-frame" and "feet pockets" below, are kept for history.
 - **PCB:** a single flat main board **standing parallel to the face**, about
   118 x 50 mm. All front-side placement rules from the proposal apply:
   - a panel-shadow keep-out with only low parts under the display;

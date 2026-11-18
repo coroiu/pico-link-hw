@@ -37,7 +37,7 @@ WALL = 2.0;
 // each side; 0.5mm (X) / 1.0mm (Y) leaves >= 0.1mm worst case, i.e. the board
 // never touches a wall even stacked at the extremes, and is not loose.
 //  - X: 0.5mm/side widens the face from the earlier 122 to 127.5mm.
-//  - Y: FACE_H stays 56mm (ADR/proposal figure, leg/strip/USB-C numbers all
+//  - Y: FACE_H stays 56mm (ADR/proposal figure, fin/USB-C numbers all
 //    key off it), which leaves exactly 1.0mm/side; the old layout had 0.00mm at
 //    the bottom and 2.00mm at the top.
 BOARD_CLEARANCE_X = 0.5;

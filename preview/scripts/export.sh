@@ -136,9 +136,16 @@ export_enclosure() {
       cp -f "$f" "$stage/opt/"
     fi
   done
+  # The whole directory is replaced, never merged into: a part dropped from
+  # export_enclosure.py's PARTS (e.g. the retired separate legs) leaves no
+  # GLB behind. Same for anything an older pipeline version wrote straight
+  # into models/ (models/enclosure.glb, before the per-part split): models/
+  # holds only pcb.glb and enclosure/.
   rm -rf "$out.old"
   [[ -d "$out" ]] && mv -f "$out" "$out.old"
   mv -f "$stage/opt" "$out" && rm -rf "$out.old"
+  find "$SITE_DIR/models" -mindepth 1 -maxdepth 1 ! -name pcb.glb ! -name enclosure \
+      -exec echo "[export] removing stale {}" \; -exec rm -rf {} +
   echo "[export] wrote $(ls "$out" | grep -c '\.glb$') enclosure GLBs to $out"
 }
 
@@ -216,11 +223,23 @@ export_fab() {
   fi
 }
 
+prune_fab_stl() {
+  # Every generation under fab.d (the served one, the kept previous one, or
+  # an old one still served after a failed fab export) loses the STLs of
+  # parts no longer in export_enclosure.py's part list, and its fab.json
+  # stops listing them -- see export_fab.py --prune-stl.
+  local parts="$WORK_DIR/enclosure/raw/parts.json"
+  [[ -f "$parts" && -d "$SITE_DIR/fab.d" ]] || return 0
+  python3 /preview/scripts/export_fab.py --prune-stl "$parts" "$SITE_DIR/fab.d" 2>&1 \
+    || echo "[export] WARNING: could not prune stale STLs from $SITE_DIR/fab.d" >&2
+}
+
 FAB_STATUS=skipped
 export_pcb
 export_enclosure
 export_schematic
 export_fab
+prune_fab_stl
 
 printf '{"last_export": "%s", "fab_status": "%s"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$FAB_STATUS" > "$SITE_DIR/status.json"
 echo "[export] status.json updated: $(cat "$SITE_DIR/status.json")"
