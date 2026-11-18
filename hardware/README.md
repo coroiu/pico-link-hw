@@ -1909,6 +1909,15 @@ Coordinates are board-local mm.
   F.Cu along y 39), which makes the routing harder (see the run count
   below). Under U101 these keepouts route, unlike the full-body ones tried
   for `pilink-r1h`.
+- **Cost of `EP_S`: a west GND_F fragment.** With +5V pushed off B.Cu,
+  it now runs about 20mm on F.Cu through x 11-37, y 30-40 (master 0mm).
+  That cuts a 269 mm^2 / 23-via GND_F fragment off the main F.Cu plane
+  around U1/U102 (x 11.5-36.3, y 6.7-39.0), new compared with master. Other
+  new F.Cu fragments: 62 mm^2/4 vias over U201, 28 mm^2/4 east of U101,
+  27 mm^2/4 at Y101. Every fragment is stitched, the gate passes, and
+  B.Cu is the plane that matters, so it is accepted, not fixed.
+  (Reviewer's refilled master figures: main GND_F 3569 mm^2, main GND_B
+  3333 mm^2; mine were unrefilled.)
 - **C104 (C_OUT) re-evaluated, not moved.** The trade-off above (FB and the
   PGND island against the 10.5mm L101.2 run) is unchanged by these
   channels, so it is still not a clear win either way.
@@ -1926,7 +1935,8 @@ Coordinates are board-local mm.
   on to C501 pad 2. LED_K/LED_A wrap J501's top and run diagonally to the
   boost, so any F.Cu way into the boost from the trunk passes pin 38. The
   router also ties J501 pins 2-4 to the branch. The branch splits the F.Cu
-  pour east of J501 off as before (269 mm^2 GND_F fragment, 23 vias).
+  pour east of J501 off as before (206 mm^2 GND_F fragment, 17 vias, x
+  71.7-82.4; master had the same one at 231 mm^2, 18 vias).
 - **No signal copper under U201 (`pilink-9on`).** `plane_keepout.NOVIA_B`:
   a B.Cu track and via keepout over the module body inset clear of the pad
   rows (x 91.4-106.6, y 3.0-19.8), exported to Freerouting only. ESP32_EN
@@ -1959,8 +1969,8 @@ Coordinates are board-local mm.
 | B.Cu signal track under U201's body | 32.7 mm (EN 17.4, BOOT0 15.3), 2 EN vias | 0 mm, 0 vias |
 | B.Cu signal track, whole board | 1454 mm | 1427 mm |
 | GND vias | 328 | 345 |
-| GND_F polygons / largest | 15 / 3631 mm^2 | 18 / 3360 mm^2 |
-| GND_B polygons / largest | 17 / 3393 mm^2 | 15 / 3691 mm^2 |
+| GND_F polygons / largest | 19 / 3569 mm^2 (15 of 1 mm^2 or more) | 18 / 3360 mm^2 |
+| GND_B polygons / largest | 17 / 3333 mm^2 | 15 / 3691 mm^2 |
 | U101 EP thermal vias in the main B.Cu polygon | 9 / 9 | 9 / 9 |
 
 **Verification, committed run.** place -> preroute -> route -> widen ->
@@ -1993,3 +2003,14 @@ limits); no hand finishing. `zones.py` joined one GND pocket at U103 with a
 Still needs a human: a KiCad GUI look at C401 over U401, the boost branch
 beside J501 and the new B.Cu channels round U101; a bring-up check of
 VBUS at hot-plug with C401 fitted and of the boost input droop.
+
+GUI and bring-up checklist additions (from review of this PR):
+- ESP32_BOOT0 leaves U201's pad (90.25, 19.7) diagonally to (92.54, 21.99),
+  so about 1.7mm of it runs under the module's bottom-left body corner
+  (body x 90-108, y 2-21.2), outside the `NOVIA_B` keepout box. It is the
+  pad-ring corner, not the GND pad area. Look at it in the GUI.
+- The +3V3 boost branch passes through J501 pad 38 (a 0.35mm FPC pad, 0.3mm
+  track into both ends), so that pad is part of the supply path. Inspect
+  that solder joint after assembly.
+- C401's reference designator overlaps J501's silkscreen (the one new
+  `silk_overlap`); move or hide it before fab.
