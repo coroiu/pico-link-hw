@@ -11,6 +11,142 @@
 		(company "Pico Link")
 	)
 	(lib_symbols
+		(symbol "Device:C"
+		(pin_numbers hide)
+		(pin_names
+			(offset 0.254)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "C"
+			(at 0.635 2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "C"
+			(at 0.635 -2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 0.9652 -3.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "cap capacitor"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "C_*"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "C_0_1"
+			(polyline
+				(pts
+					(xy -2.032 -0.762) (xy 2.032 -0.762)
+				)
+				(stroke
+					(width 0.508)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -2.032 0.762) (xy 2.032 0.762)
+				)
+				(stroke
+					(width 0.508)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "C_1_1"
+			(pin passive line
+				(at 0 3.81 270)
+				(length 2.794)
+				(name "~"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -3.81 90)
+				(length 2.794)
+				(name "~"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+	)
 (symbol "power:GND"
 		(power)
 		(pin_numbers hide)
@@ -1176,6 +1312,595 @@
 		)
 	)
 
+		(symbol "Power_Protection:USBLC6-2SC6"
+		(pin_names hide)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "U"
+			(at 0.635 5.715 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "USBLC6-2SC6"
+			(at 0.635 3.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-6"
+			(at 1.27 -6.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.st.com/resource/en/datasheet/usblc6-2.pdf"
+			(at 1.27 -8.255 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Description" "Very low capacitance ESD protection diode, 2 data-line, SOT-23-6"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "usb ethernet video"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "SOT?23*"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "USBLC6-2SC6_0_0"
+			(circle
+				(center -1.524 0)
+				(radius 0.0001)
+				(stroke
+					(width 0.508)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(circle
+				(center -0.508 -4.572)
+				(radius 0.0001)
+				(stroke
+					(width 0.508)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(circle
+				(center -0.508 2.032)
+				(radius 0.0001)
+				(stroke
+					(width 0.508)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(circle
+				(center 0.508 -4.572)
+				(radius 0.0001)
+				(stroke
+					(width 0.508)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(circle
+				(center 0.508 2.032)
+				(radius 0.0001)
+				(stroke
+					(width 0.508)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(circle
+				(center 1.524 -2.54)
+				(radius 0.0001)
+				(stroke
+					(width 0.508)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "USBLC6-2SC6_0_1"
+			(polyline
+				(pts
+					(xy -2.54 -2.54) (xy 2.54 -2.54)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -2.54 0) (xy 2.54 0)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -2.032 -3.048) (xy -1.016 -3.048)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -1.016 1.524) (xy -2.032 1.524)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 1.016 -3.048) (xy 2.032 -3.048)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 1.016 1.524) (xy 2.032 1.524)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -0.508 -1.143) (xy -0.508 -0.762) (xy 0.508 -0.762)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -2.032 0.508) (xy -1.016 0.508) (xy -1.524 1.524) (xy -2.032 0.508)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -1.016 -4.064) (xy -2.032 -4.064) (xy -1.524 -3.048) (xy -1.016 -4.064)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 0.508 -1.778) (xy -0.508 -1.778) (xy 0 -0.762) (xy 0.508 -1.778)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 2.032 -4.064) (xy 1.016 -4.064) (xy 1.524 -3.048) (xy 2.032 -4.064)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 2.032 0.508) (xy 1.016 0.508) (xy 1.524 1.524) (xy 2.032 0.508)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 0 2.54) (xy -0.508 2.032) (xy 0.508 2.032) (xy 0 1.524) (xy 0 -4.064) (xy -0.508 -4.572) (xy 0.508 -4.572)
+					(xy 0 -5.08)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "USBLC6-2SC6_1_1"
+			(rectangle
+				(start -2.54 2.794)
+				(end 2.54 -5.334)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+			(polyline
+				(pts
+					(xy -0.508 2.032) (xy -1.524 2.032) (xy -1.524 -4.572) (xy -0.508 -4.572)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 0.508 -4.572) (xy 1.524 -4.572) (xy 1.524 2.032) (xy 0.508 2.032)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(pin passive line
+				(at -5.08 0 0)
+				(length 2.54)
+				(name "I/O1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -7.62 90)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -5.08 -2.54 0)
+				(length 2.54)
+				(name "I/O2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 5.08 -2.54 180)
+				(length 2.54)
+				(name "I/O2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 5.08 270)
+				(length 2.54)
+				(name "VBUS"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 5.08 0 180)
+				(length 2.54)
+				(name "I/O1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+	)
+		(symbol "Device:D_Zener"
+		(pin_numbers hide)
+		(pin_names
+			(offset 1.016) hide)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "D"
+			(at 0 2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "D_Zener"
+			(at 0 -2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Zener diode"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "diode"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "TO-???* *_Diode_* *SingleDiode* D_*"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "D_Zener_0_1"
+			(polyline
+				(pts
+					(xy 1.27 0) (xy -1.27 0)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -1.27 -1.27) (xy -1.27 1.27) (xy -0.762 1.27)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 1.27 -1.27) (xy 1.27 1.27) (xy -1.27 0) (xy 1.27 -1.27)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "D_Zener_1_1"
+			(pin passive line
+				(at -3.81 0 0)
+				(length 2.54)
+				(name "K"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 3.81 0 180)
+				(length 2.54)
+				(name "A"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+	)
 	)
   (symbol (lib_id "Connector:USB_C_Receptacle_USB2.0_16P") (at 127 114.3 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
@@ -1629,4 +2354,235 @@
     (uuid d4e5f6a7-8b9c-4012-a345-6b7c8d9e0f1a)
   )
 
+  (symbol (lib_id "Power_Protection:USBLC6-2SC6") (at 261.62 139.7 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 454bb518-3682-467f-917e-c80dbd56b0ea)
+    (property "Reference" "U401" (at 269.24 133.35 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Value" "USBLC6-2SC6" (at 269.24 146.05 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Footprint" "Package_TO_SOT_SMD:SOT-23-6" (at 261.62 139.7 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "https://www.st.com/resource/en/datasheet/usblc6-2.pdf" (at 261.62 139.7 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 68fd2641-ff17-4773-910a-2d0654d680a0))
+    (pin "2" (uuid 78c627a5-e11d-4d63-8194-4471c0bc8cc6))
+    (pin "3" (uuid 0377326b-a2d8-4aa9-87d2-aeb26a2d3d67))
+    (pin "4" (uuid a766f26d-1058-41eb-b2e9-36343f98232e))
+    (pin "5" (uuid 42666a36-e2d5-4743-b6da-694639b4b33a))
+    (pin "6" (uuid 73137f72-42c0-4df8-8e0d-96a6339ed6d9))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/c4d4de3c-75c3-4587-88ec-f92e6fda3baf"
+          (reference "U401") (unit 1)
+        )
+      )
+    )
+  )
+  (global_label "USB_DP" (shape bidirectional) (at 256.54 139.7 180) (fields_autoplaced)
+    (effects (font (size 1.27 1.27)) (justify right))
+    (uuid 061ea2a3-e65f-4a21-a4cf-53844099cac6)
+    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 256.54 139.7 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+  )
+  (global_label "USB_DP" (shape bidirectional) (at 266.7 139.7 0) (fields_autoplaced)
+    (effects (font (size 1.27 1.27)) (justify left))
+    (uuid b0cd3625-e2f8-4b57-af09-564c999d4799)
+    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 266.7 139.7 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+  )
+  (global_label "USB_DM" (shape bidirectional) (at 256.54 142.24 180) (fields_autoplaced)
+    (effects (font (size 1.27 1.27)) (justify right))
+    (uuid 0073df90-b187-4c5c-b139-aa960cd5dcf9)
+    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 256.54 142.24 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+  )
+  (global_label "USB_DM" (shape bidirectional) (at 266.7 142.24 0) (fields_autoplaced)
+    (effects (font (size 1.27 1.27)) (justify left))
+    (uuid 3417d9a2-5cd8-44be-9afb-7cedacdd7836)
+    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 266.7 142.24 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+  )
+  (symbol (lib_id "power:GND") (at 261.62 147.32 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 0a770c10-7e67-4e47-a9fc-976c39e7f394)
+    (property "Reference" "#PWR406" (at 261.62 147.32 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 261.62 153.67 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 261.62 147.32 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 261.62 147.32 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 0bbdab80-0303-4c00-873c-f737129dbcaf))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/c4d4de3c-75c3-4587-88ec-f92e6fda3baf"
+          (reference "#PWR406") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 261.62 134.62) (xy 261.62 132.08))
+    (stroke (width 0) (type default))
+    (uuid 2787c089-3b42-4bdd-bb14-f88c7a368b3d)
+  )
+  (label "VBUS_RAW" (at 261.62 132.08 0) (fields_autoplaced)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid 0831d997-331e-4637-b907-c3785059a1b9)
+  )
+  (symbol (lib_id "Device:D_Zener") (at 261.62 160.02 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 6aa61d1b-6321-4d58-87be-1651b72e384d)
+    (property "Reference" "D401" (at 264.16 157.48 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Value" "SMF5.0A" (at 264.16 162.56 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Footprint" "Diode_SMD:D_SMF" (at 261.62 160.02 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "~" (at 261.62 160.02 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 860008fb-4421-4658-97d8-69f3753be845))
+    (pin "2" (uuid dece0f29-bff9-4b25-adad-2122cf8c912d))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/c4d4de3c-75c3-4587-88ec-f92e6fda3baf"
+          (reference "D401") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 257.81 160.02) (xy 255.27 160.02))
+    (stroke (width 0) (type default))
+    (uuid 1a7432a8-2541-49ad-8ec2-b642133cc4fe)
+  )
+  (symbol (lib_id "power:+5V") (at 255.27 160.02 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 25502e8c-9d61-4503-a5f3-4e9c679fc522)
+    (property "Reference" "#PWR407" (at 255.27 160.02 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "+5V" (at 255.27 154.94 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 255.27 160.02 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 255.27 160.02 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid f664dbf3-4d09-4415-84b5-d3e285b882d5))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/c4d4de3c-75c3-4587-88ec-f92e6fda3baf"
+          (reference "#PWR407") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 265.43 160.02) (xy 267.97 160.02))
+    (stroke (width 0) (type default))
+    (uuid 3e985900-4a89-4b15-9abf-f2c096d60b59)
+  )
+  (symbol (lib_id "power:GND") (at 267.97 160.02 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid b5de52a1-f64f-4055-a801-21891d196873)
+    (property "Reference" "#PWR408" (at 267.97 160.02 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 267.97 166.37 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 267.97 160.02 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 267.97 160.02 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 4ad6581e-ae78-41e6-b375-4e09c40c7fad))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/c4d4de3c-75c3-4587-88ec-f92e6fda3baf"
+          (reference "#PWR408") (unit 1)
+        )
+      )
+    )
+  )
+  (text "U401 (pilink-e63): USBLC6-2SC6 (ST, LCSC C7519) USB ESD array at J401,\nbefore the 27R series resistors (R106/R107 on the RP2350B sheet). 2.5pF typ / 3.5pF max\nI/O-GND (ST datasheet DocID 11265 Table 2), rated for USB 2.0 FS/HS. VBUS pin on VBUS_RAW (rail clamp reference).\nD401 (pilink-e63): SMF5.0A unidirectional TVS (MDD, LCSC C193402), Vrwm 5.0V,\nVbr 6.4-7.0V, Vc 9.2V @ 21.7A, on +5V right after F401 so a sustained\novervoltage trips the PTC instead of destroying the TVS. Drawn with the\nzener symbol (K = pin 1 to +5V). It clamps ESD and hot-plug ringing; it\ncannot hold +5V under U1's 6.5V absolute max for a large surge.\nC401 (pilink-uqt): 100nF on U401's VBUS pin (VBUS_RAW to GND), per ST DocID 11265\nRev 5 Figure 18 'PCB layout considerations'. USB allows up to 10uF on VBUS at attach." (at 163.83 133.35 0)
+    (effects (font (size 1.0 1.0)) (justify left top))
+    (uuid 3b5d8d1a-c3b1-41b4-b5f4-43679b3e2a1c)
+  )
+  (symbol (lib_id "Device:C") (at 274.32 127.0 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 0a5a4520-f44d-4576-a269-b223b956441d)
+    (property "Reference" "C401" (at 276.86 125.73 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Value" "100nF" (at 276.86 128.27 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Footprint" "Capacitor_SMD:C_0402_1005Metric" (at 274.32 127.0 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "~" (at 274.32 127.0 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 5793971f-7df7-4a5c-a19a-64864526bc88))
+    (pin "2" (uuid dc5a94d1-24d0-46d5-b988-79ae03346440))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/c4d4de3c-75c3-4587-88ec-f92e6fda3baf"
+          (reference "C401") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 274.32 123.19) (xy 274.32 121.92))
+    (stroke (width 0) (type default))
+    (uuid 1282a1eb-2770-4664-8634-78d4090c070b)
+  )
+  (label "VBUS_RAW" (at 274.32 121.92 0) (fields_autoplaced)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid 1740d9e6-ca67-400b-8e21-61ca51568732)
+  )
+  (symbol (lib_id "power:GND") (at 274.32 130.81 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 8724e6d0-e383-4e90-884c-ba4eeb2f7ea2)
+    (property "Reference" "#PWR409" (at 274.32 130.81 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 274.32 137.16 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 274.32 130.81 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 274.32 130.81 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 40e1ee6e-00bc-4f45-a9c0-ed2ec4c1772f))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/c4d4de3c-75c3-4587-88ec-f92e6fda3baf"
+          (reference "#PWR409") (unit 1)
+        )
+      )
+    )
+  )
 )

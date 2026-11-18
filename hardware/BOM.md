@@ -53,7 +53,7 @@ guarantee than this BOM's first draft claimed.
    `.planning/decisions/2026-11-13-esp32-bt-coprocessor-not-rm2.md`. Do
    not substitute RM2 or hand-place it; order U201 as a normal JLCPCB SMT
    line item.
-2. **L101 (VREG inductor): DMBJ `CXP0420-3R3M-AG` (`C7461339`, Extended, 2,417 units live 2026-11-16)** (`pilink-2wq`). The original Coilcraft LPS4018-3.3uH is not stocked by JLCPCB. RP2350 datasheet section 6.3.8.2 requires 3.3uH +/-20%, DCR <= 250mOhm, Isat >= 1.5A, fully shielded, polarity-marked. The DMBJ part (3.3uH, DCR 87mOhm, Isat 4A, Irms 3A, integrated molded = fully shielded, 4.4x4.2mm) meets the electrical and shielding requirements but **has NO polarity mark -- a deviation accepted by the user**; orientation of L101 is therefore arbitrary. If core-supply noise shows up on the prototype, rework = rotate L101 180 degrees. The fully compliant alternative is Abracon `AOTA-B201610S3R3-101-T` (`C42411119`, 2.0x1.6mm, DCR 115mOhm, Isat 2.4A), but JLCPCB stock is ~1 unit (2026-11-16); use it (via JLCPCB global sourcing/consignment) if stock returns. An earlier try with Cenker CKCS4018-3.3uH (`C354572`) was rejected: resin-shielded only, no polarity mark. The project-local footprint `Inductor_SMD_Custom:L_DMBJ_CXP0420` follows the vendor datasheet (LCSC datasheet for C7461339, section 3 Structure and Dimensions: row CX0420 A=4.4, B=4.2, C=1.8, D=2.0, E=1.0 mm; RECOMMENDED LAND PATTERNS: G=1.75 pad gap, I=1.5 pad size along the terminal axis, H=2.5 pad size across it; pads at +/-1.625mm, 1.5 x 2.5mm, covering the 2.0mm-wide terminal and staying inside the 4.4mm body span). The G/H/I letter meaning was first assumed (pads rotated 90 degrees) and corrected in the PR #94 review, which read it off the vector land-pattern drawing; a human should still glance at the drawing before fab. Per RP2350 datasheet 6.3.8.1 the F.Cu GND pour is cut away under L101 (`zones.py` rule area `KO_L101_F`) and B.Cu tracks/vias are kept out of the L101 footprint (`l101_keepout.py`, exported to Freerouting by `route.py`). Layout (`pilink-2wq`): L101 sits above VREG_LX (pin 63, ~3.6mm pad-to-pin centre to centre, ~4.1mm of LX copper), C103 stays at VREG_VIN (pin 64), C104 left of L101's output pad with a locked 0.4mm +1V1 link to L101 pad 2; the VREG_FB pin 65 trace is a locked 5.39mm F.Cu run, no vias, straight up its own column to C104 pad 1 (~4.2mm from the LX pad); QSPI_SCLK, SD0-SD3 and SS are locked pre-routes replayed from master's routing (`scripts/qspi_routes.json`, identical lengths/vias to master: SCLK 19.3mm/0, SD0 16.5/2, SD1 26.4/4, SD2 33.5/2, SD3 27.8/3, SS 38.2/2); PSRAM_CS stays with the router (~35mm, 4 vias); VREG_LX is a locked pin 63 -> L101 pad 1 route; R104/C105 (AVDD filter) moved right to make room. Locked GND vias at U101 pin 62, C103 pad 2 and C104 pad 2 give a short return, and two anchor GND vias east of L101 let GND_B fill under it (`preroute.py`); `route.py` keeps B.Cu routing out of x 47..53, y 13..20.5 (`l101_keepout.py` `PLANE_B`) so those vias, C104 and the plane under L101 are one connected GND_B region (verified by a fill-polygon flood check).
+2. **L101 (VREG inductor): DMBJ `CXP0420-3R3M-AG` (`C7461339`, Extended, 2,417 units live 2026-11-16)** (`pilink-2wq`). The original Coilcraft LPS4018-3.3uH is not stocked by JLCPCB. RP2350 datasheet section 6.3.8.2 requires 3.3uH +/-20%, DCR <= 250mOhm, Isat >= 1.5A, fully shielded, polarity-marked. The DMBJ part (3.3uH, DCR 87mOhm, Isat 4A, Irms 3A, integrated molded = fully shielded, 4.4x4.2mm) meets the electrical and shielding requirements but **has NO polarity mark -- a deviation accepted by the user**; orientation of L101 is therefore arbitrary. If core-supply noise shows up on the prototype, rework = rotate L101 180 degrees. The fully compliant alternative is Abracon `AOTA-B201610S3R3-101-T` (`C42411119`, 2.0x1.6mm, DCR 115mOhm, Isat 2.4A), but JLCPCB stock is ~1 unit (2026-11-16); use it (via JLCPCB global sourcing/consignment) if stock returns. An earlier try with Cenker CKCS4018-3.3uH (`C354572`) was rejected: resin-shielded only, no polarity mark. The project-local footprint `Inductor_SMD_Custom:L_DMBJ_CXP0420` follows the vendor datasheet (LCSC datasheet for C7461339, section 3 Structure and Dimensions: row CX0420 A=4.4, B=4.2, C=1.8, D=2.0, E=1.0 mm; RECOMMENDED LAND PATTERNS: G=1.75 pad gap, I=1.5 pad size along the terminal axis, H=2.5 pad size across it; pads at +/-1.625mm, 1.5 x 2.5mm, covering the 2.0mm-wide terminal and staying inside the 4.4mm body span). The G/H/I letter meaning was first assumed (pads rotated 90 degrees) and corrected in the PR #94 review, which read it off the vector land-pattern drawing; a human should still glance at the drawing before fab. Per RP2350 datasheet 6.3.8.1 the F.Cu GND pour is cut away under L101 (`zones.py` rule area `KO_L101_F`) and B.Cu tracks/vias are kept out of the L101 footprint (`l101_keepout.py`, exported to Freerouting by `route.py`). Layout (`pilink-2wq`, reworked to RP2350 DS 6.3.8.1 / Figure 26 by `pilink-2x7`): C103 (C_IN) and C104 (C_OUT) sit stacked right above pins 61-65, each straddling the VREG_LX pin, with L101 above them (LX pad at the bottom). The C_IN loop is all F.Cu: VIN pin 64 -> C103.1 and PGND pin 62 -> C103.2 are straight 0.22mm stubs, C103.2 -> PGND 1.21mm and PGND -> C104.2 2.23mm of copper, no vias (master: 7.01mm/2 vias and 7.98mm/2 vias through B.Cu). PGND + C103.2 + C104.2 form an F.Cu island the GND pour is kept off (`plane_keepout.py` `KO_POUR_F_VREG`) that meets the ground plane at one point, two adjacent vias east of C103/C104. VREG_LX runs pin 63 -> L101 pad 1 straight up between the two caps' pads (a 0.15mm neck, `.kicad_dru` rule `vreg_lx_neck`, 0.12mm to those pads), 4.43mm, no via. VREG_FB is its own 0.15mm F.Cu trace from pin 65 into C104 pad 1 (C_OUT's output), 2.97mm, no via and nothing else on it. DVDD leaves the C104/L101 node by a separate 0.4mm run east over L101 to C118 and pin 51, and from pin 51's inner end an F.Cu ring under the package feeds pins 10 and 32 (the rail itself has no B.Cu; its one via is the locked TP101 test-pad link at (55.05, 12.00) with 0.95mm of B.Cu to TP101). C104 (C_OUT) is not at L101's +1V1 pad: it reaches L101.2 by a 10.5mm run down L101's west side (master: 3.3mm direct), and DVDD is fed from the L101.2 end, so C_OUT hangs on that run. This stack keeps LX at 4.4mm with no via and C_OUT's GND on the PGND island; moving C104 is a placement call left for a human (README "Ground plane and VREG"). C105 (C_FILT) has its own GND via, not shared with the C_IN/C_OUT island; R104's +3V3 end is a locked link down into C113.1. The B.Cu under the hot loop (C103/C104/the island vias) and under L101 is kept free of routed tracks (`plane_keepout.py` `VREG`, `l101_keepout.py`). That B.Cu area and the strip under the top pin row down to the exposed pad are one B.Cu keepout (`plane_keepout.py` `VREG_PINS_B`, `pilink-93a`), so the B.Cu under the regulator is the same polygon as the EP's. Copper path to the EP (`gnd_paths.py`, gated in `zones.py` and `route.py`): PGND island vias 6.8/7.1mm, C103 7.3mm, C104 7.6mm, C105 8.7mm, 1 via each (first version of PR #103: ~105mm). QSPI_SCLK, SD0-SD3 and SS are locked pre-routes replayed from `scripts/qspi_routes.json` (same lengths/vias as before: SCLK 19.3mm/0, SD0 16.5/2, SD1 26.4/4, SD2 33.5/2, SD3 27.8/3, SS 38.2/2); PSRAM_CS and GPIO41 leave the DVDD-enclosed pins 52/58 by short locked B.Cu hops; GPIO41 then goes to the router, and PSRAM_CS runs on as a locked pre-route over the VREG block to U103 (47.1mm / 5 vias in all). See README "Ground plane and VREG" for the measured numbers.
 
    (**U103 was also flagged here in an earlier draft of this BOM and is
    NOT a catalog gap — see its row below.** Three rounds of disputed
@@ -128,6 +128,7 @@ guarantee than this BOM's first draft claimed.
 | C1 | 1 | 10uF, X5R, 25V | 0805 | C15850 | CL21A106KAYNNNE | **Basic (confirmed via JLCPCB API)** | 1,999,860 |
 | C2 | 1 | 22uF, X5R, 10V | 0805 | C7432777 | HGC0805R5226K100NSLJ | Extended† | 111,910 |
 | C3 | 1 | 100nF, X7R, 16V | 0402 | C880604 | TCC0402X7R104M160AT | Extended† | 4,086,850 |
+| TP1, TP2, TP3 | 3 | Test pads, +5V / +3V3 / GND (`pilink-brf`) | 1.0mm round SMD pad, B.Cu | — (bare copper, no part) | — | — | — |
 
 ## RP2350B + Memory (`rp2350b_memory.kicad_sch`, refs 100-199)
 
@@ -148,6 +149,8 @@ guarantee than this BOM's first draft claimed.
 | U103 | 1 | APS6404L-3SQR-ZR (8MB QSPI PSRAM) | USON-8L | C3040877 | APS6404L-3SQR-ZR | Extended (confirmed via JLCPCB's own API + partdetail page — see flag 2 note) | 1,268 |
 | C121 | 1 | 2.2uF, X5R, 50V | 0603 | C7432769 | HGC0603R5225K500NTHJ | Extended† | 417,960 |
 | R105 | 1 | 100k | 0402 | C25530 | 0402WGJ0104TCE | Extended† | 9,817,600 |
+| R106, R107 | 2 | 27R 1%, USB D-/D+ series termination (`pilink-8rz`), **B.Cu** | 0402 | C25100 | 0402WGF270JTCE (UNI-ROYAL) | Extended (JLCPCB API, 2026-11-17; no Basic 27R exists, the nearest Basic value is 22R C25092, which the RP2350 datasheet does not allow) | 640,581 (JLCPCB API, 2026-11-17) |
+| TP101, TP102 | 2 | Test pads, +1V1 and GND (`pilink-brf`) | 1.0mm round SMD pad, B.Cu | — (bare copper, no part) | — | — | — |
 | J101 | 1 | **DNP (pilink-cto: do not assemble; footprint/pads only)** SWD debug header, 3-pin, 2.54mm pitch (`pilink-2ar` — SWCLK/GND/SWDIO; pitch corrected in PR #43 review — 1.27mm doesn't match any cable Raspberry Pi's Debug Probe actually ships with) | THT vertical, 1x3P | C32713269 | Hanxia HX PZ2.54-1x3P ZZ | Extended | 59,160 (single snapshot: `jlcpcb-search` MCP, 2026-11-16; earlier 60,450 / 59,380 figures superseded; not re-checked against the rest of this BOM's 2026-11-15 13:12 snapshot) |
 
 ## ESP32 BT coprocessor (`esp32_bt.kicad_sch`, refs 200-299)
@@ -159,6 +162,7 @@ guarantee than this BOM's first draft claimed.
 | C203 | 1 | 1uF, X5R, 16V | 0603 | C696901 | TCC0603X5R105K160CT | Extended† | 837,750 |
 | C201 | 1 | 10uF, X5R, 25V | 0805 | C15850 | CL21A106KAYNNNE | **Basic (confirmed via JLCPCB API)** | 1,999,860 |
 | C202 | 1 | 100nF, X7R, 16V | 0402 | C880604 | TCC0402X7R104M160AT | Extended† | 4,086,850 |
+| TP201-TP206 | 6 | Bring-up test pads, ESP32 UART0 flashing row: GND, 3V3, TXD0, RXD0, EN, IO0 (`pilink-brf`) | 1.0mm round SMD pad, B.Cu, 2.54mm pitch | — (bare copper, no part; `in_bom no`, footprint excluded from BOM and CPL) | — | — | — |
 
 ## Display (`display.kicad_sch`, refs 500-599)
 
@@ -190,6 +194,9 @@ guarantee than this BOM's first draft claimed.
 | F401 | 1 | SMD0805B100TFT (1A hold PTC fuse) | 0805 | C269106 | SMD0805B100TFT | Extended† | 5,460 |
 | R401, R402 | 2 | 5.1k | 0402 | C25905 | 0402WGF5101TCE | Extended† | 704,500 |
 | R403, R404 | 2 | 10k (CC1/CC2 ADC voltage-sense series-protection, `pilink-1sj` — merged, commit `5fef711`) | 0402 | C60489 | RC0402JR-0710KL | Extended† | 21,253,700 |
+| U401 | 1 | USBLC6-2SC6, 2-line USB ESD array with VBUS rail clamp (`pilink-e63`), **B.Cu** | SOT-23-6 | C7519 | USBLC6-2SC6 (STMicroelectronics) | Extended (JLCPCB API, 2026-11-17; no Basic USB ESD array found) | 38,121 (JLCPCB API, 2026-11-17) |
+| C401 | 1 | 100nF, X7R, 16V, on U401's VBUS pin (`pilink-uqt`, ST DocID 11265 Fig. 18), F.Cu | 0402 | C880604 | TCC0402X7R104M160AT | Extended† | 4,104,600 (`jlcpcb-search` MCP, 2026-11-18) |
+| D401 | 1 | SMF5.0A, 200W unidirectional TVS on +5V after F401 (`pilink-e63`), Vrwm 5.0V, Vbr 6.4-7.0V, Vc 9.2V | SOD-123FL (JLCPCB listing; PCB land is KiCad `Diode_SMD:D_SMF`, which fits this body) | C193402 | SMF5.0A (MDD Microdiode) | Extended (JLCPCB API, 2026-11-17; the only Basic TVS hit, SMBJ6.5CA C7420377, clamps higher) | 456,188 (JLCPCB API, 2026-11-17) |
 
 † See "Known limitation of this stock check" above — this tool reported
 every generic 0402/0603/0805 R/C jellybean part as `Extended`, which
@@ -263,6 +270,27 @@ hand-solder a 3-pin header (or three wires) into J101's holes before
 closing the shell; leave DNP in the JLCPCB assembly order. A
 face-plate/bottom-wall access cutout is an enclosure call for a later
 bead. "Populated parts" count stays 69 on the schematic, 68 assembled.
+
+**Update (2026-11-17 audit fixes, `pilink-8rz`/`e63`/`912`/`brf`/`fvz`/`yt5`):**
+four new assembled parts, R106/R107 (27R, `C25100`), U401 (USBLC6-2SC6,
+`C7519`) and D401 (SMF5.0A, `C193402`), plus 11 bare test pads (TP1-TP3,
+TP101-TP102, TP201-TP206) that are schematic symbols with `in_bom no` and
+footprints excluded from the BOM and CPL, so nothing is ordered or placed
+for them. **84 schematic symbols with footprints, 72 assembled** (J101 DNP,
+11 test pads). The PCB carries 83 footprints with a schematic path (68 + 15;
+J501 still has no stored path, as before, and the 4 mounting holes are
+board-only). Bottom side: U401, R106 and R107 are new B.Cu SMT parts, next
+to U201 and C201-C203/R201/R202 which were already on B.Cu, so the JLCPCB
+order was already double-sided; no new assembly side. Stock and
+Basic/Extended for the three new LCSC numbers were read from JLCPCB's own
+component API on 2026-11-17 (control: `C25744` reads `base`), all Extended.
+
+**Update (`pilink-uqt`, 2026-11-18):** one new assembled part, C401 (100nF
+0402, `C880604`, the project's existing 100nF line) between VBUS_RAW and
+GND at U401's VBUS pin, as ST's USBLC6-2 datasheet (DocID 11265 Rev 5,
+Figure 18) draws it. It sits on F.Cu right over U401, on the VBUS via that
+drops from pin 5. **85 schematic symbols with footprints, 73 assembled**;
+84 PCB footprints with a schematic path.
 
 ## Not verified by this bead
 
