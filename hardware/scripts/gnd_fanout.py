@@ -55,7 +55,11 @@ SKIP = {("U101", "62"), ("U101", "81"), ("C103", "2"), ("C104", "2"),
 SKIP_REFS = {"J501"}
 # high-current / switching returns: (ref, pad) -> number of vias
 EXTRA = {("U1", "1"): 3, ("C2", "1"): 2, ("C1", "1"): 2,
-         ("C501", "1"): 2, ("C502", "1"): 2, ("U501", "2"): 2, ("D401", "2"): 2}
+         ("C501", "1"): 2, ("C502", "1"): 2, ("U501", "2"): 2, ("D401", "2"): 2,
+         # pilink-93a: C111's one via landed in a pocket of the east pin
+         # row's B.Cu escapes on 3 of 12 trials; a second via gives the
+         # pour a second way in
+         ("C111", "2"): 2}
 # pads whose via may not be found (nothing depends on it): a miss is a
 # warning, not an error. Everything else (every capacitor, every IC) must
 # get its via or the script fails.

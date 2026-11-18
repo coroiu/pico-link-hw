@@ -1,14 +1,16 @@
 """Ground-plane keepouts (pilink-r1h, pilink-2x7). Library, not run directly.
 
-B.Cu is the board's ground plane; F.Cu carries the signals. Two kinds of
-rule area keep it that way where it matters most:
+Both layers carry signals and GND pours (Freerouting would not keep B.Cu
+free with this placement, see route.py). Two kinds of rule area keep the
+B.Cu plane whole where it matters most:
 
 * add_plane_keepouts() / remove_plane_keepouts(): B.Cu track keepouts that
   route.py exports to Freerouting (and removes again before saving), so
   no signal runs on B.Cu
-    - under the VREG block (RP2350 DS 6.3.8.1: "the bottom layer under the
+    - under the VREG hot loop and from there under U101's top pin row down
+      to the exposed pad (RP2350 DS 6.3.8.1: "the bottom layer under the
       regulator is a ground plane that connects to the QFN GND central
-      pad"),
+      pad"; pilink-93a),
     - under the crystal (Y101, its load caps and R101).
   Vias stay allowed (GND fan-out / stitching vias are plane, not signal).
   Each area is cut back LOCKED_GAP from locked B.Cu tracks (the QSPI
@@ -47,8 +49,18 @@ VREG_EP_B = [(45.4, 10.8), (51.6, 10.8), (51.6, 19.3), (45.0, 19.3), (45.0, 22.4
 # the ESP32 UART nets (U101 pins 1-4 -> U201) need: Freerouting then left
 # ESP32_HCI_RXD/TXD/RTS/CTS unrouted on every seed tried.
 VREG_LOOP_B = [(45.4, 16.3), (48.8, 16.3), (48.8, 19.3), (45.4, 19.3)]
+# pilink-93a: the hot loop plus the strip under U101's top pin row from the
+# QSPI pre-route's B.Cu (x <= 43.4) to east of pin 58/C105, down to the
+# exposed pad's top edge. Without it the router ran PSRAM_CS on B.Cu along
+# y 19.6 under pins 61-70, which cut the B.Cu under the regulator off from
+# the EP's (DS 6.3.8.1: "the bottom layer under the regulator is a ground
+# plane that connects to the QFN GND central pad"); the regulator's ground
+# then reached the EP ~100mm round by copper. Unlike VREG_B / VREG_EP_B it
+# leaves the B.Cu between L101 and the pins open for the router.
+VREG_PINS_B = [(45.4, 16.3), (48.8, 16.3), (48.8, 19.3), (51.6, 19.3), (51.6, 22.3),
+               (43.7, 22.3), (43.7, 19.3), (45.4, 19.3)]
 CRYSTAL_B = [(39.5, 32.0), (48.6, 32.0), (48.6, 38.0), (39.5, 38.0)]
-PLANE_B = {"VREG": VREG_LOOP_B, "XTAL": CRYSTAL_B}
+PLANE_B = {"VREG": VREG_PINS_B, "XTAL": CRYSTAL_B}
 # F.Cu no-fill: the VREG ground island (FB's west edge to the island vias'
 # east edge, L101's pad 1 down to just above the pins) and U101's inside
 VREG_F = [(45.75, 16.0), (48.75, 16.0), (48.75, 18.66), (45.75, 18.66)]

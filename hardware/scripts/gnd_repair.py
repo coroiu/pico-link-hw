@@ -25,6 +25,7 @@ VIA_D, VIA_DRILL = 0.6, 0.3
 CLEAR = 0.23             # to foreign copper (net class clearance 0.2 + raster margin)
 EDGE = 0.5               # to the board edge
 VIA_COST = 30            # px of track a layer change is worth
+HOLE_GAP = 0.35          # repair via hole edge to any other hole edge (gnd_fanout / zones via spacing)
 F, B = pcbnew.F_Cu, pcbnew.B_Cu
 W, H = int(BOARD_W * S), int(BOARD_H * S)
 
@@ -278,6 +279,22 @@ def repair(board, components):
         e[:, 1:] &= via_ok[:, :-1]
         e[:, :-1] &= via_ok[:, 1:]
         via_ok = e
+    # GND copper is no obstacle to a GND track, but a new via still has to
+    # keep its distance from the existing GND vias and plated GND holes
+    # (same-net copper may touch; holes may not crowd): no repair via within
+    # HOLE_GAP of another hole, edge to edge
+    im = Image.new("L", (W, H), 255)
+    d = ImageDraw.Draw(im)
+    holes = [(t.GetPosition(), t.GetDrillValue()) for t in board.GetTracks()
+             if t.Type() == pcbnew.PCB_VIA_T]
+    holes += [(p.GetPosition(), max(p.GetDrillSizeX(), p.GetDrillSizeY()))
+              for fp in board.GetFootprints() for p in fp.Pads()
+              if p.GetAttribute() in (pcbnew.PAD_ATTRIB_PTH, pcbnew.PAD_ATTRIB_NPTH)]
+    for pos, drill in holes:
+        x, y = _px(pos)
+        r = (pcbnew.ToMM(drill) / 2 + HOLE_GAP + VIA_DRILL / 2) * S
+        d.ellipse([x - r, y - r, x + r, y + r], fill=0)
+    via_ok &= np.array(im) > 0
     dst = [_mask(main[L]) for L in (F, B)]
     out = []
     for label, shapes in strays:

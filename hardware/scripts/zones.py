@@ -33,10 +33,11 @@ before being re-created.
     gets a track to it where one fits (gnd_repair.py); then a per-polygon
     report (gnd_report) and the ground-plane gate (gnd_gate, pilink-r1h),
     which fails the run if the GND copper is not one connected net, any
-    GND fragment has no via, or a capacitor's GND pad has no GND via
-    within 1mm.
+    GND fragment has no via, a capacitor's GND pad has no GND via within
+    1mm, or (gnd_paths.gate, pilink-93a) the regulator's ground or a
+    nearby decoupler reaches U101's exposed pad only by a long copper path.
 
-pilink-r1h: B.Cu is the ground plane. GND is no longer routed by
+pilink-r1h: GND is poured, not routed. GND is no longer routed by
 Freerouting; every F.Cu GND pad has its own locked via (gnd_fanout.py,
 laid by preroute.py), and these pours connect them. U1's +3V3 heat
 spreader is notched so U1's GND pin and C2/C3's GND pads sit in the GND
@@ -56,6 +57,7 @@ from l101_keepout import add_l101_pour_keepout
 from plane_keepout import add_pour_keepouts
 from gnd_fanout import GND_STITCH_D, GND_STITCH_DRILL
 from gnd_repair import repair as repair_gnd, remove_repairs
+import gnd_paths
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BOARD = os.path.join(HERE, "..", "pico-link-hw.kicad_pcb")
@@ -311,6 +313,11 @@ def pour_and_join(board, rounds=3):
             break
         log += repair_gnd(board, comps)
         pcbnew.ZONE_FILLER(board).Fill(board.Zones())
+    if log:
+        # a repair changes the fills; stitch again so every fragment the
+        # new fill leaves still gets its via (stitch_gnd keeps its spacing
+        # to the vias already there)
+        stitch_gnd(board)
     return log
 
 
@@ -465,8 +472,21 @@ def via_ok(board, pos, net, r=None, near_own_pads=False, keepout=None):
     for t in board.GetTracks():
         if t.GetNetname() == net and t.Type() != pcbnew.PCB_VIA_T:
             continue
-        if t.GetBoundingBox().Intersects(circle_bb):
-            return False
+        if not t.GetBoundingBox().Intersects(circle_bb):
+            continue
+        if t.Type() == pcbnew.PCB_TRACE_T:
+            # a straight track: its real distance, not its bounding box (a
+            # long diagonal's box covers a whole triangle of free pour,
+            # which left B.Cu slivers with no legal via spot, pilink-93a)
+            a, c = t.GetStart(), t.GetEnd()
+            dx, dy = c.x - a.x, c.y - a.y
+            L2 = dx * dx + dy * dy
+            u = 0.0 if L2 == 0 else max(0.0, min(1.0, ((pos.x - a.x) * dx + (pos.y - a.y) * dy) / L2))
+            d = math.hypot(pos.x - (a.x + u * dx), pos.y - (a.y + u * dy))
+            if d < r + keep + t.GetWidth() / 2:
+                return False
+            continue
+        return False
     return True
 
 
@@ -814,14 +834,19 @@ GATE_MIN_FRAGMENT = 1.0      # mm^2; smaller fill slivers are ignored
 
 def gnd_gate(board):
     """Ground-plane checks; returns a list of problems (empty = pass).
-      * B.Cu GND is one plane: every B.Cu GND polygon but the largest is
-        under GATE_MIN_FRAGMENT mm^2 or has a GND via / PTH pad in it.
+      * Every B.Cu GND polygon but the largest is under GATE_MIN_FRAGMENT
+        mm^2 or has a GND via / PTH pad in it. (B.Cu still carries signals
+        and is cut into several polygons; this only checks that each one
+        reaches F.Cu through a via.)
       * Every F.Cu GND polygon of GATE_MIN_FRAGMENT mm^2 or more has a GND
         via or PTH pad in it (so it reaches the plane through a via, not a
         trace).
       * Every capacitor's F.Cu GND pad has a GND via within GATE_VIA_DIST.
       * U1 pin 1 (LDO GND) touches the F.Cu GND pour.
-      * All GND copper is one connected ground (gnd_islands)."""
+      * All GND copper is one connected ground (gnd_islands).
+      * The VREG ground (PGND pin, C103/C104/C105) and the decouplers
+        beside the VREG block reach U101's exposed pad along copper within
+        gnd_paths' limits (gnd_paths.gate)."""
     problems = list(gnd_islands(board))
     fpol, bpol = gnd_polys(board)
     drills = gnd_drills(board)
@@ -859,6 +884,7 @@ def gnd_gate(board):
     sp.BooleanIntersection(fpol)
     if sp.OutlineCount() == 0:
         problems.append("U1.1 (LDO GND) is not in the F.Cu GND pour")
+    problems += gnd_paths.gate(board)
     return problems
 
 

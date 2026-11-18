@@ -20,9 +20,10 @@ this placement (see below), so the aim is one well-stitched GND net:
     net class" option, runs here never finished: it kept routing past the
     pass limit, joining the fixed GND fan-out pieces with traces.)
   * plane_keepout.py adds B.Cu track keepouts where the plane must stay
-    whole (under the crystal; under the VREG hot loop), exported like the
-    antenna strip and the L101 area. Larger ones were tried and did not
-    route: under U101 (whole body, ring, or only the exposed pad), the
+    whole (under the crystal; under the VREG hot loop and the strip under
+    U101's top pin row down to the exposed pad, pilink-93a), exported like
+    the antenna strip and the L101 area. Larger ones were tried and did
+    not route: under U101 (whole body, ring, or only the exposed pad), the
     whole VREG block, and the VREG block plus a channel to the exposed pad
     (the ESP32 UART nets then stayed unrouted).
   * Per-layer trace costs do not keep signals off B.Cu: with the DSN's
@@ -34,9 +35,14 @@ order (shuffle_nets, seed = --seed + attempt) and --jobs attempts run at
 once. An attempt is rejected when Freerouting writes no session or runs
 OVERRUN_PASSES past --passes, the import fails, DRC reports any unconnected
 non-GND item afterwards (pilink-dbu), or a trial pour (gnd_preview) leaves
-GND copper that cannot be joined to the main ground. The seed of the
-accepted attempt is printed; --seed N --tries 1 reproduces it from the same
-pre-routed board (place.py + preroute.py from scratch).
+GND copper that cannot be joined to the main ground, or (gnd_paths.gate,
+pilink-93a) the regulator's ground or a nearby decoupler reaches U101's
+exposed pad only by a long copper path. The seed of the accepted attempt is
+printed. --seed N --tries 1 reproduces it only from a byte-identical
+stripped board: a fresh place.py + preroute.py exports the items in another
+order, and Freerouting then routes differently for the same seed. The
+accepted session is kept as hardware/routing/accepted.ses so the committed
+routing can be re-imported (pcbnew.ImportSpecctraSES on the stripped board).
 
 Freerouting needs Java 21+. If no `java` is on PATH this falls back to
 `docker run eclipse-temurin:21-jre`. The DSN/SES are staged in a work
@@ -65,11 +71,14 @@ from antenna_reroute import add_route_keepout, remove_route_keepout
 from sw_keepout import add_sw_keepouts
 from l101_keepout import add_l101_route_keepout, remove_l101_route_keepout
 from plane_keepout import add_plane_keepouts, remove_plane_keepouts
+import gnd_paths
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 HW = os.path.normpath(os.path.join(HERE, ".."))
 BOARD = os.path.join(HW, "pico-link-hw.kicad_pcb")
 WORK = os.path.join(HW, ".autoroute")
+STRIPPED = os.path.join(WORK, "stripped.kicad_pcb")
+SES_OUT = os.path.join(HW, "routing", "accepted.ses")   # the accepted session, committed
 
 
 ROUTE_TIMEOUT = 900   # seconds; a normal run takes 3-6 minutes
@@ -233,7 +242,7 @@ def gnd_preview(board_path):
     zones.prune_dangling_locked(b)
     zones.add_pours(b)
     zones.pour_and_join(b)
-    return zones.gnd_islands(b)
+    return zones.gnd_islands(b), b
 
 
 def _clone_spec(t):
@@ -353,7 +362,7 @@ class FreeroutingJob:
 def accept(ses, seed):
     """Import a session into the stripped board; returns the board if it has
     no unconnected signal and no unjoinable GND island, else None."""
-    board = pcbnew.LoadBoard(BOARD)
+    board = pcbnew.LoadBoard(STRIPPED)
     # the session has no GND (it was not in the DSN's netlist), and the
     # import replaces all tracks: put the locked GND copper back
     gnd = [_clone_spec(t) for t in board.GetTracks()
@@ -373,10 +382,18 @@ def accept(ses, seed):
         for b in bad[:10]:
             print("   ", b)
         return None
-    islands = gnd_preview(out)
+    islands, poured = gnd_preview(out)
     if islands:
         print(f"[seed {seed}] {len(islands)} GND island(s) left after a trial pour:")
         for s in islands:
+            print("   ", s)
+        return None
+    # pilink-93a: connected is not enough; the regulator's ground and the
+    # nearby decouplers must reach the EP by a short copper path
+    far = gnd_paths.gate(poured)
+    if far:
+        print(f"[seed {seed}] {len(far)} GND path(s) to the U101 EP too long after a trial pour:")
+        for s in far:
             print("   ", s)
         return None
     return board
@@ -433,7 +450,13 @@ def main():
     remove_route_keepout(board)
     remove_l101_route_keepout(board)
     remove_plane_keepouts(board)
-    pcbnew.SaveBoard(BOARD, board)      # the stripped, pre-routed board
+    # the stripped, pre-routed board goes to WORK: the real board is only
+    # overwritten once an attempt is accepted
+    pcbnew.SaveBoard(STRIPPED, board)
+    # with the project file beside it, so a board loaded from there keeps
+    # the net classes (and saving it over BOARD writes them back unchanged)
+    shutil.copyfile(os.path.splitext(BOARD)[0] + ".kicad_pro",
+                    os.path.splitext(STRIPPED)[0] + ".kicad_pro")
 
     # Freerouting is deterministic per DSN, so each attempt gets its own net
     # order (shuffle_nets); `--seed N --tries 1` reproduces attempt N.
@@ -456,7 +479,7 @@ def main():
                     continue
                 b = accept(ses, job.seed)
                 if b is not None:
-                    result = (b, job.seed)
+                    result = (b, job.seed, ses)
                     break
     finally:
         for job in running:
@@ -464,8 +487,10 @@ def main():
     if result is None:
         sys.exit(f"route.py: no clean Freerouting result for seeds "
                  f"{args.seed}..{args.seed + args.tries - 1}; see {WORK}/seed*/freerouting.log")
-    board, seed = result
+    board, seed, ses = result
     pcbnew.SaveBoard(BOARD, board)
+    os.makedirs(os.path.dirname(SES_OUT), exist_ok=True)
+    shutil.copyfile(ses, SES_OUT)
     tracks = list(board.GetTracks())
     vias = sum(1 for t in tracks if t.Type() == pcbnew.PCB_VIA_T)
     length = {L: sum(t.GetLength() for t in tracks

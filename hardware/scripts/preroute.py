@@ -60,9 +60,10 @@ RESET_NET = "/RP2350B + Memory/RESET_NODE"
 # pilink-2wq: the QSPI cluster (SCLK, SD0-3, SS) is locked, replayed from the
 # master-branch Freerouting result (scripts/qspi_routes.json, board-local mm):
 # the same placement of U101/U102/U103/R102/R105, so the same copper, and no
-# more run-to-run variance on these nets. PSRAM_CS stays with the router:
-# master's copper for it runs under U101's body, where the VREG/DVDD escapes
-# now need the room.
+# more run-to-run variance on these nets. PSRAM_CS is not replayed (master's
+# copper for it runs under U101's body, where the VREG/DVDD escapes now need
+# the room); since pilink-93a it has its own locked route over the VREG
+# block (see the VREG section), and only R105's link is left to the router.
 LX_NET = "/RP2350B + Memory/VREG_LX"
 AVDD_NET = "/RP2350B + Memory/VREG_AVDD"
 PSRAM_CS = "/RP2350B + Memory/PSRAM_CS"
@@ -456,6 +457,28 @@ def main():
     via(GPIO41, *v_41)
     path(GPIO41, B, [v_41, (xe + 0.45, v_41[1])])
     via(GPIO41, xe + 0.45, v_41[1])
+    # PSRAM_CS on to U103 (pilink-93a), locked, ~33mm: from the hop's east
+    # via up F.Cu east of the DVDD run (round TP101's +1V1 via), west on
+    # F.Cu over the VREG block (north of the +1V1 run, south of R102/R103),
+    # then one short B.Cu hop under QSPI_SCLK into U103 pin 1. Left to the
+    # router it ran on B.Cu under pins 61-70 (cutting the B.Cu under the
+    # regulator off from the EP's) or, with that strip kept out
+    # (plane_keepout VREG_PINS_B), under the exposed pad or ~70mm round the
+    # west side, and it was the net most often left unrouted. On F.Cu it
+    # stays out of the B.Cu lanes the ESP32 UART nets take east (a B.Cu run
+    # here boxed U103's GND vias in on every trial). R105 (its pull-up)
+    # stays with the router.
+    u3_1 = pad("U103", "1")
+    x_cs = tp[0] - 0.25                        # east of TP101's +1V1 via
+    y_cs = tp[1] - 2.1                         # F.Cu run over the VREG block
+    v_a = (u3_1[0] + 1.93, y_cs)               # east of QSPI_SCLK, north of C121
+    v_w = (u3_1[0] - 0.8, u3_1[1] - 1.98)      # inside SCLK's hook, north-west of U103 pin 1
+    path(PSRAM_CS, F, [(xe, v_cs[1]), (xe, tp[1] + 3.4), (x_cs, tp[1] + 1.0),
+                       (x_cs, y_cs + 1.1), (x_cs - 1.1, y_cs), v_a])
+    via(PSRAM_CS, *v_a)
+    path(PSRAM_CS, B, [v_a, (v_w[0] + (v_w[1] - y_cs), y_cs), v_w])
+    via(PSRAM_CS, *v_w)
+    path(PSRAM_CS, F, [v_w, (u3_1[0] - 0.39, v_w[1] + 0.41), (u3_1[0] - 0.39, u3_1[1] - 0.4), u3_1])
 
     # AVDD: pin 61 -> C105.1 (C_FILT), R104.2 -> C105.1
     path(AVDD_NET, F, [(x61, y61), (x61, yo), (x61 + 0.3, yo - 0.3),
