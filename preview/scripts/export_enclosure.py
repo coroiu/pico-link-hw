@@ -5,6 +5,9 @@ Called by export.sh. Writes, under <out_dir>:
   <part>.glb      one per printed part, each in its assembled pose
   assembly.glb    every part in place, plus the PCB model if available
   parts.json      manifest the web page builds its part picker from
+  stl/<part>.stl  print-oriented STL per part, + stl/orientation.json
+Anything a previous run left in <out_dir> is removed first: the output set
+is rebuilt from PARTS, never added to.
 
 Everything is placed in back_shell.scad's "world" frame (X = across the
 face, left -> right seen from the front; Y = up; Z = forward, toward the
@@ -115,7 +118,7 @@ def write_print_stl(key, mesh, stl_dir, lean):
     output by back_shell.scad in the assembled world frame (Y up, its fins'
     bottoms at the lowest Y), so Y-up is mapped to Z-up and the fin bottoms
     land on the bed. Parts without an entry
-    are written as rendered. Also records the orientation in orientation.json."""
+    are written as rendered (see write_print_notes for the notes file)."""
     os.makedirs(stl_dir, exist_ok=True)
     m = mesh.copy()
     if key == "back_shell":
@@ -123,14 +126,29 @@ def write_print_stl(key, mesh, stl_dir, lean):
     lo, hi = m.bounds
     m.apply_translation([-(lo[0] + hi[0]) / 2, -(lo[1] + hi[1]) / 2, -lo[2]])
     m.export(os.path.join(stl_dir, key + ".stl"))
-    path = os.path.join(stl_dir, "orientation.json")
-    notes = {}
-    if os.path.exists(path):
-        with open(path) as f:
-            notes = json.load(f)
-    notes[key] = PRINT_NOTES.get(key, "as rendered by OpenSCAD (no print orientation defined for this part).")
-    with open(path, "w") as f:
+
+
+def write_print_notes(stl_dir, keys):
+    """<stl_dir>/orientation.json: the print note of each part rendered this
+    run (written once, from scratch, so no note outlives its part)."""
+    os.makedirs(stl_dir, exist_ok=True)
+    notes = {k: PRINT_NOTES.get(k, "as rendered by OpenSCAD (no print orientation defined for this part).")
+             for k in keys}
+    with open(os.path.join(stl_dir, "orientation.json"), "w") as f:
         json.dump(notes, f, indent=1)
+
+
+def clear_outputs(out_dir):
+    """Remove every output a previous run may have left in out_dir (part GLBs,
+    the assembly, parts.json, the stl/ directory), so the output set is
+    rebuilt from the current PARTS list and a part that was dropped from it
+    (e.g. the old leg_left/leg_right) cannot linger."""
+    for name in os.listdir(out_dir):
+        path = os.path.join(out_dir, name)
+        if name == "stl" and os.path.isdir(path):
+            shutil.rmtree(path)
+        elif name.endswith(".glb") or name == "parts.json":
+            os.remove(path)
 
 
 def edge_cuts_origin(pcb_file):
@@ -176,6 +194,7 @@ def main():
     enc, out_dir = sys.argv[1], sys.argv[2]
     pcb_raw, pcb_file = (sys.argv[3], sys.argv[4]) if len(sys.argv) > 4 else ("", "")
     os.makedirs(out_dir, exist_ok=True)
+    clear_outputs(out_dir)
     work = tempfile.mkdtemp(prefix="encl")
 
     def src(name):
@@ -231,6 +250,7 @@ def main():
             meshes[key] = m
             write_print_stl(key, m, os.path.join(out_dir, "stl"), LEAN)
             print("[enclosure] rendered %s (%d faces)" % (key, len(m.faces)))
+    write_print_notes(os.path.join(out_dir, "stl"), [k for k, _, _ in PARTS if k in meshes])
 
     # ---- placements in world mm: key -> list of 4x4 transforms
     place = {
@@ -269,7 +289,9 @@ def main():
             baseColorFactor=linear, metallicFactor=0.0, roughnessFactor=0.6))
         return m
 
-    manifest = {"assembly": None, "parts": []}
+    # "all_parts": every key in PARTS, rendered or not -- export.sh prunes
+    # served STLs of any part not in it (a part dropped from PARTS).
+    manifest = {"assembly": None, "parts": [], "all_parts": [k for k, _, _ in PARTS]}
     assembly = trimesh.Scene()
     for key, label, rgba in PARTS:
         if key not in meshes:

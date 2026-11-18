@@ -551,7 +551,7 @@ def main():
         v, loc = inter(a, b)
         # Mating-face contact is only excused when the overlap is a real sliver:
         # < 0.25 mm3 AND a penetration depth (min oriented-bbox extent) of at
-        # most 0.02mm (STL/coincident-face noise class; real leg slivers
+        # most 0.02mm (STL/coincident-face noise class; real mating slivers
         # measure ~0.005mm). Anything deeper, however small in volume, is a
         # real interference and FAILs.
         thk = last_thickness[0]
@@ -755,7 +755,7 @@ def main():
             "gap %.2f mm vs lip %.1f + element %.1f + coax %.2f = %.2f mm" % (
                 gap_plain, av["LIP_HEIGHT"], av["ANTENNA_ELEMENT_THICKNESS_NOMINAL"], cable_d,
                 av["LIP_HEIGHT"] + av["ANTENNA_ELEMENT_THICKNESS_NOMINAL"] + cable_d))
-    # --- fin stand (pilink-s98; replaces the leg checks)
+    # --- fin stand (pilink-s98)
     LEAN = bv["LEAN_DEG"]
     F2W = face_to_world(LEAN, BODY_T)
     pad_r = bv["FOOT_PAD_D"] / 2
@@ -801,10 +801,10 @@ def main():
             vdesc, vis_ok = "nothing visible from the front", True
         else:
             vlo, vhi = vb
-            # The front pads' discs also hide what is directly behind them
+            # The front pads also hide what is directly behind them
             # (e.g. the fin's front tip under the bottom edge when the front
-            # pad sits forward of it): remove each disc's front-view shadow,
-            # pad_d wide x FOOT_PAD_T tall, from its widest point back.
+            # pad sits forward of it): remove each pad's front-view shadow,
+            # pad_d wide x FOOT_PAD_T (its upright side) tall, from the foot axis back.
             occl = union([box(x - pad_r, x + pad_r, -gap - 0.01, -gap + bv["FOOT_PAD_T"],
                               -300, ffz) for x in bv["FIN_X"]])
             resid = trimesh.boolean.difference([vis, occl], engine="manifold")

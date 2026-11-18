@@ -37,7 +37,7 @@ few seconds -- no restart needed.
   `trimesh` into one coloured GLB per part plus `assembly.glb` -- every part
   in its assembled position, with the PCB placed using the .scad files' own
   face mapping (`X = board_x + 2.5`, `Q = 53 - board_y`, from `enclosure/common.scad`; PCB front surface
-  7.5mm behind the outer face) and the 15 degree lean -- and a
+  7.5mm behind the outer face) and the back shell's `LEAN_DEG` lean -- and a
   `parts.json` manifest the page's part picker is built from. Each GLB is
   meshopt-compressed like the PCB one. It also finds the root
   schematic sheet (the `*.kicad_sch` whose basename matches the project's
@@ -85,6 +85,14 @@ few seconds -- no restart needed.
 placement) rather than globbing `enclosure/*.scad`, because each file uses
 its own frame and some need a `-D PART=...` flag or a wrapper. A new part
 file needs an entry there to show up.
+
+Removing a part from `PARTS` removes it from the page too: every export
+rebuilds `site/models/enclosure/` and the enclosure STLs from the current
+list (the output directory is replaced, not added to), and `export.sh`'s
+`prune_fab_stl` deletes the retired part's STL from every kept `site/fab.d/`
+generation and drops it from that generation's `fab.json`. Anything else in
+`site/models/` besides `pcb.glb` and `enclosure/` (e.g. an old
+`enclosure.glb`) is removed as well.
 
 ## Known cosmetic issue
 
