@@ -106,9 +106,9 @@ section above): `X = board_x + 2.5`, `Q = 53 - board_y`.
 footer comment): the encoder bushing diameter is an unconfirmed 7mm
 assumption (the window-centring item is resolved: `pilink-4qc` +
 `pilink-6lz` put the window centre on the face centre); the shell is modeled flat, not with the ADR's real
-~15-degree lean or a final corner/edge styling pass; and front-to-back
-shell fastener bosses aren't modeled yet, pending `pilink-8hx.1`'s own
-mating geometry. All of this needs a human with OpenSCAD — ideally
+~15-degree lean or a final corner/edge styling pass. (Front-to-back
+shell fastening is now modelled: see "Shell fasteners and assembly" below,
+`pilink-8hx.7`.) All of this needs a human with OpenSCAD — ideally
 once `pilink-8hx.1` (back shell) also exists — per `pilink-8hx.5`.
 
 **Update (`pilink-3ym`, 2026-11-16): re-checked against `pilink-hdl`
@@ -121,6 +121,115 @@ coordinates cross-checked against `hardware/pico-link-hw.kicad_pcb`.
 U201 is no longer on the front, so the old "U201 vs diamond" proximity
 note is obsolete. J501's FPC fold (courtyard bottom y=31.53) is not
 modelled in this file. Not rendered (no OpenSCAD).
+
+## Shell fasteners and assembly (`pilink-8hx.7`)
+
+User decision, 2026-11-18: one M2 screw per PCB mounting hole (H1..H4,
+board (10,44), (116.5,6), (116.5,44), (29,2.5)). Each screw goes in from the
+**back**, through a counterbored back-shell boss and the PCB, into a brass
+heat-set insert in a front-shell standoff. The PCB is clamped between the
+boss and the standoff, and nothing shows on the face (aesthetic ADR: hidden
+fasteners). This replaces the old scheme, where screws went in from the
+front into inserts in the back-shell bosses. Snap tabs and crush ribs were
+ruled out (user decision).
+
+**Hardware (BOM / assembly).** These are the parts the user already has:
+
+| Qty | Part | Notes |
+|---|---|---|
+| 4 | M2 x 12 socket head cap screw, ISO 4762 / DIN 912 (black) | head 3.8 max dia x 2.0 max high; 1.5mm hex key |
+| 4 | Brass heat-set insert "M2x4x3.2" | M2 thread, 4.0mm long, 3.2mm knurl OD |
+
+All the shared numbers are in `common.scad` (`SCREW_*`, `INSERT_*`, the body
+stack, `LIP_*`). Both shells assert their own side of the stack.
+
+**Screw length.** Measured along the face normal from the outer face (face
+frame Z):
+
+| | Z |
+|---|---|
+| back wall outer face (`BODY_T`) | 18.1 |
+| head top (0.2 below the surface) | 17.9 |
+| head bearing face = counterbore floor (`SCREW_SEAT_Z`, 2.2 deep) | 15.9 |
+| boss top = PCB back | 9.1 |
+| PCB front = standoff top = insert top | 7.5 |
+| screw tip (`SCREW_SEAT_Z - 12`) | 3.9 |
+| insert bottom | 3.5 |
+| insert pocket floor | 2.5 |
+| inner face of the face plate | 2.0 |
+
+So an M2 x 12 engages **3.6mm** of the 4.0mm insert (the minimum asserted
+is 3.0mm, 1.5 x d), with its tip 0.4mm short of the insert's end and 1.4mm
+above the pocket floor. No other length on hand works: an x8 ends 0.4mm
+short of the insert (inside the PCB), and an x16 would come out through the
+face.
+
+**Front shell: standoffs.** Each standoff is Ø6.0 (insert OD 3.2 +
+2 x 1.4mm wall, `STANDOFF_WALL`) and runs from the inner face (Z 2.0) to the
+PCB front (Z 7.5). It has a blind Ø3.0 melt-in hole 5.0 deep (`INSERT_LEN` +
+1.0, for displaced plastic and the screw tip). The floor sits at Z 2.5, so
+the face plate isn't touched. The Ø3.0 hole is 0.2 under the knurl OD, which
+fits the 3.0-3.2mm range that insert hole charts give for M2 (tighter for
+PLA). It's a Customizer parameter (`INSERT_HOLE_D`), because the right value
+depends on the printer and the material. H4 sits 3.5mm below the top wall.
+A Ø6.0 standoff there would leave a 0.5mm slot against the wall and a 0.12mm
+slot against the display panel's ledge collar. Instead it grows to Ø7.5 and
+fuses into both, the same fix the back shell's H4 boss already uses. The
+growth rule is parametric (`standoff_od()`). After it, the H4 standoff is
+still 1.37mm clear of the panel itself and 0.37mm clear of the panel
+pocket's edge (both asserted). Nothing on the front of the board is within
+6mm of any hole (courtyards read off the board), so the old worry about an
+H4 screw head on the front fouling the panel no longer applies: there's no
+head on the front.
+
+**Back shell: counterbores.** Each counterbore is Ø4.4 x 2.2 deep from the
+outer face (`CBORE_D`, `CBORE_DEPTH`), so the head sits 0.2mm below the
+surface and bears on the boss. Below it, a Ø2.4 clearance hole (`SCREW_CLEARANCE_D`, ISO 273
+medium fit) runs through the rest of the wall and the boss. The bosses keep
+their sizes (Ø7.0, Ø7.5 at H4) and have no insert pockets now. `CBORE_D`,
+`SCREW_CLEARANCE_D` and `SEAM_GAP` are in a new Customizer **Fasteners**
+section. Each counterbore has at least 37mm of back wall between it and the
+USB-C opening. The fins don't block hex-key access to any screw. H4
+(X 31.5) is the only hole near a fin (X 33.75), and its counterbore edge
+(Q 48.3) is 6.8mm above the fin's top (Q 40 + the 1.5mm edge round). `back_shell.scad` asserts this, and `check_fit.py` checks
+a Ø4.4 corridor 60mm straight back from each screw against the fin mesh.
+
+**Seam: lip, rabbet and gap.** Assembly is face-down, so the front shell
+has to locate the PCB before the back shell goes on. The old front rim
+stopped exactly at the PCB's front surface and never reached the board's
+edge. Now the inner 0.85mm of the front shell's wall carries on 2.5mm past
+the seam as a lip (`LIP_T`, `LIP_H`). The lip's inner face is flush with the
+cavity wall, so the board edges keep their 0.5mm (X) / 1.0mm (Y) clearance
+to it. It covers the PCB's 1.6mm edge plus a 0.9mm lead-in, and the board
+still lifts straight out. The back shell has a matching rabbet that leaves
+a 1.0mm outer rim, with 0.15mm radial clearance to the lip and 0.2mm at the
+lip's tip. The rabbet also registers the two shells against each other. In
+the pigtail notch (face X 107..114) the lip is cut away, which is a 7mm gap
+in the top edge's location. The back shell's rim stops `SEAM_GAP` = 0.2mm
+short of the front rim. That makes the PCB, not the rims, the stop: the
+screws always clamp the board, even at JLCPCB's ±0.16mm thickness tolerance.
+With a zero gap, a thin board would rattle. The result is a 0.2mm parting
+line.
+
+**Assembly sequence.**
+1. Front shell: press the four inserts flush into the standoffs with a
+   soldering iron (insert tip), shell face-down on the bench. Let them cool.
+2. Keep the front shell face-down. Drop the four button plungers into their
+   bores.
+3. Lower the PCB, component side down, into the lip until it sits on the
+   four standoffs. The lip holds it laterally. Route the antenna pigtail
+   through the top-wall notch. (How the display panel goes in alongside the
+   board isn't part of this decision; see the front-shell section.)
+4. Put the back shell on. The front lip goes into its rabbet.
+5. Drive four M2 x 12 socket head screws through the back-shell
+   counterbores and the PCB holes into the inserts (1.5mm hex key). Snug
+   them, don't overtighten: they bear on printed bosses.
+6. Then the knob and the rubber feet (not part of this decision).
+
+**Not verified yet (needs a print):** how the Ø3.0 hole takes the actual
+insert, how the 0.15mm lip/rabbet clearance feels, screw feel and torque,
+and whether the 0.2mm parting line closes up under clamp. That's the printed
+fit check, `pilink-8hx.5`.
 
 ## A/B/X/Y button plunger/cap (`button_plunger.scad`, pilink-8hx.3)
 
@@ -219,7 +328,8 @@ ledge's y span 2..50). Only a stale `(94,34)` comment in
 
 ## Back shell + rear fin stand (`back_shell.scad`, pilink-8hx.1, pilink-s98)
 
-Covers the back half of the enclosure: PCB-mounting bosses (heat-set
+Covers the back half of the enclosure: PCB-mounting bosses (counterbored
+for the shell screws since `pilink-8hx.7`; they used to hold heat-set
 inserts), the 7mm (was 3mm, `pilink-9i4`) clearance cavity behind the PCB for the encoder's
 through-hole leads, the rear USB-C cutout (no boss since `pilink-9i4`: the 7mm cavity
 holds the connector), and (since `pilink-s98`) two triangular fins with
@@ -255,7 +365,7 @@ Online configurators such as MakerWorld's Parametric Model Maker take one
 `dist/back_shell_customizer.scad` is a generated copy of `back_shell.scad`
 with `common.scad` pasted in where the `include` was. OpenSCAD's `include`
 is plain text substitution, so the copy evaluates exactly like the source.
-The Customizer parameters (Stand / Fins / Feet / Render) stay at the top,
+The Customizer parameters (Stand / Fins / Feet / Fasteners / Render) stay at the top,
 and the pasted constants land after `/* [Hidden] */`. There is one
 deliberate difference: the copy's `PART` default is `back_shell` (the
 printable part, shell plus fins), not the source's `assembly`, so a
@@ -277,7 +387,7 @@ still in the dropdown. The override lives in `TARGETS` in
   dropdown's options.
 - **To upload it:** on MakerWorld, open Parametric Model Maker, create a
   model and upload `enclosure/dist/back_shell_customizer.scad` as the only
-  file (no `common.scad`). The parameter panel shows the four sections, and
+  file (no `common.scad`). The parameter panel shows the five sections, and
   the default output is already the printable part, so no preset is needed.
 - **Where it runs:** the target is MakerWorld's Parametric Model Maker, or a
   local OpenSCAD 2019.05 or newer. **Thingiverse's Customizer can't render
@@ -424,7 +534,7 @@ and puts the pad 1mm further under the body.
 rendered shells, knob, plungers and antenna mount at 1.24 g/cm³ solid, PCB
 slab FR4 1.85, component envelope boxes 1.0, display stack box 0.9 (~7.4 g),
 M2 screws steel: body ~81 g, fins ~9.3 g (runner feet). Body CoG (no fins) at Q 28.35 /
-bz 10.23 (local) = world Z -2.71 at LEAN 25, i.e. 2.7mm **behind** the
+bz 10.23 (local) = world Z -2.71 at LEAN 25 (after `pilink-8hx.7`: body 83 g with brass inserts at 8.5, CoG Q 28.39 / bz 10.22, world Z -2.74, front margin 1.34mm), i.e. 2.7mm **behind** the
 rear-bottom edge; 31.4mm above the table (FOOT_H 2.0). Feet contact runs Z
 -48.25 .. -1.40 (`FIN_REACH` 45, `FRONT_FOOT_OFFSET` 0).
 
@@ -1051,8 +1161,23 @@ centring on the face, and a Ø1.13 pigtail probe through the top-wall notch.
 Since `pilink-s98` it also re-renders the back shell at LEAN 15..40 x
 FLOAT 0/5 (the lower leans with the front pads moved forward), checks the fins against the cavity, front shell, PCB envelope,
 USB-C plug/cable corridor and pigtail notch, reports what a front view can
-see of the fins, and runs the tip-over mass model. It exits non-zero if any
-pair overlaps.
+see of the fins, and runs the tip-over mass model. Since `pilink-8hx.7` it
+also checks the shell screws, measured on the rendered meshes:
+- the PCB hole (read from the board), the back counterbore, the back
+  clearance hole and the front insert pocket are coaxial (found by
+  sectioning both shells);
+- the clamp stack along each axis (head seat, boss top, standoff top, pocket
+  floor), giving engagement, tip-to-floor margin and boss/standoff vs PCB
+  thickness;
+- the screws and inserts against both shells, the envelope and the antenna
+  mount;
+- a hex-key corridor behind each screw against the fins;
+- each counterbore against the USB-C opening;
+- the measured rim gap;
+- horizontal rays from the PCB edges, which confirm that the front shell's
+  lip stands beside all four edges over the board's full thickness.
+
+It exits non-zero if any pair overlaps.
 
 ```bash
 enclosure/scripts/check_fit.sh                 # full run (~5 min via docker)
@@ -1072,8 +1197,8 @@ network compose creates is removed on exit. STLs are written to
 
 This is a **CAD-level check, not the printed fit check** (`pilink-8hx.5`
 stays open). Component heights are datasheet-class assumptions listed in
-`check_fit.py` (`HEIGHTS`; J101 pin height, encoder lead length, M2 head and
-the display stack are flagged assumed; the encoder lead length is the Alps
+`check_fit.py` (`HEIGHTS`; J101 pin height, encoder lead length and
+the display stack are flagged assumed, the M2 socket head is the ISO 4762 maximum; the encoder lead length is the Alps
 drawing's 3.5mm terminal length less the 1.6mm board, J101's pin tail is the
 standard 3.0mm); the antenna mount has no real
 placement in the `.scad`, so the script places it on the top wall's inner
