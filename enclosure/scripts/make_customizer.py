@@ -20,7 +20,9 @@ Rules enforced, so the Customizer panel matches the source file's:
     so the inlined constants never show up as Customizer parameters and the
     parameter block stays at the very top of the file;
   - `use <...>` is refused: it imports only modules/functions, which a
-    textual inline would not reproduce faithfully.
+    textual inline would not reproduce faithfully;
+  - after inlining, any `include <` / `use <` left in code (outside comments
+    and strings, e.g. a mid-line include) is refused.
 
 The only intended difference from the source is an explicit per-target
 override of a Customizer default (see TARGETS): back_shell's copy defaults
@@ -107,6 +109,46 @@ def flatten(path, stack=()):
     return "\n".join(out) + "\n"
 
 
+def code_only(text):
+    """`text` with comments and string literals blanked (newlines kept), for
+    scanning what OpenSCAD would actually parse."""
+    out = []
+    i, n = 0, len(text)
+    while i < n:
+        c = text[i]
+        if text.startswith("//", i):
+            j = text.find("\n", i)
+            i = n if j < 0 else j
+        elif text.startswith("/*", i):
+            j = text.find("*/", i + 2)
+            j = n if j < 0 else j + 2
+            out.append("\n" * text.count("\n", i, j))
+            i = j
+        elif c == '"':
+            j = i + 1
+            while j < n and text[j] != '"':
+                j += 2 if text[j] == "\\" else 1
+            out.append('""')
+            i = j + 1
+        else:
+            out.append(c)
+            i += 1
+    return "".join(out)
+
+
+LEFTOVER_RE = re.compile(r"\b(include|use)\s*<")
+
+
+def refuse_leftover_includes(src, body):
+    """After inlining, no include/use may remain in code (e.g. a mid-line one
+    the line-based inliner did not touch)."""
+    for lineno, line in enumerate(code_only(body).split("\n"), 1):
+        m = LEFTOVER_RE.search(line)
+        if m:
+            sys.exit("make_customizer: %s: `%s <...>` left in the flattened code at line %d "
+                     "(put each include on its own line)" % (src, m.group(1), lineno))
+
+
 def apply_overrides(src, body, overrides):
     lines = body.split("\n")
     try:
@@ -131,7 +173,9 @@ def apply_overrides(src, body, overrides):
 
 
 def generate(src, overrides):
-    body = apply_overrides(src, flatten(os.path.join(ENC, src)), overrides)
+    body = flatten(os.path.join(ENC, src))
+    refuse_leftover_includes(src, body)
+    body = apply_overrides(src, body, overrides)
     notes = "".join("//   %s defaults to %s here (see TARGETS in the script).\n" % (n, v)
                     for n, v in overrides.items())
     header = (

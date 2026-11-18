@@ -270,20 +270,24 @@ still in the dropdown. The override lives in `TARGETS` in
   and stops if the copy is stale.
 - **The generator enforces these rules:** every `include` has to come after
   the `/* [Hidden] */` line, so the pasted constants don't show up as
-  parameters. `use <...>` isn't allowed. A default override has to match
-  exactly one Customizer parameter line, and its value has to be one of
-  that dropdown's options.
+  parameters. `use <...>` isn't allowed, and no `include <` / `use <` may be
+  left in the code after inlining (a mid-line one, say; mentions in
+  comments are fine). A default override has to match exactly one
+  Customizer parameter line, and its value has to be one of that
+  dropdown's options.
 - **To upload it:** on MakerWorld, open Parametric Model Maker, create a
   model and upload `enclosure/dist/back_shell_customizer.scad` as the only
   file (no `common.scad`). The parameter panel shows the four sections, and
   the default output is already the printable part, so no preset is needed.
-  Other single-file OpenSCAD Customizers (e.g. Thingiverse-style ones) take
-  the same file.
-- **OpenSCAD version:** the file sticks to features from OpenSCAD 2021.01 or
-  earlier (`assert`, list comprehensions with `let`, a `polyhedron()` built
-  from computed point and face lists) and is checked on 2021.01. Reports differ on which build MakerWorld
-  runs (2021.01 or a recent development snapshot). Either one should
-  render it, but only 2021.01 has actually been tested. Nobody has tried it on the live site yet.
+- **Where it runs:** the target is MakerWorld's Parametric Model Maker, or a
+  local OpenSCAD 2019.05 or newer. **Thingiverse's Customizer can't render
+  it**: Thingiverse runs OpenSCAD 2015.03, and the file uses `assert()`,
+  which arrived in 2019.05.
+- **OpenSCAD version:** the file needs 2019.05 or newer (`assert`, list
+  comprehensions with `let`, a `polyhedron()` built from computed point and
+  face lists). Only 2021.01 has been tested. Reports differ on which build
+  MakerWorld runs (2021.01 or a recent development snapshot), and either
+  should render it. Nobody has tried it on the live site yet.
 
 ### Rear fin stand (`pilink-s98`)
 
