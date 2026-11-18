@@ -60,6 +60,18 @@ EXTRA = {("U1", "1"): 3, ("C2", "1"): 2, ("C1", "1"): 2,
          # row's B.Cu escapes on 3 of 12 trials; a second via gives the
          # pour a second way in
          ("C111", "2"): 2}
+# pilink-xy5: via spots tried before the ray search, (dx, dy) mm from the
+# pad centre. C112's best ray spot is east of its GND pad, between the USB
+# pair's two B.Cu diagonals and beyond them, where the B.Cu reaches U101's
+# EP only the long way round; this spot is south-west of the pad, west of
+# the D- diagonal (0.24mm clear) and of C112.1 (0.4mm), inside
+# plane_keepout's EP_E channel to the EP.
+PREFER = {("C112", "2"): (-0.23, 0.85)}
+# locked F.Cu GND links between pads, laid before the vias: C118's GND pad
+# sits east of the USB pair's D+ diagonal (no B.Cu way to the EP channel and
+# no room for a via west of the pair), so it joins C112's GND pad, 1.5mm
+# straight down, and shares its via.
+LINKS = [(("C118", "2"), ("C112", "2"), 0.4)]
 # pads whose via may not be found (nothing depends on it): a miss is a
 # warning, not an error. Everything else (every capacitor, every IC) must
 # get its via or the script fails.
@@ -296,7 +308,12 @@ def fan_pad(board, obs, fp, pad, n_vias):
     hw = MM(min(0.4, 0.8 * pcbnew.ToMM(min(pad.GetSize().x, pad.GetSize().y))) / 2)
     on = pcbnew.F_Cu if pad.IsOnLayer(pcbnew.F_Cu) else pcbnew.B_Cu
     placed = []
-    for score, pos in _candidates(pad, fp):
+    cands = _candidates(pad, fp)
+    pref = PREFER.get((fp.GetReference(), pad.GetNumber()))
+    if pref:
+        c = pad.GetPosition()
+        cands.insert(0, (0.0, pcbnew.VECTOR2I(c.x + MM(pref[0]), c.y + MM(pref[1]))))
+    for score, pos in cands:
         if len(placed) >= n_vias:
             break
         if any((pos - q).EuclideanNorm() < MM(0.9) for q in placed):
@@ -373,6 +390,15 @@ def fan_out(board):
     keep = _keepouts(board)
     obs = Obstacles(board, keep)
     total, misses = 0, []
+    for (ra, na), (rb, nb), w in LINKS:
+        pa = board.FindFootprintByReference(ra).FindPadByNumber(na)
+        pb = board.FindFootprintByReference(rb).FindPadByNumber(nb)
+        layer = pcbnew.F_Cu if pa.IsOnLayer(pcbnew.F_Cu) else pcbnew.B_Cu
+        assert pa.GetNetname() == pb.GetNetname() == "GND" and pb.IsOnLayer(layer)
+        if not obs.stub_ok(pa.GetPosition(), pb.GetPosition(), MM(w / 2), pa, layer):
+            raise SystemExit(f"GND link {ra}.{na} -> {rb}.{nb} is blocked")
+        _add_track(board, pa.GetPosition(), pb.GetPosition(), w, layer)
+        obs.add_track(layer, pa.GetPosition(), pb.GetPosition(), MM(w / 2))
     # big / multi-via pads first (they need the most room), then the rest
     # in a fixed order (by reference) so the result is reproducible
     pads = []

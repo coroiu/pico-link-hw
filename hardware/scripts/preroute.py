@@ -188,6 +188,12 @@ def main():
     vb = (e_vbus[0], e_vbus[1] - 1.11)
     path(VBUS, B, [e_vbus, vb])
     via(VBUS, *vb)
+    # pilink-uqt: C401 (100nF, ST DocID 11265 Fig. 18) on F.Cu right above
+    # that via, pad 1 east; its GND pad gets a fan-out via (gnd_fanout.py)
+    c401_1 = pad("C401", "1")
+    assert c401_1[1] < vb[1] and abs(c401_1[0] - vb[0]) < 0.6, \
+        "C401 expected just north of U401's VBUS via"
+    path(VBUS, F, [vb, (c401_1[0], vb[1] - (c401_1[0] - vb[0])), c401_1], width=0.3)
     # U401 north pads -> R106/R107: north, west along two lanes 0.8mm apart,
     # then the 45-degree run NW to the resistors. D- (west at U401) is the
     # inner track of every turn, so the pair never crosses.
@@ -490,6 +496,39 @@ def main():
     # east end into C113.1 (+3V3, the pin 60 decoupler just below).
     c113_1 = pad("C113", "1")
     path("+3V3", F, [r4_1, (c113_1[0], r4_1[1]), c113_1], width=0.25)
+
+    # ---- +3V3 branch to the backlight boost (pilink-e4b) -------------------
+    # The router fed U501/L501 (and J501's +3V3 pins) through ~35mm of 0.2mm
+    # track, ~149 mOhm from U1. Locked branch off the trunk instead: 45
+    # degrees down from the trunk (west of J501's MP1 tab) and level under
+    # the connector body into J501 pin 38 (+3V3), out of its outer end
+    # beside LED_A at 0.3mm (LED_A above, pin 37 below: the router's own
+    # geometry there), then 0.8mm straight down east of J501's GND via
+    # column into L501 pad 2, and 0.6mm on to C501 pad 2 below C501's GND
+    # pad. LED_K/LED_A wrap J501's top and run diagonally down to the boost,
+    # so any F.Cu way into the boost from the trunk passes pin 38. C501.2 ->
+    # U501.6 (~6mm) stays with the router and widen.py.
+    j38 = pad("J501", "38")
+    j_x0, _, j_x1, _ = pext("J501", "38")      # pad row: inner (west) / outer (east) end
+    l5_2 = pad("L501", "2")
+    c501_2 = pad("C501", "2")
+    l5_top = pext("L501", "2")[1]
+    c501_bot = pext("C501", "1")[3]
+    xs = ORIGIN + 59.0                          # leaves the trunk (y2) here
+    yj = j38[1]
+    xv = j_x1 + 2.15                            # 0.5mm clear of the column at pad end + 0.95
+    d0 = (j_x1 + 0.08, yj)
+    y_top = yj + (xv - d0[0]) + 0.5             # 0.3mm diagonal end + stub; 0.8mm from here
+    y_bot = l5_top - 0.6
+    assert d0[0] < xv < l5_2[0] < c501_2[0] and xs + (yj - y2) < j_x0 - 0.55, \
+        "+3V3 boost branch assumes J501 west of L501/C501 and the trunk above J501"
+    path("+3V3", F, [(xs, y2), (xs + (yj - y2), yj), (j_x0 - 0.55, yj)], width=0.6)
+    path("+3V3", F, [(j_x0 - 0.55, yj), j38], width=0.3)
+    path("+3V3", F, [j38, d0, (xv, y_top - 0.5), (xv, y_top)], width=0.3)
+    path("+3V3", F, [(xv, y_top), (xv, y_bot), (l5_2[0], y_bot + (l5_2[0] - xv)), l5_2], width=0.8)
+    y_c = c501_bot + 0.6                        # 0.6mm track 0.3mm below C501.1
+    path("+3V3", F, [l5_2, (l5_2[0], y_c + 0.6), (l5_2[0] + 0.6, y_c), (c501_2[0], y_c),
+                     c501_2], width=0.6)
 
     # ---- QSPI cluster replay (pilink-2wq) ----------------------------------
     # --no-qspi leaves the QSPI nets to the router; capture_qspi.py then

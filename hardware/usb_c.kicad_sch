@@ -11,6 +11,142 @@
 		(company "Pico Link")
 	)
 	(lib_symbols
+		(symbol "Device:C"
+		(pin_numbers hide)
+		(pin_names
+			(offset 0.254)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "C"
+			(at 0.635 2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "C"
+			(at 0.635 -2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 0.9652 -3.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "cap capacitor"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "C_*"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "C_0_1"
+			(polyline
+				(pts
+					(xy -2.032 -0.762) (xy 2.032 -0.762)
+				)
+				(stroke
+					(width 0.508)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -2.032 0.762) (xy 2.032 0.762)
+				)
+				(stroke
+					(width 0.508)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "C_1_1"
+			(pin passive line
+				(at 0 3.81 270)
+				(length 2.794)
+				(name "~"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -3.81 90)
+				(length 2.794)
+				(name "~"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+	)
 (symbol "power:GND"
 		(power)
 		(pin_numbers hide)
@@ -2388,8 +2524,65 @@
       )
     )
   )
-  (text "U401 (pilink-e63): USBLC6-2SC6 (ST, LCSC C7519) USB ESD array at J401,\nbefore the 27R series resistors (R106/R107 on the RP2350B sheet). 2.5pF typ / 3.5pF max\nI/O-GND (ST datasheet DocID 11265 Table 2), rated for USB 2.0 FS/HS. VBUS pin on VBUS_RAW (rail clamp reference).\nD401 (pilink-e63): SMF5.0A unidirectional TVS (MDD, LCSC C193402), Vrwm 5.0V,\nVbr 6.4-7.0V, Vc 9.2V @ 21.7A, on +5V right after F401 so a sustained\novervoltage trips the PTC instead of destroying the TVS. Drawn with the\nzener symbol (K = pin 1 to +5V). It clamps ESD and hot-plug ringing; it\ncannot hold +5V under U1's 6.5V absolute max for a large surge." (at 163.83 133.35 0)
+  (text "U401 (pilink-e63): USBLC6-2SC6 (ST, LCSC C7519) USB ESD array at J401,\nbefore the 27R series resistors (R106/R107 on the RP2350B sheet). 2.5pF typ / 3.5pF max\nI/O-GND (ST datasheet DocID 11265 Table 2), rated for USB 2.0 FS/HS. VBUS pin on VBUS_RAW (rail clamp reference).\nD401 (pilink-e63): SMF5.0A unidirectional TVS (MDD, LCSC C193402), Vrwm 5.0V,\nVbr 6.4-7.0V, Vc 9.2V @ 21.7A, on +5V right after F401 so a sustained\novervoltage trips the PTC instead of destroying the TVS. Drawn with the\nzener symbol (K = pin 1 to +5V). It clamps ESD and hot-plug ringing; it\ncannot hold +5V under U1's 6.5V absolute max for a large surge.\nC401 (pilink-uqt): 100nF on U401's VBUS pin (VBUS_RAW to GND), per ST DocID 11265\nRev 5 Figure 18 'PCB layout considerations'. USB allows up to 10uF on VBUS at attach." (at 163.83 133.35 0)
     (effects (font (size 1.0 1.0)) (justify left top))
     (uuid 3b5d8d1a-c3b1-41b4-b5f4-43679b3e2a1c)
+  )
+  (symbol (lib_id "Device:C") (at 274.32 127.0 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 0a5a4520-f44d-4576-a269-b223b956441d)
+    (property "Reference" "C401" (at 276.86 125.73 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Value" "100nF" (at 276.86 128.27 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Footprint" "Capacitor_SMD:C_0402_1005Metric" (at 274.32 127.0 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "~" (at 274.32 127.0 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 5793971f-7df7-4a5c-a19a-64864526bc88))
+    (pin "2" (uuid dc5a94d1-24d0-46d5-b988-79ae03346440))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/c4d4de3c-75c3-4587-88ec-f92e6fda3baf"
+          (reference "C401") (unit 1)
+        )
+      )
+    )
+  )
+  (wire (pts (xy 274.32 123.19) (xy 274.32 121.92))
+    (stroke (width 0) (type default))
+    (uuid 1282a1eb-2770-4664-8634-78d4090c070b)
+  )
+  (label "VBUS_RAW" (at 274.32 121.92 0) (fields_autoplaced)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid 1740d9e6-ca67-400b-8e21-61ca51568732)
+  )
+  (symbol (lib_id "power:GND") (at 274.32 130.81 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 8724e6d0-e383-4e90-884c-ba4eeb2f7ea2)
+    (property "Reference" "#PWR409" (at 274.32 130.81 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 274.32 137.16 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 274.32 130.81 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 274.32 130.81 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 40e1ee6e-00bc-4f45-a9c0-ed2ec4c1772f))
+    (instances
+      (project "pico-link-hw"
+        (path "/130cc37a-fa96-4c5f-8ea3-bd251e4a10af/c4d4de3c-75c3-4587-88ec-f92e6fda3baf"
+          (reference "#PWR409") (unit 1)
+        )
+      )
+    )
   )
 )

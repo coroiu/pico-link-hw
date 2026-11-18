@@ -50,22 +50,20 @@ EP = ("U101", "81")
 # the regulator: PGND pin, C_IN, C_OUT, C_FILT GND pads (DS 6.3.8.1)
 VREG_PADS = [("U101", "62"), ("C103", "2"), ("C104", "2"), ("C105", "2")]
 VREG_MAX_MM, VREG_MAX_VIAS = 12.0, 1
-# U101's decouplers next to the VREG block (the east column and C115):
-# gated. C113/C115 land on the B.Cu the VREG strip joins to the EP. C111,
-# C112, C118 sit between the east pin row's B.Cu escapes, the PSRAM_CS /
-# GPIO41 B.Cu hops and the USB pair, which box their B.Cu in so it reaches
-# the EP the long way round (~25mm on the committed routing; master
-# 2b621ca: 7-10mm by this measure, via its 0.2mm GND traces; ebb6685:
-# ~105mm). Their limit guards against that ebb6685-style failure; getting
-# them back to master's figures is a follow-up bead.
-DECOUPLERS = [("C113", "2"), ("C115", "2"), ("C111", "2"), ("C112", "2"), ("C118", "2")]
+# U101's decouplers next to the VREG block (the east column and C115) and
+# south of the chip: gated. C113/C115 land on the B.Cu the VREG strip joins
+# to the EP. C111/C112/C118 (east) and C109/C110/C117 (south) reach it
+# through plane_keepout's EP_E / EP_S channels (pilink-xy5; before them
+# ~25mm and 44-48mm, the east pin row's and the south row's B.Cu escapes,
+# the +5V run and the USB pair boxing their vias in).
+DECOUPLERS = [("C113", "2"), ("C115", "2"), ("C111", "2"), ("C112", "2"), ("C118", "2"),
+              ("C109", "2"), ("C110", "2"), ("C117", "2")]
 DECOUPLER_MAX_MM = {"C113.2": 15.0, "C115.2": 15.0,
-                    "C111.2": 30.0, "C112.2": 30.0, "C118.2": 30.0}
-# the rest: reported only. Most of them are as far on master (2b621ca): the
-# B.Cu round U101 is cut by its own fan-out, so the plane they land on
-# reaches the EP the long way round (pilink-93a follow-up).
-OTHERS = [("C106", "2"), ("C107", "2"), ("C108", "2"), ("C109", "2"), ("C110", "2"),
-          ("C114", "2"), ("C116", "2"), ("C117", "2")]
+                    "C111.2": 9.0, "C112.2": 9.0, "C118.2": 9.0,
+                    "C109.2": 9.0, "C110.2": 9.0, "C117.2": 9.0}
+# the rest: reported only (the west column and C114; the B.Cu round U101's
+# west side is cut by its own fan-out).
+OTHERS = [("C106", "2"), ("C107", "2"), ("C108", "2"), ("C114", "2"), ("C116", "2")]
 
 
 def _px(p):
