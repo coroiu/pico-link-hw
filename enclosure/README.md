@@ -345,7 +345,7 @@ Maker), `common.scad` has to be inlined first (`pilink-c6z`).
 printable part at LEAN 25 / 30 x FLOAT 0 / 5 and LEAN 40 x FLOAT 0 with the
 default front pads, and at LEAN 15 x FLOAT 0 / 5 (`FRONT_FOOT_OFFSET` 6)
 and LEAN 20 x FLOAT 0 (offset 3), where the default pads would tip forward:
-all nine are watertight, the fin bottoms land at Y = -FLOAT_GAP and the rear
+all eight are watertight, the fin bottoms land at Y = -FLOAT_GAP and the rear
 end at Z = -49.65 in every case (side- and front-view PNGs were also looked
 at).
 

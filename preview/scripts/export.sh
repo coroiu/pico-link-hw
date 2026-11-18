@@ -144,7 +144,7 @@ export_enclosure() {
   rm -rf "$out.old"
   [[ -d "$out" ]] && mv -f "$out" "$out.old"
   mv -f "$stage/opt" "$out" && rm -rf "$out.old"
-  find "$SITE_DIR/models" -mindepth 1 -maxdepth 1 ! -name pcb.glb ! -name enclosure \
+  find "$SITE_DIR/models" -mindepth 1 -maxdepth 1 ! -name pcb.glb ! -name enclosure ! -name enclosure.old \
       -exec echo "[export] removing stale {}" \; -exec rm -rf {} +
   echo "[export] wrote $(ls "$out" | grep -c '\.glb$') enclosure GLBs to $out"
 }
