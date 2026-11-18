@@ -248,6 +248,47 @@ doesn't exist yet).
 The file now renders headlessly (OpenSCAD 2021.01) and is covered by
 `scripts/check_fit.sh`; the printed fit check is still `pilink-8hx.5`.
 
+### Single-file Customizer copy (`dist/back_shell_customizer.scad`, `pilink-c6z`)
+
+Online configurators such as MakerWorld's Parametric Model Maker take one
+`.scad` file and can't find a local `include <common.scad>`.
+`dist/back_shell_customizer.scad` is a generated copy of `back_shell.scad`
+with `common.scad` pasted in where the `include` was. OpenSCAD's `include`
+is plain text substitution, so the copy evaluates exactly like the source.
+The Customizer parameters (Stand / Fins / Feet / Render) stay at the top,
+and the pasted constants land after `/* [Hidden] */`. There is one
+deliberate difference: the copy's `PART` default is `back_shell` (the
+printable part, shell plus fins), not the source's `assembly`, so a
+published configurator downloads something you can print. `assembly` is
+still in the dropdown. The override lives in `TARGETS` in
+`make_customizer.py`, the generated file's header lists it, and
+`back_shell.scad` itself keeps `assembly`.
+
+- **Don't edit the copy.** Edit `back_shell.scad` / `common.scad`, then run
+  `python3 enclosure/scripts/make_customizer.py`. Commit the regenerated
+  file too. `scripts/check_fit.sh` runs `make_customizer.py --check` first
+  and stops if the copy is stale.
+- **The generator enforces these rules:** every `include` has to come after
+  the `/* [Hidden] */` line, so the pasted constants don't show up as
+  parameters. `use <...>` isn't allowed, and no `include <` / `use <` may be
+  left in the code after inlining (a mid-line one, say; mentions in
+  comments are fine). A default override has to match exactly one
+  Customizer parameter line, and its value has to be one of that
+  dropdown's options.
+- **To upload it:** on MakerWorld, open Parametric Model Maker, create a
+  model and upload `enclosure/dist/back_shell_customizer.scad` as the only
+  file (no `common.scad`). The parameter panel shows the four sections, and
+  the default output is already the printable part, so no preset is needed.
+- **Where it runs:** the target is MakerWorld's Parametric Model Maker, or a
+  local OpenSCAD 2019.05 or newer. **Thingiverse's Customizer can't render
+  it**: Thingiverse runs OpenSCAD 2015.03, and the file uses `assert()`,
+  which arrived in 2019.05.
+- **OpenSCAD version:** the file needs 2019.05 or newer (`assert`, list
+  comprehensions with `let`, a `polyhedron()` built from computed point and
+  face lists). Only 2021.01 has been tested. Reports differ on which build
+  MakerWorld runs (2021.01 or a recent development snapshot), and either
+  should render it. Nobody has tried it on the live site yet.
+
 ### Rear fin stand (`pilink-s98`)
 
 User design, 2026-11-17. Replaces the two glued splayed legs (and their

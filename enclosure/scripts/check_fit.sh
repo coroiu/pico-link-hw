@@ -20,6 +20,10 @@
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
+# pilink-c6z: the committed single-file Customizer copies (enclosure/dist/)
+# must match their sources; fail fast if one is stale. Not counted among
+# check_fit.py's checks.
+python3 "$HERE/make_customizer.py" --check
 if command -v openscad >/dev/null 2>&1 && \
    python3 -c "import pcbnew, trimesh, manifold3d, scipy, rtree" >/dev/null 2>&1; then
   cd "$ROOT"
