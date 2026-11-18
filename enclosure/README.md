@@ -38,7 +38,7 @@ line-based regex.
   2.0mm wall; before: 0.00mm at the bottom, 2.00mm at the top, 0.0 / 0.4mm at
   the sides depending on the shell). Reasoning: JLCPCB outline +/-0.2mm and
   an FDM wall +/-0.1-0.2mm stack to +/-0.4mm on one side; 0.5mm leaves >= 0.1mm
-  worst case in X without a loose fit, and Y keeps FACE_H at 56mm (leg, strip
+  worst case in X without a loose fit, and Y keeps FACE_H at 56mm (fin
   and USB-C numbers key off it), which is exactly 1.0mm per side.
 - **Centring:** the display active area (board (61.25, 25)) maps to face
   (63.75, 28) = face centre; the knob (14.25, 25) -> (16.75, 28) and the
@@ -242,7 +242,7 @@ file's own header comment explains its coordinate frames and lists a few
 assumptions this bead had to make where no source doc pins a number down
 yet (notably: the face/board vertical-offset mapping it adopts, and
 treating this shell's own open rim as a stand-in "front edge" reference
-for leg/base-strip placement, since the front shell's real base profile
+for stand placement (then legs and a base strip), since the front shell's real base profile
 doesn't exist yet).
 
 The file now renders headlessly (OpenSCAD 2021.01) and is covered by
@@ -258,8 +258,8 @@ running from the back wall's bottom edge up to `FIN_TOP_Q` = 40mm up the
 back and back to a rear foot `FIN_REACH` = 45mm behind the body's
 rear-bottom edge (user decision 2026-11-17; the first cut used 37, the old
 legs' foot setback). Fins are `FIN_T` = 3mm thick;
-each foot pad is a Ø9.3 disc (`FOOT_DIA` 6.5 + 0.4 recess clearance + 2 x
-1.2 rim), 1.6 thick with a 0.6mm centring recess.
+the foot pads are 9.3mm wide (`FOOT_DIA` 6.5 + 0.4 recess clearance + 2 x
+1.2 rim), with a Ø6.9 x 0.6mm centring recess under each foot.
 
 **Fin and pad form (user review 2026-11-17).** The first cut's pads read as
 bolted on: a 45° cone under a square-ended plate, and the front pads hung
@@ -267,18 +267,38 @@ off the bottom plate ahead of the fins. Now each fin is the convex hull of
 thin Ø3 horizontal discs on its side-view outline: flat bottom (it prints on
 it), half-round ends, rounded hypotenuse edge. Its bottom edge runs from the
 rear foot's centre forward to the front foot's centre, and both ends are
-upright half-rounds on the foot axes. Each pad is the disc plus a concave
-quarter-round fillet (R 3.15) up to a Ø3 neck on the same axis, which the
-fin's half-round end continues, so pad and fin are one form. At the rear the
-fin rises from the pad as a short upright heel (pad + fillet, 4.75mm), then
-rolls over a `FIN_TIP_R` = 6mm arc into the hypotenuse: no acute tip, no
-step at the pad's edge. At the front (user decision 2026-11-17, with LEAN
-25) the pad sits wholly behind the body's rear-bottom edge, under the fin,
-its disc's front edge flush with that edge, and the fin runs **solid** from
-the pad's neck up to the back plate: two extra hull points (one on the fin
-bottom whose disc reaches Z 0, one at the walls' embedded corner) fill the
-wedge between the vertical neck and the back plate leaning away above it,
-which the previous cut left as a notch. With `FRONT_FOOT_OFFSET` > 0 the
+upright half-rounds on the foot axes. At the rear the fin rises from the
+pads as a short upright heel (`HEEL_H`, the pad height, 3.95mm), then rolls
+over a `FIN_TIP_R` = 6mm arc into the hypotenuse: no acute tip, no step at
+the pad's edge. At the front (user decision 2026-11-17, with LEAN 25) the
+pad sits wholly behind the body's rear-bottom edge, under the fin, its front
+edge flush with that edge, and the fin runs **solid** from the pad up to the
+back plate: two extra hull points (one on the fin bottom whose disc reaches
+Z 0, one at the walls' embedded corner) fill the wedge between the front
+end and the back plate leaning away above it, which an earlier cut left as
+a notch.
+
+**Foot form: the runner (user decision 2026-11-18, variant A).** The
+previous cut's pads (a Ø9.3 x 1.6 disc with a concave fillet up to a Ø3
+neck) still read as knobs stuck under the fin. Three alternatives were
+rendered side by side (`FOOT_STYLE`: `boss`, a round bun on each foot axis;
+`flare`, the fin's bottom edge widening into each pad over
+`FOOT_FLARE_LEN`; `runner`) and the user picked **`runner`**, the default:
+each fin's whole bottom edge, from the rear foot's centre to the front
+foot's, is one 9.3mm-wide rail with both feet recessed in it. All three
+share one section, an ogee with no flat disc lip: a short upright outer side
+(`FOOT_PAD_T` 0.8mm), a convex round (`FOOT_PAD_ROUND` 1.6mm) and a concave
+fillet (R 1.55, the rest of the 3.15mm overhang beyond each fin face) that
+runs tangent into the fin face. The rail is one polyhedron of stacked
+horizontal rings (each the hull of the two foot circles, grown by the
+section's overhang at that height), every ring inside the one below, so it
+prints upright without support; its top ring is buried 0.05mm inside the
+fin plate. At the front the rail's front edge stays upright up to the pad's
+full height, inside the body's rear-bottom corner, so the rail runs up into
+the corner instead of ending in a rim in front of it. Thinnest material
+over a recess: 1.75mm (assert >= 0.8). `boss` and `flare` stay selectable
+in the Customizer (same section code, no extra parts); only `runner` is
+covered by `check_fit.sh`'s sweep. With `FRONT_FOOT_OFFSET` > 0 the
 toe instead runs forward under the bottom wall (embedded in it) to the front
 foot's centre. The fins' edges against the walls are embedded ~1.6mm
 (enough that the rounding stays inside the wall; outside it they are the
@@ -306,8 +326,10 @@ CoG is ahead of them below ~23 and the assert stops the render: raise
 the body leaning back is the back wall's bottom-outer edge; the float then
 comes from the feet alone), `FIN_T`, `FIN_OFFSET_X`, `FIN_TOP_Q`,
 `FIN_REACH`, `FOOT_DIA` (6.5, the user's feet), `FOOT_RECESS_DEPTH`,
-`FOOT_RECESS_CLEARANCE`, `FOOT_PAD_RIM`, `FOOT_PAD_T`, `FRONT_FOOT_OFFSET`
-(the front pad disc's front edge relative to the rear-bottom edge, + =
+`FOOT_RECESS_CLEARANCE`, `FOOT_PAD_RIM`, `FOOT_STYLE` (runner),
+`FOOT_PAD_T`, `FOOT_PAD_ROUND`, `FOOT_FLARE_LEN` (flare only),
+`FRONT_FOOT_OFFSET`
+(the front pad's front edge relative to the rear-bottom edge, + =
 forward under the body; 0 by default = flush behind it, derived from the pad
 diameter so it holds for any `FOOT_DIA`/rim/clearance and any lean; slider
 -10..15), `FIN_TIP_R` (6, the rear tip's round-over),
@@ -330,11 +352,11 @@ at).
 **Front view.** The fins themselves are hidden behind the body. What a
 straight-on (horizontal) front view can see, per `check_fit.sh` (body box
 swept back and subtracted from the part; what sits directly behind a front
-pad's disc is counted as hidden by it):
+pad's upright side is counted as hidden by it):
 
 | LEAN (front offset) | FLOAT 0 | FLOAT 5 |
 |---|---|---|
-| 15 (6) | front pads only, up to 1.59mm above the fin bottom | fin bottoms + pads below the body, up to 5.74mm above the fin bottom |
+| 15 (6) | front pads only, up to 1.58mm above the fin bottom | fin bottoms + pads below the body, up to 5.74mm above the fin bottom |
 | 20 (3) | front pads only, up to 1.07mm | not rendered |
 | **25 (0, default)** | **nothing** | up to 5.85mm |
 | 30 (0) | nothing | up to 5.98mm |
@@ -360,27 +382,27 @@ and puts the pad 1mm further under the body.
 **Tip-over margin (default config).** Mass model in `check_fit.py`:
 rendered shells, knob, plungers and antenna mount at 1.24 g/cm³ solid, PCB
 slab FR4 1.85, component envelope boxes 1.0, display stack box 0.9 (~7.4 g),
-M2 screws steel: body ~81 g, fins ~8.1 g. Body CoG (no fins) at Q 28.35 /
-bz 10.23 (local) = world Z -2.70 at LEAN 25, i.e. 2.7mm **behind** the
+M2 screws steel: body ~81 g, fins ~9.3 g (runner feet). Body CoG (no fins) at Q 28.35 /
+bz 10.23 (local) = world Z -2.71 at LEAN 25, i.e. 2.7mm **behind** the
 rear-bottom edge; 31.4mm above the table (FOOT_H 2.0). Feet contact runs Z
 -48.25 .. -1.40 (`FIN_REACH` 45, `FRONT_FOOT_OFFSET` 0).
 
-- **Front: 1.30mm** (CoG without fins, the conservative case; the scad's
+- **Front: 1.31mm** (CoG without fins, the conservative case; the scad's
   rounded `COG_Q`/`COG_BZ` echo 1.36): the body tips forward after ~2.4° of
-  forward tilt. Counting the fins' own mass (CoG Z -4.46) it is **3.06mm**.
+  forward tilt. Counting the fins' own mass (CoG Z -4.73) it is **3.33mm**.
   Either is within the mass model's likely CoG error: thin, accepted by the
   user. It scales with the lean: ~4.0mm at LEAN 30 (no fins), negative
   below ~23 (the assert stops the render); raise `FRONT_FOOT_OFFSET` by the
   shortfall (about +4 at LEAN 15 for the same margin as here).
-- **Back: 43.8mm** (CoG with fins): ~54° before it tips back.
+- **Back: 43.5mm** (CoG with fins): ~54° before it tips back.
 - **Button press:** a press along the face normal at the A/B/X/Y diamond
-  tips it back over the rear feet at ~4.3 N (4.29; was 2.5 N at LEAN 15,
+  tips it back over the rear feet at ~4.3 N (4.33; was 2.5 N at LEAN 15,
   since the press now points more downward), above the ADR's ~2.5 N press
   estimate and above where the ADR's own friction figure (~1.75 N on 110 g,
   mu ~1.6) says the feet would slide first. The ADR's physical feet test
   still decides.
 - **Knob detent torque (roll sideways over one fin's feet):** restoring
-  moment 0.87 N x 31.2mm = 27.1 N.mm (the CoG sits 2.05mm left of the face
+  moment 0.88 N x 31.2mm = 27.6 N.mm (the CoG sits 2.05mm left of the face
   centre, towards the knob, so the left feet are the near side) against the
   detent torque's roll component T cos(25°): 9.1 N.mm nominal (10 mN.m),
   15.4 N.mm worst case (17 mN.m). **~3.0x nominal, ~1.8x worst case.** The
@@ -410,8 +432,8 @@ ignored (scad echo; the table is lower with feet).
 (`export_enclosure.py` writes `stl/back_shell.stl` that way: fin bottoms on
 the bed, 55.2mm tall at the defaults). The fins (bottom on the bed, flat
 vertical sides, hypotenuse facing up, its rounded edges and heel arc; the
-filled front wedge only meets the back plate from below), the pads' concave
-fillets (every layer inside the one below), the recesses (a Ø6.9 bridge
+filled front wedge only meets the back plate from below), the runners' ogee
+section (every layer inside the one below), the recesses (a Ø6.9 bridge
 0.6mm above the bed) and the back wall's outer face (25° from vertical)
 need no support. What does, at LEAN 25:
 

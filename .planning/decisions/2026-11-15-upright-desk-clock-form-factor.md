@@ -92,6 +92,18 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
     under the bottom wall.
   - The weighted-base fallback no longer has a reserved pocket.
 
+  **Foot form: runner (user decision 2026-11-18, same bead):** after a
+  side-by-side review of three foot forms (a round boss per foot, the fin
+  edge flaring into each pad, a full-length runner), each fin's whole bottom
+  edge is one pad-wide (9.3 mm) rail with both rubber feet recessed in it,
+  its section an ogee (short upright side, convex round, concave fillet into
+  the fin face) rather than a disc under a neck. Same four contact points
+  and feet positions. The rails add mass to the fins (about 9.3 g, was
+  8.1 g, 90 g in all), which moves the with-fins forward margin to about
+  3.3 mm; the no-fins margin (1.3 mm), back margin, press force and roll
+  margins above are unchanged at the stated precision. The runner is the
+  `FOOT_STYLE` default in `back_shell.scad` (the other two stay selectable).
+
   The leg wording above, and "between the legs", "leg bosses", "two-leg
   A-frame" and "feet pockets" below, are kept for history.
 - **PCB:** a single flat main board **standing parallel to the face**, about

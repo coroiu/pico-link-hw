@@ -742,7 +742,7 @@ module feet_display() {
 // frame, from check_fit.py's mass model (rendered shells, knob, plungers and
 // antenna mount at 1.24 g/cm3 solid; PCB slab FR4 1.85; component envelope
 // boxes 1.0; display stack box 0.9, ~7.4 g; M2 screws steel -- see check_fit.py
-// "tip-over"). Body ~81 g, fins ~8.1 g at the defaults (FIN_REACH 45, LEAN 25). Leaving the
+// "tip-over"). Body ~81 g, fins ~9.3 g at the defaults (FIN_REACH 45, LEAN 25). Leaving the
 // fins out moves the CoG forward, i.e. it is conservative for forward
 // tipping (the critical side). Re-measure (check_fit.sh prints it) if the
 // shells or the PCB stack change.
