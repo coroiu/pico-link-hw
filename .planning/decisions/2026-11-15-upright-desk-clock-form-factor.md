@@ -80,7 +80,7 @@ stability, USB-C, legs) were answered by the user on 2026-11-15.
     The feet-first physical test below still decides.
   - **Knob-torque roll margin is lower than with the legs:** about 1.8x
     worst case (17 mN·m detent) and 3.0x nominal (10 mN·m), from
-    `check_fit.sh`'s mass model (89 g with fins, CoG 2 mm towards the knob,
+    `check_fit.sh`'s mass model (90 g with fins, CoG 2 mm towards the knob,
     feet outer edges at +/-33.25 mm). The "about 3x" under Rationale
     assumed 110 g on legs at +/-40 mm. Still stable; the physical test
     covers it.

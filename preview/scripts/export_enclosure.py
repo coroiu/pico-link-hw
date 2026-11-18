@@ -142,7 +142,12 @@ def clear_outputs(out_dir):
     """Remove every output a previous run may have left in out_dir (part GLBs,
     the assembly, parts.json, the stl/ directory), so the output set is
     rebuilt from the current PARTS list and a part that was dropped from it
-    (e.g. the retired separate legs) cannot linger."""
+    (e.g. the retired separate legs) cannot linger. Refuses a directory that
+    holds pcb.glb (the site's models/ dir, not an enclosure output dir), since
+    this would delete it."""
+    if os.path.exists(os.path.join(out_dir, "pcb.glb")):
+        sys.exit("refusing to clear %s: it holds pcb.glb (not an enclosure "
+                 "output directory; use models/enclosure)" % out_dir)
     for name in os.listdir(out_dir):
         path = os.path.join(out_dir, name)
         if name == "stl" and os.path.isdir(path):
