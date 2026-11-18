@@ -21,6 +21,10 @@ Rules enforced, so the Customizer panel matches the source file's:
     parameter block stays at the very top of the file;
   - `use <...>` is refused: it imports only modules/functions, which a
     textual inline would not reproduce faithfully.
+
+The only intended difference from the source is an explicit per-target
+override of a Customizer default (see TARGETS): back_shell's copy defaults
+to PART = "back_shell" so a published file downloads the printable part.
 """
 import argparse
 import os
@@ -29,14 +33,24 @@ import sys
 
 ENC = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
-# (source, generated), both relative to enclosure/.
+# (source, generated, default overrides), paths relative to enclosure/.
+# Overrides change the DEFAULT of a Customizer parameter in the generated
+# copy only (the source keeps its own): {NAME: new value expression}. The
+# parameter must be a top-level assignment above /* [Hidden] */, appear
+# exactly once, and, for a dropdown, the new value must be one of its
+# options; the annotation (and so every option) is kept.
+#   back_shell PART: the source defaults to "assembly" (shell + display-only
+#   rubber feet) for working in the repo; a published Customizer file should
+#   download the printable part by default.
 TARGETS = [
-    ("back_shell.scad", "dist/back_shell_customizer.scad"),
+    ("back_shell.scad", "dist/back_shell_customizer.scad", {"PART": '"back_shell"'}),
 ]
 
 INCLUDE_RE = re.compile(r"^\s*include\s*<([^>]+)>\s*;?\s*(//.*)?$")
 USE_RE = re.compile(r"^\s*use\s*<([^>]+)>")
-HIDDEN_RE = re.compile(r"/\*\s*\[\s*Hidden\s*\]\s*\*/")
+# Anchored: the marker must start its line (a mention inside a // comment,
+# as in back_shell.scad's header, does not count).
+HIDDEN_RE = re.compile(r"^\s*/\*\s*\[\s*Hidden\s*\]\s*\*/")
 
 
 def rel(path):
@@ -73,7 +87,7 @@ def flatten(path, stack=()):
     out = []
     hidden_seen = False
     for line, in_block in code_lines(text):
-        if not stack and HIDDEN_RE.search(line):
+        if not stack and not in_block and HIDDEN_RE.search(line):
             hidden_seen = True
         m = None if in_block else INCLUDE_RE.match(line)
         if m:
@@ -93,14 +107,40 @@ def flatten(path, stack=()):
     return "\n".join(out) + "\n"
 
 
-def generate(src):
-    body = flatten(os.path.join(ENC, src))
+def apply_overrides(src, body, overrides):
+    lines = body.split("\n")
+    try:
+        hidden = next(i for i, l in enumerate(lines) if HIDDEN_RE.search(l))
+    except StopIteration:
+        sys.exit("make_customizer: %s has no /* [Hidden] */ marker" % src)
+    for name, value in overrides.items():
+        pat = re.compile(r"^(%s\s*=\s*)([^;]+)(;.*)$" % re.escape(name))
+        hits = [i for i in range(hidden) if pat.match(lines[i])]
+        if len(hits) != 1:
+            sys.exit("make_customizer: %s: override %s matched %d Customizer lines (want 1)"
+                     % (src, name, len(hits)))
+        m = pat.match(lines[hits[0]])
+        ann = re.search(r"//\s*\[([^\]]*)\]", m.group(3))
+        if ann and ":" not in ann.group(1):
+            opts = [o.strip() for o in ann.group(1).split(",")]
+            if value.strip('"') not in opts:
+                sys.exit("make_customizer: %s: override %s = %s is not one of %s"
+                         % (src, name, value, opts))
+        lines[hits[0]] = m.group(1) + value + m.group(3)
+    return "\n".join(lines)
+
+
+def generate(src, overrides):
+    body = apply_overrides(src, flatten(os.path.join(ENC, src)), overrides)
+    notes = "".join("//   %s defaults to %s here (see TARGETS in the script).\n" % (n, v)
+                    for n, v in overrides.items())
     header = (
         "// GENERATED FILE -- do not edit. Single-file Customizer copy of\n"
         "// enclosure/%s with its includes inlined, for online OpenSCAD\n"
         "// configurators (e.g. MakerWorld's Parametric Model Maker). Edit the source\n"
         "// and regenerate: python3 enclosure/scripts/make_customizer.py\n"
-        "\n" % src
+        "%s"
+        "\n" % (src, ("// Default overrides vs. the source:\n" + notes) if notes else "")
     )
     return header + body
 
@@ -111,8 +151,8 @@ def main():
                     help="do not write; exit 1 if any generated file is missing or stale")
     args = ap.parse_args()
     stale = []
-    for src, dst in TARGETS:
-        text = generate(src)
+    for src, dst, overrides in TARGETS:
+        text = generate(src, overrides)
         dpath = os.path.join(ENC, dst)
         try:
             with open(dpath, encoding="utf-8") as f:

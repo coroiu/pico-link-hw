@@ -2,6 +2,8 @@
 // enclosure/back_shell.scad with its includes inlined, for online OpenSCAD
 // configurators (e.g. MakerWorld's Parametric Model Maker). Edit the source
 // and regenerate: python3 enclosure/scripts/make_customizer.py
+// Default overrides vs. the source:
+//   PART defaults to "back_shell" here (see TARGETS in the script).
 
 // Pico Link enclosure -- back shell + rear fin stand (pilink-8hx.1, pilink-s98)
 //
@@ -106,7 +108,7 @@ SHOW_FEET = true;
 
 /* [Render] */
 // What to render: the assembly view, or the printable back shell (with its fins) alone.
-PART = "assembly"; // [assembly, back_shell]
+PART = "back_shell"; // [assembly, back_shell]
 
 /* [Hidden] */
 // =====================================================================

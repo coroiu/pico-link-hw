@@ -256,21 +256,27 @@ Online configurators such as MakerWorld's Parametric Model Maker take one
 with `common.scad` pasted in where the `include` was. OpenSCAD's `include`
 is plain text substitution, so the copy evaluates exactly like the source.
 The Customizer parameters (Stand / Fins / Feet / Render) stay at the top,
-and the pasted constants land after `/* [Hidden] */`.
+and the pasted constants land after `/* [Hidden] */`. There is one
+deliberate difference: the copy's `PART` default is `back_shell` (the
+printable part, shell plus fins), not the source's `assembly`, so a
+published configurator downloads something you can print. `assembly` is
+still in the dropdown. The override lives in `TARGETS` in
+`make_customizer.py`, the generated file's header lists it, and
+`back_shell.scad` itself keeps `assembly`.
 
 - **Don't edit the copy.** Edit `back_shell.scad` / `common.scad`, then run
   `python3 enclosure/scripts/make_customizer.py`. Commit the regenerated
   file too. `scripts/check_fit.sh` runs `make_customizer.py --check` first
   and stops if the copy is stale.
-- **The generator enforces two rules:** every `include` has to come after
-  `/* [Hidden] */`, so the pasted constants don't show up as parameters, and
-  `use <...>` isn't allowed.
+- **The generator enforces these rules:** every `include` has to come after
+  the `/* [Hidden] */` line, so the pasted constants don't show up as
+  parameters. `use <...>` isn't allowed. A default override has to match
+  exactly one Customizer parameter line, and its value has to be one of
+  that dropdown's options.
 - **To upload it:** on MakerWorld, open Parametric Model Maker, create a
   model and upload `enclosure/dist/back_shell_customizer.scad` as the only
-  file (no `common.scad`). The parameter panel shows the four sections. The
-  default `PART` is `assembly`, which also renders the rubber feet as
-  display solids. For a printable download, set **Render > PART** to
-  `back_shell` (and save that as the published preset) before generating.
+  file (no `common.scad`). The parameter panel shows the four sections, and
+  the default output is already the printable part, so no preset is needed.
   Other single-file OpenSCAD Customizers (e.g. Thingiverse-style ones) take
   the same file.
 - **OpenSCAD version:** the file sticks to features from OpenSCAD 2021.01 or
