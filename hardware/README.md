@@ -965,10 +965,10 @@ The board is generated, not hand-drawn. From `hardware/`, in this order:
 | 1 | `scripts/place.py` | Outline, 4 M2 mounting holes, design-rule minimums, net classes, every footprint position |
 | 1b | `scripts/antenna_reroute.py` | (library) antenna-strip track/via keepout for `route.py`, and `check_strip()` which `zones.py` runs: exits non-zero if any track/via is under the antenna element other than the documented +3V3 B.Cu run (`pilink-kiw`; it replaced the old position-matching GPIO25/HCI_TXD reroute that silently no-oped after a re-route) |
 | 1c | `scripts/sw_keepout.py` | (library, not run directly) Alps SKRTLAE010 no-copper rule areas; called by `route.py` and `zones.py` |
-| 1d | `scripts/preroute.py` | Locked hand pre-route of USB D+/D- (J401 -> U401 ESD -> R106/R107 27R -> U101, since the 2026-11-17 audit fixes), the crystal, the backlight feedback pair, the SW101/SW102 BOOTSEL/RESET + GND escapes (`pilink-a8i`: the SKRTLAE010 keepout boxes those pads in, so Freerouting leaves them unconnected), the QSPI/VREG cluster (`pilink-2wq`), U201's decoupling/EN links and the 0.8mm +3V3 trunk U1 -> U201 (`pilink-fvz`/`yt5`). Run after `place.py`, before `route.py`; idempotent, also on a routed board: it removes and re-adds only its own *locked* items on its nets, never the router's unlocked copper |
-| 2 | `scripts/route.py` | Freerouting autoroute of every net except the pre-routed ones (Specctra DSN/SES round-trip); exports the SW101/102 no-copper areas and the antenna strip (board x 54..106, y 0..3) as track/via keepouts |
+| 1d | `scripts/preroute.py` | Locked hand pre-route of USB D+/D- (J401 -> U401 ESD -> R106/R107 27R -> U101, since the 2026-11-17 audit fixes), the crystal, the backlight feedback pair, the SW101/SW102 BOOTSEL/RESET + GND escapes (`pilink-a8i`: the SKRTLAE010 keepout boxes those pads in, so Freerouting leaves them unconnected), the QSPI/VREG cluster (`pilink-2wq`), U201's decoupling/EN links and the 0.8mm +3V3 trunk U1 -> U201 (`pilink-fvz`/`yt5`), the VREG block to RP2350 DS 6.3.8.1 (`pilink-2x7`) and, last, a GND via beside every SMD GND pad (`gnd_fanout.py`, `pilink-r1h`). Run after `place.py`, before `route.py`; idempotent, also on a routed board: it removes and re-adds only its own *locked* items on its nets, never the router's unlocked copper |
+| 2 | `scripts/route.py` | Freerouting autoroute of every net except GND and the pre-routed ones (Specctra DSN/SES round-trip); exports the SW101/102 no-copper areas, the antenna strip (board x 54..106, y 0..3), the locked GND copper and the B.Cu plane areas (`plane_keepout.py`) as keepouts. Runs several net-order seeds at once (`--jobs`) and keeps the first routing with no unconnected signal and no GND island a trial pour cannot join; prints the seed (`--seed N --tries 1` reproduces it) |
 | 3 | `scripts/widen.py` | Widens +3V3/VBUS_RAW (0.8 -> 0.6 -> 0.4 -> 0.3mm tiers) and +1V1/VREG_LX (0.4 -> 0.3mm) wherever DRC allows (`+5V` is routed at 0.8mm by its own `Supply` net class) |
-| 4 | `scripts/zones.py` | GND pours on both layers, +3V3 heat spreader and stitching vias at U1 (grid points nudged to stay legal), USB stub cleanup; splits locked segments at router T-joins and prunes redundant locked tails; GND via beside C502 and GND stitching vias in every non-main GND polygon, then a per-polygon GND report (PR #102 review) |
+| 4 | `scripts/zones.py` | GND pours on both layers, +3V3 heat spreader and stitching vias at U1 (grid points nudged to stay legal), USB stub cleanup; splits locked segments at router T-joins and prunes redundant locked tails; GND via beside C502 and GND stitching vias in every non-main GND polygon, along the fast nets and on a 4mm grid; joins any GND island left to the main ground with a track (`gnd_repair.py`); then a per-polygon GND report and the ground-plane gate (exits non-zero if any GND copper is not one connected ground, a GND fragment has no via, or a capacitor GND pad has no via within 1mm) (`pilink-r1h`) |
 | check | `scripts/drc_summary.py -v` | `kicad-cli pcb drc` with schematic parity, summarised |
 | check | `scripts/netlist_check.py` | Pin-for-pin diff of board nets against a fresh schematic netlist |
 | check | `scripts/net_resistance.py` | DC resistance of the routed power paths (VBUS_RAW, +5V, +3V3 trunk, U201 decoupling/EN) from the track/via copper; pours ignored, so an upper bound (`pilink-yt5`) |
@@ -984,8 +984,11 @@ MCP server's `sync_schematic_to_board`), add any new part to the table in
 Freerouting **v2.0.1**: v2.1.0 ignored the pass limit here and could loop
 without writing a result whenever a connection stayed unrouted. Even v2.0.1
 occasionally exited early without writing `board.ses` (an empty 0-byte
-file, no error in its own log) on this machine; `route.py` fails loudly
-(`SES import failed`) when that happens -- just re-run it.
+file, no error in its own log) on this machine. Freerouting is
+deterministic: the same DSN gives the same routing every time, so
+re-running a DSN that failed is useless. `route.py` therefore gives each
+attempt its own net order (`shuffle_nets`, seeded), runs `--jobs` of them
+at once, and abandons a run 5 passes past `--passes`.
 
 The board file was created with the KiCad MCP server's
 `create_board_from_schematic` (69 footprints, 106 nets, 387 pads synced
@@ -1632,3 +1635,255 @@ J401, R106/R107 under U101, the U201 decoupling block) and at the silk; a
 caliper measurement of a real J401 signal contact against the 0.55mm hole (0.47mm worst case finished) before ordering; scope/meter
 checks at bring-up (VBUS ringing at hot-plug with D401 fitted, the +3V3
 droop at U201 during TX bursts, and ESP32 flashing through TP201-TP206).
+
+### Ground plane and VREG (`pilink-r1h`, `pilink-2x7`)
+
+Two audit findings, one pipeline re-run. Coordinates are board-local mm.
+
+**What the bead asked for and what was possible.** `pilink-r1h` proposed
+reserving B.Cu as a GND plane, with signals on F.Cu and only short B.Cu
+hops. That did not work with this placement and Freerouting 2.0.1:
+
+- Per-layer trace costs in the DSN do not keep signals off B.Cu. With the
+  B.Cu cost at 50 (F.Cu 1), B.Cu still carried ~52% of the signal track.
+- B.Cu track keepouts are the only lever. One under U101, even one only over
+  the exposed pad, never finished (Freerouting kept running past the pass
+  limit, or wrote no session). The same happened with the whole VREG block
+  plus a channel down to the EP: the ESP32 UART nets (U101 pins 1-4 -> U201)
+  run on B.Cu between L101 and the top pin row, and with that corridor
+  closed they stayed unrouted. A locked B.Cu GND spine from the EP to the
+  VREG area did the same thing.
+- What does route: a keepout under the crystal (Y101, load caps, R101) and
+  one under the VREG hot loop (C103/C104/the PGND island vias, from L101's
+  bottom edge to the pins; B.Cu under L101 itself was already kept clear
+  by `l101_keepout.py`), extended by `pilink-93a` over the strip under the
+  top pin row (x 43.7-51.6) down to the exposed pad, see "VREG ground to
+  the EP" below.
+
+So B.Cu is still a signal layer (1454mm of signal track; master 1394mm),
+and the work went into making the ground one connected, well-stitched net:
+
+- **GND is not routed.** `route.py` takes GND out of the DSN and gives the
+  router the locked GND copper as keepouts. No more 0.2mm GND traces
+  (master's EP bridge, U1's 7mm GND trace).
+- **A via at every SMD GND pad** (`gnd_fanout.py`, laid by `preroute.py`
+  before routing): every capacitor, IC and connector GND pad on either
+  layer gets its own via. U1 and the bulk/boost caps get 2-3. The 0.5mm
+  pitch J501 GND runs get a bar with vias beyond it. U201's B.Cu GND pads
+  are included, because B.Cu carries signals and a trial routing boxed
+  U201.15 into a 2.7 mm^2 pocket.
+- **U1's GND in the pour.** The +3V3 heat spreader is notched at U1 pin 1
+  and at C2/C3's GND pads.
+- **Stitching** (`zones.py`): at least one via per 40 mm^2 in every GND
+  fragment, vias every 2mm along both sides of the USB, QSPI and display
+  SPI tracks where both layers have GND, and a 4mm grid wherever both
+  layers have GND.
+- **Connectivity is checked, not assumed.** `zones.gnd_components()` builds
+  the GND copper graph (fills, tracks, vias, pads). If anything is left
+  outside the main ground, `gnd_repair.py` looks for a legal GND track to
+  join it (a raster maze search over both layers). `zones.py`'s gate exits
+  non-zero if anything is still unjoined, a GND fragment has no via, or a
+  capacitor GND pad has no via within 1mm. `route.py` runs the same trial
+  pour on each candidate routing and rejects one that would fail the gate.
+  The committed routing needed no repair track.
+- **Re-runs give a new routing.** Freerouting is deterministic per DSN. A
+  failed DSN fails the same way every time, so the previous retry loop only
+  repeated the failure. `route.py` now shuffles the net order per attempt
+  (seeded) and runs 4 attempts at once.
+
+**VREG topology (`pilink-2x7`, DS 6.3.8.1).** All locked in
+`preroute.py`, see BOM.md flag 2 for the layout:
+
+- The C_IN loop is on F.Cu. PGND + C103.2 + C104.2 form an F.Cu island the
+  pour is kept off, and it joins the plane at one point with 2 adjacent
+  vias.
+- C105 (C_FILT) has its own GND via.
+- VREG_FB is a dedicated trace into C104.1. DVDD leaves the L101 pad 2
+  node separately via C118 and an F.Cu ring under the package to pins
+  10/32/51. +1V1 has one via: the locked TP101 test-pad link at (55.05,
+  12.00), with 0.95mm of B.Cu to TP101 on the back. The rail itself has
+  no B.Cu.
+- C104 (C_OUT) is not at L101's +1V1 pad. Its +1V1 pad reaches L101.2 by
+  a 10.5mm, 0.4/0.3mm run down L101's west side; master had a 3.3mm direct
+  link. DVDD is fed from the L101.2 end, so C_OUT hangs on that run (about
+  8nH by the usual 1nH/mm rule of thumb for a trace over a plane; not
+  measured). Why it stays: the stack is pins -> C103 -> C104 -> L101 with
+  L101's LX pad at the bottom, so the LX run (pin 63 straight up between
+  the two caps) is 4.4mm with no via, the C_IN loop is 1.2mm, and C104's
+  GND pad sits on the PGND island next to pin 62. That keeps the phase-2
+  loop (L101 -> C_OUT -> PGND) at about the same area as master (11.4 vs
+  12.3mm^2, review figure). Moving C104 to L101.2 (above L101) moves its
+  GND off the PGND island and stretches FB past L101 to ~8mm. Flipping
+  L101 (pad 2 at the bottom) doubles the LX run. Either one is a placement
+  change with its own trade-off, so it is left for a human decision.
+- Checked from the copper (BFS over +1V1 from pin 65, joins at the C104.1
+  pad treated as the star point): the FB run is 4 segments, 2.97mm, no via,
+  and no pad but pin 65 and C104.1.
+- R104's +3V3 end got a locked link down into C113.1. Inside the DVDD run
+  the router could almost never get it out, which was one cause of the
+  unfinished runs.
+- Bug fixes found on the way:
+  - `zones.py` crashed in the zone filler. `ZONE.SetOutline()` took
+    ownership of a Python-owned outline.
+  - It also laid 0 heat-spreader vias, because
+    `SHAPE_POLY_SET.SquaredDistance(..., True)` is unsupported in KiCad 10.
+  - `prune_dangling_locked()` deleted live +1V1/GPIO41 pre-route copper that
+    a router track joined part-way, which left 3 unconnected items.
+
+**VREG ground to the EP (`pilink-93a`, PR #103 review).** In the first
+version of this PR the router ran PSRAM_CS on B.Cu along y 19.6 under pins
+61-70. That cut the B.Cu under the regulator (364mm^2) off from the EP's,
+and the regulator's ground reached the EP only round the board: ~105mm of
+copper by the measure below (the review's straight-line lower bound was
+39mm). Changes:
+
+- `plane_keepout.py` `VREG_PINS_B`: the VREG hot-loop keepout now also
+  covers the strip under the top pin row (x 43.7-51.6) down to the EP's
+  top edge, so no B.Cu signal crosses between the regulator and the EP.
+- PSRAM_CS is a locked pre-route (`preroute.py`, ~33mm). It runs from the
+  pin 58 hop up F.Cu east of the DVDD run, west over the VREG block on
+  F.Cu at y 9.9, then takes one short B.Cu hop under QSPI_SCLK into U103
+  pin 1. R105 (pull-up) stays with the router. Total 47.1mm / 5 vias
+  (master 49.2/4, first version 42.7/3). Left to the router with the strip
+  kept out, it ran under the exposed pad, or ~70mm round the west side, or
+  stayed unrouted. A B.Cu run over the VREG block boxed U103's GND vias
+  in. A locked +3V3 drop to U103.8 (tried) boxed C121's.
+- `gnd_paths.py` (new) measures the copper path from a GND pad to U101's
+  EP. Both layers are rasterised at 0.1mm (fills, GND tracks, pads; vias
+  and plated holes link the layers) and a geodesic distance is grown from
+  the EP, so a path goes round signal tracks, not through them. The gate
+  runs in `zones.py`'s `gnd_gate` and in `route.py`'s `accept()`. Limits:
+  PGND pin 62 / C103 / C104 / C105 at most 12mm and 1 via; C113 / C115
+  at most 15mm; C111 / C112 / C118 at most 30mm (see below).
+- `zones.via_ok()` judged a track by its bounding box. A long diagonal's
+  box covers a whole triangle of free pour, so B.Cu slivers between
+  diagonals got no stitching via and the gate failed. It now uses the
+  real distance to the segment. GND stitching vias: 247 (was 186 on the
+  same routing).
+- `zones.pour_and_join()` stitches again after a `gnd_repair` join.
+  `gnd_repair.py` keeps a new via 0.35mm (hole edge to hole edge) from
+  every existing via and plated hole, GND ones included.
+- C111.2 gets 2 fan-out vias (`gnd_fanout.EXTRA`). With one, it landed in
+  a pocket on 3 of 12 trials.
+
+GND path to the U101 EP along copper (`gnd_paths.py`, all three boards
+re-filled and measured the same way; vias = layer changes on that path):
+
+| From | master 2b621ca | first version ebb6685 | now |
+|---|---|---|---|
+| PGND island vias (48.30, 17.00 / 17.75) | (no island) | 105.5 / 105.2 mm | **7.1 / 6.8 mm, 0** |
+| U101.62 (PGND pin) | 6.1 mm, 1 | 106.9 mm, 7 | **8.2 mm, 1** |
+| C103.2 (C_IN) | 8.3 mm, 1 | 106.1 mm, 7 | **7.3 mm, 1** |
+| C104.2 (C_OUT) | 8.7 mm, 1 | 106.4 mm, 7 | **7.6 mm, 1** |
+| C105.2 (C_FILT) | 12.5 mm, 1 | 103.7 mm, 7 | **8.7 mm, 1** |
+| C113.2 | 9.8 mm | 101.6 mm | **9.9 mm** |
+| C115.2 | 9.5 mm | 110.3 mm | **7.2 mm** |
+| C111.2 | 8.0 mm | 102.3 mm | 25.0 mm |
+| C112.2 | 6.3 mm | 106.8 mm | 24.8 mm |
+| C118.2 | 7.9 mm | 105.7 mm | 24.9 mm |
+| C106.2 / C107.2 / C108.2 / C116.2 | 12.3 / 8.3 / 8.2 / 10.3 mm | 14.8 / 7.2 / 9.2 / 6.8 mm | 14.8 / 7.2 / 7.7 / 6.8 mm |
+| C109.2 / C110.2 / C117.2 | 55.9 / 57.7 / 58.7 mm | 50.2 / 51.3 / 54.2 mm | 43.6 / 45.2 / 48.1 mm |
+| C114.2 | 22.5 mm | 25.2 mm | 21.9 mm |
+
+Master's figures go through its 0.2mm GND traces, so a short path there is
+not a low-impedance one. The regulator group is now as close as master or
+closer, on copper planes. Still open (follow-up bead):
+
+- C111/C112/C118 sit in the B.Cu boxed in by the east pin row's escapes,
+  the PSRAM_CS/GPIO41 B.Cu hops and the USB pair. That B.Cu reaches the
+  EP the long way round, ~25mm against master's 6-8mm. Their gate limit
+  (30mm) catches an ebb6685-style failure, not that gap.
+- C109/C110/C117 (south) were 50-59mm on both earlier boards for the same
+  reason (the B.Cu round U101 is cut by its own fan-out). They are not
+  gated.
+
+**Measured, master (2b621ca) -> this PR** (`zones.py` report, the
+`gnd_paths.py` / copper scripts above, DRC):
+
+| | master | this PR |
+|---|---|---|
+| GND_F polygons / largest | 16 / 3867 mm^2 | 15 / 3631 mm^2 |
+| GND_B polygons / largest | 9 / 3188 mm^2 | 17 / 3393 mm^2 |
+| GND copper not joined to the main ground | 0 (but via 0.2mm traces) | 0 (gate; 1 `gnd_repair` via at U103) |
+| GND vias | 32 | 328 |
+| U101 EP thermal vias in the main B.Cu polygon | 0 / 9 | 9 / 9 |
+| B.Cu signal track, whole board | 1394 mm | 1454 mm |
+| C103 (C_IN) GND -> PGND pin 62 | 7.01 mm, 2 vias | 1.21 mm, 0 vias |
+| PGND pin 62 -> C104 (C_OUT) GND | 7.98 mm, 2 vias | 2.23 mm, 0 vias |
+| VREG_FB pin 65 -> C104.1 | 5.39 mm, 0 vias | 2.97 mm, 0 vias |
+| VREG_LX pin 63 -> L101.1 | 4.06 mm | 4.43 mm |
+| L101.2 -> C104.1 (C_OUT) | 3.3 mm | 10.5 mm (see above) |
+
+The C_IN / FB / LX / C_OUT rows come from locked pre-route copper that
+this round did not change. The reference-plane coverage (USB / QSPI /
+display SPI) and the crystal-keepout rows of the first version were not
+re-measured.
+
+Notes:
+
+- The GND_B polygon count went up because B.Cu is still cut by signals.
+  Every fragment of 1mm^2 or more has a via, and the whole net is one
+  connected ground.
+
+**Verification, committed run.** place -> preroute -> route -> widen ->
+zones with the final scripts. Six script configurations went through
+about 68 Freerouting runs in this round. None passed every `route.py`
+gate as it stood at the time. Most failures were an unrouted ESP32 UART,
++3V3 U103.8 or R105 connection, a GND pocket at U103/C121 or C111, or no
+session file. The committed routing is seed 0 of the last 16-seed run on
+the final pre-route. It had every signal routed and no unjoinable GND
+island. `route.py` rejected it only on the C111/C112/C118 path limit,
+which was 25mm then, with 28.4mm, >40mm and >40mm. That was before the
+`via_ok` fix: the stitching vias the fix adds bring the three to 25.0,
+24.8 and 24.9mm. The
+routing was then finished by hand from that attempt's import (copied to
+the board, then `widen.py` and `zones.py`), and `zones.py`'s gate,
+including the path gate, passes on it. The session is committed as
+`routing/accepted.ses`. Freerouting results depend on the exported item
+order, so a fresh run will not reproduce this routing; re-import the
+session instead.
+
+Other checks:
+
+- QSPI (SCLK 19.26mm/0 vias, SD0 16.54/2, SD1 26.39/4, SD2 33.48/2, SD3
+  27.83/3, SS 38.19/2) and USB (D+ 27.42 + 2.47mm, D- 23.85 + 4.19mm) are
+  the same as master.
+- `net_resistance.py`, PR #102 -> now:
+
+  | Path | PR #102 | now |
+  |---|---|---|
+  | VBUS_RAW J401.B9 -> F401 | 4.1 | 4.9 mOhm |
+  | VBUS_RAW J401.A9 -> F401 | 21.6 | 23.6 mOhm |
+  | +5V F401 -> U1 | 48.6 | 39.9 mOhm |
+  | +3V3 U1 -> U201.2 | 61.6 | 62.3 mOhm |
+  | +3V3 U1 -> U501.6 | 98.5 | **149.0** mOhm |
+  | +3V3 U1 -> U101.64 | 73.2 | 83.2 mOhm |
+  | U201.2 -> C202 | 0.9 | 1.5 mOhm |
+  | U201.2 -> C201 | 3.6 | 4.7 mOhm |
+  | U201.3 -> C203 | 3.2 | 3.2 mOhm |
+
+  These are routed paths only (tracks; pours ignored). The widths come
+  from the same `widen.py` tiers.
+
+- `kicad-cli pcb drc --severity-all --schematic-parity --refill-zones`:
+  **76 violations, 0 errors, 0 unconnected, 0 parity**, all silkscreen
+  warnings (40 `silk_over_copper`, 34 `silk_overlap`, 2
+  `silk_edge_clearance`). Master had 39/30/2; the extra ones are vias
+  under silk.
+- `kicad-cli sch erc --severity-all`: **0 errors, 24 warnings**, the same
+  `isolated_pin_label` spare GPIOs.
+- `netlist_check.py`: **357 pins, 0 mismatches**.
+- `enclosure/scripts/check_fit.sh`: **55 OK, 0 FAIL, 0 WARN, 6 INFO**, the
+  same as master.
+- The antenna strip check (`check_strip`) passes. The SW101/SW102 keepouts,
+  the `backlight_sw_vs_fb` 1.2mm rule, the J401 rules and `vreg_lx_neck` all
+  pass in DRC (0 errors).
+
+Still needs a human:
+
+- A KiCad GUI look at the VREG block and the new via field round U101.
+- Deciding whether B.Cu has to become a real plane. That means moving the
+  ESP32 UART lanes, or the placement, which is a follow-up bead.
+- Deciding on C104's position (C_OUT on a 10.5mm run from L101.2, see
+  above).
+- A bring-up scope check of the 1.1V core rail ripple with this layout.
