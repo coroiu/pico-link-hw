@@ -191,6 +191,12 @@ P = {
     # west column pins 3/4 = USB_DM (from J401 B7), east column 1/6 = USB_DP
     # (from B6), GND (pin 2) on the J401 side, VBUS (pin 5) away from it.
     "U401": (61.25, 32.2, 90),
+    # pilink-uqt: C401 100nF on U401's VBUS pin (ST DocID 11265 Fig. 18), on
+    # F.Cu right over U401, pad 1 (VBUS_RAW) east on the VBUS via preroute.py
+    # drops from pin 5. B.Cu has no room: the USB pair's lanes and U401's
+    # courtyard box the via in, and east of U401 the D+ column is in the way.
+    # x 61.05 keeps its courtyard off J501's (x >= 62.17).
+    "C401": (61.05, 28.9, 180),
     # pilink-8rz: 27R series resistors on B.Cu under U101, next to the vias
     # that take pins 67 (DP) / 66 (DM) down from F.Cu; pad 1 (MCU side) west.
     # preroute.py lays the copper; the via/pad geometry is derived there.

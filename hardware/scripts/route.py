@@ -21,7 +21,9 @@ this placement (see below), so the aim is one well-stitched GND net:
     pass limit, joining the fixed GND fan-out pieces with traces.)
   * plane_keepout.py adds B.Cu track keepouts where the plane must stay
     whole (under the crystal; under the VREG hot loop and the strip under
-    U101's top pin row down to the exposed pad, pilink-93a), exported like
+    U101's top pin row down to the exposed pad, pilink-93a; channels from
+    the exposed pad to the east/south decouplers' vias, pilink-xy5; U201's
+    module body, tracks and vias, pilink-9on), exported like
     the antenna strip and the L101 area. Larger ones were tried and did
     not route: under U101 (whole body, ring, or only the exposed pad), the
     whole VREG block, and the VREG block plus a channel to the exposed pad
