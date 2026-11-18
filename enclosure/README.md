@@ -248,6 +248,37 @@ doesn't exist yet).
 The file now renders headlessly (OpenSCAD 2021.01) and is covered by
 `scripts/check_fit.sh`; the printed fit check is still `pilink-8hx.5`.
 
+### Single-file Customizer copy (`dist/back_shell_customizer.scad`, `pilink-c6z`)
+
+Online configurators such as MakerWorld's Parametric Model Maker take one
+`.scad` file and can't find a local `include <common.scad>`.
+`dist/back_shell_customizer.scad` is a generated copy of `back_shell.scad`
+with `common.scad` pasted in where the `include` was. OpenSCAD's `include`
+is plain text substitution, so the copy evaluates exactly like the source.
+The Customizer parameters (Stand / Fins / Feet / Render) stay at the top,
+and the pasted constants land after `/* [Hidden] */`.
+
+- **Don't edit the copy.** Edit `back_shell.scad` / `common.scad`, then run
+  `python3 enclosure/scripts/make_customizer.py`. Commit the regenerated
+  file too. `scripts/check_fit.sh` runs `make_customizer.py --check` first
+  and stops if the copy is stale.
+- **The generator enforces two rules:** every `include` has to come after
+  `/* [Hidden] */`, so the pasted constants don't show up as parameters, and
+  `use <...>` isn't allowed.
+- **To upload it:** on MakerWorld, open Parametric Model Maker, create a
+  model and upload `enclosure/dist/back_shell_customizer.scad` as the only
+  file (no `common.scad`). The parameter panel shows the four sections. The
+  default `PART` is `assembly`, which also renders the rubber feet as
+  display solids. For a printable download, set **Render > PART** to
+  `back_shell` (and save that as the published preset) before generating.
+  Other single-file OpenSCAD Customizers (e.g. Thingiverse-style ones) take
+  the same file.
+- **OpenSCAD version:** the file sticks to features from OpenSCAD 2021.01 or
+  earlier (`assert`, list comprehensions with `let`, a `polyhedron()` built
+  from computed point and face lists) and is checked on 2021.01. Reports differ on which build MakerWorld
+  runs (2021.01 or a recent development snapshot). Either one should
+  render it, but only 2021.01 has actually been tested. Nobody has tried it on the live site yet.
+
 ### Rear fin stand (`pilink-s98`)
 
 User design, 2026-11-17. Replaces the two glued splayed legs (and their

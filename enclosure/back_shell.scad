@@ -116,8 +116,11 @@ PART = "assembly"; // [assembly, back_shell]
 // cavity with BOARD_CLEARANCE_X (0.5mm) / BOARD_CLEARANCE_Y (1.0mm) per side
 // (supersedes pilink-mav's 0.00mm bottom gap and the old 0.00/0.4mm side
 // gaps). Customizer note: this include makes the file depend on
-// common.scad; a single-file upload (e.g. an online configurator) needs it
-// inlined first.
+// common.scad. For a single-file upload (MakerWorld's Parametric Model
+// Maker and similar online configurators) use the generated
+// enclosure/dist/back_shell_customizer.scad, which has it inlined
+// (pilink-c6z: enclosure/scripts/make_customizer.py). Keep this include
+// after /* [Hidden] */ -- the generator refuses it otherwise.
 include <common.scad>
 
 WALL_T      = WALL;    // = 2.0mm side/top/bottom wall, same as the back wall
