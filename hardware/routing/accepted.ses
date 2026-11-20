@@ -1584,15 +1584,6 @@
           )
         )
       )
-      (net "/RP2350B + Memory/VREG_LX"
-        (wire
-          (path F.Cu 2000
-            1470000 -1157325
-            1474825 -1157325
-            1479500 -1152650
-          )
-        )
-      )
       (net "/USB-C/CC1"
         (wire
           (path F.Cu 2000

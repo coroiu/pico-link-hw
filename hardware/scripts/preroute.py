@@ -86,7 +86,10 @@ PREROUTE_NETS = ["USB_DP", "USB_DM", DP_MCU, DM_MCU, VBUS, "/USB-C/CC2",
 def main():
     board = pcbnew.LoadBoard(BOARD)
     for t in list(board.GetTracks()):
-        if t.IsLocked() and t.GetNetname() in PREROUTE_NETS:
+        # VREG_LX (pin 63 -> L101 pad 1) is wholly this script's, so router
+        # copper on it goes too: a router stub into the old, larger L101 pad
+        # was left dangling when L101 changed (pilink-7sb)
+        if (t.IsLocked() and t.GetNetname() in PREROUTE_NETS) or t.GetNetname() == LX_NET:
             board.Remove(t)
 
     def pad(ref, num):
@@ -321,7 +324,8 @@ def main():
     # place.py stacks C103 (C_IN) and C104 (C_OUT) right above the pins,
     # each straddling the LX column with its west pad over VIN/FB (+3V3 /
     # +1V1) and its east pad over PGND, and L101 above them with its LX pad
-    # (pad 1) at the bottom. Then, all on F.Cu:
+    # (pad 1) at the bottom and its polarity-dot pad (pad 2, +1V1) at the
+    # top (pilink-7sb). Then, all on F.Cu:
     #  * C_IN loop: VIN pin -> C103.1 and PGND pin -> C103.2, each a straight
     #    0.5mm stub, so the hot loop VIN -> C_IN -> PGND is ~1mm long.
     #  * LX: pin 63 straight up between C103's and C104's pads (a 0.15mm
@@ -387,7 +391,9 @@ def main():
     l2_top = pext("L101", "2")[1]
     l1_bot = pext("L101", "1")[3]
     ytop = l2_top - 0.37
-    xw = pext("L101", "1")[0] - 1.15          # west of L101 (outside its body)
+    # west of L101: 0.45mm from the LX pad's edge (pilink-7sb; the same x
+    # as the DMBJ part's run, which clears C115's GND via and QSPI_SCLK)
+    xw = pext("L101", "1")[0] - 0.65
     ylink = l1_bot + 0.365
     path("+1V1", F, [l2, (l2[0], ytop), (xw, ytop), (xw, ylink)], width=0.4)
     path("+1V1", F, [(xw, ylink), (c4_1[0], ylink), c4_1], width=0.3)
@@ -405,7 +411,12 @@ def main():
     path("+1V1", F, [(x51o + 0.3, y51), (x51, y51)], width=0.2)
     tp = pad("TP101", "1")
     vtp = (tp[0] - 0.95, tp[1])
-    path("+1V1", F, [(x_dv, tp[1]), vtp], width=0.4)
+    if ytop > tp[1]:
+        # the DVDD run turns down below the TP101 link's level (pilink-7sb:
+        # the smaller L101 sits lower): 45 degrees up from its corner
+        path("+1V1", F, [(x_dv, ytop), (x_dv + (ytop - tp[1]), tp[1]), vtp], width=0.4)
+    else:
+        path("+1V1", F, [(x_dv, tp[1]), vtp], width=0.4)
     via("+1V1", *vtp)
     path("+1V1", B, [vtp, tp], width=0.4)
     # +1V1 ring under the package: pin 51 inner end -> pins 32 and 10

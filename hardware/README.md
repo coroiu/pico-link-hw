@@ -1717,6 +1717,9 @@ and the work went into making the ground one connected, well-stitched net:
   GND off the PGND island and stretches FB past L101 to ~8mm. Flipping
   L101 (pad 2 at the bottom) doubles the LX run. Either one is a placement
   change with its own trade-off, so it is left for a human decision.
+  (`pilink-7sb`: with the smaller Abracon L101 this run is now 7.5mm and
+  the LX run 3.56mm; L101's polarity fixes which pad is at the bottom. See
+  "L101: Abracon AOTA-B201610" below.)
 - Checked from the copper (BFS over +1V1 from pin 65, joins at the C104.1
   pad treated as the star point): the FB run is 4 segments, 2.97mm, no via,
   and no pad but pin 65 and C104.1.
@@ -2014,3 +2017,83 @@ GUI and bring-up checklist additions (from review of this PR):
   that solder joint after assembly.
 - C401's reference designator overlaps J501's silkscreen (the one new
   `silk_overlap`); move or hide it before fab.
+
+### L101: Abracon AOTA-B201610 (`pilink-7sb`)
+
+JLCPCB's order check flagged L101 (DMBJ CXP0420, no polarity mark, BOM.md
+assembly flag 2's accepted deviation). The part RP2350 DS 6.3.8.2
+recommends, Abracon `AOTA-B201610S3R3-101-T` (`C42411119`, 2.0 x 1.6mm,
+polarity dot), is back in JLCPCB stock, so L101 is now that part. BOM.md
+flag 2 has the part data and the orientation evidence; in short:
+
+- **Polarity: dot on +1V1.** DS 6.3.8.2: "The inductor must be marked for
+  polarity (see Figure 28) and placed on the layout as indicated in
+  Figure 26." In Figure 26's vector geometry the "orientation indicator"
+  dot sits in the inductor pad whose copper runs to C_OUT and VOUT; the
+  other pad runs to VREG_LX. Raspberry Pi's KiCad layouts (RP2350B minimal
+  RP-006442-DD-2, RP2350A minimal R4-S1) agree. New footprint
+  `Inductor_SMD_Custom:L_Abracon_AOTA-B201610` (Abracon datasheet
+  "Recommended Land Pattern": 1.00 x 1.60mm pads, 1.00mm gap): pad 2 is
+  the dot end, with a silkscreen dot beside it; on the board pad 2 is
+  +1V1, pad 1 VREG_LX, the schematic pins as before.
+- **CPL rotation.** The EasyEDA/JLCPCB footprint for C42411119 has the
+  same pads at 0 degrees with its dot beside pad 2 at +X, so JLCPCB's
+  rotation is KiCad's: L101 is `90` in the CPL (dot toward board -Y, the
+  +1V1 pad at the top). `preview/scripts/export_fab.py` now lists
+  `Inductor_SMD_Custom` as a custom library, so L101 is in the
+  "double-check in JLCPCB's preview" list.
+- **Placement** (`place.py`): rot 90 as before, centred on the LX column
+  (x 47.0, was 47.95) with its courtyard bottom where the DMBJ part's was,
+  so it sits right above C104. `l101_keepout.py` now reads the keepout
+  areas from the footprint's pads and body; the F.Cu GND pour is held
+  `POUR_MARGIN` = 1.0mm off the pads (DS 6.3.8.1: cut copper back near
+  VREG_LX), since the old 4.4mm body no longer does that by itself.
+- **Pre-route** (`preroute.py`): unchanged topology. The +1V1 run down
+  L101's west side stays at x 45.55; DVDD turns east at the new pad-2 level
+  and reaches the TP101 link by a 45-degree jog; all VREG_LX copper is now
+  this script's (it deletes router copper on VREG_LX too: the router's
+  stub into the old pad would have been left dangling, and that wire is
+  removed from `routing/accepted.ses`).
+
+Measured from the copper, DMBJ layout (master `a5c3816`) -> now:
+
+| | master | now |
+|---|---|---|
+| VREG_LX copper, pin 63 -> L101.1 | 4.98 mm (incl. 1.14 mm router stub into the pad), 0 vias | **3.56 mm, 0 vias** |
+| VREG_LX, pin 63 centre -> LX pad edge | 3.09 mm | 3.06 mm |
+| VREG_LX copper to nearest F.Cu GND fill | 0.96 mm | 1.00 mm |
+| +1V1 L101.2 -> C104.1 (C_OUT) | 10.48 mm | **7.50 mm** |
+| +1V1 L101.2 -> C118.1 (DVDD) | 19.80 mm | 18.73 mm |
+| VREG_FB pin 65 -> C104.1 | 2.97 mm | 2.97 mm |
+| GND paths to the EP (`gnd_paths.py`) | as in the table above | identical, gate passes |
+
+**Verification.** place -> preroute -> widen -> zones on the committed
+routing. **Freerouting was not re-run (0 runs):** the swap only shrinks
+L101 and changes locked VREG pre-route copper inside the area the old part
+covered, and a fresh routing would have needed the dozens of attempts the
+last two rounds took. Copper diff against master: only the locked
++1V1/VREG_LX pre-route around L101, the router's VREG_LX stub, and one GND
+stitching via `zones.py` re-placed beside L101, (50.6, 14.0) -> (50.0,
+14.0); every other track and via is unchanged. A second full pipeline run
+reproduced the board except one stitching via at (59.4, 30.1), which
+`zones.py` places at one of two spots from run to run (also on master's
+scripts; unrelated to L101).
+
+- `kicad-cli pcb drc --severity-all --schematic-parity --refill-zones`:
+  **77 violations, 0 errors, 0 unconnected, 0 parity**, the same 77
+  silkscreen warnings as master, item for item (40 `silk_over_copper`, 35
+  `silk_overlap`, 2 `silk_edge_clearance`). `vreg_lx_neck` passes.
+- `kicad-cli sch erc --severity-all`: **0 errors, 24 warnings** (the same
+  `isolated_pin_label` spare GPIOs as master).
+- `netlist_check.py`: **359 pins, 0 mismatches**.
+- `zones.py` ground-plane gate and `gnd_paths.py` gate pass; GND_F 18
+  polygons / largest 3360 mm^2, GND_B 15 / 3691 mm^2, as master.
+- Fab outputs (`preview/scripts/export_fab.py`): BOM row `3.3uH, L101,
+  L_Abracon_AOTA-B201610, C42411119`; CPL `L101, 147.0000, -114.5400, Top,
+  90`; 73 placed parts, none without an LCSC number, J101 absent.
+
+Still needs a human: a look at L101 in JLCPCB's placement preview (dot
+toward the top of the board, on the pad that joins the trace to C104's
+left pad and the DVDD run, not the one joining U101 pin 63); a KiCad GUI
+look at the VREG block; a glance at Figure 26 if in doubt about the
+orientation; the bring-up scope check of the 1.1V rail.
