@@ -111,6 +111,11 @@ def pt(x, y):
 # clear.
 CX, CY = 44.0, 24.0
 RING = 7.2  # decoupling cap centre distance from U101 centre
+# L101 (VREG inductor, pilink-7sb): courtyard half-length along its pads
+# (footprint L_Abracon_AOTA-B201610: pads to +/-1.5 plus 0.25), and where its
+# courtyard's bottom edge sits, just above C104's (the DMBJ part's edge).
+L101_CRT = 1.75
+L101_CRT_BOTTOM = CY - 7.71
 
 # ref: (x, y, rot) ; rot None/str => auto-orient so pad 1 faces `face`
 P = {
@@ -134,16 +139,21 @@ P = {
     # the pins and C104 (C_OUT) above it both straddle the VREG_LX column
     # (pin 63, x 47.0): west pad (+3V3 / +1V1) over VIN/FB, east pad (GND)
     # over PGND, so the VIN -> C_IN -> PGND loop is ~1mm and LX runs up
-    # between the pads. L101 (DMBJ CXP0420, stood vertical, LX pad at the
-    # bottom) right above C104, its LX pad still over pin 63; x 47.95 leaves
-    # room west of it for the +1V1 link and C115's GND via between that link
-    # and the QSPI_SCLK run. C105 (C_FILT) and R104 (AVDD filter) east of
-    # the stack, C105 next to AVDD (pin 61). Every y is the tightest the
-    # courtyards allow (U101's top edge at y 18.41, 0402 courtyard +/-0.505,
-    # L101's +/-2.695 along its pads). preroute.py lays the copper.
+    # between the pads. L101 (pilink-7sb: Abracon AOTA-B201610, 2.0 x 1.6mm,
+    # stood vertical at rot 90) right above C104: pad 1 (VREG_LX) at the
+    # bottom, centred on the LX column (pin 63) as in Fig. 26, and pad 2
+    # (+1V1, the polarity-dot end, see the footprint) at the top. Its
+    # courtyard bottom stays where the DMBJ part's was (L101_CRT_BOTTOM), so
+    # the LX run is no longer than before; the narrower body (x 46.2-47.8)
+    # still leaves room west of it for the +1V1 link and C115's GND via
+    # between that link and the QSPI_SCLK run. C105 (C_FILT) and R104 (AVDD
+    # filter) east of the stack, C105 next to AVDD (pin 61). Every y is the
+    # tightest the courtyards allow (U101's top edge at y 18.41, 0402
+    # courtyard +/-0.505, L101's L101_CRT along its pads). preroute.py lays
+    # the copper.
     "C103": (CX + 3.0, CY - 6.1, 0),
     "C104": (CX + 3.0, CY - 7.12, 0),
-    "L101": (CX + 3.95, CY - 10.36, 90),
+    "L101": (CX + 3.0, L101_CRT_BOTTOM - L101_CRT, 90),
     "C105": (CX + 5.6, CY - 6.11, 0),
     "R104": (CX + 5.6, CY - 7.14, 180),
     "Y101": (CX, CY + 11.5, 0),
@@ -435,7 +445,7 @@ P = {
     "J101": (20.0, 46.0, 180),
 }
 
-REF_TEXT = {"L101": (CX + 3.95, CY - 14.8),
+REF_TEXT = {"L101": (CX + 3.0, L101_CRT_BOTTOM - 2 * L101_CRT - 0.8),
             "R104": (CX + 7.4, CY - 7.14), "C105": (CX + 7.4, CY - 6.11),
             "U401": (65.0, 31.6)}
 # B.Cu parts packed too tightly for a readable reference on B.SilkS (every
@@ -484,8 +494,9 @@ def auto_orient(fp, target):
 # Project-library footprints whose pad geometry has been corrected after the
 # board was created: place.py reloads them when the board's copy drifts
 # (it otherwise only moves footprints, never refreshes their pads).
-# pilink-2wq: L101 land pattern. pilink-912: J401 signal drill 0.7 -> 0.5mm.
-RESYNC = {"L101": ("Inductor_SMD_Custom", "L_DMBJ_CXP0420"),
+# pilink-2wq: L101 land pattern; pilink-7sb: L101 is now the Abracon part.
+# pilink-912: J401 signal drill 0.7 -> 0.5mm.
+RESYNC = {"L101": ("Inductor_SMD_Custom", "L_Abracon_AOTA-B201610"),
           "J401": ("Connector_USB_Custom", "USB_C_Receptacle_HRO_TYPE-C-31-D-09")}
 
 

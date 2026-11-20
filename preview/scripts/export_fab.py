@@ -38,7 +38,7 @@ import zipfile
 
 # Footprint libraries that are project-local (hand-authored or vendor-copied),
 # as opposed to KiCad's stock libraries -- see hardware/fp-lib-table.
-CUSTOM_LIBS = {"RP2350_80QFN", "Connector_FPC", "Connector_USB_Custom"}
+CUSTOM_LIBS = {"RP2350_80QFN", "Connector_FPC", "Connector_USB_Custom", "Inductor_SMD_Custom"}
 # JLCPCB package rotation offsets (degrees, added after the bottom-side
 # conversion), first regex match on the footprint name wins. Transcribed from
 # bennymeg/Fabrication-Toolkit plugins/transformations.csv (duplicates
